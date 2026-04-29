@@ -95,6 +95,23 @@ class RyUrlModel(pydantic.BaseModel):
     url: ry.URL
 
 
+# HTTP MODELS
+class PyHttpStatusModel(pydantic.BaseModel):
+    status: int
+
+
+class RyHttpStatusModel(pydantic.BaseModel):
+    status: ry.HttpStatus
+
+
+class PyHeadersModel(pydantic.BaseModel):
+    headers: dict[str, str | list[str]]
+
+
+class RyHeadersModel(pydantic.BaseModel):
+    headers: ry.Headers
+
+
 class _TestJsonSchemas(TypedDict):
     name: str
     ry_model: type[pydantic.BaseModel]
@@ -1494,3 +1511,85 @@ class TestTimeZone:
     def test_timezone_parsing_err(self, value: str | bytes | complex) -> None:
         with pytest.raises(pydantic.ValidationError):
             _m = RyTimeZoneModel(tz=value)  # type: ignore[arg-type]
+
+
+class TestHttpStatus:
+    def test_http_status_model_schema(self) -> None:
+        py_schema = PyHttpStatusModel.model_json_schema()
+        ry_schema = RyHttpStatusModel.model_json_schema()
+        assert ry_schema["properties"]["status"] == py_schema["properties"]["status"]
+
+    def test_http_status_pydantic_round_trip(self) -> None:
+        model = RyHttpStatusModel(status=200)  # type: ignore[arg-type]
+        assert model.status == ry.HttpStatus.OK
+        assert model.model_dump() == {"status": 200}
+        assert model.model_dump_json() == '{"status":200}'
+
+        from_json = RyHttpStatusModel.model_validate_json(model.model_dump_json())
+        assert from_json.status == ry.HttpStatus.OK
+        assert from_json.status is ry.HttpStatus.OK
+
+        from_obj = RyHttpStatusModel(status=ry.HttpStatus.NOT_FOUND)
+        assert from_obj.status is ry.HttpStatus.NOT_FOUND
+
+    def test_http_status_pydantic_fails_invalid_code(self) -> None:
+        with pytest.raises(
+            pydantic.ValidationError, match="HTTP status validation error"
+        ):
+            RyHttpStatusModel(status=99)  # type: ignore[arg-type]
+
+    @pytest.mark.parametrize("value", ["two-hundo", complex(1, 2)])
+    def test_http_status_pydantic_fails_type(self, value: str | complex) -> None:
+        with pytest.raises(pydantic.ValidationError):
+            RyHttpStatusModel(status=value)  # type: ignore[arg-type]
+
+
+class TestHeaders:
+    def test_headers_model_schema(self) -> None:
+        py_schema = PyHeadersModel.model_json_schema()
+        ry_schema = RyHeadersModel.model_json_schema()
+        assert ry_schema["properties"]["headers"] == py_schema["properties"]["headers"]
+
+    def test_headers_pydantic_round_trip(self) -> None:
+
+        input_headers = {
+            "Content-Type": ["application/json", "application/problem+json"],
+            "X-Trace-Id": "abc123",
+        }
+        model = RyHeadersModel(headers=input_headers)  # type: ignore[arg-type]
+        assert isinstance(model.headers, ry.Headers)
+        assert model.headers.is_flat is False
+        assert model.headers.to_dict() == {
+            "content-type": ["application/json", "application/problem+json"],
+            "x-trace-id": "abc123",
+        }
+        assert model.model_dump() == {
+            "headers": {
+                "content-type": ["application/json", "application/problem+json"],
+                "x-trace-id": "abc123",
+            }
+        }
+        assert ry.parse_json(model.model_dump_json()) == {
+            "headers": {
+                "content-type": ["application/json", "application/problem+json"],
+                "x-trace-id": "abc123",
+            }
+        }
+
+        from_json = RyHeadersModel.model_validate_json(model.model_dump_json())
+        assert from_json.headers == model.headers
+
+    def test_headers_pydantic_accepts_headers_instance(self) -> None:
+        headers = ry.Headers({"Content-Type": "application/json"})
+        model = RyHeadersModel(headers=headers)
+        assert model.headers == headers
+        assert model.model_dump() == {"headers": {"content-type": "application/json"}}
+
+    def test_headers_pydantic_fails_header_value(self) -> None:
+        with pytest.raises(pydantic.ValidationError, match="Headers validation error"):
+            RyHeadersModel(headers={"x-test": ["ok", "bad\r\n"]})  # type: ignore[arg-type]
+
+    @pytest.mark.parametrize("value", [{"x-test": 123}, {"x-test": [123]}, None])
+    def test_headers_pydantic_fails_type(self, value: t.Any) -> None:
+        with pytest.raises(pydantic.ValidationError):
+            RyHeadersModel(headers=value)
