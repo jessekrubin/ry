@@ -18,14 +18,45 @@ impl GetPydanticCoreSchemaCls for RyDate {
         let core_schema = ryo3_pydantic::core_schema(py)?;
         let date_schema = core_schema.call_method(interns::date_schema(py), (), None)?;
         let validation_fn = cls.getattr(interns::_pydantic_validate(py))?;
-        let args = PyTuple::new(py, vec![&validation_fn, &date_schema])?;
+        let json_schema = core_schema.call_method(
+            interns::no_info_after_validator_function(py),
+            (&validation_fn, &date_schema),
+            None,
+        )?;
+        let self_instance_schema =
+            core_schema.call_method(interns::is_instance_schema(py), (cls,), None)?;
+        let datetime_instance_schema = core_schema.call_method(
+            interns::is_instance_schema(py),
+            (source.py().get_type::<RyDateTime>(),),
+            None,
+        )?;
+        let zoned_instance_schema = core_schema.call_method(
+            interns::is_instance_schema(py),
+            (source.py().get_type::<RyZoned>(),),
+            None,
+        )?;
+        let python_union_schema = core_schema.call_method(
+            interns::union_schema(py),
+            (vec![
+                &self_instance_schema,
+                &datetime_instance_schema,
+                &zoned_instance_schema,
+                &date_schema,
+            ],),
+            None,
+        )?;
+        let python_schema = core_schema.call_method(
+            interns::no_info_after_validator_function(py),
+            (&validation_fn, &python_union_schema),
+            None,
+        )?;
         let string_serialization_schema =
             core_schema.call_method(interns::to_string_ser_schema(py), (), None)?;
         let serialization_kwargs = PyDict::new(py);
         serialization_kwargs.set_item(interns::serialization(py), &string_serialization_schema)?;
         core_schema.call_method(
-            interns::no_info_wrap_validator_function(py),
-            args,
+            interns::json_or_python_schema(py),
+            (&json_schema, &python_schema),
             Some(&serialization_kwargs),
         )
     }

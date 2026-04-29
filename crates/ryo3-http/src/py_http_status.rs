@@ -183,28 +183,14 @@ impl PyHttpStatus {
 
     #[cfg(feature = "pydantic")]
     #[staticmethod]
-    fn _pydantic_validate<'py>(
-        value: &Bound<'py, PyAny>,
-        _handler: &Bound<'py, PyAny>,
-    ) -> PyResult<Bound<'py, PyAny>> {
-        let py = value.py();
-        if let Ok(status) = value.cast_exact::<Self>() {
-            Ok(status.clone().into_any())
-        } else if let Ok(code) = value.extract::<i64>() {
-            let code = u16::try_from(code).map_err(|_| {
-                py_value_error!("HTTP status validation error: invalid HTTP status code: {code}")
-            })?;
-            let status = http::StatusCode::from_u16(code).map_err(|_| {
-                py_value_error!("HTTP status validation error: invalid HTTP status code: {code}")
-            })?;
-            Ok(Self::from_status_code_cached(py, status)?
-                .into_bound(py)
-                .into_any())
-        } else {
-            Err(py_value_error!(
-                "HTTP status validation error: expected int or HttpStatus"
-            ))
-        }
+    fn _pydantic_validate(py: Python<'_>, code: i64) -> PyResult<Py<Self>> {
+        let code = u16::try_from(code).map_err(|_| {
+            py_value_error!("HTTP status validation error: invalid HTTP status code: {code}")
+        })?;
+        let status = http::StatusCode::from_u16(code).map_err(|_| {
+            py_value_error!("HTTP status validation error: invalid HTTP status code: {code}")
+        })?;
+        Self::from_status_code_cached(py, status)
     }
 
     #[cfg(feature = "pydantic")]
@@ -775,9 +761,23 @@ impl ryo3_pydantic::GetPydanticCoreSchemaCls for PyHttpStatus {
 
         let py = source.py();
         let core_schema = ryo3_pydantic::core_schema(py)?;
-        let int_schema = core_schema.call_method(interns::int_schema(py), (), None)?;
+        let int_schema_kwargs = PyDict::new(py);
+        int_schema_kwargs.set_item("strict", true)?;
+        let int_schema =
+            core_schema.call_method(interns::int_schema(py), (), Some(&int_schema_kwargs))?;
         let validation_fn = cls.getattr(interns::_pydantic_validate(py))?;
-        let args = PyTuple::new(py, vec![&validation_fn, &int_schema])?;
+        let int_to_status_schema = core_schema.call_method(
+            interns::no_info_after_validator_function(py),
+            (&validation_fn, &int_schema),
+            None,
+        )?;
+        let instance_schema =
+            core_schema.call_method(interns::is_instance_schema(py), (cls,), None)?;
+        let python_schema = core_schema.call_method(
+            interns::union_schema(py),
+            (vec![&instance_schema, &int_to_status_schema],),
+            None,
+        )?;
 
         let serializer_fn = cls.getattr(interns::_pydantic_serialize(py))?;
         let serializer_kwargs = PyDict::new(py);
@@ -791,8 +791,8 @@ impl ryo3_pydantic::GetPydanticCoreSchemaCls for PyHttpStatus {
         let serialization_kwargs = PyDict::new(py);
         serialization_kwargs.set_item(interns::serialization(py), &serializer_schema)?;
         core_schema.call_method(
-            interns::no_info_wrap_validator_function(py),
-            args,
+            interns::json_or_python_schema(py),
+            (&int_to_status_schema, &python_schema),
             Some(&serialization_kwargs),
         )
     }
