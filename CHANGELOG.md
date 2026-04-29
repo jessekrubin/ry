@@ -6,7 +6,7 @@
   - pydantic support for `ry.Headers` and `ry.HttpStatus`
 - pydantic integration
   - changed all pydantic stuff to use `no_info_plain_validator_function` instead
-    of `no_info_wrap_validator_function` for all but `ulid` as it is about 2x
+    of `no_info_wrap_validator_function` for all but `ulid` as it is much much
     faster
 
 ---
@@ -41,7 +41,7 @@
   - remove `std::sync::Arc` wrapper around `ry.TimeZone`
   - pydantic support for `ry.TimeZone`
 - `ryo3-std`
-  - pattern matching support for `ry.Duration` → `(secs, nanos)`
+  - pattern matching support for `ry.Duration` => `(secs, nanos)`
 - `ryo3-size`
   - random updates n shit (use `PyAsciiString`, make sure `repr` for formatter
     evals to same thing still dont love the size wrapper lib)
