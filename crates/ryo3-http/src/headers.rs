@@ -78,6 +78,18 @@ impl PyHeaders {
             Ok(d)
         }
     }
+
+    #[cfg(feature = "pydantic")]
+    fn from_any<'py>(value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, Self>> {
+        use pyo3::BoundObject;
+        let py = value.py();
+        if let Ok(headers) = value.cast_exact::<Self>() {
+            Ok(headers.as_borrowed().into_bound())
+        } else {
+            let headers_like = value.extract::<PyHeadersLike>()?;
+            Py::new(py, Self::from(headers_like)).map(|headers| headers.into_bound(py))
+        }
+    }
 }
 
 impl Display for PyHeaders {
@@ -433,11 +445,11 @@ impl PyHeaders {
 
     #[cfg(feature = "pydantic")]
     #[staticmethod]
-    fn _pydantic_validate(value: &Bound<'_, PyAny>) -> PyResult<Self> {
-        value
-            .extract::<PyHttpHeaderMap>()
-            .map(Self::from)
-            .map_err(|e| py_value_error!("Headers validation error: {e}"))
+    fn _pydantic_validate<'py>(
+        value: &Bound<'py, PyAny>,
+        _handler: &Bound<'py, PyAny>,
+    ) -> PyResult<Bound<'py, Self>> {
+        Self::from_any(value).map_err(|e| py_value_error!("Headers validation error: {e}"))
     }
 
     #[cfg(feature = "pydantic")]
@@ -491,8 +503,6 @@ impl ryo3_pydantic::GetPydanticCoreSchemaCls for PyHeaders {
 
         let py = source.py();
         let core_schema = ryo3_pydantic::core_schema(py)?;
-        let dict_schema_kwargs = PyDict::new(py);
-        dict_schema_kwargs.set_item("strict", true)?;
         let str_schema = core_schema.call_method(interns::str_schema(py), (), None)?;
         let list_schema =
             core_schema.call_method(interns::list_schema(py), (&str_schema,), None)?;
@@ -505,22 +515,11 @@ impl ryo3_pydantic::GetPydanticCoreSchemaCls for PyHeaders {
         let dict_schema = core_schema.call_method(
             interns::dict_schema(py),
             (&str_schema, &value_schema),
-            Some(&dict_schema_kwargs),
+            None,
         )?;
 
         let validation_fn = cls.getattr(interns::_pydantic_validate(py))?;
-        let dict_to_headers_schema = core_schema.call_method(
-            interns::no_info_after_validator_function(py),
-            (&validation_fn, &dict_schema),
-            None,
-        )?;
-        let instance_schema =
-            core_schema.call_method(interns::is_instance_schema(py), (cls,), None)?;
-        let python_schema = core_schema.call_method(
-            interns::union_schema(py),
-            (vec![&instance_schema, &dict_to_headers_schema],),
-            None,
-        )?;
+        let args = PyTuple::new(py, vec![&validation_fn, &dict_schema])?;
         let serializer_fn = cls.getattr(interns::_pydantic_serialize(py))?;
         let serializer_kwargs = PyDict::new(py);
         serializer_kwargs.set_item(interns::return_schema(py), &dict_schema)?;
@@ -533,8 +532,8 @@ impl ryo3_pydantic::GetPydanticCoreSchemaCls for PyHeaders {
         let serialization_kwargs = PyDict::new(py);
         serialization_kwargs.set_item(interns::serialization(py), &serializer_schema)?;
         core_schema.call_method(
-            interns::json_or_python_schema(py),
-            (&dict_to_headers_schema, &python_schema),
+            interns::no_info_wrap_validator_function(py),
+            args,
             Some(&serialization_kwargs),
         )
     }
