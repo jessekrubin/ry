@@ -500,10 +500,7 @@ impl PyUrl {
     // ========================================================================
     #[cfg(feature = "pydantic")]
     #[staticmethod]
-    fn _pydantic_validate<'py>(
-        value: &Bound<'py, PyAny>,
-        _handler: &Bound<'py, PyAny>,
-    ) -> PyResult<Bound<'py, PyAny>> {
+    fn _pydantic_validate<'py>(value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, PyAny>> {
         use pyo3::IntoPyObjectExt;
         use ryo3_macro_rules::{py_value_err, py_value_error};
         if let Ok(url) = value.cast_exact::<Self>() {
@@ -685,15 +682,16 @@ impl ryo3_pydantic::GetPydanticCoreSchemaCls for PyUrl {
         let core_schema = ryo3_pydantic::core_schema(py)?;
         let url_schema = core_schema.call_method(pyo3::intern!(py, "url_schema"), (), None)?;
         let validation_fn = cls.getattr(interns::_pydantic_validate(py))?;
-        let args = PyTuple::new(py, vec![&validation_fn, &url_schema])?;
         let string_serialization_schema =
             core_schema.call_method(interns::to_string_ser_schema(py), (), None)?;
-        let serialization_kwargs = pyo3::types::PyDict::new(py);
-        serialization_kwargs.set_item(interns::serialization(py), &string_serialization_schema)?;
+        let plain_validator_kwargs = pyo3::types::PyDict::new(py);
+        plain_validator_kwargs.set_item(interns::json_schema_input_schema(py), &url_schema)?;
+        plain_validator_kwargs
+            .set_item(interns::serialization(py), &string_serialization_schema)?;
         core_schema.call_method(
-            interns::no_info_wrap_validator_function(py),
-            args,
-            Some(&serialization_kwargs),
+            interns::no_info_plain_validator_function(py),
+            (&validation_fn,),
+            Some(&plain_validator_kwargs),
         )
     }
 }

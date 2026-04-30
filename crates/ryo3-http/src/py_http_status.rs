@@ -778,6 +778,7 @@ impl ryo3_pydantic::GetPydanticCoreSchemaCls for PyHttpStatus {
         let serializer_fn = cls.getattr(interns::_pydantic_serialize(py))?;
         let serializer_kwargs = PyDict::new(py);
         serializer_kwargs.set_item(interns::return_schema(py), &int_schema)?;
+        serializer_kwargs.set_item(interns::when_used(py), interns::json_unless_none(py))?;
         let serializer_schema = core_schema.call_method(
             interns::plain_serializer_function_ser_schema(py),
             (&serializer_fn,),

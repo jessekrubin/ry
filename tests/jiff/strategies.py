@@ -95,7 +95,7 @@ duration_strategy = st.builds(
     nanos=st.integers(min_value=-999_999_999, max_value=999_999_999),
 )
 
-# unsigned ────────────────────────────────────────────────────────────
+# unsigned --------------------------------------------------------------------
 
 
 def st_signed_durations(

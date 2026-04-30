@@ -9,6 +9,7 @@ REF(s):
 """
 
 import datetime as pydt
+import pathlib
 import typing as t
 import zoneinfo
 from ipaddress import IPv4Address, IPv6Address
@@ -95,6 +96,15 @@ class RyUrlModel(pydantic.BaseModel):
     url: ry.URL
 
 
+# PATH MODELS
+class PyPathModel(pydantic.BaseModel):
+    path: pathlib.Path
+
+
+class RyFsPathModel(pydantic.BaseModel):
+    path: ry.FsPath
+
+
 class _TestJsonSchemas(TypedDict):
     name: str
     ry_model: type[pydantic.BaseModel]
@@ -140,6 +150,11 @@ _MODELS_SCHEMAS = [
         ry_model=RyUrlModel,
         py_model=PyUrlModel,
     ),
+    _TestJsonSchemas(
+        name="path",
+        ry_model=RyFsPathModel,
+        py_model=PyPathModel,
+    ),
 ]
 
 
@@ -154,6 +169,31 @@ class TestJsonSchemas:
         py_model = schema["py_model"].model_json_schema()
         ry_model = schema["ry_model"].model_json_schema()
         self._diff_schemas(py_model, ry_model)
+
+
+class TestFsPathPydantic:
+    @pytest.mark.parametrize(
+        "value",
+        ["some/path.txt", pathlib.Path("some/path.txt"), ry.FsPath("some/path.txt")],
+    )
+    def test_parse_ok(self, value: str | pathlib.Path | ry.FsPath) -> None:
+        model = RyFsPathModel(path=value)  # type: ignore[arg-type]
+        assert isinstance(model.path, ry.FsPath)
+        assert str(model.path).replace("\\", "/") == "some/path.txt"
+
+        from_json = RyFsPathModel.model_validate_json(model.model_dump_json())
+        assert isinstance(from_json.path, ry.FsPath)
+        assert str(from_json.path).replace("\\", "/") == "some/path.txt"
+
+    def test_json_matches_pathlib(self) -> None:
+        py_model = PyPathModel(path=pathlib.Path("some/path.txt"))
+        ry_model = RyFsPathModel(path="some/path.txt")  # type: ignore[arg-type]
+        assert ry_model.model_dump_json() == py_model.model_dump_json()
+
+    @pytest.mark.parametrize("value", [123, object()])
+    def test_parse_err(self, value: object) -> None:
+        with pytest.raises(pydantic.ValidationError):
+            RyFsPathModel(path=value)  # type: ignore[arg-type]
 
 
 def _create_tz(minutes: int) -> pydt.tzinfo:

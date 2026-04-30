@@ -2083,6 +2083,7 @@ dependencies = [
  "ryo3-core",
  "ryo3-dirs",
  "ryo3-macro-rules",
+ "ryo3-pydantic",
  "ryo3-std",
  "ryo3-which",
  "same-file",

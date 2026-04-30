@@ -409,10 +409,7 @@ impl PyUuid {
     // ========================================================================
     #[cfg(feature = "pydantic")]
     #[staticmethod]
-    fn _pydantic_validate<'py>(
-        value: &Bound<'py, PyAny>,
-        _handler: &Bound<'py, PyAny>,
-    ) -> PyResult<Bound<'py, Self>> {
+    fn _pydantic_validate<'py>(value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, Self>> {
         use ryo3_core::py_value_error;
         Self::from_any(value).map_err(|e| py_value_error!("UUID validation error: {e}"))
     }
@@ -692,15 +689,16 @@ impl ryo3_pydantic::GetPydanticCoreSchemaCls for PyUuid {
         let core_schema = ryo3_pydantic::core_schema(py)?;
         let uuid_schema = core_schema.call_method(intern!(py, "uuid_schema"), (), None)?;
         let validation_fn = cls.getattr(interns::_pydantic_validate(py))?;
-        let args = PyTuple::new(py, vec![&validation_fn, &uuid_schema])?;
         let string_serialization_schema =
             core_schema.call_method(interns::to_string_ser_schema(py), (), None)?;
-        let serialization_kwargs = pyo3::types::PyDict::new(py);
-        serialization_kwargs.set_item(interns::serialization(py), &string_serialization_schema)?;
+        let plain_validator_kwargs = pyo3::types::PyDict::new(py);
+        plain_validator_kwargs.set_item(interns::json_schema_input_schema(py), &uuid_schema)?;
+        plain_validator_kwargs
+            .set_item(interns::serialization(py), &string_serialization_schema)?;
         core_schema.call_method(
-            interns::no_info_wrap_validator_function(py),
-            args,
-            Some(&serialization_kwargs),
+            interns::no_info_plain_validator_function(py),
+            (&validation_fn,),
+            Some(&plain_validator_kwargs),
         )
     }
 }

@@ -2,6 +2,8 @@
 use pyo3::prelude::*;
 mod fspath;
 mod pathlib;
+#[cfg(feature = "pydantic")]
+mod pydantic;
 pub use fspath::PyFsPath;
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {

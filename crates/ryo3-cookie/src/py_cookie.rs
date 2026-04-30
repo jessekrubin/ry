@@ -274,10 +274,7 @@ impl PyCookie {
     // ========================================================================
     #[cfg(feature = "pydantic")]
     #[staticmethod]
-    fn _pydantic_validate<'py>(
-        value: &Bound<'py, PyAny>,
-        _handler: &Bound<'py, PyAny>,
-    ) -> PyResult<Bound<'py, Self>> {
+    fn _pydantic_validate<'py>(value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, Self>> {
         Self::from_any(value).map_err(|e| py_value_error!("Cookie validation error: {e}"))
     }
 
@@ -374,22 +371,23 @@ impl ryo3_pydantic::GetPydanticCoreSchemaCls for PyCookie {
         source: &Bound<'py, PyAny>,
         _handler: &Bound<'py, PyAny>,
     ) -> PyResult<Bound<'py, PyAny>> {
-        use pyo3::types::{PyDict, PyTuple};
+        use pyo3::types::PyDict;
         use ryo3_pydantic::interns;
 
         let py = source.py();
         let core_schema = ryo3_pydantic::core_schema(py)?;
         let schema = core_schema.call_method(interns::str_schema(py), (), None)?;
         let validation_fn = cls.getattr(interns::_pydantic_validate(py))?;
-        let args = PyTuple::new(py, vec![&validation_fn, &schema])?;
         let string_serialization_schema =
             core_schema.call_method(interns::to_string_ser_schema(py), (), None)?;
-        let serialization_kwargs = PyDict::new(py);
-        serialization_kwargs.set_item(interns::serialization(py), &string_serialization_schema)?;
+        let plain_validator_kwargs = PyDict::new(py);
+        plain_validator_kwargs.set_item("json_schema_input_schema", &schema)?;
+        plain_validator_kwargs
+            .set_item(interns::serialization(py), &string_serialization_schema)?;
         core_schema.call_method(
-            interns::no_info_wrap_validator_function(py),
-            args,
-            Some(&serialization_kwargs),
+            interns::no_info_plain_validator_function(py),
+            (&validation_fn,),
+            Some(&plain_validator_kwargs),
         )
     }
 }

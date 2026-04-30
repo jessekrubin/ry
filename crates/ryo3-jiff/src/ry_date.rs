@@ -22,7 +22,7 @@ use crate::ry_zoned::RyZoned;
 use crate::series::RyDateSeries;
 use crate::spanish::Spanish;
 use crate::util::SpanKwargs;
-use crate::{JiffEra, JiffEraYear, JiffRoundMode, JiffUnit, JiffWeekday};
+use crate::{JiffEra, JiffEraYear, JiffRoundMode, JiffUnit, JiffWeekday, RyTimestamp};
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]
@@ -590,25 +590,24 @@ impl RyDate {
         } else if let Ok(pybytes) = value.cast::<pyo3::types::PyBytes>() {
             let s = String::from_utf8_lossy(pybytes.as_bytes());
             Self::from_str(&s).map(|dt| dt.into_pyobject(py))?
-        } else if let Ok(d) = value.cast_exact::<RyDateTime>() {
-            Self::from(d.get()).into_pyobject(py)
         } else if let Ok(d) = value.cast_exact::<RyZoned>() {
+            Self::from(d.get()).into_pyobject(py)
+        } else if let Ok(ts) = value.cast_exact::<RyTimestamp>() {
+            Self::from(ts.get()).into_pyobject(py)
+        } else if let Ok(d) = value.cast_exact::<RyDateTime>() {
             Self::from(d.get()).into_pyobject(py)
         } else if let Ok(d) = value.extract::<Date>() {
             Self::from(d).into_pyobject(py)
         } else {
             let valtype = any_repr!(value);
-            py_type_err!("Date conversion error: {valtype}",)
+            py_type_err!("Date conversion error: {valtype}")
         }
     }
 
     /// Try to create a Date from a variety of python objects
     #[cfg(feature = "pydantic")]
     #[staticmethod]
-    fn _pydantic_validate<'py>(
-        value: &Bound<'py, PyAny>,
-        _handler: &Bound<'py, PyAny>,
-    ) -> PyResult<Bound<'py, Self>> {
+    fn _pydantic_validate<'py>(value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, Self>> {
         Self::from_any(value).map_err(map_py_value_err)
     }
 

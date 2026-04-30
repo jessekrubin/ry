@@ -68,12 +68,13 @@ pub mod interns {
     unpaid_intern!(r#type, "type");
     unpaid_intern!(string);
     // kwargs
-    unpaid_intern!(serialization);
-    unpaid_intern!(return_schema);
-    unpaid_intern!(min_length);
-    unpaid_intern!(max_length);
-    unpaid_intern!(pattern);
     unpaid_intern!(info_arg);
+    unpaid_intern!(json_schema_input_schema);
+    unpaid_intern!(max_length);
+    unpaid_intern!(min_length);
+    unpaid_intern!(pattern);
+    unpaid_intern!(return_schema);
+    unpaid_intern!(serialization);
     // schemas
     unpaid_intern!(str_schema);
     unpaid_intern!(bytes_schema);

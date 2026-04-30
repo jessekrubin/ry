@@ -2,8 +2,30 @@
 
 ## v0.0.90 [unreleased]
 
+- `ryo3-fspath`
+  - pydantic integration
 - `ryo3-http`
   - pydantic support for `ry.Headers` and `ry.HttpStatus`
+- pydantic integration
+  - changed all pydantic stuff to use `no_info_plain_validator_function` instead
+    of `no_info_wrap_validator_function` for all but `ulid` as it is 25-50%
+    faster in benchmarks:
+
+```text
+---------------------------------------------------------------------------------------- benchmark 'pydantic-Timestamp-validate-json': 2 tests ----------------------------------------------------------------------------------------
+Name (time in ns)                                            Min                     Max                Mean              StdDev              Median                IQR            Outliers  OPS (Mops/s)            Rounds  Iterations
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+test_rydantic_bench_json[ry.Timestamp] (0001_plain)     337.9992 (1.0)       55,788.9998 (1.0)      373.8919 (1.0)      303.6747 (1.0)      363.9998 (1.0)      23.0011 (1.0)      147;2168        2.6746 (1.0)       56877           1
+test_rydantic_bench_json[ry.Timestamp] (0002_wrap)      394.0004 (1.17)     143,503.9994 (2.57)     453.5600 (1.21)     699.1917 (2.30)     441.9999 (1.21)     35.0010 (1.52)      77;1176        2.2048 (0.82)      50096           1
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------- benchmark 'pydantic-Timestamp-validate-python': 2 tests ---------------------------------------------------------------------------------
+Name (time in us)                                            Min                Max              Mean            StdDev            Median               IQR            Outliers  OPS (Kops/s)            Rounds  Iterations
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+test_rydantic_bench_python[ry.Timestamp] (0001_plain)     1.0610 (1.0)      51.7840 (1.44)     1.1756 (1.0)      0.4291 (1.12)     1.1460 (1.0)      0.0880 (1.54)      129;420      850.6392 (1.0)       29310           1
+test_rydantic_bench_python[ry.Timestamp] (0002_wrap)      1.4080 (1.33)     35.9990 (1.0)      1.5289 (1.30)     0.3846 (1.0)      1.5130 (1.32)     0.0570 (1.0)        78;379      654.0615 (0.77)      15973           1
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+```
 
 ---
 
@@ -37,7 +59,7 @@
   - remove `std::sync::Arc` wrapper around `ry.TimeZone`
   - pydantic support for `ry.TimeZone`
 - `ryo3-std`
-  - pattern matching support for `ry.Duration` → `(secs, nanos)`
+  - pattern matching support for `ry.Duration` => `(secs, nanos)`
 - `ryo3-size`
   - random updates n shit (use `PyAsciiString`, make sure `repr` for formatter
     evals to same thing still dont love the size wrapper lib)

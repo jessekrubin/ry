@@ -810,10 +810,7 @@ impl PyDuration {
     // ========================================================================
     #[cfg(feature = "pydantic")]
     #[staticmethod]
-    fn _pydantic_validate<'py>(
-        value: &Bound<'py, PyAny>,
-        _handler: &Bound<'py, PyAny>,
-    ) -> PyResult<Bound<'py, Self>> {
+    fn _pydantic_validate<'py>(value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, Self>> {
         Self::from_any(value).map_err(|e| {
             use ryo3_macro_rules::py_value_error;
             py_value_error!("Duration validation error: {e}")
@@ -901,16 +898,17 @@ mod pydantic {
             let timedelta_schema =
                 core_schema.call_method(interns::timedelta_schema(py), (), None)?;
             let validation_fn = cls.getattr(interns::_pydantic_validate(py))?;
-            let args = pyo3::types::PyTuple::new(py, vec![&validation_fn, &timedelta_schema])?;
             let string_serialization_schema =
                 core_schema.call_method(interns::to_string_ser_schema(py), (), None)?;
-            let serialization_kwargs = pyo3::types::PyDict::new(py);
-            serialization_kwargs
+            let plain_validator_kwargs = pyo3::types::PyDict::new(py);
+            plain_validator_kwargs
+                .set_item(interns::json_schema_input_schema(py), &timedelta_schema)?;
+            plain_validator_kwargs
                 .set_item(interns::serialization(py), &string_serialization_schema)?;
             core_schema.call_method(
-                interns::no_info_wrap_validator_function(py),
-                args,
-                Some(&serialization_kwargs),
+                interns::no_info_plain_validator_function(py),
+                (&validation_fn,),
+                Some(&plain_validator_kwargs),
             )
         }
     }

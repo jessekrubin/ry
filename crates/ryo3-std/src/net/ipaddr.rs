@@ -267,10 +267,7 @@ impl PyIpv4Addr {
     // ------------------------------------------------------------------------
     #[cfg(feature = "pydantic")]
     #[staticmethod]
-    fn _pydantic_validate<'py>(
-        value: &Bound<'py, PyAny>,
-        _handler: &Bound<'py, PyAny>,
-    ) -> PyResult<Bound<'py, Self>> {
+    fn _pydantic_validate<'py>(value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, Self>> {
         use ryo3_core::map_py_value_err;
         Self::from_any(value).map_err(map_py_value_err)
     }
@@ -518,10 +515,7 @@ impl PyIpv6Addr {
     // ------------------------------------------------------------------------
     #[cfg(feature = "pydantic")]
     #[staticmethod]
-    fn _pydantic_validate<'py>(
-        value: &Bound<'py, PyAny>,
-        _handler: &Bound<'py, PyAny>,
-    ) -> PyResult<Bound<'py, Self>> {
+    fn _pydantic_validate<'py>(value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, Self>> {
         use ryo3_core::map_py_value_err;
         Self::from_any(value).map_err(map_py_value_err)
     }
@@ -815,10 +809,7 @@ impl PyIpAddr {
 
     #[cfg(feature = "pydantic")]
     #[staticmethod]
-    fn _pydantic_validate<'py>(
-        value: &Bound<'py, PyAny>,
-        _handler: &Bound<'py, PyAny>,
-    ) -> PyResult<Bound<'py, Self>> {
+    fn _pydantic_validate<'py>(value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, Self>> {
         use ryo3_core::map_py_value_err;
         Self::from_any(value).map_err(map_py_value_err)
     }
@@ -1104,7 +1095,7 @@ static IPV6_ADDR_ERROR: &str =
 #[cfg(feature = "pydantic")]
 mod pydantic {
     use pyo3::prelude::*;
-    use pyo3::types::{PyAny, PyDict, PyTuple, PyType};
+    use pyo3::types::{PyAny, PyDict, PyType};
     use ryo3_pydantic::{GetPydanticCoreSchemaCls, GetPydanticJsonSchemaCls, interns};
 
     use super::{PyIpAddr, PyIpv4Addr, PyIpv6Addr};
@@ -1122,16 +1113,16 @@ mod pydantic {
             let core_schema = ryo3_pydantic::core_schema(py)?;
             let str_schema = core_schema.call_method(interns::str_schema(py), (), None)?;
             let validation_fn = cls.getattr(interns::_pydantic_validate(py))?;
-            let args = PyTuple::new(py, vec![&validation_fn, &str_schema])?;
             let string_serialization_schema =
                 core_schema.call_method(interns::to_string_ser_schema(py), (), None)?;
-            let serialization_kwargs = PyDict::new(py);
-            serialization_kwargs
+            let plain_validator_kwargs = PyDict::new(py);
+            plain_validator_kwargs.set_item(interns::json_schema_input_schema(py), &str_schema)?;
+            plain_validator_kwargs
                 .set_item(interns::serialization(py), &string_serialization_schema)?;
             core_schema.call_method(
-                interns::no_info_wrap_validator_function(py),
-                args,
-                Some(&serialization_kwargs),
+                interns::no_info_plain_validator_function(py),
+                (&validation_fn,),
+                Some(&plain_validator_kwargs),
             )
         }
     }
@@ -1162,16 +1153,16 @@ mod pydantic {
             let core_schema = ryo3_pydantic::core_schema(py)?;
             let str_schema = core_schema.call_method(interns::str_schema(py), (), None)?;
             let validation_fn = cls.getattr(interns::_pydantic_validate(py))?;
-            let args = PyTuple::new(py, vec![&validation_fn, &str_schema])?;
             let string_serialization_schema =
                 core_schema.call_method(interns::to_string_ser_schema(py), (), None)?;
-            let serialization_kwargs = PyDict::new(py);
-            serialization_kwargs
+            let plain_validator_kwargs = PyDict::new(py);
+            plain_validator_kwargs.set_item(interns::json_schema_input_schema(py), &str_schema)?;
+            plain_validator_kwargs
                 .set_item(interns::serialization(py), &string_serialization_schema)?;
             core_schema.call_method(
-                interns::no_info_wrap_validator_function(py),
-                args,
-                Some(&serialization_kwargs),
+                interns::no_info_plain_validator_function(py),
+                (&validation_fn,),
+                Some(&plain_validator_kwargs),
             )
         }
     }
@@ -1203,16 +1194,16 @@ mod pydantic {
             let core_schema = ryo3_pydantic::core_schema(py)?;
             let ip_schema = core_schema.call_method(interns::str_schema(py), (), None)?;
             let validation_fn = cls.getattr(interns::_pydantic_validate(py))?;
-            let args = PyTuple::new(py, vec![&validation_fn, &ip_schema])?;
             let string_serialization_schema =
                 core_schema.call_method(interns::to_string_ser_schema(py), (), None)?;
-            let serialization_kwargs = PyDict::new(py);
-            serialization_kwargs
+            let plain_validator_kwargs = PyDict::new(py);
+            plain_validator_kwargs.set_item(interns::json_schema_input_schema(py), &ip_schema)?;
+            plain_validator_kwargs
                 .set_item(interns::serialization(py), &string_serialization_schema)?;
             core_schema.call_method(
-                interns::no_info_wrap_validator_function(py),
-                args,
-                Some(&serialization_kwargs),
+                interns::no_info_plain_validator_function(py),
+                (&validation_fn,),
+                Some(&plain_validator_kwargs),
             )
         }
     }
