@@ -67,7 +67,7 @@ jobs:
       #     RUST_BACKTRACE: 1
       - name: install ry
         run: |
-          uv run --python {{ matrix.python-version }} maturin develop --profile fast-build
+          uv run maturin develop --profile fast-build
         env:
           RUST_BACKTRACE: 1
       - run: uv pip freeze
