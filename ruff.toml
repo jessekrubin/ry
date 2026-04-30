@@ -8,6 +8,7 @@ include = [
   "bench/**/*.{py,pyi}",
   "examples/**/*.{py,pyi}",
   "docs/ryo3_version.py",
+  "docs/**/*.md",
 ]
 extend-exclude = [".purgatory/**/*.py"]
 

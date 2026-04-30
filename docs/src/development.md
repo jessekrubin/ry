@@ -119,9 +119,7 @@ class Dingo:
     def bruff(self) -> str: ...
 
 
-@deprecated(
-    "`awoo_func` is deprecated; use `bruff_func` instead [removal: v0.0.100]"
-)
+@deprecated("`awoo_func` is deprecated; use `bruff_func` instead [removal: v0.0.100]")
 def awoo_func() -> str: ...
 def bruff_func() -> str: ...
 ```
