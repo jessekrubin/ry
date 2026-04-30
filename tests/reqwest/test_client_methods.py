@@ -40,7 +40,7 @@ async def test_client_methods(
 ) -> None:
     """Test that headers are sent with the request and work good"""
     url = server.url
-    client = ry.HttpClient()
+    client = ry.HttpClient()  # type: ignore[deprecated]
     if use_cls_callable:
         response = await client(str(url) + "echo", method=method, **options)
     else:

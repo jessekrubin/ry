@@ -30,7 +30,7 @@ _RY_TYPES: list[type] = [
     ry.GlobSet,
     ry.Globster,
     ry.Headers,
-    ry.HttpClient,
+    ry.HttpClient,  # type: ignore[deprecated]
     ry.HttpStatus,
     ry.ISOWeekDate,
     ry.Identity,

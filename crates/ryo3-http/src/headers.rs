@@ -5,7 +5,7 @@ use std::sync::{Arc, RwLockReadGuard, RwLockWriteGuard};
 use http::header::HeaderMap;
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyDict, PyList, PyString, PyTuple};
-use ryo3_core::{RyRwLock, py_runtime_error, py_value_error};
+use ryo3_core::{RyRwLock, py_runtime_error};
 
 use crate::http_types::{PyHttpHeaderName, PyHttpHeaderValue, PyHttpHeaderValueRef};
 use crate::py_conversions::{header_name_to_pystring, header_value_to_pystring};
@@ -446,6 +446,7 @@ impl PyHeaders {
     #[cfg(feature = "pydantic")]
     #[staticmethod]
     fn _pydantic_validate<'py>(value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, Self>> {
+        use ryo3_core::py_value_error;
         Self::from_any(value).map_err(|e| py_value_error!("Headers validation error: {e}"))
     }
 

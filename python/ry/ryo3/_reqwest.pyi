@@ -1,3 +1,6 @@
+"""ryo3-reqwest types"""
+
+import sys
 import typing as t
 
 import ry
@@ -7,6 +10,11 @@ from ry.ryo3._encoding_rs import Encoding
 from ry.ryo3._http import Headers, HttpStatus, HttpVersionLike
 from ry.ryo3._std import Duration, SocketAddr
 from ry.ryo3._url import URL
+
+if sys.version_info >= (3, 13):
+    from warnings import deprecated
+else:
+    from typing_extensions import deprecated
 
 _Body: t.TypeAlias = (
     Buffer
@@ -92,6 +100,7 @@ class ClientConfig(t.TypedDict):
     # __ UNSTABLE __
     _tls_cached_native_certs: bool  # default: False
 
+@deprecated("HttpClient is deprecated, use Client instead (will be removed in 0.0.100)")
 @t.final
 class HttpClient:
     def __new__(

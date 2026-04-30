@@ -13,17 +13,15 @@ if TYPE_CHECKING:
 
     from .conftest import ReqtestServer
 
-TClient: t.TypeAlias = ry.HttpClient | ry.Client
+TClient: t.TypeAlias = ry.HttpClient | ry.Client  # type: ignore[deprecated]
 
 
-@pytest.fixture(params=(ry.HttpClient, ry.Client))
-def client_cls(
-    request: pytest.FixtureRequest,
-) -> type[TClient]:
+@pytest.fixture(params=(ry.HttpClient, ry.Client))  # type: ignore[deprecated]
+def client_cls(request: pytest.FixtureRequest) -> type[TClient]:
     return t.cast("type[TClient]", request.param)
 
 
-@pytest.fixture(params=(ry.HttpClient, ry.Client))
+@pytest.fixture(params=(ry.HttpClient, ry.Client))  # type: ignore[deprecated]
 def client(request: pytest.FixtureRequest) -> TClient:
     return t.cast("TClient", request.param())
 
@@ -539,7 +537,7 @@ class TestTimeout:
         NOTE: This is only for `ry.HttpClient`, as `ry.Client` has different behavior
         """
         url = server.url
-        client = ry.HttpClient()
+        client = ry.HttpClient()  # type: ignore[deprecated]
         res = await client.get(str(url) + "slow")
         text_future = res.text()
         with pytest.raises(ValueError, match="Response already consumed"):
