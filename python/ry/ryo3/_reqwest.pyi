@@ -1,3 +1,6 @@
+"""ryo3-reqwest types"""
+
+import sys
 import typing as t
 
 import ry
@@ -7,6 +10,11 @@ from ry.ryo3._encoding_rs import Encoding
 from ry.ryo3._http import Headers, HttpStatus, HttpVersionLike
 from ry.ryo3._std import Duration, SocketAddr
 from ry.ryo3._url import URL
+
+if sys.version_info >= (3, 13):
+    from warnings import deprecated
+else:
+    from typing_extensions import deprecated
 
 _Body: t.TypeAlias = (
     Buffer
@@ -92,6 +100,7 @@ class ClientConfig(t.TypedDict):
     # __ UNSTABLE __
     _tls_cached_native_certs: bool  # default: False
 
+@deprecated("`HttpClient` is deprecated; use `Client` instead [removal: v0.0.93]")
 @t.final
 class HttpClient:
     def __new__(
@@ -264,20 +273,20 @@ class Client:
         self,
         url: URL | str,
         **kwargs: Unpack[RequestKwargs],
-    ) -> AsyncResponse: ...
+    ) -> Response: ...
     async def post(
         self,
         url: URL | str,
         **kwargs: Unpack[RequestKwargs],
-    ) -> AsyncResponse: ...
+    ) -> Response: ...
     async def put(
         self,
         url: URL | str,
         **kwargs: Unpack[RequestKwargs],
-    ) -> AsyncResponse: ...
+    ) -> Response: ...
     async def delete(
         self, url: URL | str, **kwargs: Unpack[RequestKwargs]
-    ) -> AsyncResponse: ...
+    ) -> Response: ...
     async def patch(
         self,
         url: URL | str,
@@ -498,68 +507,6 @@ class Response:
         """True if the status is a success (2xx)"""
 
 @t.final
-class AsyncResponse:
-    """'experimental-async' response type"""
-    def __new__(cls) -> t.NoReturn: ...
-    @property
-    def headers(self) -> Headers: ...
-    async def text(self, *, encoding: Encoding = "utf-8") -> str: ...
-    async def text_with_charset(self, encoding: Encoding) -> str: ...
-    async def json(
-        self,
-        *,
-        allow_inf_nan: bool = False,
-        cache_mode: t.Literal[True, False, "all", "keys", "none"] = "all",
-        partial_mode: t.Literal[True, False, "off", "on", "trailing-strings"] = False,
-        catch_duplicate_keys: bool = False,
-    ) -> t.Any: ...
-    async def bytes(self) -> ry.Bytes: ...
-    def bytes_stream(
-        self, min_read_size: int = 0, /
-    ) -> _AsyncResponseStream: ...  # min_read_size=0 -> None
-    def stream(
-        self, min_read_size: int = 0, /
-    ) -> _AsyncResponseStream: ...  # min_read_size=0 -> None
-    @property
-    def url(self) -> URL: ...
-    @property
-    def version(
-        self,
-    ) -> t.Literal["HTTP/0.9", "HTTP/1.0", "HTTP/1.1", "HTTP/2.0", "HTTP/3.0"]: ...
-    @property
-    def http_version(
-        self,
-    ) -> t.Literal["HTTP/0.9", "HTTP/1.0", "HTTP/1.1", "HTTP/2.0", "HTTP/3.0"]: ...
-    @property
-    def redirected(self) -> bool: ...
-    @property
-    def content_length(self) -> int | None: ...
-    @property
-    def content_encoding(self) -> str | None: ...
-    @property
-    def cookies(self) -> list[Cookie] | None: ...
-    @property
-    def set_cookies(self) -> list[Cookie] | None: ...
-    @property
-    def body_used(self) -> bool:
-        """True if the body has been consumed"""
-
-    @property
-    def ok(self) -> bool:
-        """True if the status is a success (2xx)"""
-
-    @property
-    def remote_addr(self) -> SocketAddr | None: ...
-    @property
-    def status(self) -> int: ...
-    @property
-    def status_text(self) -> str: ...
-    @property
-    def status_code(self) -> HttpStatus: ...
-    def __bool__(self) -> bool:
-        """True if the status is a success (2xx)"""
-
-@t.final
 class BlockingResponse:
     def __new__(cls) -> t.NoReturn: ...
     @property
@@ -620,6 +567,7 @@ class BlockingResponse:
 class ResponseStream:
     def __aiter__(self) -> ResponseStream: ...
     async def __anext__(self) -> ry.Bytes: ...
+    async def readall(self) -> ry.Bytes: ...
     async def take(self, n: int = 1) -> list[ry.Bytes]: ...
     @t.overload
     async def collect(self, join: t.Literal[True]) -> ry.Bytes: ...
@@ -627,21 +575,12 @@ class ResponseStream:
     async def collect(self, join: t.Literal[False] = False) -> list[ry.Bytes]: ...
 
 @t.final
-class _AsyncResponseStream:
-    def __aiter__(self) -> _AsyncResponseStream: ...
-    async def __anext__(self) -> ry.Bytes: ...
-    async def take(self, n: int = 1) -> list[ry.Bytes]: ...
-    async def collect(self) -> list[ry.Bytes]: ...
-
-@t.final
 class BlockingResponseStream:
     def __iter__(self) -> BlockingResponseStream: ...
     def __next__(self) -> ry.Bytes: ...
+    def readall(self) -> ry.Bytes: ...
     def take(self, n: int = 1) -> list[ry.Bytes]: ...
-    @t.overload
-    def collect(self, join: t.Literal[True]) -> ry.Bytes: ...
-    @t.overload
-    def collect(self, join: t.Literal[False] = False) -> list[ry.Bytes]: ...
+    def collect(self) -> list[ry.Bytes]: ...
 
 async def fetch(
     url: URL | str,

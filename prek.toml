@@ -35,6 +35,8 @@ repo = "builtin"
 hooks = [
   { id = "trailing-whitespace" },
   { id = "end-of-file-fixer" },
+  { id = "check-added-large-files", args = ["--maxkb=100"] },
+  { id = "check-case-conflict" },
   { id = "check-toml" },
   { id = "check-yaml" },
 ]
@@ -46,7 +48,6 @@ hooks = [
 repo = "https://github.com/charliermarsh/ruff-pre-commit"
 rev = "v0.15.11"
 hooks = [{ id = "ruff-format" }, { id = "ruff-check" }]
-
 
 # -----------------------------------------------------------------------------
 # LOCAL ~ LOCAL ~ LOCAL ~ LOCAL ~ LOCAL ~ LOCAL ~ LOCAL ~ LOCAL ~ LOCAL ~ LOCAL

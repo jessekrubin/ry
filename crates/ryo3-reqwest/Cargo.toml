@@ -14,36 +14,14 @@ description = "python + reqwest (https://docs.rs/reqwest/latest/reqwest/index.ht
 [dependencies]
 bytes.workspace = true
 cookie.workspace = true
-encoding_rs = "0.8.35"
+encoding_rs.workspace = true
 futures-core.workspace = true
 futures-util = { workspace = true, features = ["sink"] }
 jiter.workspace = true
-parking_lot.workspace = true
 pyo3 = { workspace = true, features = [] }
 pyo3-async-runtimes = { workspace = true, features = ["unstable-streams"] }
-reqwest = { workspace = true, default-features = false, features = [
-  "brotli",
-  "charset",
-  "cookies",
-  "deflate",
-  "form",
-  "gzip",
-  "hickory-dns",
-  "http2",
-  "json",
-  "multipart",
-  "query",
-  "rustls-no-provider",
-  "socks",
-  "stream",
-  "zstd",
-] }
-rustls = { workspace = true, features = [
-  "logging",
-  "prefer-post-quantum",
-  "std",
-  "tls12",
-] }
+reqwest = { workspace = true, default-features = false, features = ["brotli", "charset", "cookies", "deflate", "form", "gzip", "hickory-dns", "http2", "json", "multipart", "query", "rustls-no-provider", "socks", "stream", "zstd"] }
+rustls = { workspace = true, features = ["logging", "prefer-post-quantum", "std", "tls12"] }
 rustls-native-certs = "0.8.3"
 ryo3-bytes.workspace = true
 ryo3-cookie.workspace = true

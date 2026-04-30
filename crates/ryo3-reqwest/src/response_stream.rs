@@ -136,101 +136,9 @@ impl std::fmt::Display for RyResponseStream {
     }
 }
 
+#[cfg(feature = "experimental-async")]
 #[pymethods]
 impl RyResponseStream {
-    fn __repr__(&self) -> String {
-        format!("{self}")
-    }
-
-    fn __aiter__(this: PyRef<Self>) -> PyRef<Self> {
-        this
-    }
-
-    fn __anext__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
-        let inner = self.inner.clone();
-        future_into_py(py, async move { inner.py_anext().await })
-    }
-
-    #[pyo3(signature = (n = 1))]
-    fn take<'py>(&self, py: Python<'py>, n: usize) -> PyResult<Bound<'py, PyAny>> {
-        let stream = self.inner.stream.clone();
-        future_into_py(py, async move {
-            let mut guard = stream.lock().await;
-            let mut items = Vec::with_capacity(n);
-            for _ in 0..n {
-                match guard.next().await {
-                    Some(Ok(bytes)) => items.push(RyBytes::from(bytes)),
-                    Some(Err(e)) => return Err(map_reqwest_err(e)),
-                    None => break,
-                }
-            }
-            Ok(items)
-        })
-    }
-
-    #[pyo3(signature = (*, join = false))]
-    fn collect<'py>(&self, py: Python<'py>, join: bool) -> PyResult<Bound<'py, PyAny>> {
-        let stream = self.inner.stream.clone();
-        if join {
-            future_into_py(py, async move {
-                let mut guard = stream.lock().await;
-                let mut bytes_mut = BytesMut::new();
-                while let Some(item) = guard.next().await {
-                    match item {
-                        Ok(bytes) => bytes_mut.extend_from_slice(&bytes),
-                        Err(e) => return Err(map_reqwest_err(e)),
-                    }
-                }
-                let bytes = bytes_mut.freeze();
-                let py_bytes = RyBytes::from(bytes);
-                Ok(py_bytes)
-            })
-        } else {
-            future_into_py(py, async move {
-                let mut guard = stream.lock().await;
-                let mut items = Vec::new();
-                while let Some(item) = guard.next().await {
-                    match item {
-                        Ok(bytes) => items.push(RyBytes::from(bytes)),
-                        Err(e) => return Err(map_reqwest_err(e)),
-                    }
-                }
-                Ok(items)
-            })
-        }
-    }
-}
-
-#[cfg(feature = "experimental-async")]
-#[pyclass(
-    name = "AsyncResponseStream",
-    frozen,
-    immutable_type,
-    skip_from_py_object
-)]
-#[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
-pub struct RyAsyncResponseStream {
-    inner: ResponseStreamInner,
-}
-
-#[cfg(feature = "experimental-async")]
-impl RyAsyncResponseStream {
-    pub(crate) fn from_response(response: reqwest::Response, min_read_size: usize) -> Self {
-        let inner = ResponseStreamInner::from_response(response, min_read_size);
-        Self { inner }
-    }
-}
-
-#[cfg(feature = "experimental-async")]
-impl std::fmt::Display for RyAsyncResponseStream {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "AsyncResponseStream<{}>", self.inner.status)
-    }
-}
-
-#[cfg(feature = "experimental-async")]
-#[pymethods]
-impl RyAsyncResponseStream {
     fn __repr__(&self) -> String {
         format!("{self}")
     }
@@ -253,6 +161,20 @@ impl RyAsyncResponseStream {
     //         Err(e) => Err(map_reqwest_err(e)),
     //     }
     // }
+
+    async fn readall(&self) -> PyResult<RyBytes> {
+        use ryo3_macro_rules::py_runtime_error;
+        let rt = get_tokio_runtime();
+        let stream = self.inner.stream.clone();
+        rt.spawn(async move {
+            readall_bytes(&stream)
+                .await
+                .map(RyBytes::from)
+                .map_err(map_reqwest_err)
+        })
+        .await
+        .map_err(|e| py_runtime_error!("{e}"))?
+    }
 
     #[pyo3(signature = (n = 1))]
     async fn take(&self, n: usize) -> PyResult<Vec<RyBytes>> {
@@ -296,6 +218,72 @@ impl RyAsyncResponseStream {
             .map(|bytes_vec| bytes_vec.into_iter().map(RyBytes::from).collect())
             .map_err(map_reqwest_err)?;
         Ok(py_bytes_vec)
+    }
+}
+
+#[cfg(not(feature = "experimental-async"))]
+#[pymethods]
+impl RyResponseStream {
+    fn __repr__(&self) -> String {
+        format!("{self}")
+    }
+
+    fn __aiter__(this: PyRef<Self>) -> PyRef<Self> {
+        this
+    }
+
+    fn __anext__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
+        let inner = self.inner.clone();
+        future_into_py(py, async move { inner.py_anext().await })
+    }
+
+    #[pyo3(signature = (n = 1))]
+    fn take<'py>(&self, py: Python<'py>, n: usize) -> PyResult<Bound<'py, PyAny>> {
+        let stream = self.inner.stream.clone();
+        future_into_py(py, async move {
+            let mut guard = stream.lock().await;
+            let mut items = Vec::with_capacity(n);
+            for _ in 0..n {
+                match guard.next().await {
+                    Some(Ok(bytes)) => items.push(RyBytes::from(bytes)),
+                    Some(Err(e)) => return Err(map_reqwest_err(e)),
+                    None => break,
+                }
+            }
+            Ok(items)
+        })
+    }
+
+    fn readall<'py>(&self, py: Python<'py>, join: bool) -> PyResult<Bound<'py, PyAny>> {
+        let stream = self.inner.stream.clone();
+        future_into_py(py, async move {
+            let mut guard = stream.lock().await;
+            let mut bytes_mut = BytesMut::new();
+            while let Some(item) = guard.next().await {
+                match item {
+                    Ok(bytes) => bytes_mut.extend_from_slice(&bytes),
+                    Err(e) => return Err(map_reqwest_err(e)),
+                }
+            }
+            let bytes = bytes_mut.freeze();
+            let py_bytes = RyBytes::from(bytes);
+            Ok(py_bytes)
+        })
+    }
+
+    fn collect<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
+        let stream = self.inner.stream.clone();
+        future_into_py(py, async move {
+            let mut guard = stream.lock().await;
+            let mut items = Vec::new();
+            while let Some(item) = guard.next().await {
+                match item {
+                    Ok(bytes) => items.push(RyBytes::from(bytes)),
+                    Err(e) => return Err(map_reqwest_err(e)),
+                }
+            }
+            Ok(items)
+        })
     }
 }
 
@@ -353,25 +341,26 @@ impl RyBlockingResponseStream {
         Ok(items)
     }
 
-    #[pyo3(signature = (*, join = false))]
-    fn collect<'py>(&self, py: Python<'py>, join: bool) -> PyResult<Bound<'py, PyAny>> {
+    fn readall<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
         let stream = self.inner.stream.clone();
         let rt = get_tokio_runtime();
-        if join {
-            let py_bytes = py.detach(|| {
-                rt.block_on(collect_bytes_join(&stream))
-                    .map(RyBytes::from)
-                    .map_err(map_reqwest_err)
-            })?;
-            py_bytes.into_bound_py_any(py)
-        } else {
-            let py_bytes_vec: Vec<RyBytes> = py.detach(|| {
-                rt.block_on(collect_bytes_vec(&stream))
-                    .map(|bytes_vec| bytes_vec.into_iter().map(RyBytes::from).collect())
-                    .map_err(map_reqwest_err)
-            })?;
-            py_bytes_vec.into_bound_py_any(py)
-        }
+        let py_bytes = py.detach(|| {
+            rt.block_on(readall_bytes(&stream))
+                .map(RyBytes::from)
+                .map_err(map_reqwest_err)
+        })?;
+        py_bytes.into_bound_py_any(py)
+    }
+
+    fn collect<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
+        let stream = self.inner.stream.clone();
+        let rt = get_tokio_runtime();
+        let py_bytes_vec: Vec<RyBytes> = py.detach(|| {
+            rt.block_on(collect_bytes_vec(&stream))
+                .map(|bytes_vec| bytes_vec.into_iter().map(RyBytes::from).collect())
+                .map_err(map_reqwest_err)
+        })?;
+        py_bytes_vec.into_bound_py_any(py)
     }
 }
 
@@ -403,7 +392,7 @@ async fn take_bytes(
 }
 
 #[inline]
-async fn collect_bytes_join(stream: &AsyncResponseStreamInner) -> Result<Bytes, reqwest::Error> {
+async fn readall_bytes(stream: &AsyncResponseStreamInner) -> Result<Bytes, reqwest::Error> {
     let mut guard = stream.lock().await;
     let mut bytes_mut = BytesMut::new();
     while let Some(item) = guard.next().await {

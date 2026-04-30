@@ -550,7 +550,7 @@ impl PyUrl {
     #[pyo3(
         signature = (fragment = None),
         warn(
-            message = "`replace_*` methods are deprecated, use `with_*` methods instead",
+            message = "`URL.replace_fragment` is deprecated; use `URL.with_fragment` instead [removal: v0.0.93]",
             category = pyo3::exceptions::PyDeprecationWarning
         )
     )]
@@ -561,7 +561,7 @@ impl PyUrl {
     #[pyo3(
         signature = (host = None),
         warn(
-            message = "`replace_*` methods are deprecated, use `with_*` methods instead",
+            message = "`URL.replace_host` is deprecated; use `URL.with_host` instead [removal: v0.0.93]",
             category = pyo3::exceptions::PyDeprecationWarning
         )
     )]
@@ -571,7 +571,7 @@ impl PyUrl {
 
     #[pyo3(
         warn(
-            message = "`replace_*` methods are deprecated, use `with_*` methods instead",
+            message = "`URL.replace_ip_host` is deprecated; use `URL.with_ip_host` instead [removal: v0.0.93]",
             category = pyo3::exceptions::PyDeprecationWarning
         )
     )]
@@ -582,7 +582,7 @@ impl PyUrl {
     #[pyo3(
         signature = (password = None),
         warn(
-            message = "`replace_*` methods are deprecated, use `with_*` methods instead",
+            message = "`URL.replace_password` is deprecated; use `URL.with_password` instead [removal: v0.0.93]",
             category = pyo3::exceptions::PyDeprecationWarning
         )
     )]
@@ -592,7 +592,7 @@ impl PyUrl {
 
     #[pyo3(
         warn(
-            message = "`replace_*` methods are deprecated, use `with_*` methods instead",
+            message = "`URL.replace_path` is deprecated; use `URL.with_path` instead [removal: v0.0.93]",
             category = pyo3::exceptions::PyDeprecationWarning
         )
     )]
@@ -603,7 +603,7 @@ impl PyUrl {
     #[pyo3(
         signature = (port = None),
         warn(
-            message = "`replace_*` methods are deprecated, use `with_*` methods instead",
+            message = "`URL.replace_port` is deprecated; use `URL.with_port` instead [removal: v0.0.93]",
             category = pyo3::exceptions::PyDeprecationWarning
         )
     )]
@@ -614,7 +614,7 @@ impl PyUrl {
     #[pyo3(
         signature = (query = None),
         warn(
-            message = "`replace_*` methods are deprecated, use `with_*` methods instead",
+            message = "`URL.replace_query` is deprecated; use `URL.with_query` instead [removal: v0.0.93]",
             category = pyo3::exceptions::PyDeprecationWarning
         )
     )]
@@ -624,7 +624,7 @@ impl PyUrl {
 
     #[pyo3(
         warn(
-            message = "`replace_*` methods are deprecated, use `with_*` methods instead",
+            message = "`URL.replace_scheme` is deprecated; use `URL.with_scheme` instead [removal: v0.0.93]",
             category = pyo3::exceptions::PyDeprecationWarning
         )
     )]
@@ -634,7 +634,7 @@ impl PyUrl {
 
     #[pyo3(
         warn(
-            message = "`replace_*` methods are deprecated, use `with_*` methods instead",
+            message = "`URL.replace_username` is deprecated; use `URL.with_username` instead [removal: v0.0.93]",
             category = pyo3::exceptions::PyDeprecationWarning
         )
     )]

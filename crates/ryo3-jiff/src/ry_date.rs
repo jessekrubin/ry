@@ -374,7 +374,7 @@ impl RyDate {
 
     #[pyo3(
         warn(
-            message = "`intz` is deprecated, use `in_tz` instead",
+            message = "`Date.intz` is deprecated; use `Date.in_tz` instead [removal: v0.0.93]",
             category = pyo3::exceptions::PyDeprecationWarning
         )
     )]

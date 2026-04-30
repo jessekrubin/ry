@@ -61,6 +61,7 @@ dev = [
   "pytest-cov>=6.2.1",
   "rich>=14.0.0",
   "ruff>=0.11.12",
+  "ty>=0.0.33",
   "tzdata>=2025.2",
   "uvicorn>=0.34",
   "websockets>=16.0",

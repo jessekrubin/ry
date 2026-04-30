@@ -28,6 +28,6 @@ ry = ["default"]
 # =============================================================================
 random = ["twox-hash/random"]
 xxhash32 = ["twox-hash/xxhash32"]
-xxhash3_128 = [ "twox-hash/xxhash3_128" ]
-xxhash3_64 = [ "twox-hash/xxhash3_64" ]
+xxhash3_128 = ["twox-hash/xxhash3_128"]
+xxhash3_64 = ["twox-hash/xxhash3_64"]
 xxhash64 = ["twox-hash/xxhash64"]

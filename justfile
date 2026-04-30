@@ -19,7 +19,7 @@ sync:
 
 # maturin develop
 develop:
-    uv run maturin develop --features "mimalloc"
+    uv run maturin develop --profile fast-build --features "mimalloc"
 
 # maturin develop (shorthand)
 mat *ARGS:

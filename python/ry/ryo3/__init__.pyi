@@ -13,6 +13,7 @@ from ry.ryo3.__about__ import __crypto_provider__ as __crypto_provider__
 from ry.ryo3.__about__ import __description__ as __description__
 from ry.ryo3.__about__ import __opt_level__ as __opt_level__
 from ry.ryo3.__about__ import __pkg_name__ as __pkg_name__
+from ry.ryo3.__about__ import __pyo3_experimental_async__ as __pyo3_experimental_async__
 from ry.ryo3.__about__ import __target__ as __target__
 from ry.ryo3.__about__ import __version__ as __version__
 from ry.ryo3._aws_lc import sha1 as sha1
@@ -118,7 +119,7 @@ from ry.ryo3._reqwest import Certificate as Certificate
 from ry.ryo3._reqwest import CertificateRevocationList as CertificateRevocationList
 from ry.ryo3._reqwest import Client as Client
 from ry.ryo3._reqwest import ClientConfig as ClientConfig
-from ry.ryo3._reqwest import HttpClient as HttpClient
+from ry.ryo3._reqwest import HttpClient as HttpClient  # type: ignore[deprecated]
 from ry.ryo3._reqwest import Identity as Identity
 from ry.ryo3._reqwest import Proxy as Proxy
 from ry.ryo3._reqwest import RequestKwargs as RequestKwargs

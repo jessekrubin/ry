@@ -10,20 +10,35 @@ import ry
 
 if TYPE_CHECKING:
     from ry._types import Buffer
+    from ry.ryo3._reqwest import RequestKwargs
 
     from .conftest import ReqtestServer
 
-TClient: t.TypeAlias = ry.HttpClient | ry.Client
+TClient: t.TypeAlias = ry.HttpClient | ry.Client  # type: ignore[deprecated]
 
 
-@pytest.fixture(params=(ry.HttpClient, ry.Client))
-def client_cls(
-    request: pytest.FixtureRequest,
-) -> type[TClient]:
+@pytest.fixture(
+    params=(
+        pytest.param(
+            ry.HttpClient,  # type: ignore[deprecated]
+            marks=pytest.mark.filterwarnings("ignore:`HttpClient` is deprecated"),
+        ),
+        ry.Client,
+    )
+)
+def client_cls(request: pytest.FixtureRequest) -> type[TClient]:
     return t.cast("type[TClient]", request.param)
 
 
-@pytest.fixture(params=(ry.HttpClient, ry.Client))
+@pytest.fixture(
+    params=(
+        pytest.param(
+            ry.HttpClient,  # type: ignore[deprecated]
+            marks=pytest.mark.filterwarnings("ignore:`HttpClient` is deprecated"),
+        ),
+        ry.Client,
+    )
+)
 def client(request: pytest.FixtureRequest) -> TClient:
     return t.cast("TClient", request.param())
 
@@ -88,6 +103,46 @@ async def test_get_query(server: ReqtestServer, client: TClient) -> None:
         ("bluey-fam-size", "4"),
         ("fraction-red-heelers", "0.5"),
     )
+
+
+@pytest.mark.parametrize(
+    ("method", "options"),
+    [
+        ("get", {}),
+        ("post", {}),
+        ("put", {}),
+        ("delete", {}),
+        ("patch", {}),
+        ("head", {}),
+        ("options", {}),
+    ],
+)
+@pytest.mark.parametrize(
+    "use_cls_callable",
+    [True, False],
+)
+async def test_client_methods(
+    server: ReqtestServer,
+    method: t.Literal[
+        "get", "post", "put", "delete", "patch", "head", "options", "__call__"
+    ],
+    options: RequestKwargs,
+    client_cls: type[TClient],
+    *,
+    use_cls_callable: bool,
+) -> None:
+    """Test that headers are sent with the request and work good"""
+    url = server.url
+    client = client_cls()
+    if use_cls_callable:
+        response = await client(str(url) + "echo", method=method, **options)
+    else:
+        response = await getattr(client, method)(str(url) + "echo", **options)
+    assert response.status_code == 200
+    assert response.headers["x-request-method"] == method.upper()
+    if method.lower() != "head":
+        response_data = await response.json()
+        assert response_data["method"].lower() == method
 
 
 @pytest.mark.anyio
@@ -319,24 +374,16 @@ class TestStream:
         assert rest_total_inner_len == expected_len
 
     @pytest.mark.anyio
-    async def test_get_stream_collect_join(
+    async def test_get_stream_readall(
         self, server: ReqtestServer, client: TClient
     ) -> None:
         url = server.url
 
-        if isinstance(client, ry.Client):
-            # the new experimental client does not support collect join
-            aio_response = await client.get(str(url) + "long")
-            response_stream = aio_response.bytes_stream()
-            with pytest.raises(TypeError):
-                _collected = await response_stream.collect(join=True)  # type: ignore[call-arg]
-
-        else:
-            response = await client.get(str(url) + "long")
-            expected = "".join([f"howdy partner {i}\n" for i in range(100)]).encode()
-            collected = await response.bytes_stream().collect(join=True)
-            assert isinstance(collected, ry.Bytes)
-            assert collected == expected
+        response = await client.get(str(url) + "long")
+        expected = "".join([f"howdy partner {i}\n" for i in range(100)]).encode()
+        collected = await response.bytes_stream().readall()
+        assert isinstance(collected, ry.Bytes)
+        assert collected == expected
 
 
 async def test_client_headers_req(server: ReqtestServer, client: TClient) -> None:
@@ -531,40 +578,27 @@ class TestTimeout:
         with pytest.raises(ry.ReqwestError):
             _text = await res.text()
 
-    async def test_client_timeout_get_both_same_time_http_client(
-        self, server: ReqtestServer
+    async def test_client_timeout_get_both_time(
+        self, server: ReqtestServer, client_cls: type[TClient]
     ) -> None:
-        """Test that getting both text and bytes at the same time errors properly
-
-        NOTE: This is only for `ry.HttpClient`, as `ry.Client` has different behavior
-        """
+        """Test that getting both text and bytes at the same time errors"""
         url = server.url
-        client = ry.HttpClient()
-        res = await client.get(str(url) + "slow")
-        text_future = res.text()
-        with pytest.raises(ValueError, match="Response already consumed"):
-            _bytes_future = await res.bytes()
-        text = await text_future
-        assert text == "".join([f"howdy partner {i}\n" for i in range(10)])
-
-    async def test_client_timeout_get_both_time_client_experimental_async(
-        self, server: ReqtestServer
-    ) -> None:
-        """Test that getting both text and bytes at the same time errors properly
-
-        NOTE: This is only for `ry.Client`, as `ry.HttpClient` has different
-              behavior ~ this is the experimental async client
-        """
-        url = server.url
-        client = ry.Client()
-        res = await client.get(str(url) + "slow")
-
-        text_future = asyncio.ensure_future(res.text())
-        await asyncio.sleep(0)
-        with pytest.raises(ValueError, match="Response already consumed"):
-            _bytes_future = await res.bytes()
-        text = await text_future
-        assert text == "".join([f"howdy partner {i}\n" for i in range(10)])
+        client = client_cls()
+        if ry.__pyo3_experimental_async__:  # special handling for experimental async
+            res = await client.get(str(url) + "slow")
+            text_task = asyncio.ensure_future(res.text())
+            await asyncio.sleep(0)
+            with pytest.raises(ValueError, match="Response already consumed"):
+                _bytes_future = await res.bytes()
+            text = await text_task
+            assert text == "".join([f"howdy partner {i}\n" for i in range(10)])
+        else:
+            res = await client.get(str(url) + "slow")
+            text_future = res.text()
+            with pytest.raises(ValueError, match="Response already consumed"):
+                _bytes_future = await res.bytes()
+            text = await text_future
+            assert text == "".join([f"howdy partner {i}\n" for i in range(10)])
 
 
 class TestCookies:

@@ -366,7 +366,7 @@ pub fn aopen(
     signature = (path, mode = PyOpenMode::default(), buffering = -1, **kwargs),
     text_signature = "(path, mode=\"rb\", buffering=-1, **kwargs)",
     warn(
-        message = "`aiopen` is deprecated, use `aopen` instead",
+        message = "`aiopen` is deprecated; use `aopen` instead [removal: v0.0.93]",
         category = pyo3::exceptions::PyDeprecationWarning
     )
 )]
@@ -395,7 +395,7 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     // classes
     m.add_class::<PyAsyncFile>()?;
     m.add_class::<PyAsyncFileReadStream>()?;
-    //fns
+    // functions
     m.add_function(wrap_pyfunction!(aiopen, m)?)?;
     m.add_function(wrap_pyfunction!(aopen, m)?)?;
     m.add_function(wrap_pyfunction!(canonicalize_async, m)?)?;
@@ -416,10 +416,5 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(rename_async, m)?)?;
     m.add_function(wrap_pyfunction!(try_exists_async, m)?)?;
     m.add_function(wrap_pyfunction!(write_async, m)?)?;
-    // m.add_function(wrap_pyfunction!(set_permissions_async, m)?)?;
-    // m.add_function(wrap_pyfunction!(symlink_dir_async, m)?)?;
-    // m.add_function(wrap_pyfunction!(symlink_file_async, m)?)?;
-    // m.add_function(wrap_pyfunction!(symlink_metadata_async, m)?)?;
-
     Ok(())
 }

@@ -9,6 +9,7 @@ from ry.ryo3 import (
     __build_timestamp__,
     __crypto_provider__,
     __opt_level__,
+    __pyo3_experimental_async__,
     __target__,
     __version__,
 )
@@ -22,6 +23,7 @@ __all__ = (
     "__description__",
     "__opt_level__",
     "__pkgroot__",
+    "__pyo3_experimental_async__",
     "__target__",
     "__title__",
     "__version__",

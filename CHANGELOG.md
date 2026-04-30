@@ -1,7 +1,15 @@
 # CHANGELOG
 
-## v0.0.90 [unreleased]
+## v0.0.90 [2026-04-30]
 
+- `ryo3-reqwest`
+  - deprecated `ry.HttpClient` in favor of `ry.Client`; `ry.HttpClient` will be
+    removed in `0.0.93`
+  - consolidated `ry.HttpClient` into `ry.Client` with impls flip flopping based
+    on `pyo3/experimental-async` activation
+  - removed `join` kwarg from `ResponseStream.collect` and
+    `BlockingResponseStream.collect` and replaced with `.readall()` method on
+    the stream classes
 - `ryo3-fspath`
   - pydantic integration
 - `ryo3-http`

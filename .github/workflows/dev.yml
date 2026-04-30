@@ -60,13 +60,18 @@ jobs:
       - name: install deps
         run: |
           uv sync
+      # - name: install ry
+      #   run: |
+      #     uv -v pip install -e .
+      #   env:
+      #     RUST_BACKTRACE: 1
       - name: install ry
         run: |
-          uv -v pip install -e .
+          uv run maturin develop --profile fast-build
         env:
           RUST_BACKTRACE: 1
       - run: uv pip freeze
-      - run: uv run pytest
+      - run: uv run pytest tests
 
   test-python-cov:
     name: test-python-cov-${{ matrix.python-version }}

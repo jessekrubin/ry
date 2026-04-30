@@ -74,6 +74,9 @@ from ry.ryo3.__about__ import __crypto_provider__ as __crypto_provider__
 from ry.ryo3.__about__ import __description__ as __description__
 from ry.ryo3.__about__ import __opt_level__ as __opt_level__
 from ry.ryo3.__about__ import __pkg_name__ as __pkg_name__
+from ry.ryo3.__about__ import (
+    __pyo3_experimental_async__ as __pyo3_experimental_async__,
+)
 from ry.ryo3.__about__ import __target__ as __target__
 from ry.ryo3.__about__ import __version__ as __version__
 from ry.ryo3._aws_lc import sha1 as sha1
@@ -181,7 +184,7 @@ from ry.ryo3._reqwest import (
 )
 from ry.ryo3._reqwest import Client as Client
 from ry.ryo3._reqwest import ClientConfig as ClientConfig
-from ry.ryo3._reqwest import HttpClient as HttpClient
+from ry.ryo3._reqwest import HttpClient as HttpClient  # type: ignore[deprecated]
 from ry.ryo3._reqwest import Identity as Identity
 from ry.ryo3._reqwest import Proxy as Proxy
 from ry.ryo3._reqwest import RequestKwargs as RequestKwargs
@@ -353,6 +356,7 @@ __target__: str
 __opt_level__: t.Literal["0", "1", "2", "3", "s", "z"]
 __allocator__: t.Literal["mimalloc", "system"]
 __crypto_provider__: t.Literal["ring", "aws-lc-rs"]
+__pyo3_experimental_async__: bool
 ```
 
 <h2 id="ry.ryo3._aws_lc"><code>ry.ryo3._aws_lc</code></h2>
@@ -584,9 +588,7 @@ class Bytes(Buffer):
     def decode(self, encoding: str = "utf-8", errors: str = "strict") -> str:
         """Decode the binary data using the given encoding."""
 
-    def hex(
-        self, sep: str | None = None, bytes_per_sep: int | None = None
-    ) -> str:
+    def hex(self, sep: str | None = None, bytes_per_sep: int | None = None) -> str:
         """Return a hexadecimal representation of the binary data."""
 
     @classmethod
@@ -675,9 +677,7 @@ import typing as t
 from ry.protocols import FromStr, _Parse
 from ry.ryo3._std import Duration
 
-_SameSiteKw: t.TypeAlias = t.Literal[
-    "Lax", "lax", "Strict", "strict", "None", "none"
-]
+_SameSiteKw: t.TypeAlias = t.Literal["Lax", "lax", "Strict", "strict", "None", "none"]
 """same-site kwarg allows title-case and lower-case values"""
 
 
@@ -1165,9 +1165,7 @@ class fnv1a:  # noqa: N801
     def hexdigest(self) -> str: ...
     def copy(self) -> t.Self: ...
     @staticmethod
-    def oneshot(
-        data: Buffer, *, key: int | bytes = 0xCBF29CE484222325
-    ) -> bytes: ...  # noqa: PYI054
+    def oneshot(data: Buffer, *, key: int | bytes = 0xCBF29CE484222325) -> bytes: ...  # noqa: PYI054
 ```
 
 <h2 id="ry.ryo3._fspath"><code>ry.ryo3._fspath</code></h2>
@@ -1237,9 +1235,7 @@ class FsPath(ToPy[Path], ToString):
     def replace(self, new_path: PathLike[str] | str) -> FsPath: ...
     def resolve(self) -> FsPath: ...
     def rmdir(self, recursive: bool = False) -> None: ...
-    def unlink(
-        self, missing_ok: bool = False, recursive: bool = False
-    ) -> None: ...
+    def unlink(self, missing_ok: bool = False, recursive: bool = False) -> None: ...
     def with_name(self, name: str) -> t.Self: ...
     def with_suffix(self, suffix: str) -> t.Self: ...
 
@@ -1312,9 +1308,7 @@ class FsPath(ToPy[Path], ToString):
     @staticmethod
     def which_all(cmd: str, path: str | None = None) -> list[FsPath]: ...
     @staticmethod
-    def which_re(
-        regex: str | Regex, path: str | None = None
-    ) -> list[FsPath]: ...
+    def which_re(regex: str | Regex, path: str | None = None) -> list[FsPath]: ...
 
     # =========================================================================
     # DUNDERS
@@ -2129,7 +2123,9 @@ class Date(
     def iso_week_date(self) -> ISOWeekDate: ...
     def in_leap_year(self) -> bool: ...
     def in_tz(self, tz: TimezoneName) -> ZonedDateTime: ...
-    @deprecated("intz is deprecated, use in_tz instead")
+    @deprecated(
+        "`Date.intz` is deprecated; use `Date.in_tz` instead [removal: v0.0.93]"
+    )
     def intz(self, tz: TimezoneName) -> ZonedDateTime: ...
     def last_of_month(self) -> t.Self: ...
     def last_of_year(self) -> t.Self: ...
@@ -2556,7 +2552,9 @@ class DateTime(
     def first_of_year(self) -> t.Self: ...
     def in_leap_year(self) -> bool: ...
     def in_tz(self, tz: TimezoneName) -> ZonedDateTime: ...
-    @deprecated("intz is deprecated, use in_tz instead")
+    @deprecated(
+        "`DateTime.intz` is deprecated; use `DateTime.in_tz` instead [removal: v0.0.93]"
+    )
     def intz(self, tz: TimezoneName) -> ZonedDateTime: ...
     def iso_week_date(self) -> ISOWeekDate: ...
     def last_of_month(self) -> t.Self: ...
@@ -2912,9 +2910,7 @@ TimeSpanArithmetic: t.TypeAlias = (
     TimeSpan
     | Duration
     | SignedDuration
-    | tuple[
-        TimeSpan | Duration | SignedDuration, ZonedDateTime | Date | DateTime
-    ]
+    | tuple[TimeSpan | Duration | SignedDuration, ZonedDateTime | Date | DateTime]
 )
 
 
@@ -3360,7 +3356,9 @@ class Timestamp(
     def as_second(self) -> int: ...
     def display_with_offset(self, offset: Offset) -> str: ...
     def in_tz(self, tz: TimezoneName) -> ZonedDateTime: ...
-    @deprecated("intz is deprecated, use in_tz instead")
+    @deprecated(
+        "`Timestamp.intz` is deprecated; use `Timestamp.in_tz` instead [removal: v0.0.93]"
+    )
     def intz(self, tz: TimezoneName) -> ZonedDateTime:
         """Deprecated ~ use `in_tz`"""
 
@@ -3498,9 +3496,7 @@ class ZonedDateTime(
     @classmethod
     def parse_rfc2822(cls, s: str) -> t.Self: ...
     @classmethod
-    def from_parts(
-        cls, timestamp: Timestamp, time_zone: TimeZone
-    ) -> t.Self: ...
+    def from_parts(cls, timestamp: Timestamp, time_zone: TimeZone) -> t.Self: ...
 
     # =========================================================================
     # STRPTIME/STRFTIME
@@ -3646,7 +3642,9 @@ class ZonedDateTime(
     def first_of_year(self) -> t.Self: ...
     def in_leap_year(self) -> bool: ...
     def in_tz(self, tz: TimezoneName) -> t.Self: ...
-    @deprecated("intz is deprecated, use in_tz instead")
+    @deprecated(
+        "`ZonedDateTime.intz` is deprecated; use `ZonedDateTime.in_tz` instead [removal: v0.0.93]"
+    )
     def intz(self, tz: TimezoneName) -> t.Self: ...
     def inutc(self) -> t.Self: ...
     def last_of_month(self) -> t.Self: ...
@@ -4858,9 +4856,7 @@ def parse_json(
     *,
     allow_inf_nan: bool = False,
     cache_mode: t.Literal[True, False, "all", "keys", "none"] = "all",
-    partial_mode: t.Literal[
-        True, False, "off", "on", "trailing-strings"
-    ] = False,
+    partial_mode: t.Literal[True, False, "off", "on", "trailing-strings"] = False,
     catch_duplicate_keys: bool = False,
 ) -> JsonValue: ...
 def parse_jsonl(
@@ -4868,9 +4864,7 @@ def parse_jsonl(
     *,
     allow_inf_nan: bool = False,
     cache_mode: t.Literal[True, False, "all", "keys", "none"] = "all",
-    partial_mode: t.Literal[
-        True, False, "off", "on", "trailing-strings"
-    ] = False,
+    partial_mode: t.Literal[True, False, "off", "on", "trailing-strings"] = False,
     catch_duplicate_keys: bool = False,
 ) -> list[JsonValue]: ...
 def read_json(
@@ -4878,9 +4872,7 @@ def read_json(
     *,
     allow_inf_nan: bool = False,
     cache_mode: t.Literal[True, False, "all", "keys", "none"] = "all",
-    partial_mode: t.Literal[
-        True, False, "off", "on", "trailing-strings"
-    ] = False,
+    partial_mode: t.Literal[True, False, "off", "on", "trailing-strings"] = False,
     catch_duplicate_keys: bool = False,
     lines: bool = False,
 ) -> JsonValue: ...
@@ -4983,6 +4975,9 @@ class Regex:
 <h2 id="ry.ryo3._reqwest"><code>ry.ryo3._reqwest</code></h2>
 
 ```python
+"""ryo3-reqwest types"""
+
+import sys
 import typing as t
 
 import ry
@@ -4992,6 +4987,11 @@ from ry.ryo3._encoding_rs import Encoding
 from ry.ryo3._http import Headers, HttpStatus, HttpVersionLike
 from ry.ryo3._std import Duration, SocketAddr
 from ry.ryo3._url import URL
+
+if sys.version_info >= (3, 13):
+    from warnings import deprecated
+else:
+    from typing_extensions import deprecated
 
 _Body: t.TypeAlias = (
     Buffer
@@ -5072,18 +5072,15 @@ class ClientConfig(t.TypedDict):
     tls_crls_only: list[CertificateRevocationList] | None
     tls_info: bool
     tls_sni: bool
-    tls_version_max: (
-        t.Literal["1.0", "1.1", "1.2", "1.3"] | None
-    )  # default: None
-    tls_version_min: (
-        t.Literal["1.0", "1.1", "1.2", "1.3"] | None
-    )  # default: None
+    tls_version_max: t.Literal["1.0", "1.1", "1.2", "1.3"] | None  # default: None
+    tls_version_min: t.Literal["1.0", "1.1", "1.2", "1.3"] | None  # default: None
     tls_danger_accept_invalid_certs: bool  # default: False
     tls_danger_accept_invalid_hostnames: bool  # default: False
     # __ UNSTABLE __
     _tls_cached_native_certs: bool  # default: False
 
 
+@deprecated("`HttpClient` is deprecated; use `Client` instead [removal: v0.0.93]")
 @t.final
 class HttpClient:
     def __new__(
@@ -5258,20 +5255,20 @@ class Client:
         self,
         url: URL | str,
         **kwargs: Unpack[RequestKwargs],
-    ) -> AsyncResponse: ...
+    ) -> Response: ...
     async def post(
         self,
         url: URL | str,
         **kwargs: Unpack[RequestKwargs],
-    ) -> AsyncResponse: ...
+    ) -> Response: ...
     async def put(
         self,
         url: URL | str,
         **kwargs: Unpack[RequestKwargs],
-    ) -> AsyncResponse: ...
+    ) -> Response: ...
     async def delete(
         self, url: URL | str, **kwargs: Unpack[RequestKwargs]
-    ) -> AsyncResponse: ...
+    ) -> Response: ...
     async def patch(
         self,
         url: URL | str,
@@ -5445,9 +5442,7 @@ class Response:
         *,
         allow_inf_nan: bool = False,
         cache_mode: t.Literal[True, False, "all", "keys", "none"] = "all",
-        partial_mode: t.Literal[
-            True, False, "off", "on", "trailing-strings"
-        ] = False,
+        partial_mode: t.Literal[True, False, "off", "on", "trailing-strings"] = False,
         catch_duplicate_keys: bool = False,
     ) -> t.Any: ...
     async def bytes(self) -> ry.Bytes: ...
@@ -5462,85 +5457,11 @@ class Response:
     @property
     def version(
         self,
-    ) -> t.Literal[
-        "HTTP/0.9", "HTTP/1.0", "HTTP/1.1", "HTTP/2.0", "HTTP/3.0"
-    ]: ...
+    ) -> t.Literal["HTTP/0.9", "HTTP/1.0", "HTTP/1.1", "HTTP/2.0", "HTTP/3.0"]: ...
     @property
     def http_version(
         self,
-    ) -> t.Literal[
-        "HTTP/0.9", "HTTP/1.0", "HTTP/1.1", "HTTP/2.0", "HTTP/3.0"
-    ]: ...
-    @property
-    def redirected(self) -> bool: ...
-    @property
-    def content_length(self) -> int | None: ...
-    @property
-    def content_encoding(self) -> str | None: ...
-    @property
-    def cookies(self) -> list[Cookie] | None: ...
-    @property
-    def set_cookies(self) -> list[Cookie] | None: ...
-    @property
-    def body_used(self) -> bool:
-        """True if the body has been consumed"""
-
-    @property
-    def ok(self) -> bool:
-        """True if the status is a success (2xx)"""
-
-    @property
-    def remote_addr(self) -> SocketAddr | None: ...
-    @property
-    def status(self) -> int: ...
-    @property
-    def status_text(self) -> str: ...
-    @property
-    def status_code(self) -> HttpStatus: ...
-    def __bool__(self) -> bool:
-        """True if the status is a success (2xx)"""
-
-
-@t.final
-class AsyncResponse:
-    """'experimental-async' response type"""
-
-    def __new__(cls) -> t.NoReturn: ...
-    @property
-    def headers(self) -> Headers: ...
-    async def text(self, *, encoding: Encoding = "utf-8") -> str: ...
-    async def text_with_charset(self, encoding: Encoding) -> str: ...
-    async def json(
-        self,
-        *,
-        allow_inf_nan: bool = False,
-        cache_mode: t.Literal[True, False, "all", "keys", "none"] = "all",
-        partial_mode: t.Literal[
-            True, False, "off", "on", "trailing-strings"
-        ] = False,
-        catch_duplicate_keys: bool = False,
-    ) -> t.Any: ...
-    async def bytes(self) -> ry.Bytes: ...
-    def bytes_stream(
-        self, min_read_size: int = 0, /
-    ) -> _AsyncResponseStream: ...  # min_read_size=0 -> None
-    def stream(
-        self, min_read_size: int = 0, /
-    ) -> _AsyncResponseStream: ...  # min_read_size=0 -> None
-    @property
-    def url(self) -> URL: ...
-    @property
-    def version(
-        self,
-    ) -> t.Literal[
-        "HTTP/0.9", "HTTP/1.0", "HTTP/1.1", "HTTP/2.0", "HTTP/3.0"
-    ]: ...
-    @property
-    def http_version(
-        self,
-    ) -> t.Literal[
-        "HTTP/0.9", "HTTP/1.0", "HTTP/1.1", "HTTP/2.0", "HTTP/3.0"
-    ]: ...
+    ) -> t.Literal["HTTP/0.9", "HTTP/1.0", "HTTP/1.1", "HTTP/2.0", "HTTP/3.0"]: ...
     @property
     def redirected(self) -> bool: ...
     @property
@@ -5583,30 +5504,22 @@ class BlockingResponse:
         *,
         allow_inf_nan: bool = False,
         cache_mode: t.Literal[True, False, "all", "keys", "none"] = "all",
-        partial_mode: t.Literal[
-            True, False, "off", "on", "trailing-strings"
-        ] = False,
+        partial_mode: t.Literal[True, False, "off", "on", "trailing-strings"] = False,
         catch_duplicate_keys: bool = False,
     ) -> t.Any: ...
     def bytes(self) -> ry.Bytes: ...
-    def bytes_stream(
-        self, min_read_size: int = 0, /
-    ) -> BlockingResponseStream: ...
+    def bytes_stream(self, min_read_size: int = 0, /) -> BlockingResponseStream: ...
     def stream(self, min_read_size: int = 0, /) -> BlockingResponseStream: ...
     @property
     def url(self) -> URL: ...
     @property
     def version(
         self,
-    ) -> t.Literal[
-        "HTTP/0.9", "HTTP/1.0", "HTTP/1.1", "HTTP/2.0", "HTTP/3.0"
-    ]: ...
+    ) -> t.Literal["HTTP/0.9", "HTTP/1.0", "HTTP/1.1", "HTTP/2.0", "HTTP/3.0"]: ...
     @property
     def http_version(
         self,
-    ) -> t.Literal[
-        "HTTP/0.9", "HTTP/1.0", "HTTP/1.1", "HTTP/2.0", "HTTP/3.0"
-    ]: ...
+    ) -> t.Literal["HTTP/0.9", "HTTP/1.0", "HTTP/1.1", "HTTP/2.0", "HTTP/3.0"]: ...
     @property
     def redirected(self) -> bool: ...
     @property
@@ -5641,32 +5554,21 @@ class BlockingResponse:
 class ResponseStream:
     def __aiter__(self) -> ResponseStream: ...
     async def __anext__(self) -> ry.Bytes: ...
+    async def readall(self) -> ry.Bytes: ...
     async def take(self, n: int = 1) -> list[ry.Bytes]: ...
     @t.overload
     async def collect(self, join: t.Literal[True]) -> ry.Bytes: ...
     @t.overload
-    async def collect(
-        self, join: t.Literal[False] = False
-    ) -> list[ry.Bytes]: ...
-
-
-@t.final
-class _AsyncResponseStream:
-    def __aiter__(self) -> _AsyncResponseStream: ...
-    async def __anext__(self) -> ry.Bytes: ...
-    async def take(self, n: int = 1) -> list[ry.Bytes]: ...
-    async def collect(self) -> list[ry.Bytes]: ...
+    async def collect(self, join: t.Literal[False] = False) -> list[ry.Bytes]: ...
 
 
 @t.final
 class BlockingResponseStream:
     def __iter__(self) -> BlockingResponseStream: ...
     def __next__(self) -> ry.Bytes: ...
+    def readall(self) -> ry.Bytes: ...
     def take(self, n: int = 1) -> list[ry.Bytes]: ...
-    @t.overload
-    def collect(self, join: t.Literal[True]) -> ry.Bytes: ...
-    @t.overload
-    def collect(self, join: t.Literal[False] = False) -> list[ry.Bytes]: ...
+    def collect(self) -> list[ry.Bytes]: ...
 
 
 async def fetch(
@@ -6037,15 +5939,11 @@ class SqlfmtQueryParams:
 
 
 def sqlfmt_params(
-    params: SqlfmtParamsLike[_TSqlfmtParamValue_co]
-    | SqlfmtQueryParams
-    | None = None,
+    params: SqlfmtParamsLike[_TSqlfmtParamValue_co] | SqlfmtQueryParams | None = None,
 ) -> SqlfmtQueryParams: ...
 def sqlfmt(
     sql: str,
-    params: SqlfmtParamsLike[_TSqlfmtParamValue_co]
-    | SqlfmtQueryParams
-    | None = None,
+    params: SqlfmtParamsLike[_TSqlfmtParamValue_co] | SqlfmtQueryParams | None = None,
     *,
     indent: int | t.Literal["tabs", "\t"] = 2,
     uppercase: bool | None = None,
@@ -7126,9 +7024,7 @@ async def asleep(secs: float) -> float:
 # =============================================================================
 @t.final
 class AsyncFile:
-    def __new__(
-        cls, path: FsPathLike, mode: OpenBinaryMode = "rb"
-    ) -> t.Self: ...
+    def __new__(cls, path: FsPathLike, mode: OpenBinaryMode = "rb") -> t.Self: ...
     async def close(self) -> None: ...
     async def flush(self) -> None: ...
     async def isatty(self) -> t.NoReturn: ...
@@ -7162,7 +7058,7 @@ class AsyncFile:
 def aopen(
     path: FsPathLike, mode: OpenBinaryMode | str = "rb", buffering: int = -1
 ) -> AsyncFile: ...
-@deprecated("`aiopen` is deprecated, use `aopen` instead")
+@deprecated("`aiopen` is deprecated; use `aopen` instead [removal: v0.0.93]")
 def aiopen(
     path: FsPathLike, mode: OpenBinaryMode | str = "rb", buffering: int = -1
 ) -> AsyncFile: ...
@@ -7330,9 +7226,7 @@ class WsMessage(Buffer):
         """
 
     @staticmethod
-    def close(
-        code: int = 1_000, reason: str | Buffer | None = None
-    ) -> WsMessage:
+    def close(code: int = 1_000, reason: str | Buffer | None = None) -> WsMessage:
         """Construct a new close message with the given close-code and reason"""
 
     # -------------------------------------------------------------------------
@@ -7500,9 +7394,7 @@ class xxh32:  # noqa: N801
     digest_size: t.Literal[4]
     block_size: t.Literal[16]
 
-    def __new__(
-        cls, data: Buffer | None = None, *, seed: int = 0
-    ) -> t.Self: ...
+    def __new__(cls, data: Buffer | None = None, *, seed: int = 0) -> t.Self: ...
     def update(self, data: Buffer) -> None: ...
     def digest(self) -> bytes: ...
     def hexdigest(self) -> str: ...
@@ -7525,9 +7417,7 @@ class xxh64:  # noqa: N801
     digest_size: t.Literal[8]
     block_size: t.Literal[32]
 
-    def __new__(
-        cls, data: Buffer | None = None, *, seed: int = 0
-    ) -> t.Self: ...
+    def __new__(cls, data: Buffer | None = None, *, seed: int = 0) -> t.Self: ...
     def update(self, data: Buffer) -> None: ...
     def digest(self) -> bytes: ...
     def hexdigest(self) -> str: ...
@@ -7693,9 +7583,7 @@ class URL(FromStr, ToString, _Parse):
     @classmethod
     def from_str(cls, s: str) -> t.Self: ...
     @classmethod
-    def parse_with_params(
-        cls, url: str | bytes, params: dict[str, str]
-    ) -> t.Self: ...
+    def parse_with_params(cls, url: str | bytes, params: dict[str, str]) -> t.Self: ...
     @classmethod
     def from_directory_path(cls, path: FsPathLike) -> t.Self: ...
     @classmethod
@@ -7808,12 +7696,7 @@ class URL(FromStr, ToString, _Parse):
         *,
         fragment: str | None = None,
         host: str | None = None,
-        ip_host: IPv4Address
-        | IPv6Address
-        | Ipv4Addr
-        | Ipv6Addr
-        | IpAddr
-        | None = None,
+        ip_host: IPv4Address | IPv6Address | Ipv4Addr | Ipv6Addr | IpAddr | None = None,
         password: str | None = None,
         path: str | None = None,
         port: int | None = None,
@@ -7851,41 +7734,41 @@ class URL(FromStr, ToString, _Parse):
     # DEPRECATED
     # =========================================================================
     @deprecated(
-        "`replace_*` methods are deprecated, use `with_*` methods instead"
+        "`URL.replace_fragment` is deprecated; use `URL.with_fragment` instead [removal: v0.0.93]"
     )
     def replace_fragment(self, fragment: str | None = None) -> t.Self: ...
     @deprecated(
-        "`replace_*` methods are deprecated, use `with_*` methods instead"
+        "`URL.replace_host` is deprecated; use `URL.with_host` instead [removal: v0.0.93]"
     )
     def replace_host(self, host: str | None = None) -> t.Self: ...
     @deprecated(
-        "`replace_*` methods are deprecated, use `with_*` methods instead"
+        "`URL.replace_ip_host` is deprecated; use `URL.with_ip_host` instead [removal: v0.0.93]"
     )
     def replace_ip_host(
         self, address: IPv4Address | IPv6Address | Ipv4Addr | Ipv6Addr | IpAddr
     ) -> t.Self: ...
     @deprecated(
-        "`replace_*` methods are deprecated, use `with_*` methods instead"
+        "`URL.replace_password` is deprecated; use `URL.with_password` instead [removal: v0.0.93]"
     )
     def replace_password(self, password: str | None = None) -> t.Self: ...
     @deprecated(
-        "`replace_*` methods are deprecated, use `with_*` methods instead"
+        "`URL.replace_path` is deprecated; use `URL.with_path` instead [removal: v0.0.93]"
     )
     def replace_path(self, path: str) -> t.Self: ...
     @deprecated(
-        "`replace_*` methods are deprecated, use `with_*` methods instead"
+        "`URL.replace_port` is deprecated; use `URL.with_port` instead [removal: v0.0.93]"
     )
     def replace_port(self, port: int | None = None) -> t.Self: ...
     @deprecated(
-        "`replace_*` methods are deprecated, use `with_*` methods instead"
+        "`URL.replace_query` is deprecated; use `URL.with_query` instead [removal: v0.0.93]"
     )
     def replace_query(self, query: str | None = None) -> t.Self: ...
     @deprecated(
-        "`replace_*` methods are deprecated, use `with_*` methods instead"
+        "`URL.replace_scheme` is deprecated; use `URL.with_scheme` instead [removal: v0.0.93]"
     )
     def replace_scheme(self, scheme: str) -> t.Self: ...
     @deprecated(
-        "`replace_*` methods are deprecated, use `with_*` methods instead"
+        "`URL.replace_username` is deprecated; use `URL.with_username` instead [removal: v0.0.93]"
     )
     def replace_username(self, username: str) -> t.Self: ...
 ```
@@ -8171,9 +8054,7 @@ def loads(
     *,
     allow_inf_nan: bool = False,
     cache_mode: t.Literal[True, False, "all", "keys", "none"] = "all",
-    partial_mode: t.Literal[
-        True, False, "off", "on", "trailing-strings"
-    ] = False,
+    partial_mode: t.Literal[True, False, "off", "on", "trailing-strings"] = False,
     catch_duplicate_keys: bool = False,
 ) -> JsonValue: ...
 def parse(
@@ -8181,9 +8062,7 @@ def parse(
     *,
     allow_inf_nan: bool = False,
     cache_mode: t.Literal[True, False, "all", "keys", "none"] = "all",
-    partial_mode: t.Literal[
-        True, False, "off", "on", "trailing-strings"
-    ] = False,
+    partial_mode: t.Literal[True, False, "off", "on", "trailing-strings"] = False,
     catch_duplicate_keys: bool = False,
 ) -> JsonValue: ...
 def cache_clear() -> None: ...

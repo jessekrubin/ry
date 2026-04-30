@@ -13,6 +13,8 @@ const OPT_LEVEL_STR: &str = env!("OPT_LEVEL");
 const TARGET: &str = env!("TARGET");
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
+const PYO3_EXPERIMENTAL_ASYNC: bool = cfg!(feature = "experimental-async");
+
 #[cfg(feature = "mimalloc")]
 #[global_allocator]
 static ALLOC: mimalloc::MiMalloc = mimalloc::MiMalloc;
@@ -77,6 +79,7 @@ fn ry(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add("__target__", TARGET)?;
     m.add("__allocator__", ALLOCATOR)?;
     m.add("__crypto_provider__", CRYPTO_PROVIDER)?;
+    m.add("__pyo3_experimental_async__", PYO3_EXPERIMENTAL_ASYNC)?;
 
     // ------------------------------------------------------------------------
     ryo3::ry::pymod_add(m)?;
@@ -87,8 +90,8 @@ fn ry(m: &Bound<'_, PyModule>) -> PyResult<()> {
         build.target = %TARGET,
         build.timestamp = %BUILD_TIMESTAMP,
         build.version = %VERSION,
+        build.opt_level = %OPT_LEVEL_STR,
         "ryo3-v{VERSION} initialized [{ryo3_init_time:?}]",
     );
-
     Ok(())
 }
