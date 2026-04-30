@@ -284,8 +284,8 @@ fn write_impl<P: AsRef<Path>, C: AsRef<[u8]>>(fspath: P, b: C) -> PyResult<usize
 }
 
 #[pyfunction]
-pub fn read_link(py: Python<'_>, path: PathBuf) -> PyResult<PathBuf> {
-    let p = py.detach(|| std::fs::read_link(path))?;
+pub fn read_link(path: PathBuf) -> PyResult<PathBuf> {
+    let p = std::fs::read_link(path)?;
     Ok(p)
 }
 
@@ -340,8 +340,8 @@ pub fn rename(py: Python<'_>, from: PathBuf, to: PathBuf) -> PyResult<()> {
 }
 
 #[pyfunction]
-pub fn metadata(py: Python<'_>, path: PathLike) -> PyResult<PyMetadata> {
-    let metadata = py.detach(|| std::fs::metadata(path))?;
+pub fn metadata(path: PathLike) -> PyResult<PyMetadata> {
+    let metadata = std::fs::metadata(path)?;
     Ok(PyMetadata::from(metadata))
 }
 
@@ -407,9 +407,8 @@ pub fn canonicalize(py: Python<'_>, path: PathLike) -> PyResult<PathLike> {
 }
 
 #[pyfunction]
-pub fn exists(py: Python<'_>, path: PathBuf) -> PyResult<bool> {
-    py.detach(|| std::fs::exists(path))
-        .map_err(|e| PyIOError::new_err(format!("exists - {e}")))
+pub fn exists(path: PathBuf) -> PyResult<bool> {
+    std::fs::exists(path).map_err(|e| PyIOError::new_err(format!("exists - {e}")))
 }
 
 #[pyfunction]
@@ -453,10 +452,8 @@ pub fn soft_link(py: Python<'_>, original: PathBuf, link: PathBuf) -> PyResult<(
 }
 
 #[pyfunction]
-pub fn symlink_metadata(py: Python<'_>, path: PathBuf) -> PyResult<PyMetadata> {
-    let m = py
-        .detach(|| std::fs::symlink_metadata(path))
-        .map(PyMetadata::from)?;
+pub fn symlink_metadata(path: PathBuf) -> PyResult<PyMetadata> {
+    let m = std::fs::symlink_metadata(path).map(PyMetadata::from)?;
     Ok(m)
 }
 
