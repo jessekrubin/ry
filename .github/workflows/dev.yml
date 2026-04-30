@@ -71,7 +71,7 @@ jobs:
         env:
           RUST_BACKTRACE: 1
       - run: uv pip freeze
-      - run: uv run --python {{ matrix.python-version }} pytest tests
+      - run: uv run pytest tests
 
   test-python-cov:
     name: test-python-cov-${{ matrix.python-version }}
