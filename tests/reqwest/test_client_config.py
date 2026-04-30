@@ -66,7 +66,16 @@ _TClient: t.TypeAlias = ry.HttpClient | ry.Client | ry.BlockingClient  # type: i
 
 
 # param fixture
-@pytest.fixture(params=[ry.HttpClient, ry.Client, ry.BlockingClient])  # type: ignore[deprecated]
+@pytest.fixture(
+    params=(
+        pytest.param(
+            ry.HttpClient,  # type: ignore[deprecated]
+            marks=pytest.mark.filterwarnings("ignore:`HttpClient` is deprecated"),
+        ),
+        ry.Client,
+        ry.BlockingClient,
+    )
+)
 def client_cls(
     request: pytest.FixtureRequest,
 ) -> type[_TClient]:

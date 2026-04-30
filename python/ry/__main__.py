@@ -12,6 +12,7 @@ from ry.__about__ import (
     __crypto_provider__,
     __opt_level__,
     __pkgroot__,
+    __pyo3_experimental_async__,
     __target__,
     __title__,
     __version__,
@@ -30,6 +31,7 @@ def _ext_info() -> dict[str, str | int]:
         "opt-level": __opt_level__,
         "target": __target__,
         "crypto_provider": __crypto_provider__,
+        "pyo3_experimental_async": __pyo3_experimental_async__,
     }
 
 

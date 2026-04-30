@@ -2,7 +2,6 @@ use std::sync::Arc;
 
 use cookie::Cookie;
 use parking_lot::Mutex;
-use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use pyo3::types::PyString;
 use reqwest::header::{CONTENT_ENCODING, SET_COOKIE};
@@ -13,15 +12,15 @@ use ryo3_http::{PyHeaders, PyHttpStatus, PyHttpVersion, status_code_pystring};
 use ryo3_macro_rules::py_runtime_error;
 use ryo3_macro_rules::pytodo;
 use ryo3_std::net::PySocketAddr;
-use ryo3_tokio_rt::{future_into_py, get_tokio_runtime};
+#[cfg(not(feature = "experimental-async"))]
+use ryo3_tokio_rt::future_into_py;
+use ryo3_tokio_rt::get_tokio_runtime;
 use ryo3_url::PyUrl;
 
 use crate::charset::PyEncodingName;
 use crate::errors::map_reqwest_err;
 use crate::pyo3_json_bytes::Pyo3JsonBytes;
 use crate::response_head::RyResponseHead;
-#[cfg(feature = "experimental-async")]
-use crate::response_stream::RyAsyncResponseStream;
 use crate::response_stream::RyBlockingResponseStream;
 use crate::{RyResponseStream, pyerr_response_already_consumed};
 
@@ -29,18 +28,6 @@ use crate::{RyResponseStream, pyerr_response_already_consumed};
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Debug)]
 pub struct RyResponse {
-    /// The actual response which will be consumed when read
-    res: Arc<Mutex<Option<reqwest::Response>>>,
-
-    /// Response "head" data (status, headers, url, http-version, etc.)
-    head: RyResponseHead,
-}
-
-#[cfg(feature = "experimental-async")]
-#[pyclass(name = "AsyncResponse", frozen, immutable_type, skip_from_py_object)]
-#[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
-#[derive(Debug)]
-pub struct RyAsyncResponse {
     /// The actual response which will be consumed when read
     res: Arc<Mutex<Option<reqwest::Response>>>,
 
@@ -60,23 +47,6 @@ pub struct RyBlockingResponse {
 }
 
 impl RyResponse {
-    /// Create a new response from a reqwest response
-    #[must_use]
-    pub fn new(res: reqwest::Response) -> Self {
-        Self {
-            head: RyResponseHead::from(&res),
-            res: Arc::new(Mutex::new(Some(res))),
-        }
-    }
-
-    fn take_response(&self) -> PyResult<reqwest::Response> {
-        let mut opt = self.res.lock();
-        opt.take().ok_or_else(|| pyerr_response_already_consumed!())
-    }
-}
-
-#[cfg(feature = "experimental-async")]
-impl RyAsyncResponse {
     /// Create a new response from a reqwest response
     #[must_use]
     pub fn new(res: reqwest::Response) -> Self {
@@ -114,19 +84,13 @@ impl From<reqwest::Response> for RyResponse {
     }
 }
 
-#[cfg(feature = "experimental-async")]
-impl From<reqwest::Response> for RyAsyncResponse {
-    fn from(res: reqwest::Response) -> Self {
-        Self::new(res)
-    }
-}
-
 impl From<reqwest::Response> for RyBlockingResponse {
     fn from(res: reqwest::Response) -> Self {
         Self::new(res)
     }
 }
 
+#[cfg(not(feature = "experimental-async"))]
 #[pymethods]
 impl RyResponse {
     #[new]
@@ -213,6 +177,7 @@ impl RyResponse {
 
     /// Return the response body as bytes (consumes the response)
     fn bytes<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
+        use pyo3::exceptions::PyValueError;
         let response = self.take_response()?;
         future_into_py(py, async move {
             response
@@ -334,7 +299,7 @@ impl RyResponse {
 
 #[cfg(feature = "experimental-async")]
 #[pymethods]
-impl RyAsyncResponse {
+impl RyResponse {
     #[new]
     fn py_new() -> PyResult<Self> {
         pytodo!("Response::new")
@@ -487,17 +452,14 @@ impl RyAsyncResponse {
 
     /// Return a response consuming async iterator over the response body
     #[pyo3(signature = (min_read_size = 0, /))]
-    fn bytes_stream(&self, min_read_size: usize) -> PyResult<RyAsyncResponseStream> {
+    fn bytes_stream(&self, min_read_size: usize) -> PyResult<RyResponseStream> {
         let response = self.take_response()?;
-        Ok(RyAsyncResponseStream::from_response(
-            response,
-            min_read_size,
-        ))
+        Ok(RyResponseStream::from_response(response, min_read_size))
     }
 
     /// Return a response consuming async iterator over the response body
     #[pyo3(signature = (min_read_size = 0, /))]
-    fn stream(&self, min_read_size: usize) -> PyResult<RyAsyncResponseStream> {
+    fn stream(&self, min_read_size: usize) -> PyResult<RyResponseStream> {
         self.bytes_stream(min_read_size)
     }
 
@@ -539,18 +501,6 @@ impl RyAsyncResponse {
 }
 
 impl std::fmt::Display for RyResponse {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "<Response [{status}; {url}]>",
-            status = self.head.status.as_u16(),
-            url = self.head.url,
-        )
-    }
-}
-
-#[cfg(feature = "experimental-async")]
-impl std::fmt::Display for RyAsyncResponse {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,

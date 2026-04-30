@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import re
+
 import pytest
 
 import ry
@@ -8,22 +10,32 @@ import ry
 class TestJiffDeprecationsInTz:
     """Test deprecations for objs that have an `.intz(tz:str)->Self:` method"""
 
-    msg = "`intz` is deprecated, use `in_tz` instead"
-
     def test_jiff_intz_deprecation_date(self) -> None:
-        with pytest.warns(DeprecationWarning, match=self.msg):
+        msg = re.escape(
+            "`Date.intz` is deprecated; use `Date.in_tz` instead [removal: v0.0.93]"
+        )
+        with pytest.warns(DeprecationWarning, match=msg):
             _d = ry.Date.today().intz("UTC")  # type: ignore[deprecated]
 
     def test_jiff_intz_deprecation_datetime(self) -> None:
-        with pytest.warns(DeprecationWarning, match=self.msg):
+        msg = re.escape(
+            "`DateTime.intz` is deprecated; use `DateTime.in_tz` instead [removal: v0.0.93]"
+        )
+        with pytest.warns(DeprecationWarning, match=msg):
             _d = ry.now().datetime().intz("UTC")  # type: ignore[deprecated]
 
     def test_jiff_intz_deprecation_timestamp(self) -> None:
-        with pytest.warns(DeprecationWarning, match=self.msg):
+        msg = re.escape(
+            "`Timestamp.intz` is deprecated; use `Timestamp.in_tz` instead [removal: v0.0.93]"
+        )
+        with pytest.warns(DeprecationWarning, match=msg):
             _d = ry.now().timestamp().intz("UTC")  # type: ignore[deprecated]
 
     def test_jiff_intz_deprecation_zoned_datetime(self) -> None:
-        with pytest.warns(DeprecationWarning, match=self.msg):
+        msg = re.escape(
+            "`ZonedDateTime.intz` is deprecated; use `ZonedDateTime.in_tz` instead [removal: v0.0.93]"
+        )
+        with pytest.warns(DeprecationWarning, match=msg):
             _d = ry.now().intz("UTC")  # type: ignore[deprecated]
 
 

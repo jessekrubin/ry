@@ -1,3 +1,4 @@
+import re
 import typing as t
 
 import pytest
@@ -41,9 +42,10 @@ def test_url_replace_deprecations(
 ) -> None:
     url = ry.URL("http://user:pass@localhost:80/path?query#fragment")
 
-    with pytest.deprecated_call(
-        match="`replace_\\*` methods are deprecated, use `with_\\*` methods instead"
-    ):
+    warning_msg = re.escape(
+        f"`URL.{deprecated_method}` is deprecated; use `URL.{new_method}` instead [removal: v0.0.93]"
+    )
+    with pytest.deprecated_call(match=warning_msg):
         deprecated_result = getattr(url, deprecated_method)(*args, **kwargs)
 
     # Call the new method

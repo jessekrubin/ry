@@ -8,6 +8,8 @@ import pytest
 import ry
 
 if TYPE_CHECKING:
+    from ry.ryo3 import RequestKwargs
+
     from .conftest import ReqtestServer
 
 
@@ -74,6 +76,43 @@ def test_get_query(server: ReqtestServer) -> None:
         ("bluey-fam-size", "4"),
         ("fraction-red-heelers", "0.5"),
     )
+
+
+@pytest.mark.parametrize(
+    ("method", "options"),
+    [
+        ("get", {}),
+        ("post", {}),
+        ("put", {}),
+        ("delete", {}),
+        ("patch", {}),
+        ("head", {}),
+        ("options", {}),
+    ],
+)
+@pytest.mark.parametrize(
+    "use_cls_callable",
+    [True, False],
+)
+def test_blocking_client_methods(
+    server: ReqtestServer,
+    method: t.Literal["get", "post", "put", "delete", "patch", "head", "options"],
+    options: RequestKwargs,
+    *,
+    use_cls_callable: bool,
+) -> None:
+    """Test that headers are sent with the request and work good"""
+    url = server.url
+    client = ry.BlockingClient()
+    if use_cls_callable:
+        response = client(str(url) + "echo", method=method, **options)
+    else:
+        response = getattr(client, method)(str(url) + "echo", **options)
+    assert response.status_code == 200
+    assert response.headers["x-request-method"] == method.upper()
+    if method.lower() != "head":
+        response_data = response.json()
+        assert response_data["method"].lower() == method
 
 
 @pytest.mark.parametrize("method", ["post", "put", "patch", "delete"])
@@ -257,14 +296,14 @@ class TestStream:
         assert rest_total_inner_len == expected_len
 
     @staticmethod
-    def test_get_stream_collect_join(server: ReqtestServer) -> None:
+    def test_get_stream_readall(server: ReqtestServer) -> None:
         url = server.url
         client = ry.BlockingClient()
         response = client.get(str(url) + "long")
 
         expected = "".join([f"howdy partner {i}\n" for i in range(100)]).encode()
         response_stream = response.bytes_stream()
-        collected = response_stream.collect(join=True)
+        collected = response_stream.readall()
         assert isinstance(collected, ry.Bytes)
         assert collected == expected
 
