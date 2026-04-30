@@ -10,10 +10,10 @@ use pyo3::exceptions::{
 };
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyTuple};
-use pyo3::{IntoPyObjectExt, intern};
+use pyo3::{BoundObject, IntoPyObjectExt, intern};
 use ryo3_bytes::PyBytes as RyBytes;
-use ryo3_core::RyMutex;
 use ryo3_core::types::PathLike;
+use ryo3_core::{RyMutex, any_repr, py_type_err};
 use ryo3_macro_rules::pytodo;
 
 // separator
@@ -167,6 +167,19 @@ impl PyFsPath {
         let s = path2str(self.path());
         let b = s.as_bytes();
         PyBytes::new(py, b)
+    }
+
+    #[staticmethod]
+    fn from_any<'py>(value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, Self>> {
+        let py = value.py();
+        if let Ok(val) = value.cast_exact::<Self>() {
+            Ok(val.as_borrowed().into_bound())
+        } else if let Ok(p) = value.extract::<PathBuf>() {
+            Self::from(p).into_pyobject(py)
+        } else {
+            let valtype = any_repr!(value);
+            py_type_err!("FsPath conversion error: {valtype}")
+        }
     }
 
     #[getter]
@@ -779,6 +792,38 @@ impl PyFsPath {
     // FEATURES
     // ========================================================================
 
+    // ------------------------------------------------------------------------
+    // `pydantic` feature
+    // ------------------------------------------------------------------------
+
+    #[cfg(feature = "pydantic")]
+    #[staticmethod]
+    fn _pydantic_validate<'py>(value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, Self>> {
+        use ryo3_core::map_py_value_err;
+        Self::from_any(value).map_err(map_py_value_err)
+    }
+
+    #[cfg(feature = "pydantic")]
+    #[classmethod]
+    fn __get_pydantic_core_schema__<'py>(
+        cls: &Bound<'py, ::pyo3::types::PyType>,
+        source: &Bound<'py, PyAny>,
+        handler: &Bound<'py, PyAny>,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        use ryo3_pydantic::GetPydanticCoreSchemaCls;
+        Self::get_pydantic_core_schema(cls, source, handler)
+    }
+
+    #[cfg(feature = "pydantic")]
+    #[classmethod]
+    fn __get_pydantic_json_schema__<'py>(
+        cls: &Bound<'py, ::pyo3::types::PyType>,
+        source: &Bound<'py, PyAny>,
+        handler: &Bound<'py, PyAny>,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        use ryo3_pydantic::GetPydanticJsonSchemaCls;
+        Self::get_pydantic_json_schema(cls, source, handler)
+    }
     // -------------------------------------------------------------------------
     // `same-file` feature
     // ------------------------------------------------------------------------

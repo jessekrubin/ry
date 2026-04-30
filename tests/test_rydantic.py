@@ -9,6 +9,7 @@ REF(s):
 """
 
 import datetime as pydt
+import pathlib
 import typing as t
 import zoneinfo
 from ipaddress import IPv4Address, IPv6Address
@@ -112,6 +113,15 @@ class RyHeadersModel(pydantic.BaseModel):
     headers: ry.Headers
 
 
+# PATH MODELS
+class PyPathModel(pydantic.BaseModel):
+    path: pathlib.Path
+
+
+class RyFsPathModel(pydantic.BaseModel):
+    path: ry.FsPath
+
+
 class _TestJsonSchemas(TypedDict):
     name: str
     ry_model: type[pydantic.BaseModel]
@@ -156,6 +166,11 @@ _MODELS_SCHEMAS = [
         name="url",
         ry_model=RyUrlModel,
         py_model=PyUrlModel,
+    ),
+    _TestJsonSchemas(
+        name="path",
+        ry_model=RyFsPathModel,
+        py_model=PyPathModel,
     ),
 ]
 
@@ -236,6 +251,58 @@ class TestDuration:
             tm = PyTimedeltaModel(d=result)
             tm_json = tm.model_dump_json()
             assert tm_json == ry_json
+
+
+"""
+__TODO__
+
+@pytest.mark.skip(reason="not implemented yet (more involved than i expected)")
+class TestBytesPydantic:
+    @pytest.mark.parametrize("value", [b"abc", bytearray(b"abc"), memoryview(b"abc"), ry.Bytes(b"abc")])
+    def test_parse_ok(self, value: bytes | bytearray | memoryview | ry.Bytes) -> None:
+        model = RyBytesModel(data=value)  # type: ignore[arg-type]
+        assert isinstance(model.data, ry.Bytes)
+        assert model.data == b"abc"
+
+        from_json = RyBytesModel.model_validate_json(model.model_dump_json())
+        assert isinstance(from_json.data, ry.Bytes)
+        assert from_json.data == b"abc"
+
+    def test_json_matches_builtin_bytes(self) -> None:
+        py_model = PyBytesModel(data=b"abc")
+        ry_model = RyBytesModel(data=b"abc")
+        assert ry_model.model_dump_json() == py_model.model_dump_json()
+
+    @pytest.mark.parametrize("value", [123, object()])
+    def test_parse_err(self, value: object) -> None:
+        with pytest.raises(pydantic.ValidationError):
+            RyBytesModel(data=value)  # type: ignore[arg-type]
+"""
+
+
+class TestFsPathPydantic:
+    @pytest.mark.parametrize(
+        "value",
+        ["some/path.txt", pathlib.Path("some/path.txt"), ry.FsPath("some/path.txt")],
+    )
+    def test_parse_ok(self, value: str | pathlib.Path | ry.FsPath) -> None:
+        model = RyFsPathModel(path=value)  # type: ignore[arg-type]
+        assert isinstance(model.path, ry.FsPath)
+        assert str(model.path) == "some/path.txt"
+
+        from_json = RyFsPathModel.model_validate_json(model.model_dump_json())
+        assert isinstance(from_json.path, ry.FsPath)
+        assert str(from_json.path) == "some/path.txt"
+
+    def test_json_matches_pathlib(self) -> None:
+        py_model = PyPathModel(path=pathlib.Path("some/path.txt"))
+        ry_model = RyFsPathModel(path="some/path.txt")
+        assert ry_model.model_dump_json() == py_model.model_dump_json()
+
+    @pytest.mark.parametrize("value", [123, object()])
+    def test_parse_err(self, value: object) -> None:
+        with pytest.raises(pydantic.ValidationError):
+            RyFsPathModel(path=value)  # type: ignore[arg-type]
 
     @pytest.mark.parametrize(
         ("value", "result"),
