@@ -167,7 +167,7 @@ impl RyResponseStream {
         let rt = get_tokio_runtime();
         let stream = self.inner.stream.clone();
         rt.spawn(async move {
-            collect_bytes_join(&stream)
+            readall_bytes(&stream)
                 .await
                 .map(RyBytes::from)
                 .map_err(map_reqwest_err)
@@ -287,96 +287,6 @@ impl RyResponseStream {
     }
 }
 
-// #[cfg(feature = "experimental-async")]
-// #[pyclass(
-//     name = "AsyncResponseStream",
-//     frozen,
-//     immutable_type,
-//     skip_from_py_object
-// )]
-// #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
-// pub struct RyAsyncResponseStream {
-//     inner: ResponseStreamInner,
-// }
-
-// #[cfg(feature = "experimental-async")]
-// impl std::fmt::Display for RyAsyncResponseStream {
-//     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-//         write!(f, "AsyncResponseStream<{}>", self.inner.status)
-//     }
-// }
-
-// #[cfg(feature = "experimental-async")]
-// #[pymethods]
-// impl RyAsyncResponseStream {
-//     fn __repr__(&self) -> String {
-//         format!("{self}")
-//     }
-
-//     fn __aiter__(this: PyRef<Self>) -> PyRef<Self> {
-//         this
-//     }
-
-//     // CURRENTLY USING OLD VERSION TO AVOID LIFETIME ISSUES
-//     fn __anext__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
-//         let inner = self.inner.clone();
-//         future_into_py(py, async move { inner.py_anext().await })
-//     }
-
-//     // async fn _anext( &self) -> PyResult<RyBytes> {
-//     //     let res = self.inner.next().await;
-//     //     match res {
-//     //         Ok(Some(bytes)) => Ok(RyBytes::from(bytes)),
-//     //         Ok(None) => Err(PyStopAsyncIteration::new_err("response-stream-end")),
-//     //         Err(e) => Err(map_reqwest_err(e)),
-//     //     }
-//     // }
-
-//     #[pyo3(signature = (n = 1))]
-//     async fn take(&self, n: usize) -> PyResult<Vec<RyBytes>> {
-//         use ryo3_macro_rules::py_runtime_error;
-//         let rt = get_tokio_runtime();
-//         let stream = self.inner.stream.clone();
-//         rt.spawn(async move {
-//             let mut guard = stream.lock().await;
-//             let mut items = Vec::with_capacity(n);
-//             for _ in 0..n {
-//                 match guard.next().await {
-//                     Some(Ok(bytes)) => items.push(RyBytes::from(bytes)),
-//                     Some(Err(e)) => return Err(map_reqwest_err(e)),
-//                     None => break,
-//                 }
-//             }
-//             Ok(items)
-//         })
-//         .await
-//         .map_err(|e| py_runtime_error!("{e}"))?
-//     }
-
-//     async fn collect(&self) -> PyResult<Vec<RyBytes>> {
-//         use ryo3_macro_rules::py_runtime_error;
-//         let rt = get_tokio_runtime();
-//         let stream = self.inner.stream.clone();
-//         let py_bytes_vec = rt
-//             .spawn(async move {
-//                 let mut guard = stream.lock().await;
-//                 let mut items = Vec::new();
-//                 while let Some(item) = guard.next().await {
-//                     match item {
-//                         Ok(bytes) => items.push(bytes),
-//                         Err(e) => return Err(e),
-//                     }
-//                 }
-//                 Ok(items)
-//             })
-//             .await
-//             .map_err(|e| py_runtime_error!("{e}"))?
-//             .map(|bytes_vec| bytes_vec.into_iter().map(RyBytes::from).collect())
-//             .map_err(map_reqwest_err)?;
-//         Ok(py_bytes_vec)
-//     }
-// }
-
 #[pyclass(
     name = "BlockingResponseStream",
     frozen,
@@ -435,7 +345,7 @@ impl RyBlockingResponseStream {
         let stream = self.inner.stream.clone();
         let rt = get_tokio_runtime();
         let py_bytes = py.detach(|| {
-            rt.block_on(collect_bytes_join(&stream))
+            rt.block_on(readall_bytes(&stream))
                 .map(RyBytes::from)
                 .map_err(map_reqwest_err)
         })?;
@@ -482,7 +392,7 @@ async fn take_bytes(
 }
 
 #[inline]
-async fn collect_bytes_join(stream: &AsyncResponseStreamInner) -> Result<Bytes, reqwest::Error> {
+async fn readall_bytes(stream: &AsyncResponseStreamInner) -> Result<Bytes, reqwest::Error> {
     let mut guard = stream.lock().await;
     let mut bytes_mut = BytesMut::new();
     while let Some(item) = guard.next().await {
