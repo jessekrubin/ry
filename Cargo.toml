@@ -220,7 +220,6 @@ jiter = { version = "0.14", default-features = false, features = ["python"] }
 memchr = { version = "2.7.5", default-features = false, features = [] }
 # allocator(s)
 mimalloc = { version = "0.1.50", default-features = false, features = [] }
-parking_lot = { version = "0.12.5", default-features = false, features = [] }
 # pyo3 async runtimes
 rand = { version = "0.10.1", default-features = false, features = [] }
 regex = { version = "1.12.2", default-features = false, features = [] }

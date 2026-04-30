@@ -18,7 +18,6 @@ encoding_rs.workspace = true
 futures-core.workspace = true
 futures-util = { workspace = true, features = ["sink"] }
 jiter.workspace = true
-parking_lot.workspace = true
 pyo3 = { workspace = true, features = [] }
 pyo3-async-runtimes = { workspace = true, features = ["unstable-streams"] }
 reqwest = { workspace = true, default-features = false, features = ["brotli", "charset", "cookies", "deflate", "form", "gzip", "hickory-dns", "http2", "json", "multipart", "query", "rustls-no-provider", "socks", "stream", "zstd"] }

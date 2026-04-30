@@ -3,7 +3,8 @@
 ## requirements
 
 - [uv](https://docs.astral.sh/uv/): python package/project management
-- [rust](https://www.rust-lang.org/tools/install): the language this is written in
+- [rust](https://www.rust-lang.org/tools/install): the language this is written
+  in
 - [just](https://github.com/casey/just#installation): _just_ a task runner
 
 ## goals
@@ -64,7 +65,7 @@
   - update the matching `@deprecated(...)` message in the `.pyi` stub
   - update generated docs if they include the deprecated symbol
 
-### Example for copy-pasta:
+### Example for copy-pasta
 
 **rust code**
 
