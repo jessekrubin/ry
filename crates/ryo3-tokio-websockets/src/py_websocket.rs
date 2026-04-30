@@ -241,7 +241,7 @@ impl PyWebSocket {
     }
 
     #[inline]
-    async fn get_connected(&self) -> PyResult<WebSocketConnected> {
+    fn get_connected(&self) -> PyResult<WebSocketConnected> {
         let state = self.0.state.py_lock();
         match &*state {
             WebSocketState::Open(conn) => Ok(conn.clone()),
@@ -258,7 +258,7 @@ impl PyWebSocket {
     }
 
     #[inline]
-    async fn close_current_connection(&self, current: &WebSocketConnected) {
+    fn close_current_connection(&self, current: &WebSocketConnected) {
         let mut state = self.0.state.py_lock();
         match &*state {
             WebSocketState::Open(open_conn) | WebSocketState::Closing(open_conn)
@@ -291,7 +291,7 @@ impl PyWebSocket {
                 if let Ok(result) = tokio::time::timeout(close_timeout, close_future).await {
                     result
                 } else {
-                    self.close_current_connection(conn).await;
+                    self.close_current_connection(conn);
                     return py_runtime_err!(
                         "websocket close timed out after {} seconds",
                         close_timeout.as_secs_f64()
@@ -301,7 +301,7 @@ impl PyWebSocket {
             None => close_future.await,
         };
 
-        self.close_current_connection(conn).await;
+        self.close_current_connection(conn);
         result
     }
 
@@ -335,18 +335,18 @@ impl PyWebSocket {
 
         if let Some(msg) = msg_result? {
             if msg.is_close() {
-                self.close_current_connection(&conn).await;
+                self.close_current_connection(&conn);
             }
             Ok(Some(PyWsMessage::from(msg)))
         } else {
-            self.close_current_connection(&conn).await;
+            self.close_current_connection(&conn);
             Ok(None)
         }
     }
 
     #[inline]
     async fn send(&self, message: Message) -> PyResult<()> {
-        let conn = self.get_connected().await?;
+        let conn = self.get_connected()?;
         let mut writer = conn.writer.lock().await;
         writer.send(message).await.map_err(map_ws_err)?;
         Ok(())
@@ -380,7 +380,7 @@ impl PyWebSocket {
                 Ok(()) | Err(tokio_websockets::Error::AlreadyClosed) => {}
                 Err(err) => {
                     drop(writer);
-                    self.close_current_connection(&conn).await;
+                    self.close_current_connection(&conn);
                     return Err(map_ws_err(err));
                 }
             }
