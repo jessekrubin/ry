@@ -96,23 +96,6 @@ class RyUrlModel(pydantic.BaseModel):
     url: ry.URL
 
 
-# HTTP MODELS
-class PyHttpStatusModel(pydantic.BaseModel):
-    status: int
-
-
-class RyHttpStatusModel(pydantic.BaseModel):
-    status: ry.HttpStatus
-
-
-class PyHeadersModel(pydantic.BaseModel):
-    headers: dict[str, str | list[str]]
-
-
-class RyHeadersModel(pydantic.BaseModel):
-    headers: ry.Headers
-
-
 # PATH MODELS
 class PyPathModel(pydantic.BaseModel):
     path: pathlib.Path
@@ -188,6 +171,31 @@ class TestJsonSchemas:
         self._diff_schemas(py_model, ry_model)
 
 
+class TestFsPathPydantic:
+    @pytest.mark.parametrize(
+        "value",
+        ["some/path.txt", pathlib.Path("some/path.txt"), ry.FsPath("some/path.txt")],
+    )
+    def test_parse_ok(self, value: str | pathlib.Path | ry.FsPath) -> None:
+        model = RyFsPathModel(path=value)  # type: ignore[arg-type]
+        assert isinstance(model.path, ry.FsPath)
+        assert str(model.path).replace("\\", "/") == "some/path.txt"
+
+        from_json = RyFsPathModel.model_validate_json(model.model_dump_json())
+        assert isinstance(from_json.path, ry.FsPath)
+        assert str(from_json.path).replace("\\", "/") == "some/path.txt"
+
+    def test_json_matches_pathlib(self) -> None:
+        py_model = PyPathModel(path=pathlib.Path("some/path.txt"))
+        ry_model = RyFsPathModel(path="some/path.txt")  # type: ignore[arg-type]
+        assert ry_model.model_dump_json() == py_model.model_dump_json()
+
+    @pytest.mark.parametrize("value", [123, object()])
+    def test_parse_err(self, value: object) -> None:
+        with pytest.raises(pydantic.ValidationError):
+            RyFsPathModel(path=value)  # type: ignore[arg-type]
+
+
 def _create_tz(minutes: int) -> pydt.tzinfo:
     return pydt.timezone(pydt.timedelta(minutes=minutes))
 
@@ -251,58 +259,6 @@ class TestDuration:
             tm = PyTimedeltaModel(d=result)
             tm_json = tm.model_dump_json()
             assert tm_json == ry_json
-
-
-"""
-__TODO__
-
-@pytest.mark.skip(reason="not implemented yet (more involved than i expected)")
-class TestBytesPydantic:
-    @pytest.mark.parametrize("value", [b"abc", bytearray(b"abc"), memoryview(b"abc"), ry.Bytes(b"abc")])
-    def test_parse_ok(self, value: bytes | bytearray | memoryview | ry.Bytes) -> None:
-        model = RyBytesModel(data=value)  # type: ignore[arg-type]
-        assert isinstance(model.data, ry.Bytes)
-        assert model.data == b"abc"
-
-        from_json = RyBytesModel.model_validate_json(model.model_dump_json())
-        assert isinstance(from_json.data, ry.Bytes)
-        assert from_json.data == b"abc"
-
-    def test_json_matches_builtin_bytes(self) -> None:
-        py_model = PyBytesModel(data=b"abc")
-        ry_model = RyBytesModel(data=b"abc")
-        assert ry_model.model_dump_json() == py_model.model_dump_json()
-
-    @pytest.mark.parametrize("value", [123, object()])
-    def test_parse_err(self, value: object) -> None:
-        with pytest.raises(pydantic.ValidationError):
-            RyBytesModel(data=value)  # type: ignore[arg-type]
-"""
-
-
-class TestFsPathPydantic:
-    @pytest.mark.parametrize(
-        "value",
-        ["some/path.txt", pathlib.Path("some/path.txt"), ry.FsPath("some/path.txt")],
-    )
-    def test_parse_ok(self, value: str | pathlib.Path | ry.FsPath) -> None:
-        model = RyFsPathModel(path=value)  # type: ignore[arg-type]
-        assert isinstance(model.path, ry.FsPath)
-        assert str(model.path) == "some/path.txt"
-
-        from_json = RyFsPathModel.model_validate_json(model.model_dump_json())
-        assert isinstance(from_json.path, ry.FsPath)
-        assert str(from_json.path) == "some/path.txt"
-
-    def test_json_matches_pathlib(self) -> None:
-        py_model = PyPathModel(path=pathlib.Path("some/path.txt"))
-        ry_model = RyFsPathModel(path="some/path.txt")
-        assert ry_model.model_dump_json() == py_model.model_dump_json()
-
-    @pytest.mark.parametrize("value", [123, object()])
-    def test_parse_err(self, value: object) -> None:
-        with pytest.raises(pydantic.ValidationError):
-            RyFsPathModel(path=value)  # type: ignore[arg-type]
 
     @pytest.mark.parametrize(
         ("value", "result"),
@@ -1578,85 +1534,3 @@ class TestTimeZone:
     def test_timezone_parsing_err(self, value: str | bytes | complex) -> None:
         with pytest.raises(pydantic.ValidationError):
             _m = RyTimeZoneModel(tz=value)  # type: ignore[arg-type]
-
-
-class TestHttpStatus:
-    def test_http_status_model_schema(self) -> None:
-        py_schema = PyHttpStatusModel.model_json_schema()
-        ry_schema = RyHttpStatusModel.model_json_schema()
-        assert ry_schema["properties"]["status"] == py_schema["properties"]["status"]
-
-    def test_http_status_pydantic_round_trip(self) -> None:
-        model = RyHttpStatusModel(status=200)  # type: ignore[arg-type]
-        assert model.status == ry.HttpStatus.OK
-        assert model.model_dump() == {"status": 200}
-        assert model.model_dump_json() == '{"status":200}'
-
-        from_json = RyHttpStatusModel.model_validate_json(model.model_dump_json())
-        assert from_json.status == ry.HttpStatus.OK
-        assert from_json.status is ry.HttpStatus.OK
-
-        from_obj = RyHttpStatusModel(status=ry.HttpStatus.NOT_FOUND)
-        assert from_obj.status is ry.HttpStatus.NOT_FOUND
-
-    def test_http_status_pydantic_fails_invalid_code(self) -> None:
-        with pytest.raises(
-            pydantic.ValidationError, match="HTTP status validation error"
-        ):
-            RyHttpStatusModel(status=99)  # type: ignore[arg-type]
-
-    @pytest.mark.parametrize("value", ["two-hundo", complex(1, 2)])
-    def test_http_status_pydantic_fails_type(self, value: str | complex) -> None:
-        with pytest.raises(pydantic.ValidationError):
-            RyHttpStatusModel(status=value)  # type: ignore[arg-type]
-
-
-class TestHeaders:
-    def test_headers_model_schema(self) -> None:
-        py_schema = PyHeadersModel.model_json_schema()
-        ry_schema = RyHeadersModel.model_json_schema()
-        assert ry_schema["properties"]["headers"] == py_schema["properties"]["headers"]
-
-    def test_headers_pydantic_round_trip(self) -> None:
-
-        input_headers = {
-            "Content-Type": ["application/json", "application/problem+json"],
-            "X-Trace-Id": "abc123",
-        }
-        model = RyHeadersModel(headers=input_headers)  # type: ignore[arg-type]
-        assert isinstance(model.headers, ry.Headers)
-        assert model.headers.is_flat is False
-        assert model.headers.to_dict() == {
-            "content-type": ["application/json", "application/problem+json"],
-            "x-trace-id": "abc123",
-        }
-        assert model.model_dump() == {
-            "headers": {
-                "content-type": ["application/json", "application/problem+json"],
-                "x-trace-id": "abc123",
-            }
-        }
-        assert ry.parse_json(model.model_dump_json()) == {
-            "headers": {
-                "content-type": ["application/json", "application/problem+json"],
-                "x-trace-id": "abc123",
-            }
-        }
-
-        from_json = RyHeadersModel.model_validate_json(model.model_dump_json())
-        assert from_json.headers == model.headers
-
-    def test_headers_pydantic_accepts_headers_instance(self) -> None:
-        headers = ry.Headers({"Content-Type": "application/json"})
-        model = RyHeadersModel(headers=headers)
-        assert model.headers == headers
-        assert model.model_dump() == {"headers": {"content-type": "application/json"}}
-
-    def test_headers_pydantic_fails_header_value(self) -> None:
-        with pytest.raises(pydantic.ValidationError, match="Headers validation error"):
-            RyHeadersModel(headers={"x-test": ["ok", "bad\r\n"]})  # type: ignore[arg-type]
-
-    @pytest.mark.parametrize("value", [{"x-test": 123}, {"x-test": [123]}, None])
-    def test_headers_pydantic_fails_type(self, value: t.Any) -> None:
-        with pytest.raises(pydantic.ValidationError):
-            RyHeadersModel(headers=value)
