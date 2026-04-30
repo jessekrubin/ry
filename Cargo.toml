@@ -20,7 +20,6 @@ name = "ry"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-encoding_rs = "0.8.35"
 mimalloc = { workspace = true, optional = true }
 pyo3 = { workspace = true, features = [] }
 ryo3 = { workspace = true, features = ["ry"] }
@@ -96,10 +95,10 @@ repository = "https://github.com/jessekrubin/ry"
 [workspace]
 resolver = "2"
 members = [
+  "crates/_future/ryo3-ignore",
   "crates/_ryo3-dev",
   "crates/_ryo3-quick-maths",
   "crates/ryo3",
-  "crates/_future/ryo3-ignore",
   # external wrappers
   "crates/ryo3-aws-lc",
   "crates/ryo3-brotli",
@@ -148,15 +147,13 @@ members = [
 # ======
 # internal
 ryo3 = { path = "./crates/ryo3", features = [] }
-# dev/future
-ryo3-ignore = { path = "./crates/_future/ryo3-ignore" }
 # wrappers
 ryo3-aws-lc = { path = "./crates/ryo3-aws-lc" }
 ryo3-brotli = { path = "./crates/ryo3-brotli" }
 ryo3-bytes = { path = "./crates/ryo3-bytes" }
 ryo3-bzip2 = { path = "./crates/ryo3-bzip2" }
-ryo3-core = { path = "./crates/ryo3-core" }
 ryo3-cookie = { path = "./crates/ryo3-cookie" }
+ryo3-core = { path = "./crates/ryo3-core" }
 ryo3-dev = { path = "./crates/_ryo3-dev" }
 ryo3-dirs = { path = "./crates/ryo3-dirs" }
 ryo3-flate2 = { path = "./crates/ryo3-flate2" }
@@ -166,6 +163,8 @@ ryo3-glob = { path = "./crates/ryo3-glob" }
 ryo3-globset = { path = "./crates/ryo3-globset" }
 ryo3-heck = { path = "./crates/ryo3-heck" }
 ryo3-http = { path = "./crates/ryo3-http" }
+# dev/future
+ryo3-ignore = { path = "./crates/_future/ryo3-ignore" }
 ryo3-jiff = { path = "./crates/ryo3-jiff" }
 ryo3-jiter = { path = "./crates/ryo3-jiter" }
 ryo3-json = { path = "./crates/ryo3-json" }
@@ -195,46 +194,35 @@ ryo3-zstd = { path = "./crates/ryo3-zstd" }
 
 # pyo3
 pyo3 = { version = "0.28.2", features = ["macros", "serde"] }
-# pyo3 async runtimes
-pyo3-async-runtimes = { git = "https://github.com/PyO3/pyo3-async-runtimes", default-features = false, features = [
-  "tokio-runtime",
-] }
-pyo3-build-config = { version = "0.28.1", default-features = false, features = [
-  "resolve-config",
-] }
-# allocator(s)
-mimalloc = { version = "0.1.50", default-features = false, features = [] }
-# future
-tokio-websockets = { version = "0.13.1", features = [] }
-ignore = { version = "0.4.24", default-features = false, features = [] }
+pyo3-async-runtimes = { git = "https://github.com/PyO3/pyo3-async-runtimes", default-features = false, features = ["tokio-runtime"] }
+pyo3-build-config = { version = "0.28.1", default-features = false, features = ["resolve-config"] }
+
 # external
 ahash = { version = "0.8.12", default-features = false }
 brotli = { version = "8.0.2", default-features = false }
 bytes = { version = "1.11.0", default-features = false }
 bzip2 = { version = "0.6.1", default-features = false, features = ["default"] }
-cookie = { version = "0.18.1", default-features = false, features = [
-  "percent-encode",
-] }
+cookie = { version = "0.18.1", default-features = false, features = ["percent-encode"] }
 dirs = { version = "6.0.0", default-features = false, features = [] }
-flate2 = { version = "1.1.8", default-features = false, features = [
-  "miniz_oxide",
-] }
+encoding_rs = { version = "0.8.35", default-features = false, features = [] }
+flate2 = { version = "1.1.8", default-features = false, features = ["miniz_oxide"] }
 futures = { version = "0.3.32", default-features = false }
-futures-channel = { version = "0.3.32", default-features = false, features = [
-] }
+futures-channel = { version = "0.3.32", default-features = false, features = [] }
 futures-core = { version = "0.3.32", default-features = false }
 futures-util = { version = "0.3.32", default-features = false }
 glob = { version = "0.3", default-features = false, features = [] }
 globset = { version = "0.4.17", default-features = false, features = ["serde"] }
 heck = { version = "0.5.0", default-features = false }
 http = { version = "1.4", default-features = false, features = ["std"] }
-jiff = { version = "0.2.24", default-features = false, features = [
-  "default",
-  "perf-inline",
-] }
+ignore = { version = "0.4.24", default-features = false, features = [] }
+jiff = { version = "0.2.24", default-features = false, features = ["default", "perf-inline"] }
 jiter = { version = "0.14", default-features = false, features = ["python"] }
 memchr = { version = "2.7.5", default-features = false, features = [] }
+# allocator(s)
+mimalloc = { version = "0.1.50", default-features = false, features = [] }
 parking_lot = { version = "0.12.5", default-features = false, features = [] }
+# pyo3 async runtimes
+rand = { version = "0.10.1", default-features = false, features = [] }
 regex = { version = "1.12.2", default-features = false, features = [] }
 reqwest = { version = "0.13.3", default-features = false, features = [] }
 rustls = { version = "0.23.39", default-features = false, features = [] }
@@ -243,33 +231,19 @@ serde = { version = "1.0", default-features = false, features = ["derive"] }
 serde-transcode = { version = "1.1.1", default-features = false, features = [] }
 serde_bytes = { version = "0.11.19", default-features = false, features = [] }
 serde_json = { version = "1.0", default-features = false, features = ["std"] }
-serde_urlencoded = { version = "0.7.1", default-features = false, features = [
-] }
+serde_urlencoded = { version = "0.7.1", default-features = false, features = [] }
 shlex = { version = "1.3.0", default-features = false, features = [] }
 size = { version = "0.5.0", default-features = false, features = [] }
 sqlformat = { version = "0.5.0", default-features = false, features = [] }
 thiserror = { version = "2.0.18", default-features = false, features = [] }
-tokio = { version = "1.52.1", default-features = false, features = [
-  "bytes",
-  "fs",
-  "io-util",
-  "rt",
-  "rt-multi-thread",
-  "sync",
-] }
+tokio = { version = "1.52.1", default-features = false, features = ["bytes", "fs", "io-util", "rt", "rt-multi-thread", "sync"] }
 tokio-stream = { version = "0.1.18", default-features = false, features = [] }
-tracing = { version = "0.1.44", default-features = false, features = [
-  "std",
-  "attributes",
-] }
+# future
+tokio-websockets = { version = "0.13.1", features = [] }
+tracing = { version = "0.1.44", default-features = false, features = ["std", "attributes"] }
 tracing-log = { version = "0.2.0", default-features = false, features = [] }
-tracing-subscriber = { version = "0.3.23", default-features = false, features = [
-  "default",
-  "serde",
-  "serde_json",
-] }
+tracing-subscriber = { version = "0.3.23", default-features = false, features = ["default", "serde", "serde_json"] }
 twox-hash = { version = "2.1.2", default-features = false, features = [] }
-rand = { version = "0.10.1", default-features = false, features = [] }
 ulid = { version = "1.2.1", default-features = false, features = ["std"] }
 unindent = { version = "0.2.4", default-features = false, features = [] }
 url = { version = "2.5.4", default-features = false, features = ["std"] }

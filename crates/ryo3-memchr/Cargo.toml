@@ -12,10 +12,10 @@ repository.workspace = true
 description = "python + memchr crate (https://crates.io/crates/memchr)"
 
 [dependencies]
-pyo3 = { workspace = true, features = [] }
 memchr.workspace = true
-ryo3-core.workspace = true
+pyo3 = { workspace = true, features = [] }
 ryo3-bytes.workspace = true
+ryo3-core.workspace = true
 
 [lints]
 workspace = true

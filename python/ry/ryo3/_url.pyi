@@ -172,23 +172,41 @@ class URL(FromStr, ToString, _Parse):
     # =========================================================================
     # DEPRECATED
     # =========================================================================
-    @deprecated("`replace_*` methods are deprecated, use `with_*` methods instead")
+    @deprecated(
+        "`URL.replace_fragment` is deprecated; use `URL.with_fragment` instead [removal: v0.0.93]"
+    )
     def replace_fragment(self, fragment: str | None = None) -> t.Self: ...
-    @deprecated("`replace_*` methods are deprecated, use `with_*` methods instead")
+    @deprecated(
+        "`URL.replace_host` is deprecated; use `URL.with_host` instead [removal: v0.0.93]"
+    )
     def replace_host(self, host: str | None = None) -> t.Self: ...
-    @deprecated("`replace_*` methods are deprecated, use `with_*` methods instead")
+    @deprecated(
+        "`URL.replace_ip_host` is deprecated; use `URL.with_ip_host` instead [removal: v0.0.93]"
+    )
     def replace_ip_host(
         self, address: IPv4Address | IPv6Address | Ipv4Addr | Ipv6Addr | IpAddr
     ) -> t.Self: ...
-    @deprecated("`replace_*` methods are deprecated, use `with_*` methods instead")
+    @deprecated(
+        "`URL.replace_password` is deprecated; use `URL.with_password` instead [removal: v0.0.93]"
+    )
     def replace_password(self, password: str | None = None) -> t.Self: ...
-    @deprecated("`replace_*` methods are deprecated, use `with_*` methods instead")
+    @deprecated(
+        "`URL.replace_path` is deprecated; use `URL.with_path` instead [removal: v0.0.93]"
+    )
     def replace_path(self, path: str) -> t.Self: ...
-    @deprecated("`replace_*` methods are deprecated, use `with_*` methods instead")
+    @deprecated(
+        "`URL.replace_port` is deprecated; use `URL.with_port` instead [removal: v0.0.93]"
+    )
     def replace_port(self, port: int | None = None) -> t.Self: ...
-    @deprecated("`replace_*` methods are deprecated, use `with_*` methods instead")
+    @deprecated(
+        "`URL.replace_query` is deprecated; use `URL.with_query` instead [removal: v0.0.93]"
+    )
     def replace_query(self, query: str | None = None) -> t.Self: ...
-    @deprecated("`replace_*` methods are deprecated, use `with_*` methods instead")
+    @deprecated(
+        "`URL.replace_scheme` is deprecated; use `URL.with_scheme` instead [removal: v0.0.93]"
+    )
     def replace_scheme(self, scheme: str) -> t.Self: ...
-    @deprecated("`replace_*` methods are deprecated, use `with_*` methods instead")
+    @deprecated(
+        "`URL.replace_username` is deprecated; use `URL.with_username` instead [removal: v0.0.93]"
+    )
     def replace_username(self, username: str) -> t.Self: ...

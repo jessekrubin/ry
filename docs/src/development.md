@@ -1,5 +1,11 @@
 # DEVELOPMENT
 
+## requirements
+
+- [uv](https://docs.astral.sh/uv/): python package/project management
+- [rust](https://www.rust-lang.org/tools/install): the language this is written in
+- [just](https://github.com/casey/just#installation): _just_ a task runner
+
 ## goals
 
 1. Provide a really nice ergonomic API to work with (this is the highest
@@ -43,6 +49,83 @@
   - ok: `#[pyo3(signature = (data = None, *, mode = Foo::BAR, _check = false))]`
   - bad: `#[pyo3(signature=(data=None, *, mode=Foo::BAR, _check=false))]`
 
+## deprecations
+
+- Keep deprecation warnings consistent across Rust warnings, python stubs, and
+  generated docs.
+- Use this warning message format:
+  - `` `Thing` is deprecated; use `OtherThing` instead [removal: vX.Y.Z] ``
+- Prefer naming the exact symbol being deprecated and the exact replacement
+  symbol.
+- Keep deprecated APIs around for AT LEAST 2-3 published releases unless the API
+  is private.
+- When adding a deprecation:
+  - update the Rust `#[pyo3(warn(...))]` message
+  - update the matching `@deprecated(...)` message in the `.pyi` stub
+  - update generated docs if they include the deprecated symbol
+
+### Example for copy-pasta:
+
+**rust code**
+
+```rust
+#[pymethods]
+impl Dingo {
+    #[pyo3(
+        warn(
+            message = "`Dingo.old_name` is deprecated; use `Dingo.new_name` instead [removal: v0.0.100]",
+            category = pyo3::exceptions::PyDeprecationWarning
+        )
+    )]
+    fn awoo(&self) -> String {
+        self.bruff()
+    }
+
+    fn bruff(&self) -> String {
+        "bruff".to_string()
+    }
+}
+
+#[pyfunction]
+#[pyo3(
+    warn(
+        message = "`awoo_func` is deprecated; use `bruff_func` instead [removal: v0.0.100]",
+        category = pyo3::exceptions::PyDeprecationWarning
+    )
+)]
+fn awoo_func() -> String {
+    bruff_func()
+}
+
+fn bruff_func() -> String {
+    "bruff".to_string()
+}
+```
+
+**python stub code**
+
+```python
+if sys.version_info >= (3, 13):
+    from warnings import deprecated
+else:
+    from typing_extensions import deprecated
+
+
+class Dingo:
+    @deprecated(
+        "`Dingo.awoo` is deprecated; use `Dingo.bruff` instead [removal: v0.0.100]"
+    )
+    def awoo(self) -> str: ...
+    def bruff(self) -> str: ...
+
+
+@deprecated(
+    "`awoo_func` is deprecated; use `bruff_func` instead [removal: v0.0.100]"
+)
+def awoo_func() -> str: ...
+def bruff_func() -> str: ...
+```
+
 ## Creating a new library/wrapper-thing
 
 - copy the template library `ryo3-quick-maths` library to your new library name
@@ -54,9 +137,9 @@
 
 ### python
 
-- we use `maturin` for building the python wheels
-- we support `python-3.11+`
-- we use `pytest` for testing as well as the following plugins:
+- `maturin` is used for builds
+- python versions 3.11+ are supported
+- `pytest` for testing as well as the following plugins:
   - `anyio` (which I am increasingly thinking is actually a bit of a turd)
   - `hypothesis`
   - `pytest-benchmark`
