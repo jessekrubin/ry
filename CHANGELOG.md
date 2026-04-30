@@ -2,6 +2,8 @@
 
 ## v0.0.90 [unreleased]
 
+- `ryo3-fspath`
+  - pydantic integration
 - `ryo3-http`
   - pydantic support for `ry.Headers` and `ry.HttpStatus`
 - pydantic integration
