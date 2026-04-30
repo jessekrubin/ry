@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## v0.0.90 [unreleased]
+## v0.0.90 [2026-04-30]
 
 - `ryo3-reqwest`
   - deprecated `ry.HttpClient` in favor of `ry.Client`; `ry.HttpClient` will be
