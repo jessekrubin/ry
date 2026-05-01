@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## v0.0.91 [unreleased]
+
+- use readable buffer in `ryo3-flate2`, `ryo3-bzip2` and `ryo3-brotli`
+- `ryo3-brotli`
+  - compression/decompression functions now return `ry.Bytes` instead of
+    `builtins.bytes`
+
+---
+
 ## v0.0.90 [2026-04-30]
 
 - `ryo3-reqwest`
