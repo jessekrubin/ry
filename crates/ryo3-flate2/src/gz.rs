@@ -3,7 +3,7 @@ use std::io::{Read, Write};
 use flate2::bufread::GzDecoder;
 use flate2::write::GzEncoder;
 use pyo3::prelude::*;
-use ryo3_bytes::{PyBytes as RyBytes, ReadableBuffer};
+use ryo3_bytes::{ReadableBuffer, RyBytes};
 
 use crate::compression::PyCompression;
 

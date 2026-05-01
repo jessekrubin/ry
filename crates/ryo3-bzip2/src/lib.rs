@@ -6,7 +6,7 @@ use ::bzip2::read::BzDecoder;
 use ::bzip2::write::BzEncoder;
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
-use ryo3_bytes::{PyBytes as RyBytes, ReadableBuffer};
+use ryo3_bytes::{ReadableBuffer, RyBytes};
 
 fn rs_bzip2_encode(data: &[u8], quality: Compression) -> PyResult<RyBytes> {
     let mut bzip2_encoder = BzEncoder::new(Vec::new(), quality);

@@ -5,7 +5,7 @@ pub use async_read_dir::PyAsyncReadDir;
 use pyo3::prelude::*;
 use pyo3::pybacked::PyBackedStr;
 use pyo3::types::PyDict;
-use ryo3_bytes::PyBytes as RyBytes;
+use ryo3_bytes::RyBytes;
 use ryo3_core::types::PyOpenMode;
 use ryo3_std::fs::PyMetadata;
 use tracing::warn;

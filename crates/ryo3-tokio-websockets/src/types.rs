@@ -1,7 +1,7 @@
 use futures_util::stream::{SplitSink, SplitStream};
 use pyo3::prelude::*;
 use pyo3::pybacked::PyBackedStr;
-use ryo3_bytes::PyBytes as RyBytes;
+use ryo3_bytes::RyBytes;
 use ryo3_core::{py_type_err, py_value_err, py_value_error};
 use ryo3_url::UrlLike;
 use tokio::net::TcpStream;

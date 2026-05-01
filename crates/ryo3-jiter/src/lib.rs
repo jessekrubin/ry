@@ -10,7 +10,7 @@ use ::jiter::{FloatMode, PartialMode, PythonParse, StringCacheMode, map_json_err
 use pyo3::IntoPyObjectExt;
 use pyo3::prelude::*;
 use pyo3::types::PyList;
-use ryo3_bytes::PyBytes as RyBytes;
+use ryo3_bytes::RyBytes;
 
 #[derive(Debug, Clone, Copy)]
 pub struct JiterParseOptions {

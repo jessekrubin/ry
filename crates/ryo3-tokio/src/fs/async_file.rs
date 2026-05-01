@@ -4,7 +4,7 @@ use std::sync::Arc;
 
 use pyo3::intern;
 use pyo3::prelude::*;
-use ryo3_bytes::PyBytes as RyBytes;
+use ryo3_bytes::RyBytes;
 use ryo3_core::types::{PyOpenMode, PyOpenOptions};
 use ryo3_macro_rules::{py_io_error, py_runtime_err, py_stop_async_iteration_err, pytodo};
 #[cfg(feature = "experimental-async")]

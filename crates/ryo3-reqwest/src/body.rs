@@ -16,7 +16,7 @@ use std::task::{Context, Poll};
 use futures_core::stream::BoxStream;
 use futures_util::ready;
 use pyo3::prelude::*;
-use ryo3_bytes::PyBytes as RyBytes;
+use ryo3_bytes::RyBytes;
 use ryo3_macro_rules::py_type_err;
 
 pub(crate) struct PyBodySyncStream(Py<PyAny>);

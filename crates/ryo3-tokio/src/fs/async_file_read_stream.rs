@@ -8,7 +8,7 @@ use std::sync::Arc;
 
 use bytes::{Bytes, BytesMut};
 use pyo3::prelude::*;
-use ryo3_bytes::PyBytes as RyBytes;
+use ryo3_bytes::RyBytes;
 use ryo3_macro_rules::{py_io_error, py_stop_async_iteration_err, py_value_err};
 use ryo3_tokio_rt::future_into_py;
 #[cfg(feature = "experimental-async")]

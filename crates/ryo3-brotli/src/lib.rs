@@ -4,7 +4,7 @@ use std::io::{Read, Write};
 use ::brotli as br;
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
-use ryo3_bytes::{PyBytes as RyBytes, ReadableBuffer};
+use ryo3_bytes::{ReadableBuffer, RyBytes};
 
 fn encode(data: &[u8], quality: PyBrQuality, magic_number: bool) -> PyResult<Vec<u8>> {
     let encoded = if magic_number {

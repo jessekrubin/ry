@@ -4,7 +4,7 @@ use cookie::Cookie;
 use pyo3::prelude::*;
 use pyo3::types::PyString;
 use reqwest::header::{CONTENT_ENCODING, SET_COOKIE};
-use ryo3_bytes::PyBytes as RyBytes;
+use ryo3_bytes::RyBytes;
 use ryo3_cookie::PyCookie;
 use ryo3_core::sync::RyMutex;
 use ryo3_http::{PyHeaders, PyHttpStatus, PyHttpVersion, status_code_pystring};

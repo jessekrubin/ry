@@ -9,7 +9,6 @@
 #![expect(clippy::cast_possible_wrap)]
 use pyo3::intern;
 use pyo3::prelude::*;
-mod anybytes;
 pub mod bytes;
 mod readable_buffer;
 
