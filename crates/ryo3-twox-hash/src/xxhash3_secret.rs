@@ -4,6 +4,7 @@
 //!    - must be at least 136 bytes long
 //!    - use readable-buf to extract
 use pyo3::prelude::*;
+use ryo3_bytes::{ReadableBuffer, RyBytes};
 use ryo3_core::{py_type_err, py_value_err};
 
 const XXH3_SECRET_MIN_LEN: usize = 136;
@@ -12,12 +13,13 @@ const XXH3_SECRET_MIN_LEN: usize = 136;
 pub(crate) const XXH3_SECRET_EXPECT_MSG: &str =
     "wenodis: secret already validated to be at least 136 bytes long";
 
-pub struct PyXxHash3Secret(ryo3_bytes::PyBytes);
+pub struct PyXxHash3Secret(RyBytes);
 
 impl<'py> FromPyObject<'_, 'py> for PyXxHash3Secret {
     type Error = PyErr;
+    #[inline]
     fn extract(ob: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
-        if let Ok(rb) = ob.extract::<ryo3_bytes::ReadableBuffer>() {
+        if let Ok(rb) = ob.extract::<ReadableBuffer>() {
             if rb.len() < XXH3_SECRET_MIN_LEN {
                 return py_value_err!(
                     "xxhash3-secret must be at least {} bytes long",
