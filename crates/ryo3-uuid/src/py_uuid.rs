@@ -15,7 +15,6 @@ pub(crate) const RFC_4122: &str = "specified in RFC 4122";
 pub(crate) const RESERVED_MICROSOFT: &str = "reserved for Microsoft compatibility";
 pub(crate) const RESERVED_FUTURE: &str = "reserved for future definition";
 
-// TODO: module name fix must be `ry.uuid` fix submodule name
 #[pyclass(name = "UUID", frozen, immutable_type, skip_from_py_object, weakref)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.uuid"))]
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]

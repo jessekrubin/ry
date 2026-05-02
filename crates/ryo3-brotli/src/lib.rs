@@ -4,8 +4,7 @@ use std::io::{Read, Write};
 use ::brotli as br;
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
-use pyo3::types::PyBytes;
-use ryo3_bytes::PyBytes as RyBytes;
+use ryo3_bytes::{ReadableBuffer, RyBytes};
 
 fn encode(data: &[u8], quality: PyBrQuality, magic_number: bool) -> PyResult<Vec<u8>> {
     let encoded = if magic_number {
@@ -34,13 +33,13 @@ fn encode(data: &[u8], quality: PyBrQuality, magic_number: bool) -> PyResult<Vec
 #[expect(clippy::needless_pass_by_value)]
 pub fn brotli_encode(
     py: Python<'_>,
-    data: RyBytes,
+    data: ReadableBuffer,
     quality: PyBrQuality,
     magic_number: bool,
-) -> PyResult<Bound<'_, PyBytes>> {
+) -> PyResult<RyBytes> {
     let bin: &[u8] = data.as_ref();
-    let encoded = py.detach(|| encode(bin, quality, magic_number))?;
-    Ok(PyBytes::new(py, &encoded))
+    py.detach(|| encode(bin, quality, magic_number))
+        .map(RyBytes::from)
 }
 
 #[pyfunction]
@@ -51,27 +50,27 @@ pub fn brotli_encode(
 #[expect(clippy::needless_pass_by_value)]
 pub fn brotli(
     py: Python<'_>,
-    data: RyBytes,
+    data: ReadableBuffer,
     quality: PyBrQuality,
     magic_number: bool,
-) -> PyResult<Bound<'_, PyBytes>> {
+) -> PyResult<RyBytes> {
     let bin: &[u8] = data.as_ref();
-    let encoded = py.detach(|| encode(bin, quality, magic_number))?;
-    Ok(PyBytes::new(py, &encoded))
+    py.detach(|| encode(bin, quality, magic_number))
+        .map(RyBytes::from)
 }
 
 #[pyfunction]
 #[expect(clippy::needless_pass_by_value)]
-pub fn brotli_decode(py: Python<'_>, data: RyBytes) -> PyResult<Bound<'_, PyBytes>> {
-    let decompressed = py.detach(|| {
+pub fn brotli_decode(py: Python<'_>, data: ReadableBuffer) -> PyResult<RyBytes> {
+    let bin: &[u8] = data.as_ref();
+    py.detach(|| {
         let mut decompressed = Vec::new();
-        let bin: &[u8] = data.as_ref();
         let res = br::Decompressor::new(bin, 4 * 1024).read_to_end(&mut decompressed);
         res.map(|_| decompressed).map_err(|e| {
             PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Brotli decode error: {e:?}"))
         })
-    })?;
-    Ok(PyBytes::new(py, &decompressed))
+    })
+    .map(RyBytes::from)
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug)]

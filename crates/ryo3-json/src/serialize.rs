@@ -1,7 +1,7 @@
 use pyo3::IntoPyObjectExt;
 use pyo3::exceptions::{PyRecursionError, PyTypeError};
 use pyo3::prelude::*;
-use ryo3_bytes::PyBytes as RyBytes;
+use ryo3_bytes::RyBytes;
 use ryo3_serde::PyAnySerializer;
 
 fn map_serde_json_err<E: std::fmt::Display>(e: E) -> PyErr {

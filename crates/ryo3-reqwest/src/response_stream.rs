@@ -12,7 +12,7 @@ use pyo3::IntoPyObjectExt;
 use pyo3::exceptions::{PyStopAsyncIteration, PyStopIteration};
 use pyo3::prelude::*;
 use reqwest::StatusCode;
-use ryo3_bytes::PyBytes as RyBytes;
+use ryo3_bytes::RyBytes;
 use ryo3_tokio_rt::{future_into_py, get_tokio_runtime};
 use tokio::sync::Mutex;
 

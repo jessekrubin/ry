@@ -6,7 +6,7 @@ use ::bzip2::read::BzDecoder;
 use ::bzip2::write::BzEncoder;
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
-use ryo3_bytes::PyBytes as RyBytes;
+use ryo3_bytes::{ReadableBuffer, RyBytes};
 
 fn rs_bzip2_encode(data: &[u8], quality: Compression) -> PyResult<RyBytes> {
     let mut bzip2_encoder = BzEncoder::new(Vec::new(), quality);
@@ -27,8 +27,12 @@ fn rs_bzip2_decode(data: &[u8]) -> PyResult<RyBytes> {
     text_signature = "(data, quality=6)",
 )]
 #[expect(clippy::needless_pass_by_value)]
-pub fn bzip2_encode(py: Python<'_>, data: RyBytes, quality: PyCompression) -> PyResult<RyBytes> {
-    let data = data.as_ref();
+pub fn bzip2_encode(
+    py: Python<'_>,
+    data: ReadableBuffer,
+    quality: PyCompression,
+) -> PyResult<RyBytes> {
+    let data: &[u8] = data.as_ref();
     py.detach(|| rs_bzip2_encode(data, quality.0))
 }
 
@@ -38,14 +42,14 @@ pub fn bzip2_encode(py: Python<'_>, data: RyBytes, quality: PyCompression) -> Py
     text_signature = "(data, quality=6)",
 )]
 #[expect(clippy::needless_pass_by_value)]
-pub fn bzip2(py: Python<'_>, data: RyBytes, quality: PyCompression) -> PyResult<RyBytes> {
-    let data = data.as_ref();
+pub fn bzip2(py: Python<'_>, data: ReadableBuffer, quality: PyCompression) -> PyResult<RyBytes> {
+    let data: &[u8] = data.as_ref();
     py.detach(|| rs_bzip2_encode(data, quality.0))
 }
 
 #[pyfunction]
 #[expect(clippy::needless_pass_by_value)]
-pub fn bzip2_decode(py: Python<'_>, data: RyBytes) -> PyResult<RyBytes> {
+pub fn bzip2_decode(py: Python<'_>, data: ReadableBuffer) -> PyResult<RyBytes> {
     let data: &[u8] = data.as_ref();
     py.detach(|| rs_bzip2_decode(data))
 }

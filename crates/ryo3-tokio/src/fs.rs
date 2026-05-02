@@ -5,7 +5,7 @@ pub use async_read_dir::PyAsyncReadDir;
 use pyo3::prelude::*;
 use pyo3::pybacked::PyBackedStr;
 use pyo3::types::PyDict;
-use ryo3_bytes::PyBytes;
+use ryo3_bytes::RyBytes;
 use ryo3_core::types::PyOpenMode;
 use ryo3_std::fs::PyMetadata;
 use tracing::warn;
@@ -127,18 +127,18 @@ pub fn read_async(py: Python<'_>, path: PathBuf) -> PyResult<Bound<'_, PyAny>> {
     future_into_py(py, async move {
         tokio::fs::read(path)
             .await
-            .map(ryo3_bytes::PyBytes::from)
+            .map(RyBytes::from)
             .map_err(PyErr::from)
     })
 }
 
 #[cfg(feature = "experimental-async")]
 #[pyfunction]
-pub async fn read_async(path: PathBuf) -> PyResult<PyBytes> {
+pub async fn read_async(path: PathBuf) -> PyResult<RyBytes> {
     on_tokio_py(async move {
         tokio::fs::read(path)
             .await
-            .map(ryo3_bytes::PyBytes::from)
+            .map(RyBytes::from)
             .map_err(PyErr::from)
     })
     .await
@@ -286,7 +286,7 @@ pub async fn exists_async(path: PathBuf) -> PyResult<bool> {
 
 #[cfg(not(feature = "experimental-async"))]
 #[pyfunction]
-pub fn write_async(py: Python<'_>, path: PathBuf, buf: PyBytes) -> PyResult<Bound<'_, PyAny>> {
+pub fn write_async(py: Python<'_>, path: PathBuf, buf: RyBytes) -> PyResult<Bound<'_, PyAny>> {
     future_into_py(py, async move {
         let bref: &[u8] = buf.as_ref();
         let len = bref.len();
@@ -299,7 +299,7 @@ pub fn write_async(py: Python<'_>, path: PathBuf, buf: PyBytes) -> PyResult<Boun
 
 #[cfg(feature = "experimental-async")]
 #[pyfunction]
-pub async fn write_async(path: PathBuf, buf: PyBytes) -> PyResult<usize> {
+pub async fn write_async(path: PathBuf, buf: RyBytes) -> PyResult<usize> {
     on_tokio_py(async move {
         let bref: &[u8] = buf.as_ref();
         let len = bref.len();

@@ -2,8 +2,8 @@
 
 from typing import Literal, TypeAlias
 
-from ry import Bytes
 from ry._types import Buffer
+from ry.ryo3._bytes import Bytes
 
 _Quality: TypeAlias = Literal[1, 2, 3, 4, 5, 6, 7, 8, 9, "best", "fast"]
 

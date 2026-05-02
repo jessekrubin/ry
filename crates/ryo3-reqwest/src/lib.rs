@@ -3,7 +3,6 @@ mod body;
 mod charset;
 mod client;
 mod client_config;
-// mod cookie;
 mod errors;
 mod fetch;
 mod form_data;

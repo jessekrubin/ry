@@ -2,8 +2,8 @@ use std::sync::OnceLock;
 
 use pyo3::prelude::*;
 use reqwest::tls::CertificateRevocationList;
+use ryo3_bytes::RyBytes;
 use ryo3_macro_rules::py_value_error;
-
 static SYSTEM_CERTS: OnceLock<Vec<reqwest::Certificate>> = OnceLock::new();
 
 /// Load the system root certificates as `reqwest::Certificate`s.
@@ -115,21 +115,21 @@ impl PyCertificate {
     #[expect(clippy::needless_pass_by_value)]
     #[pyo3(name = "from_der")]
     #[staticmethod]
-    fn py_from_der(der: ryo3_bytes::PyBytes) -> PyResult<Self> {
+    fn py_from_der(der: RyBytes) -> PyResult<Self> {
         Self::from_der(der.as_ref())
     }
 
     #[expect(clippy::needless_pass_by_value)]
     #[pyo3(name = "from_pem")]
     #[staticmethod]
-    fn py_from_pem(pem: ryo3_bytes::PyBytes) -> PyResult<Self> {
+    fn py_from_pem(pem: RyBytes) -> PyResult<Self> {
         Self::from_pem(pem.as_ref())
     }
 
     #[pyo3(name = "from_pem_bundle")]
     #[staticmethod]
     #[expect(clippy::needless_pass_by_value)]
-    fn py_from_pem_bundle(pem: ryo3_bytes::PyBytes) -> PyResult<Vec<Self>> {
+    fn py_from_pem_bundle(pem: RyBytes) -> PyResult<Vec<Self>> {
         Self::from_pem_bundle(pem.as_ref())
     }
 
@@ -170,7 +170,7 @@ impl<'a, 'py> FromPyObject<'a, 'py> for PyCertificate {
     fn extract(obj: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
         if let Ok(cert) = obj.cast_exact::<Self>() {
             Ok(cert.get().clone())
-        } else if let Ok(b) = obj.extract::<ryo3_bytes::PyBytes>() {
+        } else if let Ok(b) = obj.extract::<RyBytes>() {
             if let Ok(cert) = Self::from_pem(b.as_ref()) {
                 Ok(cert)
             } else if let Ok(cert) = Self::from_der(b.as_ref()) {
@@ -251,7 +251,7 @@ impl Clone for PyCertificateRevocationList {
 impl PyCertificateRevocationList {
     #[new]
     #[expect(clippy::needless_pass_by_value)]
-    fn py_new(pem: ryo3_bytes::PyBytes) -> PyResult<Self> {
+    fn py_new(pem: RyBytes) -> PyResult<Self> {
         Self::from_pem(pem.as_ref())
     }
 
@@ -269,7 +269,7 @@ impl PyCertificateRevocationList {
     #[expect(clippy::needless_pass_by_value)]
     #[pyo3(name = "from_pem")]
     #[staticmethod]
-    fn py_from_pem(pem: ryo3_bytes::PyBytes) -> PyResult<Self> {
+    fn py_from_pem(pem: RyBytes) -> PyResult<Self> {
         ::reqwest::tls::CertificateRevocationList::from_pem(pem.as_ref())
             .map(|crl| Self {
                 bin: bytes::Bytes::copy_from_slice(pem.as_ref()),
@@ -283,7 +283,7 @@ impl PyCertificateRevocationList {
     #[expect(clippy::needless_pass_by_value)]
     #[pyo3(name = "from_pem_bundle")]
     #[staticmethod]
-    fn py_from_pem_bundle(pem_bundle: ryo3_bytes::PyBytes) -> PyResult<Vec<Self>> {
+    fn py_from_pem_bundle(pem_bundle: RyBytes) -> PyResult<Vec<Self>> {
         Self::from_pem_bundle(pem_bundle.as_ref())
     }
 
@@ -313,7 +313,7 @@ impl<'a, 'py> FromPyObject<'a, 'py> for PyCertificateRevocationList {
     fn extract(obj: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
         if let Ok(cert) = obj.cast_exact::<Self>() {
             Ok(cert.get().clone())
-        } else if let Ok(b) = obj.extract::<ryo3_bytes::PyBytes>() {
+        } else if let Ok(b) = obj.extract::<RyBytes>() {
             Self::py_from_pem(b)
         } else {
             Err(py_value_error!("Expected CertificateRevocationList object"))
@@ -395,7 +395,7 @@ impl PyIdentity {
     #[expect(clippy::needless_pass_by_value)]
     #[pyo3(name = "from_pem")]
     #[staticmethod]
-    fn py_from_pem(pem: ryo3_bytes::PyBytes) -> PyResult<Self> {
+    fn py_from_pem(pem: RyBytes) -> PyResult<Self> {
         Self::from_pem(pem.as_ref())
     }
 
@@ -421,7 +421,7 @@ impl<'a, 'py> FromPyObject<'a, 'py> for PyIdentity {
     fn extract(obj: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
         if let Ok(cert) = obj.cast_exact::<Self>() {
             Ok(cert.get().clone())
-        } else if let Ok(b) = obj.extract::<ryo3_bytes::PyBytes>() {
+        } else if let Ok(b) = obj.extract::<RyBytes>() {
             Self::py_from_pem(b)
         } else {
             Err(py_value_error!("Expected Identity object"))

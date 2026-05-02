@@ -13,7 +13,7 @@ use pyo3::exceptions::{
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyDict};
 use pyo3::{IntoPyObjectExt, intern};
-use ryo3_bytes::PyBytes as RyBytes;
+use ryo3_bytes::RyBytes;
 use ryo3_core::types::PathLike;
 use ryo3_macro_rules::py_type_err;
 

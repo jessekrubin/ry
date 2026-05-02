@@ -10,6 +10,7 @@ use ::jiter::{FloatMode, PartialMode, PythonParse, StringCacheMode, map_json_err
 use pyo3::IntoPyObjectExt;
 use pyo3::prelude::*;
 use pyo3::types::PyList;
+use ryo3_bytes::RyBytes;
 
 #[derive(Debug, Clone, Copy)]
 pub struct JiterParseOptions {
@@ -101,11 +102,11 @@ pub fn parse_json<'py>(
     } else if let Ok(s) = data.extract::<&str>() {
         let json_bytes = s.as_bytes();
         options.parse(py, json_bytes)
-    } else if let Ok(custom) = data.cast::<ryo3_bytes::PyBytes>() {
+    } else if let Ok(custom) = data.cast_exact::<RyBytes>() {
         let pybytes = custom.get();
         let json_bytes = pybytes.as_slice();
         options.parse(py, json_bytes)
-    } else if let Ok(pybytes) = data.extract::<ryo3_bytes::PyBytes>() {
+    } else if let Ok(pybytes) = data.extract::<RyBytes>() {
         let json_bytes = pybytes.as_slice();
         options.parse(py, json_bytes)
     } else {
@@ -143,11 +144,11 @@ pub fn parse_jsonl<'py>(
     };
     if let Ok(bytes) = data.extract::<&[u8]>() {
         options.parse_lines(py, bytes)
-    } else if let Ok(custom) = data.cast::<ryo3_bytes::PyBytes>() {
+    } else if let Ok(custom) = data.cast_exact::<RyBytes>() {
         let pybytes = custom.get();
         let json_bytes = pybytes.as_ref();
         options.parse_lines(py, json_bytes)
-    } else if let Ok(pybytes) = data.extract::<ryo3_bytes::PyBytes>() {
+    } else if let Ok(pybytes) = data.extract::<RyBytes>() {
         let json_bytes = pybytes.as_ref();
         options.parse_lines(py, json_bytes)
     } else if let Ok(s) = data.extract::<&str>() {

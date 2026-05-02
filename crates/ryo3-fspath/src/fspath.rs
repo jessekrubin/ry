@@ -11,7 +11,7 @@ use pyo3::exceptions::{
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyTuple};
 use pyo3::{BoundObject, IntoPyObjectExt, intern};
-use ryo3_bytes::PyBytes as RyBytes;
+use ryo3_bytes::RyBytes;
 use ryo3_core::types::PathLike;
 use ryo3_core::{RyMutex, any_repr, py_type_err};
 use ryo3_macro_rules::pytodo;

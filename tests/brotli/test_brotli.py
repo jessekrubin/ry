@@ -11,7 +11,7 @@ def test_10x10y_round_trip() -> None:
     output_data_alias = ry.brotli(input_data)
     assert output_data == output_data_alias
     assert output_data is not None
-    assert isinstance(output_data, bytes)
+    assert isinstance(output_data, ry.Bytes)
     decoded = ry.brotli_decode(output_data)
     assert decoded == input_data
 

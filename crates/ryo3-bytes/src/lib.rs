@@ -9,7 +9,6 @@
 #![expect(clippy::cast_possible_wrap)]
 use pyo3::intern;
 use pyo3::prelude::*;
-mod anybytes;
 pub mod bytes;
 mod readable_buffer;
 
@@ -22,6 +21,8 @@ pub use ::bytes::Bytes;
 pub use readable_buffer::{ExactReadableBuffer, ReadableBuffer};
 
 pub use crate::bytes::PyBytes;
+// export alias `RyBytes` to avoid confusion with `pyo3::types::PyBytes`
+pub use crate::bytes::PyBytes as RyBytes;
 
 /// ryo3-bytes python module registration
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
