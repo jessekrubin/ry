@@ -52,7 +52,7 @@ pub enum PyOpenMode {
 impl PyOpenMode {
     #[inline]
     #[must_use]
-    pub fn is_binary(self) -> bool {
+    pub const fn is_binary(self) -> bool {
         matches!(
             self,
             Self::AppendBinary
@@ -67,7 +67,7 @@ impl PyOpenMode {
     }
 
     #[inline]
-    fn as_str(self) -> &'static str {
+    const fn as_str(self) -> &'static str {
         match self {
             Self::AppendBinary => "ab",
             Self::AppendBinaryPlus => "ab+",

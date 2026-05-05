@@ -4,9 +4,7 @@ use crate::map_py_value_err;
 
 pub trait PyFromStr: Sized {
     /// Parse from a string (basically `FromStr` but maps errors to `PyResult`)
-    fn py_from_str(ob: &str) -> PyResult<Self>
-    where
-        Self: Sized;
+    fn py_from_str(ob: &str) -> PyResult<Self>;
 }
 
 /// Blanket impl for any type that implements `FromStr`
@@ -24,9 +22,7 @@ where
 /// Trait for parsing from Python objects (str or bytes)
 pub trait PyParse: Sized {
     /// Parse from a string/bytes
-    fn py_parse(ob: &Bound<'_, PyAny>) -> PyResult<Self>
-    where
-        Self: Sized;
+    fn py_parse(ob: &Bound<'_, PyAny>) -> PyResult<Self>;
 }
 
 /// Blanket impl for any type that implements `PyFromStr`

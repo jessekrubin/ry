@@ -144,7 +144,7 @@ impl PyDuration {
     }
 
     #[classattr]
-    fn __match_args__() -> (&'static str, &'static str) {
+    const fn __match_args__() -> (&'static str, &'static str) {
         ("secs", "nanos")
     }
 

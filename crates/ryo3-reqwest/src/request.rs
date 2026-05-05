@@ -130,16 +130,12 @@ impl<'py, const BLOCKING: bool> FromPyObject<'_, 'py> for ReqwestKwargs<BLOCKING
                     crate::body::PyBody::Bytes(bs) => PyReqwestBody::Bytes(bs.into_inner()),
                     crate::body::PyBody::Stream(s) => {
                         // using an async stream with blocking client is a no-go (yo)
-                        if BLOCKING {
-                            if s.is_async() {
-                                return py_type_err!(
-                                    "cannot use async stream body with blocking client"
-                                );
-                            }
-                            PyReqwestBody::Stream(s)
-                        } else {
-                            PyReqwestBody::Stream(s)
+                        if BLOCKING && s.is_async() {
+                            return py_type_err!(
+                                "cannot use async stream body with blocking client"
+                            );
                         }
+                        PyReqwestBody::Stream(s)
                     }
                 }
             }
