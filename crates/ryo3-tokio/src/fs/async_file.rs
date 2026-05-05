@@ -136,9 +136,9 @@ impl PyAsyncFileInner {
     }
 
     async fn readline(&mut self, size: Option<usize>) -> PyResult<Option<Vec<u8>>> {
+        let file = self.get_file_mut()?;
+        let mut buf = Vec::new();
         if let Some(s) = size {
-            let file = self.get_file_mut()?;
-            let mut buf = Vec::new();
             let bytes_read = file
                 .read_until(b'\n', &mut buf)
                 .await
@@ -151,8 +151,6 @@ impl PyAsyncFileInner {
             }
             Ok(Some(buf))
         } else {
-            let file = self.get_file_mut()?;
-            let mut buf = Vec::new();
             let bytes_read = file
                 .read_until(b'\n', &mut buf)
                 .await

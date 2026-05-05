@@ -18,7 +18,7 @@ use pyo3::prelude::*;
 /// ```
 #[pyfunction]
 #[must_use]
-pub fn quick_maths() -> i32 {
+pub const fn quick_maths() -> i32 {
     // 2 + 2 that's 4, minus 1 that's 3, quick maths
     let mut qm = 2 + 2;
     qm -= 1;

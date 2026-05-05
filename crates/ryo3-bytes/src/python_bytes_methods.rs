@@ -420,7 +420,7 @@ pub(crate) trait PythonBytesMethods: AsRef<[u8]> + From<Vec<u8>> + Sized + PyCla
 }
 
 #[inline]
-fn hex_val(c: char) -> Option<u8> {
+const fn hex_val(c: char) -> Option<u8> {
     match c {
         '0'..='9' => Some((c as u8) - b'0'),
         'a'..='f' => Some((c as u8) - b'a' + 10),

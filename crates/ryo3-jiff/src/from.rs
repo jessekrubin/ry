@@ -161,7 +161,7 @@ impl From<&TimeZone> for RyTimeZone {
 
 impl From<RyTimeZone> for TimeZone {
     fn from(value: RyTimeZone) -> Self {
-        value.0.clone()
+        value.0
     }
 }
 
