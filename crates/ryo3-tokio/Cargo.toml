@@ -24,9 +24,10 @@ tracing.workspace = true
 
 [features]
 default = []
-ry = ["fs", "time"]
+ry = ["fs", "time", "sync"]
 fs = ["tokio/fs", "ryo3-std/fs"]
 time = ["tokio/time", "ryo3-std/time"]
+sync = ["tokio/sync"]
 experimental-async = ["pyo3/experimental-async"]
 
 [lints]
