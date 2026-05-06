@@ -24,7 +24,8 @@ tokio = { workspace = true, features = [], optional = true }
 
 [features]
 default = []
-ry = ["fs", "time"]
+
+ry = ["fs", "time", "sync"]
 fs = [
   "dep:bytes",
   "dep:ryo3-bytes",
@@ -34,6 +35,7 @@ fs = [
   "ryo3-std/fs",
   "tokio/fs",
 ]
+sync = ["tokio/sync"]
 time = ["tokio/time", "dep:ryo3-tokio-rt"]
 experimental-async = ["pyo3/experimental-async", "ryo3-tokio-rt/experimental-async"]
 
