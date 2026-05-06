@@ -101,7 +101,7 @@ def test_comparison() -> None:
     assert ulid1 < ulid2.bytes
     assert ulid1 < str(ulid2)
     with pytest.raises(TypeError):
-        _ = ulid1 < object()  # type: ignore[operator]
+        _ = ulid1 < object()  # type: ignore[operator, ty:unsupported-operator]
 
 
 def test_repr() -> None:

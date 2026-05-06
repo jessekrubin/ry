@@ -9,17 +9,19 @@ impl<'py> FromPyObject<'_, 'py> for JiffTzOffsetConflict {
     fn extract(ob: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
         if let Ok(s) = ob.extract::<&str>() {
             match s {
-                "always_offset" | "always-offset" => {
+                "always-offset" | "always_offset" => {
                     Ok(jiff::tz::OffsetConflict::AlwaysOffset.into())
                 }
-                "always_timezone" | "always-timezone" => {
+                "always-timezone" | "always_timezone" => {
                     Ok(jiff::tz::OffsetConflict::AlwaysTimeZone.into())
                 }
-                "prefer_offset" | "prefer-offset" => {
+                "prefer-offset" | "prefer_offset" => {
                     Ok(jiff::tz::OffsetConflict::PreferOffset.into())
                 }
                 "reject" => Ok(jiff::tz::OffsetConflict::Reject.into()),
-                _ => py_value_err!("Invalid era: {s} (options: {JIFF_TZ_OFFSET_CONFLICTS})"),
+                _ => py_value_err!(
+                    "Invalid tz offset conflict: {s} (options: {JIFF_TZ_OFFSET_CONFLICTS})"
+                ),
             }
         } else {
             py_type_err!(

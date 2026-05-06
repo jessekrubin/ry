@@ -4,7 +4,7 @@ use ryo3_macro_rules::{py_type_err, py_value_err};
 
 use crate::jiff_types::JiffTzDisambiguation;
 
-const JIFF_ERA_STRINGS: &str = "'compatible', 'earlier', 'later', 'reject'";
+const JIFF_TZ_DISAMBIGUATION_STRINGS: &str = "'compatible', 'earlier', 'later', 'reject'";
 impl<'py> FromPyObject<'_, 'py> for JiffTzDisambiguation {
     type Error = PyErr;
     fn extract(ob: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
@@ -14,10 +14,14 @@ impl<'py> FromPyObject<'_, 'py> for JiffTzDisambiguation {
                 "earlier" => Ok(tz::Disambiguation::Earlier.into()),
                 "later" => Ok(tz::Disambiguation::Later.into()),
                 "reject" => Ok(tz::Disambiguation::Reject.into()),
-                _ => py_value_err!("Invalid era: {s} (options: {JIFF_ERA_STRINGS})"),
+                _ => py_value_err!(
+                    "Invalid tz disambiguation: {s} (options: {JIFF_TZ_DISAMBIGUATION_STRINGS})"
+                ),
             }
         } else {
-            py_type_err!("Invalid type for era, expected a string (options: {JIFF_ERA_STRINGS})")
+            py_type_err!(
+                "Invalid type for tz disambiguation, expected a string (options: {JIFF_TZ_DISAMBIGUATION_STRINGS})"
+            )
         }
     }
 }

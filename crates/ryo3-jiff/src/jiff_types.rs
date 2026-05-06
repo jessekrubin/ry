@@ -34,7 +34,7 @@ pub struct JiffSignedDuration(pub jiff::SignedDuration);
 pub struct JiffUnit(pub(crate) jiff::Unit);
 
 impl JiffUnit {
-    // pub(crate) const YEAR: Self = Self(jiff::Unit::Year);
+    pub const YEAR: Self = Self(jiff::Unit::Year);
     pub const MONTH: Self = Self(jiff::Unit::Month);
     pub const WEEK: Self = Self(jiff::Unit::Week);
     pub const DAY: Self = Self(jiff::Unit::Day);

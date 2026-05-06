@@ -443,7 +443,6 @@ impl From<Ulid> for PyUlid {
 
 impl std::fmt::Display for PyUlid {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        // format!("ULID('{}')", self.0.to_string())
         write!(f, "ULID('{}')", self.0)
     }
 }
@@ -471,10 +470,7 @@ impl GetPydanticCoreSchemaCls for PyUlid {
     ) -> PyResult<Bound<'py, PyAny>> {
         use ryo3_pydantic::interns;
         let py = source.py();
-        // let core_schema = py.import(intern!(py, "pydantic_core.core_schema"))?;
         let core_schema = ryo3_pydantic::core_schema(py)?;
-
-        // let core_schema = core_schema.getattr(intern!(py, "core_schema"))?;
 
         // oof this is hideous, but it works
         let str_schema_kwargs = PyDict::new(py);

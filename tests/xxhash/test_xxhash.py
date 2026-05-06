@@ -130,7 +130,7 @@ class TestXxHash3Secret:
             TypeError,
             match="xxhash3-secret must be readable-buffer with of at least 136 bytes",
         ):
-            xxh3_fn(b"hello", complex(1, 2))  # type: ignore[arg-type]
+            xxh3_fn(b"hello", complex(1, 2))  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
 
 
 class TestXxh32Hasher:
@@ -239,7 +239,8 @@ def test_hashers_copy(
     copycat.update(b"world")
     if isinstance(og, (ry_xxh.xxh32, ry_xxh.xxh64)):
         assert og.length == 5
-        assert copycat.length == 10  # type: ignore[union-attr]
+        assert isinstance(copycat, (ry_xxh.xxh32, ry_xxh.xxh64))
+        assert copycat.length == 10
     assert og.digest() != copycat.digest()
     assert og.intdigest() != copycat.intdigest()
     assert og.hexdigest() != copycat.hexdigest()

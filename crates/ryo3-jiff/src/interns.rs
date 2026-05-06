@@ -9,12 +9,14 @@ use pyo3::prelude::*;
 
 macro_rules! unpaid_intern {
     ($name:ident, $lit:literal) => {
+        #[doc = concat!("Intern for the string `", $lit, "`; `pyo3::intern!(py, \"", $lit, "\")`")]
         pub(crate) fn $name(py: Python<'_>) -> &Bound<'_, pyo3::types::PyString> {
             pyo3::intern!(py, $lit)
         }
     };
 
     ($name:ident) => {
+        #[doc = concat!("Intern for the string `", stringify!($name), "`; `pyo3::intern!(py, \"", stringify!($name), "\")`")]
         pub(crate) fn $name(py: Python<'_>) -> &Bound<'_, pyo3::types::PyString> {
             pyo3::intern!(py, stringify!($name))
         }
@@ -23,6 +25,10 @@ macro_rules! unpaid_intern {
 
 // struct-keys
 unpaid_intern!(timestamp);
+unpaid_intern!(date);
+unpaid_intern!(time);
+unpaid_intern!(datetime);
+unpaid_intern!(zoned);
 
 // singular duration(s)
 unpaid_intern!(year);
