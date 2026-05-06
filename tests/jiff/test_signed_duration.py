@@ -147,7 +147,7 @@ def test_truediv() -> None:
         _ = dur / ry.SignedDuration(0, 0)
 
     with pytest.raises(TypeError):
-        _ = dur / "string"  # type: ignore[operator]
+        _ = dur / "string"  # type: ignore[operator, ty:unsupported-operator]
 
 
 def test_duration_2_pydelta() -> None:
@@ -280,7 +280,7 @@ class TestSignedDurationStrings:
         assert f"{sd}" == "PT2H30M"
         assert f"{sd:#}" == "2h 30m"
         with pytest.raises(TypeError):
-            assert sd.to_string(True) == "2h 30m"  # type: ignore[misc]  # noqa: FBT003
+            assert sd.to_string(True) == "2h 30m"  # type: ignore[misc, ty:too-many-positional-arguments]  # noqa: FBT003
 
     def test_invalid_format_specifier(self) -> None:
         sd = ry.SignedDuration.parse("PT2H30M")
@@ -465,9 +465,9 @@ class TestDurationArithmetic:
     def test_div_type_error(self) -> None:
         dur = ry.SignedDuration(1, 0)
         with pytest.raises(TypeError):
-            _r = dur / "string"  # type: ignore[operator]
+            _r = dur / "string"  # type: ignore[operator, ty:unsupported-operator]
         with pytest.raises(TypeError):
-            _r = dur / []  # type: ignore[operator]
+            _r = dur / []  # type: ignore[operator, ty:unsupported-operator]
 
     @given(st_signed_durations(), st.floats(width=32))
     def test_div_f32(
@@ -709,16 +709,16 @@ class TestDurationArithmetic:
             assert _res is NotImplemented
             if operator == "__add__":
                 with pytest.raises(TypeError):
-                    _ = dur + value  # type: ignore[operator]
+                    _ = dur + value  # type: ignore[operator, ty:unsupported-operator]
             elif operator == "__sub__":
                 with pytest.raises(TypeError):
-                    _ = dur - value  # type: ignore[operator]
+                    _ = dur - value  # type: ignore[operator, ty:unsupported-operator]
             elif operator == "__rsub__":
                 with pytest.raises(TypeError):
-                    _ = value - dur  # type: ignore[operator]
+                    _ = value - dur  # type: ignore[operator, ty:unsupported-operator]
             else:  # operator == "__radd__":
                 with pytest.raises(TypeError):
-                    _ = value + dur  # type: ignore[operator]
+                    _ = value + dur  # type: ignore[operator, ty:unsupported-operator]
         else:
             with pytest.raises(TypeError):
                 _res = getattr(dur, operator)(value)

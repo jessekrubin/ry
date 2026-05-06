@@ -42,7 +42,7 @@ except ImportError:
         def __getattr__(self, name: str) -> None:
             return None
 
-    xxhash = _xxhash()
+    xxhash = _xxhash()  # ty:ignore[invalid-assignment]
 
 pytest_skip_xxhash = pytest.mark.skipif(
     "xxhash" not in sys.modules, reason="xxhash is not installed"

@@ -35,12 +35,14 @@ pub mod interns {
 
     macro_rules! unpaid_intern {
         ($name:ident, $lit:expr) => {
+            #[doc = concat!("Intern for the string `", $lit, "`; `pyo3::intern!(py, \"", $lit, "\")`")]
             pub fn $name(py: Python<'_>) -> &Bound<'_, pyo3::types::PyString> {
                 pyo3::intern!(py, $lit)
             }
         };
 
         ($name:ident) => {
+            #[doc = concat!("Intern for the string `", stringify!($name), "`; `pyo3::intern!(py, \"", stringify!($name), "\")`")]
             pub fn $name(py: Python<'_>) -> &Bound<'_, pyo3::types::PyString> {
                 pyo3::intern!(py, stringify!($name))
             }

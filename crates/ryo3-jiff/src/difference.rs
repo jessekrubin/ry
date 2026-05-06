@@ -55,9 +55,9 @@
 
 use jiff::TimestampDifference;
 use jiff::civil::{DateDifference, DateTimeDifference, TimeDifference};
+use pyo3::IntoPyObjectExt;
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyTuple};
-use pyo3::{IntoPyObjectExt, intern};
 use ryo3_core::PyAsciiString;
 use ryo3_macro_rules::py_type_err;
 
@@ -254,7 +254,7 @@ impl RyDateDifference {
     #[expect(clippy::wrong_self_convention)]
     fn to_dict<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
         let dict = PyDict::new(py);
-        dict.set_item(intern!(py, "date"), self.date)?;
+        dict.set_item(crate::interns::date(py), self.date)?;
         self.options.pydict_options(py, &dict)?;
         Ok(dict)
     }
@@ -490,7 +490,7 @@ impl RyDateTimeDifference {
     #[expect(clippy::wrong_self_convention)]
     fn to_dict<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
         let dict = PyDict::new(py);
-        dict.set_item(intern!(py, "datetime"), self.datetime)?;
+        dict.set_item(crate::interns::datetime(py), self.datetime)?;
         self.options.pydict_options(py, &dict)?;
         Ok(dict)
     }
@@ -728,7 +728,7 @@ impl RyTimeDifference {
     #[expect(clippy::wrong_self_convention)]
     fn to_dict<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
         let dict = PyDict::new(py);
-        dict.set_item(intern!(py, "time"), self.time)?;
+        dict.set_item(crate::interns::time(py), self.time)?;
         self.options.pydict_options(py, &dict)?;
         Ok(dict)
     }
@@ -972,7 +972,7 @@ impl RyTimestampDifference {
     #[expect(clippy::wrong_self_convention)]
     fn to_dict<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
         let dict = PyDict::new(py);
-        dict.set_item(intern!(py, "timestamp"), self.timestamp)?;
+        dict.set_item(crate::interns::timestamp(py), self.timestamp)?;
         self.options.pydict_options(py, &dict)?;
         Ok(dict)
     }
@@ -1193,7 +1193,7 @@ impl RyZonedDifference {
 
     fn to_dict<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
         let dict = PyDict::new(py);
-        dict.set_item(intern!(py, "zoned"), self.zoned.clone())?;
+        dict.set_item(crate::interns::zoned(py), self.zoned.clone())?;
         self.options.pydict_options(py, &dict)?;
         Ok(dict)
     }

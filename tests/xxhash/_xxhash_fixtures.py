@@ -35,7 +35,7 @@ def _load_data() -> list[XXHashDataRecord]:
         xx32_test_data = f.read()
     lines = xx32_test_data.split("\n")
     return [
-        XXHashDataRecord(**row)  # type: ignore[typeddict-item]
+        XXHashDataRecord(**row)  # type: ignore[typeddict-item]  # ty:ignore[invalid-argument-type, missing-typed-dict-key]
         for row in (
             ry.parse_json(line) for line in lines if line.strip() if line.strip()
         )

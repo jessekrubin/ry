@@ -220,9 +220,9 @@ class TestDurationArithmetic:
     def test_div_type_error(self) -> None:
         dur = ry.Duration(1, 0)
         with pytest.raises(TypeError):
-            _r = dur / "string"  # type: ignore[operator]
+            _r = dur / "string"  # type: ignore[operator, ty:unsupported-operator]
         with pytest.raises(TypeError):
-            _r = dur / []  # type: ignore[operator]
+            _r = dur / []  # type: ignore[operator, ty:unsupported-operator]
 
     @given(st_durations(), st.floats())
     def test_duration_div_f32(
