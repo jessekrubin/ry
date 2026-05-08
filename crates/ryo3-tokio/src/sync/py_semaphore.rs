@@ -1,7 +1,8 @@
 use std::sync::Arc;
 
-use pyo3::exceptions::{PyRuntimeError, PyValueError};
+use pyo3::exceptions::PyRuntimeError;
 use pyo3::prelude::*;
+use ryo3_core::py_value_err;
 use ryo3_tokio_rt::future_into_py;
 use tokio::sync::{AcquireError, Semaphore};
 
@@ -19,14 +20,24 @@ impl From<PyAcquireError> for PyErr {
     }
 }
 
+const MAX_PERMITS: usize = tokio::sync::Semaphore::MAX_PERMITS;
+const SEMAPHORE_RANGE: std::ops::RangeInclusive<usize> = 1..=MAX_PERMITS;
+const INVALID_SEMAPHORE_ERROR: &str = concat!(
+    "Invalid semaphore value (range 1..=",
+    stringify!(MAX_SEMAPHORE_PERMITS),
+    ")"
+);
+
 #[pymethods]
 impl PySemaphore {
     #[new]
     #[pyo3(signature = (value = 1))]
     fn py_new(value: usize) -> PyResult<Self> {
-        if value == 0 {
-            return Err(PyValueError::new_err("value must be >= 1"));
+        // more than 0 and less than MAX_PERMITS
+        if !SEMAPHORE_RANGE.contains(&value) {
+            return py_value_err!("{INVALID_SEMAPHORE_ERROR}");
         }
+
         Ok(Self(Arc::new(Semaphore::new(value))))
     }
 
@@ -43,7 +54,7 @@ impl PySemaphore {
     fn acquire<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
         let sem = self.0.clone();
         future_into_py(py, async move {
-            let permit = sem.acquire_owned().await.map_err(|e| PyAcquireError(e))?;
+            let permit = sem.acquire_owned().await.map_err(PyAcquireError)?;
             permit.forget();
             Ok(true)
         })
@@ -56,24 +67,20 @@ impl PySemaphore {
             .clone()
             .acquire_owned()
             .await
-            .map_err(|e| PyAcquireError(e))?;
+            .map_err(PyAcquireError)?;
         permit.forget();
         Ok(())
     }
 
     #[pyo3(signature = (n = 1))]
     fn release(&self, n: usize) -> PyResult<()> {
-        if n == 0 {
-            return Err(PyValueError::new_err("n must be >= 1"));
-        }
-        self.0.add_permits(n);
-        Ok(())
+        self.add_permits(n)
     }
 
     fn __aenter__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
         let sem = self.0.clone();
         future_into_py(py, async move {
-            let permit = sem.acquire_owned().await.map_err(|e| PyAcquireError(e))?;
+            let permit = sem.acquire_owned().await.map_err(PyAcquireError)?;
             permit.forget();
             Ok(())
         })
@@ -83,9 +90,9 @@ impl PySemaphore {
     fn __aexit__<'py>(
         &self,
         py: Python<'py>,
-        _exc_type: Py<PyAny>,
-        _exc_value: Py<PyAny>,
-        _traceback: Py<PyAny>,
+        _exc_type: &Bound<'py, PyAny>,
+        _exc_value: &Bound<'py, PyAny>,
+        _traceback: &Bound<'py, PyAny>,
     ) -> PyResult<Bound<'py, PyAny>> {
         let sem = self.0.clone();
         future_into_py(py, async move {
@@ -99,13 +106,15 @@ impl PySemaphore {
     }
 
     fn add_permits(&self, n: usize) -> PyResult<()> {
+        if (self.0.available_permits() + n) > MAX_PERMITS {
+            return py_value_err!("add_permits({n}) would exceed maximum permits ({MAX_PERMITS})");
+        }
         self.0.add_permits(n);
         Ok(())
     }
 
-    fn close(&self) -> PyResult<()> {
+    fn close(&self) {
         self.0.close();
-        Ok(())
     }
 
     fn is_closed(&self) -> bool {
