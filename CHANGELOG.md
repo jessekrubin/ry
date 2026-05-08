@@ -3,7 +3,7 @@
 ## v0.0.91 [2026-05-08]
 
 - use readable buffer in `ryo3-flate2`, `ryo3-bzip2` and `ryo3-brotli`
-- fixed context handlers to use `&Bound<'_, PyAny>` instead of `Py<PyAny>
+- fixed context handlers to use `&Bound<'_, PyAny>` instead of `Py<PyAny>`
 - `ryo3-brotli`
   - compression/decompression functions now return `ry.Bytes` instead of
     `builtins.bytes`
