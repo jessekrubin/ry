@@ -569,9 +569,9 @@ impl PyWebSocket {
     fn __aexit__<'py>(
         &self,
         py: Python<'py>,
-        _exc_type: Py<PyAny>,
-        _exc_value: Py<PyAny>,
-        _traceback: Py<PyAny>,
+        _exc_type: &Bound<'py, PyAny>,
+        _exc_value: &Bound<'py, PyAny>,
+        _traceback: &Bound<'py, PyAny>,
     ) -> PyResult<Bound<'py, PyAny>> {
         let this = self.clone();
         future_into_py(py, async move { this.disconnect().await })
@@ -748,9 +748,9 @@ impl PyWebSocket {
     fn __aexit__<'py>(
         &self,
         py: Python<'py>,
-        _exc_type: Py<PyAny>,
-        _exc_value: Py<PyAny>,
-        _traceback: Py<PyAny>,
+        _exc_type: &Bound<'py, PyAny>,
+        _exc_value: &Bound<'py, PyAny>,
+        _traceback: &Bound<'py, PyAny>,
     ) -> PyResult<Bound<'py, PyAny>> {
         let this = self.clone();
         future_into_py(py, async move { this.disconnect().await })

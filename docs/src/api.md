@@ -433,17 +433,18 @@ sha512_256: type[_Sha[t.Literal["sha512_256"], SHA512_256_BLOCK_SIZE, SHA512_256
 from typing import Literal, TypeAlias
 
 from ry._types import Buffer
+from ry.ryo3._bytes import Bytes
 
 _Quality: TypeAlias = Literal[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
 
 
 def brotli_encode(
     data: Buffer, quality: _Quality = 11, *, magic_number: bool = False
-) -> bytes: ...
-def brotli_decode(data: Buffer) -> bytes: ...
+) -> Bytes: ...
+def brotli_decode(data: Buffer) -> Bytes: ...
 def brotli(
     data: Buffer, quality: _Quality = 11, *, magic_number: bool = False
-) -> bytes:
+) -> Bytes:
     """Alias for brotli_encode"""
 ```
 
@@ -657,8 +658,8 @@ ReadableBuffer: t.TypeAlias = Buffer | bytes | bytearray | memoryview | Bytes
 
 from typing import Literal, TypeAlias
 
-from ry import Bytes
 from ry._types import Buffer
+from ry.ryo3._bytes import Bytes
 
 _Quality: TypeAlias = Literal[1, 2, 3, 4, 5, 6, 7, 8, 9, "best", "fast"]
 
@@ -6015,6 +6016,7 @@ import datetime as pydt
 import ipaddress
 import pathlib
 import typing as t
+from types import TracebackType
 
 from ry._types import (
     Buffer,
@@ -6385,8 +6387,16 @@ class FileReadStream(RyIterator[Bytes]):
 
         """
 
+    def __enter__(self) -> t.Self: ...
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: TracebackType | None,
+    ) -> None: ...
     def __iter__(self) -> t.Self: ...
     def __next__(self) -> Bytes: ...
+    def close(self) -> None: ...
     def collect(self) -> list[Bytes]: ...
     def take(self, n: int = 1) -> list[Bytes]: ...
 
@@ -7092,8 +7102,16 @@ class AsyncFileReadStream(RyAsyncIterator[Bytes]):
         """
 
     def __await__(self) -> Generator[t.Any, t.Any, t.Self]: ...
+    async def __aenter__(self) -> t.Self: ...
+    async def __aexit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: TracebackType | None,
+    ) -> None: ...
     def __aiter__(self) -> t.Self: ...
     async def __anext__(self) -> Bytes: ...
+    async def close(self) -> None: ...
     async def collect(self) -> list[Bytes]: ...
     async def take(self, n: int = 1) -> list[Bytes]: ...
 

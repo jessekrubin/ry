@@ -4,6 +4,7 @@ import datetime as pydt
 import ipaddress
 import pathlib
 import typing as t
+from types import TracebackType
 
 from ry._types import (
     Buffer,
@@ -353,8 +354,16 @@ class FileReadStream(RyIterator[Bytes]):
 
         """
 
+    def __enter__(self) -> t.Self: ...
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: TracebackType | None,
+    ) -> None: ...
     def __iter__(self) -> t.Self: ...
     def __next__(self) -> Bytes: ...
+    def close(self) -> None: ...
     def collect(self) -> list[Bytes]: ...
     def take(self, n: int = 1) -> list[Bytes]: ...
 
