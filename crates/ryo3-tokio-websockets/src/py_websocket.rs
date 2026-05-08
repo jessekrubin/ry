@@ -272,6 +272,26 @@ impl PyWebSocket {
     }
 
     #[inline]
+    fn close_current_connection_with_err(
+        &self,
+        current: &WebSocketConnected,
+        err: tokio_websockets::Error,
+    ) -> PyErr {
+        self.close_current_connection(current);
+        map_ws_err(err)
+    }
+
+    #[inline]
+    fn close_current_connection_with_pyerr(
+        &self,
+        current: &WebSocketConnected,
+        err: PyErr,
+    ) -> PyErr {
+        self.close_current_connection(current);
+        err
+    }
+
+    #[inline]
     async fn finalize_close_conn(&self, conn: &WebSocketConnected) -> PyResult<()> {
         let close_future = async {
             let mut reader = conn.reader.lock().await;
@@ -333,14 +353,22 @@ impl PyWebSocket {
             conn.recv_next().await
         };
 
-        if let Some(msg) = msg_result? {
-            if msg.is_close() {
-                self.close_current_connection(&conn);
+        match msg_result {
+            Ok(Some(msg)) => {
+                if msg.is_close() {
+                    self.close_current_connection(&conn);
+                }
+                Ok(Some(PyWsMessage::from(msg)))
             }
-            Ok(Some(PyWsMessage::from(msg)))
-        } else {
-            self.close_current_connection(&conn);
-            Ok(None)
+            Ok(None) => {
+                // peer gone... ws is `Closed` and mark before raising/returning
+                self.close_current_connection(&conn);
+                Ok(None)
+            }
+            Err(err) => {
+                // abrupt ws-protocol failure, raise the err
+                Err(self.close_current_connection_with_pyerr(&conn, err))
+            }
         }
     }
 
@@ -348,7 +376,13 @@ impl PyWebSocket {
     async fn send(&self, message: Message) -> PyResult<()> {
         let conn = self.get_connected()?;
         let mut writer = conn.writer.lock().await;
-        writer.send(message).await.map_err(map_ws_err)?;
+        writer
+            .send(message)
+            .await
+            // if the peer disappeared, mark the socket closed
+            // this was happening for me when working on a server that i was
+            // restarting over and over and over
+            .map_err(|err| self.close_current_connection_with_err(&conn, err))?;
         Ok(())
     }
 

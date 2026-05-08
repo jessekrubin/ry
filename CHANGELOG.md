@@ -6,6 +6,8 @@
 - `ryo3-brotli`
   - compression/decompression functions now return `ry.Bytes` instead of
     `builtins.bytes`
+- `ryo3-tokio-websocket`
+  - unexpected ws disconnects mark websocket closed when read/write fail
 
 ---
 
