@@ -4,7 +4,7 @@ use pyo3::prelude::*;
 use pyo3::types::PyString;
 
 use crate::bytes::PyBytes;
-use crate::python_bytes_methods::{BytesStripChars, PythonBytesMethods, slice_bytes};
+use crate::python_bytes_methods::{PythonBytesMethods, PythonBytesStrip};
 
 impl PythonBytesMethods for PyBytes {}
 
@@ -65,8 +65,8 @@ impl PyBytes {
     /// 'b9:01ef'
     /// >>> value.hex(':', -2)
     /// 'b901:ef'
-    #[pyo3(signature = (sep = None, bytes_per_sep = None))]
-    fn hex(&self, sep: Option<&str>, bytes_per_sep: Option<usize>) -> PyResult<String> {
+    #[pyo3(signature = (sep = None, *, bytes_per_sep = 1))]
+    fn hex(&self, sep: Option<char>, bytes_per_sep: usize) -> PyResult<String> {
         self.py_hex(sep, bytes_per_sep)
     }
 
@@ -166,36 +166,36 @@ impl PyBytes {
         self.py_expandtabs(tabsize)
     }
 
-    #[pyo3(signature = (chars = BytesStripChars::AsciiWhitespace, /), text_signature = "(chars=None, /)")]
-    fn strip<'py>(slf: PyRef<'py, Self>, chars: BytesStripChars) -> PyResult<Py<Self>> {
+    #[pyo3(signature = (chars = PythonBytesStrip::AsciiWhitespace, /), text_signature = "(chars=None, /)")]
+    fn strip<'py>(slf: PyRef<'py, Self>, chars: PythonBytesStrip) -> PyResult<Py<Self>> {
         let bytes = <Self as AsRef<Bytes>>::as_ref(&*slf);
         let range = chars.strip_range(slf.as_slice());
         if range.start == 0 && range.end == bytes.len() {
             Ok(slf.into())
         } else {
-            Py::new(slf.py(), Self::new(slice_bytes(bytes, range)))
+            Py::new(slf.py(), Self::new(bytes.slice(range)))
         }
     }
 
-    #[pyo3(signature = (chars = BytesStripChars::AsciiWhitespace, /), text_signature = "(chars=None, /)")]
-    fn lstrip<'py>(slf: PyRef<'py, Self>, chars: BytesStripChars) -> PyResult<Py<Self>> {
+    #[pyo3(signature = (chars = PythonBytesStrip::AsciiWhitespace, /), text_signature = "(chars=None, /)")]
+    fn lstrip<'py>(slf: PyRef<'py, Self>, chars: PythonBytesStrip) -> PyResult<Py<Self>> {
         let bytes = <Self as AsRef<Bytes>>::as_ref(&*slf);
-        let range = chars.lstrip_range(slf.as_slice());
-        if range.start == 0 && range.end == bytes.len() {
+        let ix = chars.lstrip_range(slf.as_slice());
+        if ix == 0 {
             Ok(slf.into())
         } else {
-            Py::new(slf.py(), Self::new(slice_bytes(bytes, range)))
+            Py::new(slf.py(), Self::new(bytes.slice(ix..)))
         }
     }
 
-    #[pyo3(signature = (chars = BytesStripChars::AsciiWhitespace, /), text_signature = "(chars=None, /)")]
-    fn rstrip<'py>(slf: PyRef<'py, Self>, chars: BytesStripChars) -> PyResult<Py<Self>> {
+    #[pyo3(signature = (chars = PythonBytesStrip::AsciiWhitespace, /), text_signature = "(chars=None, /)")]
+    fn rstrip<'py>(slf: PyRef<'py, Self>, chars: PythonBytesStrip) -> PyResult<Py<Self>> {
         let bytes = <Self as AsRef<Bytes>>::as_ref(&*slf);
-        let range = chars.rstrip_range(slf.as_slice());
-        if range.start == 0 && range.end == bytes.len() {
+        let ix = chars.rstrip_range(slf.as_slice());
+        if ix == bytes.len() {
             Ok(slf.into())
         } else {
-            Py::new(slf.py(), Self::new(slice_bytes(bytes, range)))
+            Py::new(slf.py(), Self::new(bytes.slice(0..ix)))
         }
     }
 }

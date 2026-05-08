@@ -1,7 +1,6 @@
 //! Support for Python buffer protocol
 
 use std::fmt::Write;
-use std::io::Read;
 use std::ops::Range;
 use std::os::raw::c_int;
 use std::ptr::NonNull;
@@ -15,7 +14,7 @@ use pyo3::types::{PyDict, PySlice, PyString, PyTuple};
 use pyo3::{IntoPyObjectExt, ffi};
 
 use crate::ReadableBuffer;
-use crate::python_bytes_methods::{PythonBytesMethods, PythonBytesStrip};
+use crate::python_bytes_methods::{PyHexSep, PythonBytesMethods, PythonBytesStrip};
 
 /// A wrapper around a [`bytes::Bytes`][].
 ///
@@ -435,8 +434,8 @@ impl PyBytes {
     /// >>> value.hex(':', -2)
     /// 'b901:ef'
     #[pyo3(signature = (sep = None, *, bytes_per_sep = 1))]
-    fn hex(&self, sep: Option<&str>, bytes_per_sep: usize) -> PyResult<String> {
-        self.py_hex(sep, bytes_per_sep)
+    fn hex(&self, sep: Option<PyHexSep>, bytes_per_sep: usize) -> String {
+        self.py_hex(sep.map(|s| char::from(s)), bytes_per_sep)
     }
 
     /// Create a bytes object from a string of hexadecimal numbers.

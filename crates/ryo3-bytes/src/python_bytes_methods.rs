@@ -3,7 +3,6 @@ use std::fmt::Write;
 use std::hash::Hash;
 use std::ops::Range;
 
-use bytes::Bytes;
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use pyo3::types::PyString;
@@ -197,17 +196,9 @@ pub(crate) trait PythonBytesMethods: AsRef<[u8]> + From<Vec<u8>> + Sized + PyCla
         Ok(Self::from(bytes))
     }
 
-    fn py_hex(&self, sep: Option<char>, bytes_per_sep: usize) -> PyResult<String> {
-        if sep.is_some() || bytes_per_sep != 1 {
-            // Err(pyo3::exceptions::PyNotImplementedError::new_err(
-            //     "Not implemented (yet)",
-            // ))
-            let formatter = PyHexFormatter::new(sep, bytes_per_sep);
-            Ok(formatter.format(self.as_ref()))
-        } else {
-            let s = hex_encode(self.as_ref());
-            Ok(s)
-        }
+    fn py_hex(&self, sep: Option<char>, bytes_per_sep: usize) -> String {
+        let formatter = PyHexFormatter::new(sep, bytes_per_sep);
+        formatter.format(self.as_ref())
     }
 
     // ======================
@@ -325,6 +316,15 @@ pub(crate) trait PythonBytesMethods: AsRef<[u8]> + From<Vec<u8>> + Sized + PyCla
         Self::from(out)
     }
 }
+
+macro_rules! normalized_strip_range {
+    ($start:expr, $end:expr) => {{
+        let start = $start;
+        let end = $end;
+        if start >= end { 0..0 } else { start..end }
+    }};
+}
+
 #[derive(Clone, Debug, Default)]
 pub(crate) enum PythonBytesStrip {
     #[default]
@@ -403,7 +403,7 @@ impl PythonBytesStrip {
     fn strip_range_ascii_whitespace(buf: &[u8]) -> Range<usize> {
         let l = Self::lstrip_range_ascii_whitespace(buf);
         let r = Self::rstrip_range_ascii_whitespace(buf);
-        l..r
+        normalized_strip_range!(l, r)
     }
 
     #[inline]
@@ -423,7 +423,7 @@ impl PythonBytesStrip {
     fn strip_range_one(buf: &[u8], byte: u8) -> Range<usize> {
         let l = Self::lstrip_range_one(buf, byte);
         let r = Self::rstrip_range_one(buf, byte);
-        l..r
+        normalized_strip_range!(l, r)
     }
 
     fn lstrip_range_one(buf: &[u8], byte: u8) -> usize {
@@ -441,7 +441,7 @@ impl PythonBytesStrip {
     fn strip_range_table(buf: &[u8], table: &[bool; 256]) -> Range<usize> {
         let l = Self::lstrip_range_table(buf, table);
         let r = Self::rstrip_range_table(buf, table);
-        l..r
+        normalized_strip_range!(l, r)
     }
 
     fn lstrip_range_table(buf: &[u8], table: &[bool; 256]) -> usize {
@@ -485,30 +485,40 @@ const fn is_python_ascii_whitespace(x: u8) -> bool {
     matches!(x, b' ' | b'\t' | b'\n' | b'\r' | b'\x0b' | b'\x0c')
 }
 
-// Single char as a byte/str
-// pub(crate) struct PyHexSep(char);
+// single char as a byte/str
+pub(crate) struct PyHexSep(char);
 
-// impl FromPyObject<'_, '_> for PyHexSep {
-//     type Error = PyErr;
+impl From<PyHexSep> for char {
+    fn from(value: PyHexSep) -> Self {
+        value.0
+    }
+}
 
-//     fn extract(ob: Borrowed<'_, '_>, py: Python<'_>) -> Result<Self, Self::Error> {
-//         if let Ok(s) = ob.cast_exact::<PyString>() {
-//             if s.len() != 1 {
-//                 return Err(PyValueError::new_err("Expected a single character string for `sep`"));
-//             }
-//             let c = s.to_str()?.chars().next().unwrap();
-//             let byte = c.to_digit(256).ok_or_else(|| PyValueError::new_err("Expected a single character string for `sep`"))?;
-//             Ok(Self(byte as u8))
-//         }
-//     }
-// }
-fn hex_encode(bytes: &[u8]) -> String {
-    bytes
-        .iter()
-        .fold(String::with_capacity(bytes.len() * 2), |mut output, b| {
-            let _ = write!(output, "{b:02x}");
-            output
-        })
+impl FromPyObject<'_, '_> for PyHexSep {
+    type Error = PyErr;
+
+    fn extract(ob: Borrowed<'_, '_, PyAny>) -> Result<Self, Self::Error> {
+        if let Ok(pystr) = ob.cast_exact::<PyString>() {
+            let len = pystr.len()?;
+            if len != 1 {
+                return Err(PyValueError::new_err(
+                    "Separator must be a single ASCII character",
+                ));
+            }
+            let s = pystr.to_str()?;
+            if !s.is_ascii() {
+                return Err(PyValueError::new_err(
+                    "Separator must be a single ASCII character",
+                ));
+            }
+            let char = s.chars().next().expect("wenodis");
+            Ok(Self(char))
+        } else {
+            Err(PyValueError::new_err(
+                "Separator must be a single ASCII character string",
+            ))
+        }
+    }
 }
 
 struct PyHexFormatter {
@@ -532,36 +542,38 @@ impl PyHexFormatter {
     }
 
     fn capacity(&self, num_bytes: usize) -> usize {
-        if self.sep.is_none() && self.bytes_per_sep == 1 {
+        if self.sep.is_none() {
             return num_bytes * 2;
         }
 
+        let group_size = self.bytes_per_sep;
         let sep_count = if num_bytes == 0 {
             0
-        } else if self.sep.is_some() {
-            num_bytes - 1
-        } else if self.bytes_per_sep > 0 {
-            (num_bytes - 1) / self.bytes_per_sep
-        } else {
+        } else if group_size == 0 {
             0
+        } else {
+            (num_bytes - 1) / group_size
         };
         num_bytes * 2 + sep_count
     }
 
     fn format(&self, bytes: &[u8]) -> String {
-        if self.sep.is_none() && self.bytes_per_sep == 1 {
+        if self.sep.is_none() {
             return self.format_default(bytes);
         }
+
+        if self.bytes_per_sep == 0 {
+            return self.format_default(bytes);
+        }
+
         let mut output = String::with_capacity(self.capacity(bytes.len()));
+        let sep = self.sep.expect("checked above");
+        let group_size = self.bytes_per_sep;
         for (i, b) in bytes.iter().enumerate() {
-            if i > 0 {
-                if let Some(sep) = self.sep {
-                    output.push(sep);
-                } else if self.bytes_per_sep > 0 && i % self.bytes_per_sep == 0 {
-                    output.push(':');
-                }
-                let _ = write!(output, "{b:02x}");
+            if i > 0 && (bytes.len() - i).is_multiple_of(group_size) {
+                output.push(sep);
             }
+            let _ = write!(output, "{b:02x}");
         }
         output
     }

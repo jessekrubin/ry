@@ -355,6 +355,52 @@ def test_hex_and_fromhex(
     assert ry_from_hex_upper == ry_bytes
 
 
+@pytest.mark.parametrize("b", [b"", b"\xb9\x01\xef", b"abcdef", bytes(range(8))])
+@pytest.mark.parametrize("sep", [":", "-", " "])
+def test_hex_sep_matches_python(
+    b: bytes,
+    sep: str,
+) -> None:
+    ry_bytes = ry.Bytes(b)
+    assert ry_bytes.hex(sep=sep) == b.hex(sep=sep)
+
+
+@pytest.mark.parametrize("b", [b"", b"\xb9\x01\xef", b"abcdef", bytes(range(8))])
+@pytest.mark.parametrize("sep", [":", "-", " "])
+@pytest.mark.parametrize("bytes_per_sep", [1, 2, 3, 4, 0])
+def test_hex_sep_and_bytes_per_sep_matches_python(
+    b: bytes,
+    sep: str,
+    bytes_per_sep: int,
+) -> None:
+    ry_bytes = ry.Bytes(b)
+    assert ry_bytes.hex(sep=sep, bytes_per_sep=bytes_per_sep) == b.hex(
+        sep=sep,
+        bytes_per_sep=bytes_per_sep,
+    )
+
+
+@pytest.mark.parametrize("sep", ["::", "ab"])
+def test_hex_rejects_multi_char_sep(
+    sep: str,
+) -> None:
+    ry_bytes = ry.Bytes(b"\xb9\x01\xef")
+    with pytest.raises((TypeError, ValueError)):
+        ry_bytes.hex(sep=sep)
+
+
+@pytest.mark.parametrize("b", [b"", b"\xb9\x01\xef", b"abcdef", bytes(range(8))])
+@pytest.mark.parametrize("bytes_per_sep", [1, 2, 3, 4])
+def test_hex_default_sep_matches_python(
+    b: bytes,
+    bytes_per_sep: int,
+) -> None:
+    ry_bytes = ry.Bytes(b)
+    assert ry_bytes.hex(bytes_per_sep=bytes_per_sep) == b.hex(
+        bytes_per_sep=bytes_per_sep
+    )
+
+
 # test the string decode bytes fn
 @given(st.text())
 def test_bytes_decode_default(
