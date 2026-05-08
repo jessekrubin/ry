@@ -1,6 +1,8 @@
 //! Support for Python buffer protocol
 
 use std::fmt::Write;
+use std::io::Read;
+use std::ops::Range;
 use std::os::raw::c_int;
 use std::ptr::NonNull;
 
@@ -12,7 +14,8 @@ use pyo3::pybacked::PyBackedBytes;
 use pyo3::types::{PyDict, PySlice, PyString, PyTuple};
 use pyo3::{IntoPyObjectExt, ffi};
 
-use crate::python_bytes_methods::PythonBytesMethods;
+use crate::ReadableBuffer;
+use crate::python_bytes_methods::{PythonBytesMethods, PythonBytesStrip};
 
 /// A wrapper around a [`bytes::Bytes`][].
 ///
@@ -68,6 +71,11 @@ impl PyBytes {
     /// Access the underlying buffer as a byte slice
     pub fn as_slice(&self) -> &[u8] {
         self.as_ref()
+    }
+
+    /// Return the range of the buffer
+    pub fn range(&self) -> Range<usize> {
+        0..self.0.len()
     }
 
     /// Slice the underlying buffer using a Python slice object
@@ -191,14 +199,14 @@ impl PyBytes {
         new_buffer.into()
     }
 
-    fn __contains__(&self, item: Self) -> bool {
+    fn __contains__(&self, item: ReadableBuffer) -> bool {
         self.0
-            .windows(item.0.len())
-            .any(|window| window == item.as_slice())
+            .windows(item.len())
+            .any(|window| window == item.as_ref())
     }
 
-    fn __eq__(&self, other: Self) -> bool {
-        self.0.as_ref() == other.0.as_ref()
+    fn __eq__(&self, other: ReadableBuffer) -> bool {
+        self.0.as_ref() == other.as_ref()
     }
 
     fn __getitem__<'py>(
@@ -272,9 +280,9 @@ impl PyBytes {
     /// If the binary data starts with the prefix string, return bytes[len(prefix):]. Otherwise,
     /// return a copy of the original binary data:
     #[pyo3(signature = (prefix, /))]
-    fn removeprefix(&self, prefix: Self) -> Self {
+    fn removeprefix(&self, prefix: ReadableBuffer) -> Self {
         if self.0.starts_with(prefix.as_ref()) {
-            self.0.slice(prefix.0.len()..).into()
+            self.0.slice(prefix.len()..).into()
         } else {
             self.0.clone().into()
         }
@@ -283,9 +291,9 @@ impl PyBytes {
     /// If the binary data ends with the suffix string and that suffix is not empty, return
     /// `bytes[:-len(suffix)]`. Otherwise, return the original binary data.
     #[pyo3(signature = (suffix, /))]
-    fn removesuffix(&self, suffix: Self) -> Self {
+    fn removesuffix(&self, suffix: ReadableBuffer) -> Self {
         if self.0.ends_with(suffix.as_ref()) {
-            self.0.slice(0..self.0.len() - suffix.0.len()).into()
+            self.0.slice(0..self.0.len() - suffix.len()).into()
         } else {
             self.0.clone().into()
         }
@@ -426,8 +434,8 @@ impl PyBytes {
     /// 'b9:01ef'
     /// >>> value.hex(':', -2)
     /// 'b901:ef'
-    #[pyo3(signature = (sep = None, bytes_per_sep = None))]
-    fn hex(&self, sep: Option<&str>, bytes_per_sep: Option<usize>) -> PyResult<String> {
+    #[pyo3(signature = (sep = None, *, bytes_per_sep = 1))]
+    fn hex(&self, sep: Option<&str>, bytes_per_sep: usize) -> PyResult<String> {
         self.py_hex(sep, bytes_per_sep)
     }
 
@@ -527,30 +535,36 @@ impl PyBytes {
         self.py_expandtabs(tabsize)
     }
 
-    #[pyo3(signature = (chars = None, /))]
-    fn strip(&self, chars: Option<Self>) -> Self {
-        if let Some(chars) = chars {
-            self.py_strip(Some(chars.as_ref()))
+    #[pyo3(signature = (chars = PythonBytesStrip::AsciiWhitespace, /), text_signature = "(chars=None, /)")]
+    fn strip<'py>(slf: PyRef<'py, Self>, chars: PythonBytesStrip) -> PyResult<Py<Self>> {
+        let bytes = &slf.0;
+        let range = chars.strip_range(slf.as_slice());
+        if range.start == 0 && range.end == bytes.len() {
+            Ok(slf.into())
         } else {
-            self.py_strip(None)
+            Py::new(slf.py(), Self::new(bytes.slice(range)))
         }
     }
 
-    #[pyo3(signature = (chars = None, /))]
-    fn lstrip(&self, chars: Option<Self>) -> Self {
-        if let Some(chars) = chars {
-            self.py_lstrip(Some(chars.as_ref()))
+    #[pyo3(signature = (chars = PythonBytesStrip::AsciiWhitespace, /), text_signature = "(chars=None, /)")]
+    fn lstrip<'py>(slf: PyRef<'py, Self>, chars: PythonBytesStrip) -> PyResult<Py<Self>> {
+        let bytes = &slf.0;
+        let ix = chars.lstrip_range(slf.as_slice());
+        if ix == 0 {
+            Ok(slf.into())
         } else {
-            self.py_lstrip(None)
+            Py::new(slf.py(), Self::new(bytes.slice(ix..)))
         }
     }
 
-    #[pyo3(signature = (chars = None, /))]
-    fn rstrip(&self, chars: Option<Self>) -> Self {
-        if let Some(chars) = chars {
-            self.py_rstrip(Some(chars.as_ref()))
+    #[pyo3(signature = (chars = PythonBytesStrip::AsciiWhitespace, /), text_signature = "(chars=None, /)")]
+    fn rstrip<'py>(slf: PyRef<'py, Self>, chars: PythonBytesStrip) -> PyResult<Py<Self>> {
+        let bytes = &slf.0;
+        let ix = chars.rstrip_range(slf.as_slice());
+        if ix == bytes.len() {
+            Ok(slf.into())
         } else {
-            self.py_rstrip(None)
+            Py::new(slf.py(), Self::new(bytes.slice(0..ix)))
         }
     }
     // </python-bytes-methods>

@@ -312,6 +312,32 @@ def test_bytes_strip_with_arg(
     assert rs_res == py_res, f"py: {py_res!r}, rs: {rs_res!r} ~ {bytes2strip_from!r}"
 
 
+class TestBytesStripIdentity:
+    def test_strip_returns_same_object_when_unchanged(self) -> None:
+        rs_bytes = ry.Bytes(b"asdf")
+        assert rs_bytes.strip() is rs_bytes
+        assert rs_bytes.strip(b"") is rs_bytes
+        assert rs_bytes.strip(b"x") is rs_bytes
+
+    def test_lstrip_returns_same_object_when_unchanged(self) -> None:
+        rs_bytes = ry.Bytes(b"asdf")
+        assert rs_bytes.lstrip() is rs_bytes
+        assert rs_bytes.lstrip(b"") is rs_bytes
+        assert rs_bytes.lstrip(b"x") is rs_bytes
+
+    def test_rstrip_returns_same_object_when_unchanged(self) -> None:
+        rs_bytes = ry.Bytes(b"asdf")
+        assert rs_bytes.rstrip() is rs_bytes
+        assert rs_bytes.rstrip(b"") is rs_bytes
+        assert rs_bytes.rstrip(b"x") is rs_bytes
+
+    def test_strip_returns_new_object_when_changed(self) -> None:
+        rs_bytes = ry.Bytes(b" asdf ")
+        assert rs_bytes.strip() is not rs_bytes
+        assert rs_bytes.lstrip() is not rs_bytes
+        assert rs_bytes.rstrip() is not rs_bytes
+
+
 @given(st.binary())
 def test_hex_and_fromhex(
     b: bytes,

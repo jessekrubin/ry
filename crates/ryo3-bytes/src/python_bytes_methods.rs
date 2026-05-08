@@ -1,11 +1,15 @@
 //! Extension(s) to the `pyo3-bytes` which will be hopefully be upstreamed.
 use std::fmt::Write;
 use std::hash::Hash;
+use std::ops::Range;
 
+use bytes::Bytes;
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use pyo3::types::PyString;
 use pyo3::{IntoPyObjectExt, PyClass};
+
+use crate::ReadableBuffer;
 
 pub(crate) trait PythonBytesMethods: AsRef<[u8]> + From<Vec<u8>> + Sized + PyClass {
     /// Hash bytes
@@ -51,106 +55,7 @@ pub(crate) trait PythonBytesMethods: AsRef<[u8]> + From<Vec<u8>> + Sized + PyCla
         Self::from(bytes)
     }
 
-    fn py_strip(&self, bin: Option<&[u8]>) -> Self {
-        let b = self.as_ref();
-        if b.is_empty() {
-            return Self::from(vec![]);
-        }
-        if let Some(bin) = bin {
-            if bin.is_empty() {
-                return Self::from(b.to_vec());
-            }
-            let table = &mut [false; 256];
-            for &b in bin {
-                table[b as usize] = true;
-            }
-            let Some(start) = b.iter().position(|&b| !table[b as usize]) else {
-                return Self::from(Vec::new());
-            };
-            if start == b.len() {
-                return Self::from(Vec::new());
-            }
-            let end = b
-                .iter()
-                .rposition(|&b| !table[b as usize])
-                .map_or(b.len(), |ix| ix + 1);
-            Self::from(b[start..end].to_vec())
-        } else {
-            // must do manually to match python behavior
-            let is_ascii_whitespace =
-                |&x: &u8| matches!(x, b' ' | b'\t' | b'\n' | b'\r' | b'\x0b' | b'\x0c');
-            let starting_ix_opt = b.iter().position(|x| !is_ascii_whitespace(x));
-            let Some(starting_ix) = starting_ix_opt else {
-                return Self::from(Vec::new());
-            };
-
-            let ending_ix = b.iter().rposition(|x| !is_ascii_whitespace(x)).unwrap() + 1;
-
-            Self::from(b[starting_ix..ending_ix].to_vec())
-        }
-    }
-
-    fn py_lstrip(&self, bin: Option<&[u8]>) -> Self {
-        let b = self.as_ref();
-        if b.is_empty() {
-            return Self::from(vec![]);
-        }
-        if let Some(bin) = bin {
-            if bin.is_empty() {
-                return Self::from(b.to_vec());
-            }
-            let table = &mut [false; 256];
-            for &b in bin {
-                table[b as usize] = true;
-            }
-            let start = b
-                .iter()
-                .position(|&b| !table[b as usize])
-                .unwrap_or(b.len());
-            Self::from(b[start..].to_vec())
-        } else {
-            // must do manually to match python behavior
-            let is_ascii_whitespace =
-                |&x: &u8| matches!(x, b' ' | b'\t' | b'\n' | b'\r' | b'\x0b' | b'\x0c');
-            let starting_ix_opt = b.iter().position(|x| !is_ascii_whitespace(x));
-            let Some(starting_ix) = starting_ix_opt else {
-                return Self::from(Vec::new());
-            };
-            Self::from(b[starting_ix..].to_vec())
-        }
-    }
-
-    fn py_rstrip(&self, bin: Option<&[u8]>) -> Self {
-        let b = self.as_ref();
-        if b.is_empty() {
-            return Self::from(vec![]);
-        }
-        if let Some(bin) = bin {
-            if bin.is_empty() {
-                return Self::from(b.to_vec());
-            }
-            let table = &mut [false; 256];
-            for &b in bin {
-                table[b as usize] = true;
-            }
-            let end = b
-                .iter()
-                .rposition(|&b| !table[b as usize])
-                .map_or(0, |ix| ix + 1);
-            Self::from(b[..end].to_vec())
-        } else {
-            // must do manually to match python behavior
-            let is_ascii_whitespace =
-                |&x: &u8| matches!(x, b' ' | b'\t' | b'\n' | b'\r' | b'\x0b' | b'\x0c');
-            let ending_ix = b
-                .iter()
-                .rposition(|x| !is_ascii_whitespace(x))
-                .map_or(0, |ix| ix + 1);
-            Self::from(b[..ending_ix].to_vec())
-        }
-    }
-
-    // Return True if B is a titlecased string and there is at least one
+    /// Return True if B is a titlecased string and there is at least one
     /// character in B, i.e. uppercase characters may only follow uncased
     /// characters and lowercase characters only cased ones. Return False
     /// otherwise.
@@ -292,11 +197,13 @@ pub(crate) trait PythonBytesMethods: AsRef<[u8]> + From<Vec<u8>> + Sized + PyCla
         Ok(Self::from(bytes))
     }
 
-    fn py_hex(&self, sep: Option<&str>, bytes_per_sep: Option<usize>) -> PyResult<String> {
-        if sep.is_some() || bytes_per_sep.is_some() {
-            Err(pyo3::exceptions::PyNotImplementedError::new_err(
-                "Not implemented (yet)",
-            ))
+    fn py_hex(&self, sep: Option<char>, bytes_per_sep: usize) -> PyResult<String> {
+        if sep.is_some() || bytes_per_sep != 1 {
+            // Err(pyo3::exceptions::PyNotImplementedError::new_err(
+            //     "Not implemented (yet)",
+            // ))
+            let formatter = PyHexFormatter::new(sep, bytes_per_sep);
+            Ok(formatter.format(self.as_ref()))
         } else {
             let s = hex_encode(self.as_ref());
             Ok(s)
@@ -418,6 +325,150 @@ pub(crate) trait PythonBytesMethods: AsRef<[u8]> + From<Vec<u8>> + Sized + PyCla
         Self::from(out)
     }
 }
+#[derive(Clone, Debug, Default)]
+pub(crate) enum PythonBytesStrip {
+    #[default]
+    AsciiWhitespace,
+    None,
+    One(u8),
+    Table([bool; 256]),
+}
+
+impl PythonBytesStrip {
+    const ASCII_WHITESPACE_TABLE: [bool; 256] = {
+        let mut table = [false; 256];
+        table[b' ' as usize] = true;
+        table[b'\t' as usize] = true;
+        table[b'\n' as usize] = true;
+        table[b'\r' as usize] = true;
+        table[b'\x0b' as usize] = true;
+        table[b'\x0c' as usize] = true;
+        table
+    };
+
+    pub(crate) fn strip_range(&self, buf: &[u8]) -> Range<usize> {
+        match self {
+            Self::AsciiWhitespace => Self::strip_range_ascii_whitespace(buf),
+            Self::None => 0..buf.len(),
+            Self::One(byte) => Self::strip_range_one(buf, *byte),
+            Self::Table(table) => Self::strip_range_table(buf, table),
+        }
+    }
+
+    pub(crate) fn lstrip_range(&self, buf: &[u8]) -> usize {
+        match self {
+            Self::AsciiWhitespace => Self::lstrip_range_ascii_whitespace(buf),
+            Self::None => 0,
+            Self::One(byte) => Self::lstrip_range_one(buf, *byte),
+            Self::Table(table) => Self::lstrip_range_table(buf, table),
+        }
+    }
+
+    pub(crate) fn rstrip_range(&self, buf: &[u8]) -> usize {
+        match self {
+            Self::AsciiWhitespace => Self::rstrip_range_ascii_whitespace(buf),
+            Self::None => buf.len(),
+            Self::One(byte) => Self::rstrip_range_one(buf, *byte),
+            Self::Table(table) => Self::rstrip_range_table(buf, table),
+        }
+    }
+
+    fn from_bytes(chars: &[u8]) -> Self {
+        match chars {
+            [] => Self::None,
+            [byte] => Self::One(*byte),
+            _ => {
+                let t = Self::byte_lookup_table(chars);
+                if t == Self::ASCII_WHITESPACE_TABLE {
+                    Self::AsciiWhitespace
+                } else {
+                    Self::Table(t)
+                }
+            }
+        }
+    }
+
+    // ------------------------------------------------------------------------
+    // STRIP FNS
+    // ------------------------------------------------------------------------
+
+    fn byte_lookup_table(bytes: &[u8]) -> [bool; 256] {
+        let mut table = [false; 256];
+        for &byte in bytes {
+            table[byte as usize] = true;
+        }
+        table
+    }
+
+    fn strip_range_ascii_whitespace(buf: &[u8]) -> Range<usize> {
+        let l = Self::lstrip_range_ascii_whitespace(buf);
+        let r = Self::rstrip_range_ascii_whitespace(buf);
+        l..r
+    }
+
+    #[inline]
+    fn lstrip_range_ascii_whitespace(buf: &[u8]) -> usize {
+        buf.iter()
+            .position(|&byte| !is_python_ascii_whitespace(byte))
+            .unwrap_or(buf.len())
+    }
+
+    #[inline]
+    fn rstrip_range_ascii_whitespace(buf: &[u8]) -> usize {
+        buf.iter()
+            .rposition(|&byte| !is_python_ascii_whitespace(byte))
+            .map_or(0, |ix| ix + 1)
+    }
+
+    fn strip_range_one(buf: &[u8], byte: u8) -> Range<usize> {
+        let l = Self::lstrip_range_one(buf, byte);
+        let r = Self::rstrip_range_one(buf, byte);
+        l..r
+    }
+
+    fn lstrip_range_one(buf: &[u8], byte: u8) -> usize {
+        buf.iter()
+            .position(|&candidate| candidate != byte)
+            .unwrap_or(buf.len())
+    }
+
+    fn rstrip_range_one(buf: &[u8], byte: u8) -> usize {
+        buf.iter()
+            .rposition(|&candidate| candidate != byte)
+            .map_or(0, |ix| ix + 1)
+    }
+
+    fn strip_range_table(buf: &[u8], table: &[bool; 256]) -> Range<usize> {
+        let l = Self::lstrip_range_table(buf, table);
+        let r = Self::rstrip_range_table(buf, table);
+        l..r
+    }
+
+    fn lstrip_range_table(buf: &[u8], table: &[bool; 256]) -> usize {
+        buf.iter()
+            .position(|&byte| !table[byte as usize])
+            .unwrap_or(buf.len())
+    }
+
+    fn rstrip_range_table(buf: &[u8], table: &[bool; 256]) -> usize {
+        buf.iter()
+            .rposition(|&byte| !table[byte as usize])
+            .map_or(0, |ix| ix + 1)
+    }
+}
+
+impl<'a, 'py> FromPyObject<'a, 'py> for PythonBytesStrip {
+    type Error = PyErr;
+
+    fn extract(ob: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
+        if ob.is_none() {
+            return Ok(Self::AsciiWhitespace);
+        }
+
+        let buf = ob.extract::<ReadableBuffer<'a, 'py>>()?;
+        Ok(Self::from_bytes(buf.as_slice()))
+    }
+}
 
 #[inline]
 const fn hex_val(c: char) -> Option<u8> {
@@ -430,9 +481,88 @@ const fn hex_val(c: char) -> Option<u8> {
 }
 
 #[inline]
+const fn is_python_ascii_whitespace(x: u8) -> bool {
+    matches!(x, b' ' | b'\t' | b'\n' | b'\r' | b'\x0b' | b'\x0c')
+}
+
+// Single char as a byte/str
+// pub(crate) struct PyHexSep(char);
+
+// impl FromPyObject<'_, '_> for PyHexSep {
+//     type Error = PyErr;
+
+//     fn extract(ob: Borrowed<'_, '_>, py: Python<'_>) -> Result<Self, Self::Error> {
+//         if let Ok(s) = ob.cast_exact::<PyString>() {
+//             if s.len() != 1 {
+//                 return Err(PyValueError::new_err("Expected a single character string for `sep`"));
+//             }
+//             let c = s.to_str()?.chars().next().unwrap();
+//             let byte = c.to_digit(256).ok_or_else(|| PyValueError::new_err("Expected a single character string for `sep`"))?;
+//             Ok(Self(byte as u8))
+//         }
+//     }
+// }
 fn hex_encode(bytes: &[u8]) -> String {
-    bytes.iter().fold(String::new(), |mut output, b| {
-        let _ = write!(output, "{b:02x}");
+    bytes
+        .iter()
+        .fold(String::with_capacity(bytes.len() * 2), |mut output, b| {
+            let _ = write!(output, "{b:02x}");
+            output
+        })
+}
+
+struct PyHexFormatter {
+    sep: Option<char>,
+    bytes_per_sep: usize,
+}
+
+impl PyHexFormatter {
+    fn new(sep: Option<char>, bytes_per_sep: usize) -> Self {
+        Self { sep, bytes_per_sep }
+    }
+
+    fn format_default(&self, bytes: &[u8]) -> String {
+        bytes.iter().fold(
+            String::with_capacity(self.capacity(bytes.len())),
+            |mut output, b| {
+                let _ = write!(output, "{b:02x}");
+                output
+            },
+        )
+    }
+
+    fn capacity(&self, num_bytes: usize) -> usize {
+        if self.sep.is_none() && self.bytes_per_sep == 1 {
+            return num_bytes * 2;
+        }
+
+        let sep_count = if num_bytes == 0 {
+            0
+        } else if self.sep.is_some() {
+            num_bytes - 1
+        } else if self.bytes_per_sep > 0 {
+            (num_bytes - 1) / self.bytes_per_sep
+        } else {
+            0
+        };
+        num_bytes * 2 + sep_count
+    }
+
+    fn format(&self, bytes: &[u8]) -> String {
+        if self.sep.is_none() && self.bytes_per_sep == 1 {
+            return self.format_default(bytes);
+        }
+        let mut output = String::with_capacity(self.capacity(bytes.len()));
+        for (i, b) in bytes.iter().enumerate() {
+            if i > 0 {
+                if let Some(sep) = self.sep {
+                    output.push(sep);
+                } else if self.bytes_per_sep > 0 && i % self.bytes_per_sep == 0 {
+                    output.push(':');
+                }
+                let _ = write!(output, "{b:02x}");
+            }
+        }
         output
-    })
+    }
 }
