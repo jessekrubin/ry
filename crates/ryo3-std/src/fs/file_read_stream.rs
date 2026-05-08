@@ -64,13 +64,49 @@ impl<T: Read + Seek> Iterator for FileReadStream<T> {
 pub(crate) enum FileReadStreamWrapper {
     Unbuffered(FileReadStream<File>),
     Buffered(FileReadStream<BufReader<File>>),
+    Closed(PyFileReadStreamOptions),
 }
 
 impl FileReadStreamWrapper {
+    fn ensure_open(&mut self) -> PyResult<()> {
+        match self {
+            Self::Unbuffered(_) | Self::Buffered(_) => Ok(()),
+            Self::Closed(options) => {
+                let file = File::open(&options.path)?;
+                let len = file.metadata()?.len();
+
+                if options.strict && options.offset > len {
+                    return py_value_err!(
+                        "offset ({}) is beyond end of file (len = {})",
+                        options.offset,
+                        len
+                    );
+                }
+
+                let mut stream = if options.buffered {
+                    Self::Buffered(FileReadStream::from_path_buffered(
+                        &options.path,
+                        options.read_size,
+                    )?)
+                } else {
+                    Self::Unbuffered(FileReadStream::from_path(&options.path, options.read_size)?)
+                };
+
+                if options.offset > 0 {
+                    stream.seek_to(options.offset)?;
+                }
+
+                *self = stream;
+                Ok(())
+            }
+        }
+    }
+
     fn seek_to(&mut self, offset: u64) -> io::Result<u64> {
         match self {
             Self::Unbuffered(stream) => stream.seek_to(offset),
             Self::Buffered(stream) => stream.seek_to(offset),
+            Self::Closed(_) => Err(io::Error::other("stream not opened")),
         }
     }
 }
@@ -82,6 +118,7 @@ impl Iterator for FileReadStreamWrapper {
         match self {
             Self::Unbuffered(stream) => stream.next(),
             Self::Buffered(stream) => stream.next(),
+            Self::Closed(_) => Some(Err(io::Error::other("stream not opened"))),
         }
     }
 }
@@ -112,34 +149,8 @@ impl PyFileReadStream {
         if options.read_size == 0 {
             return py_value_err!("read_size must be greater than 0");
         }
-
-        let file = File::open(&options.path)?;
-        let len = file.metadata()?.len();
-
-        if options.strict && options.offset > len {
-            return py_value_err!(
-                "offset ({}) is beyond end of file (len = {})",
-                options.offset,
-                len
-            );
-        }
-
-        // Build the stream from this file
-        let mut stream = if options.buffered {
-            FileReadStreamWrapper::Buffered(FileReadStream::from_path_buffered(
-                &options.path,
-                options.read_size,
-            )?)
-        } else {
-            FileReadStreamWrapper::Unbuffered(FileReadStream::from_path(
-                &options.path,
-                options.read_size,
-            )?)
-        };
-
-        if options.offset > 0 {
-            stream.seek_to(options.offset)?;
-        }
+        let mut stream = FileReadStreamWrapper::Closed(options.clone());
+        stream.ensure_open()?;
         Ok(Self {
             options,
             file_read_stream: RyMutex::new(stream),
@@ -180,8 +191,29 @@ impl PyFileReadStream {
         slf
     }
 
+    fn __enter__(slf: Py<Self>, py: Python<'_>) -> PyResult<Py<Self>> {
+        slf.borrow(py)
+            .file_read_stream
+            .py_lock_attached(py)?
+            .ensure_open()?;
+
+        Ok(slf)
+    }
+
+    #[pyo3(name = "__exit__")]
+    fn __exit__(
+        &self,
+        py: Python<'_>,
+        _exc_type: &Bound<'_, PyAny>,
+        _exc_value: &Bound<'_, PyAny>,
+        _traceback: &Bound<'_, PyAny>,
+    ) -> PyResult<()> {
+        self.close(py)
+    }
+
     fn __next__(&self, py: Python<'_>) -> PyResult<Option<RyBytes>> {
         let mut inner = self.file_read_stream.py_lock_attached(py)?;
+        inner.ensure_open()?;
         match inner.next() {
             Some(Ok(b)) => Ok(Some(b.into())),
             Some(Err(e)) => Err(e.into()),
@@ -202,6 +234,7 @@ impl PyFileReadStream {
     #[pyo3(signature = (n = 1))]
     fn take(&self, py: Python<'_>, n: usize) -> PyResult<Vec<RyBytes>> {
         let mut inner = self.file_read_stream.py_lock_attached(py)?;
+        inner.ensure_open()?;
         let mut result = Vec::with_capacity(n);
         for _ in 0..n {
             match inner.next() {
@@ -218,6 +251,7 @@ impl PyFileReadStream {
 
     fn collect(&self, py: Python<'_>) -> PyResult<Vec<RyBytes>> {
         let mut inner = self.file_read_stream.py_lock_attached(py)?;
+        inner.ensure_open()?;
         let mut result = Vec::new();
         while let Some(Ok(b)) = inner.next() {
             result.push(b.into());
@@ -226,6 +260,12 @@ impl PyFileReadStream {
             }
         }
         Ok(result)
+    }
+
+    fn close(&self, py: Python<'_>) -> PyResult<()> {
+        let mut inner = self.file_read_stream.py_lock_attached(py)?;
+        *inner = FileReadStreamWrapper::Closed(self.options.clone());
+        Ok(())
     }
 }
 

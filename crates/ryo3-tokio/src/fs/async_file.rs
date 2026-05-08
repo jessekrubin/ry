@@ -288,9 +288,9 @@ impl PyAsyncFile {
     fn __aexit__<'py>(
         slf: PyRef<Self>,
         py: Python<'py>,
-        _exc_type: Py<PyAny>,
-        _exc_value: Py<PyAny>,
-        _traceback: Py<PyAny>,
+        _exc_type: &Bound<'py, PyAny>,
+        _exc_value: &Bound<'py, PyAny>,
+        _traceback: &Bound<'py, PyAny>,
     ) -> PyResult<Bound<'py, PyAny>> {
         let inner = Arc::clone(&slf.inner);
 
@@ -572,9 +572,9 @@ impl PyAsyncFile {
     fn __aexit__<'py>(
         slf: PyRef<Self>,
         py: Python<'py>,
-        _exc_type: Py<PyAny>,
-        _exc_value: Py<PyAny>,
-        _traceback: Py<PyAny>,
+        _exc_type: &Bound<'py, PyAny>,
+        _exc_value: &Bound<'py, PyAny>,
+        _traceback: &Bound<'py, PyAny>,
     ) -> PyResult<Bound<'py, PyAny>> {
         let inner = Arc::clone(&slf.inner);
 

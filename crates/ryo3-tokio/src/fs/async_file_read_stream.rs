@@ -195,6 +195,32 @@ impl PyAsyncFileReadStream {
         self.options == other.options
     }
 
+    fn __aenter__(slf: Py<Self>, py: Python<'_>) -> PyResult<Bound<'_, PyAny>> {
+        let inner = slf.borrow(py).inner.clone();
+        future_into_py(py, async move {
+            let mut guard = inner.lock().await;
+            guard.ensure_open().await.map_err(|e| map_open_error(&e))?;
+            Ok(slf)
+        })
+    }
+
+    #[pyo3(name = "__aexit__")]
+    fn __aexit__<'py>(
+        &self,
+        py: Python<'py>,
+        _exc_type: &Bound<'py, PyAny>,
+        _exc_value: &Bound<'py, PyAny>,
+        _traceback: &Bound<'py, PyAny>,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        let inner = self.inner.clone();
+        let options = self.options.clone();
+        future_into_py(py, async move {
+            let mut guard = inner.lock().await;
+            *guard = AsyncFileReadStreamWrapper::Closed(options);
+            Ok(())
+        })
+    }
+
     fn __aiter__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {
         slf
     }
@@ -241,6 +267,16 @@ impl PyAsyncFileReadStream {
                 result.push(RyBytes::from(b));
             }
             Ok(result)
+        })
+    }
+
+    fn close<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
+        let inner = self.inner.clone();
+        let options = self.options.clone();
+        future_into_py(py, async move {
+            let mut guard = inner.lock().await;
+            *guard = AsyncFileReadStreamWrapper::Closed(options);
+            Ok(())
         })
     }
 
@@ -297,6 +333,32 @@ impl PyAsyncFileReadStream {
         self.options == other.options
     }
 
+    fn __aenter__(slf: Py<Self>, py: Python<'_>) -> PyResult<Bound<'_, PyAny>> {
+        let inner = slf.borrow(py).inner.clone();
+        future_into_py(py, async move {
+            let mut guard = inner.lock().await;
+            guard.ensure_open().await.map_err(|e| map_open_error(&e))?;
+            Ok(slf)
+        })
+    }
+
+    #[pyo3(name = "__aexit__")]
+    fn __aexit__<'py>(
+        &self,
+        py: Python<'py>,
+        _exc_type: &Bound<'py, PyAny>,
+        _exc_value: &Bound<'py, PyAny>,
+        _traceback: &Bound<'py, PyAny>,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        let inner = self.inner.clone();
+        let options = self.options.clone();
+        future_into_py(py, async move {
+            let mut guard = inner.lock().await;
+            *guard = AsyncFileReadStreamWrapper::Closed(options);
+            Ok(())
+        })
+    }
+
     fn __aiter__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {
         slf
     }
@@ -347,6 +409,17 @@ impl PyAsyncFileReadStream {
             Ok::<_, PyErr>(result)
         })
         .await
+    }
+
+    async fn close(&self) -> PyResult<()> {
+        let inner = self.inner.clone();
+        let options = self.options.clone();
+        on_tokio(async move {
+            let mut guard = inner.lock().await;
+            *guard = AsyncFileReadStreamWrapper::Closed(options);
+            Ok::<_, PyErr>(())
+        })
+        .await?
     }
 
     fn __repr__(&self) -> String {
