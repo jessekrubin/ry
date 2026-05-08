@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## v0.0.91 [unreleased]
+## v0.0.91 [2026-05-08]
 
 - use readable buffer in `ryo3-flate2`, `ryo3-bzip2` and `ryo3-brotli`
 - `ryo3-brotli`
