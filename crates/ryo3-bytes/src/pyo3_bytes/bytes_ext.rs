@@ -167,7 +167,7 @@ impl PyBytes {
     }
 
     #[pyo3(signature = (chars = PythonBytesStrip::AsciiWhitespace, /), text_signature = "(chars=None, /)")]
-    fn strip<'py>(slf: PyRef<'py, Self>, chars: PythonBytesStrip) -> PyResult<Py<Self>> {
+    fn strip(slf: PyRef<'_, Self>, chars: PythonBytesStrip) -> PyResult<Py<Self>> {
         let bytes = <Self as AsRef<Bytes>>::as_ref(&*slf);
         let range = chars.strip_range(slf.as_slice());
         if range.start == 0 && range.end == bytes.len() {
@@ -178,7 +178,7 @@ impl PyBytes {
     }
 
     #[pyo3(signature = (chars = PythonBytesStrip::AsciiWhitespace, /), text_signature = "(chars=None, /)")]
-    fn lstrip<'py>(slf: PyRef<'py, Self>, chars: PythonBytesStrip) -> PyResult<Py<Self>> {
+    fn lstrip(slf: PyRef<'_, Self>, chars: PythonBytesStrip) -> PyResult<Py<Self>> {
         let bytes = <Self as AsRef<Bytes>>::as_ref(&*slf);
         let ix = chars.lstrip_range(slf.as_slice());
         if ix == 0 {
@@ -189,7 +189,7 @@ impl PyBytes {
     }
 
     #[pyo3(signature = (chars = PythonBytesStrip::AsciiWhitespace, /), text_signature = "(chars=None, /)")]
-    fn rstrip<'py>(slf: PyRef<'py, Self>, chars: PythonBytesStrip) -> PyResult<Py<Self>> {
+    fn rstrip(slf: PyRef<'_, Self>, chars: PythonBytesStrip) -> PyResult<Py<Self>> {
         let bytes = <Self as AsRef<Bytes>>::as_ref(&*slf);
         let ix = chars.rstrip_range(slf.as_slice());
         if ix == bytes.len() {

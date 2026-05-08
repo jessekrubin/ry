@@ -1,6 +1,7 @@
 //! Extension(s) to the `pyo3-bytes` which will be hopefully be upstreamed.
 use std::fmt::Write;
 use std::hash::Hash;
+use std::num::NonZeroUsize;
 use std::ops::Range;
 
 use pyo3::exceptions::PyValueError;
@@ -317,11 +318,11 @@ pub(crate) trait PythonBytesMethods: AsRef<[u8]> + From<Vec<u8>> + Sized + PyCla
     }
 }
 
-macro_rules! normalized_strip_range {
+macro_rules! rangify {
     ($start:expr, $end:expr) => {{
         let start = $start;
         let end = $end;
-        if start >= end { 0..0 } else { start..end }
+        if $start >= $end { 0..0 } else { start..end }
     }};
 }
 
@@ -331,7 +332,7 @@ pub(crate) enum PythonBytesStrip {
     AsciiWhitespace,
     None,
     One(u8),
-    Table([bool; 256]),
+    Table(Box<[bool; 256]>),
 }
 
 impl PythonBytesStrip {
@@ -382,7 +383,7 @@ impl PythonBytesStrip {
                 if t == Self::ASCII_WHITESPACE_TABLE {
                     Self::AsciiWhitespace
                 } else {
-                    Self::Table(t)
+                    Self::Table(Box::new(t))
                 }
             }
         }
@@ -403,7 +404,7 @@ impl PythonBytesStrip {
     fn strip_range_ascii_whitespace(buf: &[u8]) -> Range<usize> {
         let l = Self::lstrip_range_ascii_whitespace(buf);
         let r = Self::rstrip_range_ascii_whitespace(buf);
-        normalized_strip_range!(l, r)
+        rangify!(l, r)
     }
 
     #[inline]
@@ -423,7 +424,7 @@ impl PythonBytesStrip {
     fn strip_range_one(buf: &[u8], byte: u8) -> Range<usize> {
         let l = Self::lstrip_range_one(buf, byte);
         let r = Self::rstrip_range_one(buf, byte);
-        normalized_strip_range!(l, r)
+        rangify!(l, r)
     }
 
     fn lstrip_range_one(buf: &[u8], byte: u8) -> usize {
@@ -441,7 +442,7 @@ impl PythonBytesStrip {
     fn strip_range_table(buf: &[u8], table: &[bool; 256]) -> Range<usize> {
         let l = Self::lstrip_range_table(buf, table);
         let r = Self::rstrip_range_table(buf, table);
-        normalized_strip_range!(l, r)
+        rangify!(l, r)
     }
 
     fn lstrip_range_table(buf: &[u8], table: &[bool; 256]) -> usize {
@@ -511,7 +512,9 @@ impl FromPyObject<'_, '_> for PyHexSep {
                     "Separator must be a single ASCII character",
                 ));
             }
-            let char = s.chars().next().expect("wenodis");
+            let char = s.chars().next().ok_or_else(|| {
+                PyValueError::new_err("Separator must be a single ASCII character")
+            })?;
             Ok(Self(char))
         } else {
             Err(PyValueError::new_err(
@@ -546,13 +549,12 @@ impl PyHexFormatter {
             return num_bytes * 2;
         }
 
-        let group_size = self.bytes_per_sep;
         let sep_count = if num_bytes == 0 {
             0
-        } else if group_size == 0 {
-            0
+        } else if let Some(group_size) = NonZeroUsize::new(self.bytes_per_sep) {
+            (num_bytes - 1) / group_size.get()
         } else {
-            (num_bytes - 1) / group_size
+            0
         };
         num_bytes * 2 + sep_count
     }
@@ -567,7 +569,9 @@ impl PyHexFormatter {
         }
 
         let mut output = String::with_capacity(self.capacity(bytes.len()));
-        let sep = self.sep.expect("checked above");
+        let Some(sep) = self.sep else {
+            return self.format_default(bytes);
+        };
         let group_size = self.bytes_per_sep;
         for (i, b) in bytes.iter().enumerate() {
             if i > 0 && (bytes.len() - i).is_multiple_of(group_size) {

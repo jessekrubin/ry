@@ -1,6 +1,5 @@
 #![doc = include_str!("../README.md")]
 #![warn(missing_docs)]
-#![expect(clippy::unwrap_used)]
 #![expect(clippy::unused_self)]
 #![expect(clippy::cast_sign_loss)]
 #![expect(clippy::ptr_as_ptr)]
