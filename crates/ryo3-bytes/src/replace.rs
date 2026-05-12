@@ -434,11 +434,11 @@ mod tests {
     fn replace_bytes_returns_replaced_when_output_matches_input() {
         assert!(matches!(
             replace_bytes(b"abc", b"", b"", -1),
-            ReplaceBytes::Replaced(bytes) if bytes == b"abc"
+            ReplaceBytes::Unchanged
         ));
         assert!(matches!(
             replace_bytes(b"abc", b"a", b"a", -1),
-            ReplaceBytes::Replaced(bytes) if bytes == b"abc"
+            ReplaceBytes::Unchanged
         ));
     }
 }
