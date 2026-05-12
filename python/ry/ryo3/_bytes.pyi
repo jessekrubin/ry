@@ -181,5 +181,11 @@ class Bytes(Buffer):
         Return a copy of the sequence with all uppercase ASCII characters converted to
         their corresponding lowercase counterpart and vice versa.
         """
+    def replace(self, old: Buffer, new: Buffer, count: int = -1) -> Bytes:
+        """
+        Return a copy of the sequence with all occurrences of `old` replaced by `new`.
+        If `count` is given and not negative, only the first `count` occurrences are
+        replaced.
+        """
 
 ReadableBuffer: t.TypeAlias = Buffer | bytes | bytearray | memoryview | Bytes

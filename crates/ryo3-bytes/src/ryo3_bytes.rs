@@ -15,6 +15,7 @@ use pyo3::{IntoPyObjectExt, ffi};
 
 use crate::ReadableBuffer;
 use crate::python_bytes_methods::{PyHexSep, PythonBytesMethods, PythonBytesStrip};
+use crate::replace::{ReplaceBytes, replace_bytes};
 
 /// A wrapper around a [`bytes::Bytes`][].
 ///
@@ -295,6 +296,19 @@ impl PyBytes {
             self.0.slice(0..self.0.len() - suffix.len()).into()
         } else {
             self.0.clone().into()
+        }
+    }
+
+    #[pyo3(signature = (old, new, count = -1, /))]
+    fn replace(
+        slf: PyRef<'_, Self>,
+        old: ReadableBuffer,
+        new: ReadableBuffer,
+        count: isize,
+    ) -> PyResult<Py<Self>> {
+        match replace_bytes(slf.as_slice(), old.as_slice(), new.as_slice(), count) {
+            ReplaceBytes::Unchanged => Ok(slf.into()),
+            ReplaceBytes::Replaced(bytes) => Py::new(slf.py(), Self::from(bytes)),
         }
     }
 
@@ -680,4 +694,51 @@ enum BytesGetItemKey<'py> {
     Int(isize),
     /// A python slice
     Slice(Bound<'py, PySlice>),
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{ReplaceBytes, replace_bytes};
+
+    #[test]
+    fn replace_bytes_replaces_non_overlapping_matches() {
+        let replaced = replace_bytes(b"aaaa", b"aa", b"b", -1);
+        match replaced {
+            ReplaceBytes::Replaced(bytes) => assert_eq!(bytes.as_slice(), b"bb"),
+            ReplaceBytes::Unchanged => panic!("expected replacement"),
+        }
+    }
+
+    #[test]
+    fn replace_bytes_honors_count_for_empty_old() {
+        let replaced = replace_bytes(b"abc", b"", b"-", 2);
+        match replaced {
+            ReplaceBytes::Replaced(bytes) => assert_eq!(bytes.as_slice(), b"-a-bc"),
+            ReplaceBytes::Unchanged => panic!("expected replacement"),
+        }
+    }
+
+    #[test]
+    fn replace_bytes_returns_unchanged_when_no_replacement_occurs() {
+        assert!(matches!(
+            replace_bytes(b"abc", b"x", b"y", -1),
+            ReplaceBytes::Unchanged
+        ));
+        assert!(matches!(
+            replace_bytes(b"abc", b"a", b"b", 0),
+            ReplaceBytes::Unchanged
+        ));
+    }
+
+    #[test]
+    fn replace_bytes_returns_replaced_when_output_matches_input() {
+        assert!(matches!(
+            replace_bytes(b"abc", b"", b"", -1),
+            ReplaceBytes::Replaced(bytes) if bytes == b"abc"
+        ));
+        assert!(matches!(
+            replace_bytes(b"abc", b"a", b"a", -1),
+            ReplaceBytes::Replaced(bytes) if bytes == b"abc"
+        ));
+    }
 }

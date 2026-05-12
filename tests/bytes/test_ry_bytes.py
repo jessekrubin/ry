@@ -338,6 +338,60 @@ class TestBytesStripIdentity:
         assert rs_bytes.rstrip() is not rs_bytes
 
 
+class TestBytesReplace:
+    @given(
+        st.binary(), st.binary(), st.binary(), st.integers(min_value=-5, max_value=5)
+    )
+    def test_replace_matches_python(
+        self,
+        b: bytes,
+        old: bytes,
+        new: bytes,
+        count: int,
+    ) -> None:
+        ry_bytes = ry.Bytes(b)
+        py_res = b.replace(old, new, count)
+        rs_res = ry_bytes.replace(old, new, count)
+        assert rs_res == py_res, (
+            f"py: {py_res!r}, rs: {rs_res!r} ~ {b!r}.replace({old!r}, {new!r}, {count!r})"
+        )
+
+    @pytest.mark.parametrize(
+        ("b", "old", "new", "count"),
+        [
+            (b"abc", b"", b"-", -1),
+            (b"abc", b"", b"-", 0),
+            (b"abc", b"", b"-", 2),
+            (b"aaaa", b"aa", b"b", -1),
+            (b"aaaa", b"aa", b"b", 1),
+            (b"abc", b"x", b"y", -1),
+            (b"abc", b"a", b"a", -1),
+        ],
+    )
+    def test_replace_edge_cases(
+        self,
+        b: bytes,
+        old: bytes,
+        new: bytes,
+        count: int,
+    ) -> None:
+        ry_bytes = ry.Bytes(b)
+        assert ry_bytes.replace(old, new, count) == b.replace(old, new, count)
+
+
+class TestBytesReplaceIdentity:
+    def test_replace_returns_same_object_when_no_replacement_occurs(self) -> None:
+        rs_bytes = ry.Bytes(b"asdf")
+        assert rs_bytes.replace(b"x", b"y") is rs_bytes
+        assert rs_bytes.replace(b"a", b"b", 0) is rs_bytes
+
+    def test_replace_returns_new_object_when_replacement_occurs(self) -> None:
+        rs_bytes = ry.Bytes(b"asdf")
+        assert rs_bytes.replace(b"a", b"z") is not rs_bytes
+        assert rs_bytes.replace(b"a", b"a") is rs_bytes
+        assert rs_bytes.replace(b"", b"") is rs_bytes
+
+
 @given(st.binary())
 def test_hex_and_fromhex(
     b: bytes,
@@ -428,7 +482,6 @@ def test_bytes_decode_default(
         "ljust",
         "maketrans",
         "partition",
-        "replace",
         "rfind",
         "rindex",
         "rjust",

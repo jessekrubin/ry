@@ -14,12 +14,14 @@ description = "ryo3 + bytes (https://docs.rs/regex/latest/bytes/)"
 [dependencies]
 ahash = { workspace = true }
 bytes = { workspace = true }
+memchr = { workspace = true, optional = true }
 pyo3 = { workspace = true, features = [] }
 
 [features]
 default = []
-ry = []
+ry = ["memchr"]
 multiple-pymethods = ["pyo3/multiple-pymethods"]
+memchr = ["dep:memchr"]
 
 [lints]
 workspace = true

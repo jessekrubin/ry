@@ -9,10 +9,10 @@
 use pyo3::intern;
 use pyo3::prelude::*;
 pub mod bytes;
-mod readable_buffer;
-
 #[cfg(feature = "multiple-pymethods")]
 mod pyo3_bytes;
+mod readable_buffer;
+mod replace;
 
 mod python_bytes_methods;
 mod ryo3_bytes;
