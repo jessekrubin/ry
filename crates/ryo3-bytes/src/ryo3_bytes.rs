@@ -512,12 +512,12 @@ impl PyBytes {
     }
 
     #[pyo3(signature = (prefix, /))]
-    fn startswith(&self, prefix: Self) -> bool {
+    fn startswith(&self, prefix: ReadableBuffer) -> bool {
         self.as_slice().starts_with(prefix.as_ref())
     }
 
     #[pyo3(signature = (suffix, /))]
-    fn endswith(&self, suffix: Self) -> bool {
+    fn endswith(&self, suffix: ReadableBuffer) -> bool {
         self.as_slice().ends_with(suffix.as_ref())
     }
 

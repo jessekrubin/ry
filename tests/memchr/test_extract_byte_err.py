@@ -10,5 +10,5 @@ import ry
     [-1, 256, b"too long", {"not": "a byte"}],
 )
 def test_extract_byte_err(v: Any) -> None:
-    with pytest.raises(TypeError):
+    with pytest.raises((TypeError, ValueError)):
         ry.memchr(v, b"the quick brown fox")

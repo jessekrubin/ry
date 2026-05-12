@@ -2,6 +2,11 @@
 
 ## v0.0.92 [unreleased]
 
+- `ryo3-bytes`
+  - upgrade `strip`, `lstrip`, and `rstrip` methods; return same instance if no
+    stripping
+  - use `ReadableBuffer` for slightly faster access on `ry.Bytes` methods
+
 ---
 
 ## v0.0.91 [2026-05-08]

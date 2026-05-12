@@ -1,6 +1,6 @@
 use std::ops::Deref;
 
-use pyo3::exceptions::PyTypeError;
+use pyo3::exceptions::{PyTypeError, PyValueError};
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyInt};
 
@@ -51,7 +51,7 @@ impl<'py> FromPyObject<'_, 'py> for Byte {
             if let Ok(b) = i.extract::<u8>() {
                 Ok(Self(b))
             } else {
-                Err(PyTypeError::new_err("Integer out of range for a byte"))
+                Err(PyValueError::new_err("byte must be in range(0, 256)"))
             }
         } else if let Ok(i) = obj.cast::<PyBytes>() {
             let l = i.len()?;
