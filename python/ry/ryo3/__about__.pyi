@@ -11,3 +11,5 @@ __opt_level__: t.Literal["0", "1", "2", "3", "s", "z"]
 __allocator__: t.Literal["mimalloc", "system"]
 __crypto_provider__: t.Literal["ring", "aws-lc-rs"]
 __pyo3_experimental_async__: bool
+__git_repo__: str
+__git_sha__: str
