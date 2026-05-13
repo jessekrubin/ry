@@ -1,10 +1,11 @@
 use pyo3::prelude::*;
 use pyo3::pybacked::PyBackedStr;
 use reqwest::header::HeaderValue;
+use ryo3_bytes::ReadableBuffer;
 use ryo3_core::{py_type_err, py_type_error, py_value_error};
 use ryo3_http::PyHttpHeaderValue;
 
-use crate::user_agent::DEFAULT_USER_AGENT;
+use crate::constants::DEFAULT_USER_AGENT;
 
 // ============================================================================
 // BASIC AUTH
@@ -78,9 +79,9 @@ impl<'py> FromPyObject<'_, 'py> for PyUserAgent {
                     .into(),
             ));
         }
-        if let Ok(value) = obj.extract::<&[u8]>() {
+        if let Ok(value) = obj.extract::<ReadableBuffer>() {
             return Ok(Self::Value(
-                HeaderValue::from_bytes(value)
+                HeaderValue::from_bytes(value.as_ref())
                     .map_err(|e| py_value_error!("{e}"))?
                     .into(),
             ));
