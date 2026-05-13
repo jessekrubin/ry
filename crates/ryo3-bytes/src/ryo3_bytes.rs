@@ -404,6 +404,10 @@ impl PyBytes {
         self.py_hash()
     }
 
+    fn __iter__(&self) -> PyBytesIterator {
+        self.into()
+    }
+
     /// Decode the bytes using the codec registered for encoding.
     ///
     ///   encoding
@@ -694,4 +698,37 @@ enum BytesGetItemKey<'py> {
     Int(isize),
     /// A python slice
     Slice(Bound<'py, PySlice>),
+}
+
+/// optimized bytes-iterator...
+
+#[pyclass(name = "BytesIterator", immutable_type)]
+#[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
+pub(crate) struct PyBytesIterator(::bytes::buf::IntoIter<Bytes>);
+
+impl From<Bytes> for PyBytesIterator {
+    fn from(value: Bytes) -> Self {
+        Self(value.into_iter())
+    }
+}
+
+impl From<&PyBytes> for PyBytesIterator {
+    fn from(value: &PyBytes) -> Self {
+        value.0.clone().into()
+    }
+}
+
+#[pymethods]
+impl PyBytesIterator {
+    fn __iter__(slf: PyRef<'_, Self>) -> Py<PyBytesIterator> {
+        slf.into()
+    }
+
+    fn __next__(&mut self) -> Option<u8> {
+        self.0.next()
+    }
+
+    fn __len__(&self) -> usize {
+        self.0.len()
+    }
 }
