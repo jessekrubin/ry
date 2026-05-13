@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import dataclasses
+
 import pytest
 from hypothesis import given
 from hypothesis import strategies as st
@@ -338,6 +340,15 @@ class TestBytesStripIdentity:
         assert rs_bytes.rstrip() is not rs_bytes
 
 
+@dataclasses.dataclass
+class _ReplaceTestCase:
+    b: bytes
+    old: bytes
+    new: bytes
+    count: int
+    desc: str | None = None
+
+
 class TestBytesReplace:
     @given(
         st.binary(), st.binary(), st.binary(), st.integers(min_value=-5, max_value=5)
@@ -357,26 +368,127 @@ class TestBytesReplace:
         )
 
     @pytest.mark.parametrize(
-        ("b", "old", "new", "count"),
+        "data",
         [
-            (b"abc", b"", b"-", -1),
-            (b"abc", b"", b"-", 0),
-            (b"abc", b"", b"-", 2),
-            (b"aaaa", b"aa", b"b", -1),
-            (b"aaaa", b"aa", b"b", 1),
-            (b"abc", b"x", b"y", -1),
-            (b"abc", b"a", b"a", -1),
+            _ReplaceTestCase(
+                b"abc", b"", b"-", -1, desc="replace empty byte with something else"
+            ),
+            _ReplaceTestCase(
+                b"abc",
+                b"",
+                b"-",
+                0,
+                desc="replace empty byte with something else, count 0",
+            ),
+            _ReplaceTestCase(
+                b"abc",
+                b"",
+                b"-",
+                2,
+                desc="replace empty byte with something else, count 2",
+            ),
+            _ReplaceTestCase(
+                b"aaaa", b"aa", b"b", -1, desc="replace 'aa' with 'b', count -1"
+            ),
+            _ReplaceTestCase(
+                b"aaaa", b"aa", b"b", 1, desc="replace 'aa' with 'b', count 1"
+            ),
+            _ReplaceTestCase(
+                b"abc", b"x", b"y", -1, desc="replace 'x' with 'y', count -1"
+            ),
+            _ReplaceTestCase(
+                b"abc", b"a", b"a", -1, desc="replace 'a' with 'a', count -1"
+            ),
+            # replace single byte
+            _ReplaceTestCase(
+                b"abc" * 10, b"b", b"x", -1, desc="replace 'b' with 'x' in 'abc' * 10"
+            ),
+            _ReplaceTestCase(
+                b"abc" * 10,
+                b"b",
+                b"x",
+                3,
+                desc="replace 'b' with 'x' in 'abc' * 10, count 0",
+            ),
+            # remove single byte
+            _ReplaceTestCase(
+                b"abc" * 10, b"b", b"", -1, desc="remove 'b' from 'abc' * 10"
+            ),
+            _ReplaceTestCase(
+                b"abc" * 10, b"b", b"", 0, desc="remove 'b' from 'abc' * 10, count 0"
+            ),
+            _ReplaceTestCase(
+                b"abc" * 10, b"b", b"", 5, desc="remove 'b' from 'abc' * 10, count 5"
+            ),
+            _ReplaceTestCase(
+                b"abc" * 10, b"b", b"", 15, desc="remove 'b' from 'abc' * 10, count 15"
+            ),
+            _ReplaceTestCase(
+                b"abc" * 10, b"x", b"", -1, desc="remove 'b' from 'abc' * 10, count -1"
+            ),
+            # equal length replacements
+            _ReplaceTestCase(
+                b"abc" * 10,
+                b"ab",
+                b"xy",
+                -1,
+                desc="replace 'ab' with 'xy' in 'abc' * 10",
+            ),
+            _ReplaceTestCase(
+                b"abc" * 10,
+                b"ab",
+                b"xy",
+                0,
+                desc="replace 'ab' with 'xy' in 'abc' * 10, count 0",
+            ),
+            _ReplaceTestCase(
+                b"abc" * 10,
+                b"ab",
+                b"xy",
+                5,
+                desc="replace 'ab' with 'xy' in 'abc' * 10, count 5",
+            ),
+            _ReplaceTestCase(
+                b"abc" * 10,
+                b"ab",
+                b"xy",
+                15,
+                desc="replace 'ab' with 'xy' in 'abc' * 10, count 15",
+            ),
+            # equal length replacements w/ no matches
+            _ReplaceTestCase(
+                b"abc" * 10,
+                b"xy",
+                b"ab",
+                -1,
+                desc="replace 'xy' with 'ab' in 'abc' * 10",
+            ),
+            # single replacement
+            _ReplaceTestCase(
+                b"abc" * 10,
+                b"abc",
+                b"xyz",
+                1,
+                desc="replace 'abc' with 'xyz' in 'abc' * 10, count 1",
+            ),
+            # single replacement w/ no matches
+            _ReplaceTestCase(
+                b"abc" * 10,
+                b"xyz",
+                b"abc",
+                1,
+                desc="replace 'xyz' with 'abc' in 'abc' * 10, count 1",
+            ),
         ],
     )
     def test_replace_edge_cases(
         self,
-        b: bytes,
-        old: bytes,
-        new: bytes,
-        count: int,
+        data: _ReplaceTestCase,
     ) -> None:
-        ry_bytes = ry.Bytes(b)
-        assert ry_bytes.replace(old, new, count) == b.replace(old, new, count)
+        ry_bytes = ry.Bytes(data.b)
+        assert ry_bytes.replace(data.old, data.new, data.count) == data.b.replace(
+            data.old, data.new, data.count
+        )
 
 
 class TestBytesReplaceIdentity:
