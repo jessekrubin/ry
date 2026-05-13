@@ -720,8 +720,8 @@ impl From<&PyBytes> for PyBytesIterator {
 
 #[pymethods]
 impl PyBytesIterator {
-    fn __iter__(slf: PyRef<'_, Self>) -> Py<PyBytesIterator> {
-        slf.into()
+    fn __iter__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {
+        slf
     }
 
     fn __next__(&mut self) -> Option<u8> {

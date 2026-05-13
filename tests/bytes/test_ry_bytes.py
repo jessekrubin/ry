@@ -471,7 +471,6 @@ def test_bytes_decode_default(
 @pytest.mark.parametrize(
     "fn_name",
     [
-        "__iter__",
         "__mod__",
         "__rmod__",
         "center",

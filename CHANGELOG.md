@@ -6,6 +6,8 @@
   - upgrade `strip`, `lstrip`, and `rstrip` methods; return same instance if no
     stripping
   - use `ReadableBuffer` for slightly faster access on `ry.Bytes` methods
+  - custom interal iterator for bytes (bc I need it (for work) to be a weeee bit
+    faster)
 
 ---
 
