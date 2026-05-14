@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import dataclasses
+
 import pytest
 from hypothesis import given
 from hypothesis import strategies as st
@@ -312,6 +314,196 @@ def test_bytes_strip_with_arg(
     assert rs_res == py_res, f"py: {py_res!r}, rs: {rs_res!r} ~ {bytes2strip_from!r}"
 
 
+class TestBytesStripIdentity:
+    def test_strip_returns_same_object_when_unchanged(self) -> None:
+        rs_bytes = ry.Bytes(b"asdf")
+        assert rs_bytes.strip() is rs_bytes
+        assert rs_bytes.strip(b"") is rs_bytes
+        assert rs_bytes.strip(b"x") is rs_bytes
+
+    def test_lstrip_returns_same_object_when_unchanged(self) -> None:
+        rs_bytes = ry.Bytes(b"asdf")
+        assert rs_bytes.lstrip() is rs_bytes
+        assert rs_bytes.lstrip(b"") is rs_bytes
+        assert rs_bytes.lstrip(b"x") is rs_bytes
+
+    def test_rstrip_returns_same_object_when_unchanged(self) -> None:
+        rs_bytes = ry.Bytes(b"asdf")
+        assert rs_bytes.rstrip() is rs_bytes
+        assert rs_bytes.rstrip(b"") is rs_bytes
+        assert rs_bytes.rstrip(b"x") is rs_bytes
+
+    def test_strip_returns_new_object_when_changed(self) -> None:
+        rs_bytes = ry.Bytes(b" asdf ")
+        assert rs_bytes.strip() is not rs_bytes
+        assert rs_bytes.lstrip() is not rs_bytes
+        assert rs_bytes.rstrip() is not rs_bytes
+
+
+@dataclasses.dataclass
+class _ReplaceTestCase:
+    b: bytes
+    old: bytes
+    new: bytes
+    count: int
+    desc: str | None = None
+
+
+class TestBytesReplace:
+    @given(
+        st.binary(), st.binary(), st.binary(), st.integers(min_value=-5, max_value=5)
+    )
+    def test_replace_matches_python(
+        self,
+        b: bytes,
+        old: bytes,
+        new: bytes,
+        count: int,
+    ) -> None:
+        ry_bytes = ry.Bytes(b)
+        py_res = b.replace(old, new, count)
+        rs_res = ry_bytes.replace(old, new, count)
+        assert rs_res == py_res, (
+            f"py: {py_res!r}, rs: {rs_res!r} ~ {b!r}.replace({old!r}, {new!r}, {count!r})"
+        )
+
+    @pytest.mark.parametrize(
+        "data",
+        [
+            _ReplaceTestCase(
+                b"abc", b"", b"-", -1, desc="replace empty byte with something else"
+            ),
+            _ReplaceTestCase(
+                b"abc",
+                b"",
+                b"-",
+                0,
+                desc="replace empty byte with something else, count 0",
+            ),
+            _ReplaceTestCase(
+                b"abc",
+                b"",
+                b"-",
+                2,
+                desc="replace empty byte with something else, count 2",
+            ),
+            _ReplaceTestCase(
+                b"aaaa", b"aa", b"b", -1, desc="replace 'aa' with 'b', count -1"
+            ),
+            _ReplaceTestCase(
+                b"aaaa", b"aa", b"b", 1, desc="replace 'aa' with 'b', count 1"
+            ),
+            _ReplaceTestCase(
+                b"abc", b"x", b"y", -1, desc="replace 'x' with 'y', count -1"
+            ),
+            _ReplaceTestCase(
+                b"abc", b"a", b"a", -1, desc="replace 'a' with 'a', count -1"
+            ),
+            # replace single byte
+            _ReplaceTestCase(
+                b"abc" * 10, b"b", b"x", -1, desc="replace 'b' with 'x' in 'abc' * 10"
+            ),
+            _ReplaceTestCase(
+                b"abc" * 10,
+                b"b",
+                b"x",
+                3,
+                desc="replace 'b' with 'x' in 'abc' * 10, count 0",
+            ),
+            # remove single byte
+            _ReplaceTestCase(
+                b"abc" * 10, b"b", b"", -1, desc="remove 'b' from 'abc' * 10"
+            ),
+            _ReplaceTestCase(
+                b"abc" * 10, b"b", b"", 0, desc="remove 'b' from 'abc' * 10, count 0"
+            ),
+            _ReplaceTestCase(
+                b"abc" * 10, b"b", b"", 5, desc="remove 'b' from 'abc' * 10, count 5"
+            ),
+            _ReplaceTestCase(
+                b"abc" * 10, b"b", b"", 15, desc="remove 'b' from 'abc' * 10, count 15"
+            ),
+            _ReplaceTestCase(
+                b"abc" * 10, b"x", b"", -1, desc="remove 'b' from 'abc' * 10, count -1"
+            ),
+            # equal length replacements
+            _ReplaceTestCase(
+                b"abc" * 10,
+                b"ab",
+                b"xy",
+                -1,
+                desc="replace 'ab' with 'xy' in 'abc' * 10",
+            ),
+            _ReplaceTestCase(
+                b"abc" * 10,
+                b"ab",
+                b"xy",
+                0,
+                desc="replace 'ab' with 'xy' in 'abc' * 10, count 0",
+            ),
+            _ReplaceTestCase(
+                b"abc" * 10,
+                b"ab",
+                b"xy",
+                5,
+                desc="replace 'ab' with 'xy' in 'abc' * 10, count 5",
+            ),
+            _ReplaceTestCase(
+                b"abc" * 10,
+                b"ab",
+                b"xy",
+                15,
+                desc="replace 'ab' with 'xy' in 'abc' * 10, count 15",
+            ),
+            # equal length replacements w/ no matches
+            _ReplaceTestCase(
+                b"abc" * 10,
+                b"xy",
+                b"ab",
+                -1,
+                desc="replace 'xy' with 'ab' in 'abc' * 10",
+            ),
+            # single replacement
+            _ReplaceTestCase(
+                b"abc" * 10,
+                b"abc",
+                b"xyz",
+                1,
+                desc="replace 'abc' with 'xyz' in 'abc' * 10, count 1",
+            ),
+            # single replacement w/ no matches
+            _ReplaceTestCase(
+                b"abc" * 10,
+                b"xyz",
+                b"abc",
+                1,
+                desc="replace 'xyz' with 'abc' in 'abc' * 10, count 1",
+            ),
+        ],
+    )
+    def test_replace_edge_cases(
+        self,
+        data: _ReplaceTestCase,
+    ) -> None:
+        ry_bytes = ry.Bytes(data.b)
+        assert ry_bytes.replace(data.old, data.new, data.count) == data.b.replace(
+            data.old, data.new, data.count
+        )
+
+
+class TestBytesReplaceIdentity:
+    def test_replace_returns_same_object_when_no_replacement_occurs(self) -> None:
+        rs_bytes = ry.Bytes(b"asdf")
+        assert rs_bytes.replace(b"x", b"y") is rs_bytes
+        assert rs_bytes.replace(b"a", b"b", 0) is rs_bytes
+
+    def test_replace_returns_new_object_when_replacement_occurs(self) -> None:
+        rs_bytes = ry.Bytes(b"asdf")
+        assert rs_bytes.replace(b"a", b"z") is not rs_bytes
+        assert rs_bytes.replace(b"a", b"a") is rs_bytes
+        assert rs_bytes.replace(b"", b"") is rs_bytes
+
+
 @given(st.binary())
 def test_hex_and_fromhex(
     b: bytes,
@@ -327,6 +519,52 @@ def test_hex_and_fromhex(
     assert ry_from_hex == ry_bytes
     assert ry_from_hex_upper == b
     assert ry_from_hex_upper == ry_bytes
+
+
+@pytest.mark.parametrize("b", [b"", b"\xb9\x01\xef", b"abcdef", bytes(range(8))])
+@pytest.mark.parametrize("sep", [":", "-", " "])
+def test_hex_sep_matches_python(
+    b: bytes,
+    sep: str,
+) -> None:
+    ry_bytes = ry.Bytes(b)
+    assert ry_bytes.hex(sep=sep) == b.hex(sep=sep)
+
+
+@pytest.mark.parametrize("b", [b"", b"\xb9\x01\xef", b"abcdef", bytes(range(8))])
+@pytest.mark.parametrize("sep", [":", "-", " "])
+@pytest.mark.parametrize("bytes_per_sep", [1, 2, 3, 4, 0])
+def test_hex_sep_and_bytes_per_sep_matches_python(
+    b: bytes,
+    sep: str,
+    bytes_per_sep: int,
+) -> None:
+    ry_bytes = ry.Bytes(b)
+    assert ry_bytes.hex(sep=sep, bytes_per_sep=bytes_per_sep) == b.hex(
+        sep=sep,
+        bytes_per_sep=bytes_per_sep,
+    )
+
+
+@pytest.mark.parametrize("sep", ["::", "ab"])
+def test_hex_rejects_multi_char_sep(
+    sep: str,
+) -> None:
+    ry_bytes = ry.Bytes(b"\xb9\x01\xef")
+    with pytest.raises((TypeError, ValueError)):
+        ry_bytes.hex(sep=sep)
+
+
+@pytest.mark.parametrize("b", [b"", b"\xb9\x01\xef", b"abcdef", bytes(range(8))])
+@pytest.mark.parametrize("bytes_per_sep", [1, 2, 3, 4])
+def test_hex_default_sep_matches_python(
+    b: bytes,
+    bytes_per_sep: int,
+) -> None:
+    ry_bytes = ry.Bytes(b)
+    assert ry_bytes.hex(bytes_per_sep=bytes_per_sep) == b.hex(
+        bytes_per_sep=bytes_per_sep
+    )
 
 
 # test the string decode bytes fn
@@ -345,7 +583,6 @@ def test_bytes_decode_default(
 @pytest.mark.parametrize(
     "fn_name",
     [
-        "__iter__",
         "__mod__",
         "__rmod__",
         "center",
@@ -356,7 +593,6 @@ def test_bytes_decode_default(
         "ljust",
         "maketrans",
         "partition",
-        "replace",
         "rfind",
         "rindex",
         "rjust",

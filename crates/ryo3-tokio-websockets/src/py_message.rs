@@ -62,14 +62,14 @@ impl PyWsMessage {
             }
             PyWebSocketMessageKind::Ping => {
                 let pl = data
-                    .map(|d| d.extract::<RyBytes>().and_then(PyPingPayload::py_try_from))
+                    .map(|d| d.extract::<PyPingPayload>())
                     .transpose()?
                     .unwrap_or_default();
                 Ok(Self::from(pl.into_inner()))
             }
             PyWebSocketMessageKind::Pong => {
                 let pl = data
-                    .map(|d| d.extract::<RyBytes>().and_then(PyPongPayload::py_try_from))
+                    .map(|d| d.extract::<PyPongPayload>())
                     .transpose()?
                     .unwrap_or_default();
                 Ok(Self::from(pl.into_inner()))
@@ -324,12 +324,12 @@ impl PyPingPayload {
     }
 }
 
-impl PyTryFrom<RyBytes> for PyPingPayload {
-    fn py_try_from(value: RyBytes) -> PyResult<Self> {
+impl PyTryFrom<ReadableBuffer<'_, '_>> for PyPingPayload {
+    fn py_try_from(value: ReadableBuffer<'_, '_>) -> PyResult<Self> {
         if value.as_slice().len() > WS_MSG_PINGPONG_PAYLOAD_MAX_LEN {
             py_value_err!("ping-payload exceeds the websocket limit of 125 bytes")
         } else {
-            Ok(Self(Message::ping(value.into_inner())))
+            Ok(Self(Message::ping(value.to_bytes())))
         }
     }
 }
@@ -344,7 +344,7 @@ impl<'py> FromPyObject<'_, 'py> for PyPingPayload {
     type Error = PyErr;
 
     fn extract(obj: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
-        obj.extract::<RyBytes>().map(Self::py_try_from)?
+        obj.extract::<ReadableBuffer>().map(Self::py_try_from)?
     }
 }
 
@@ -363,12 +363,12 @@ impl std::default::Default for PyPongPayload {
     }
 }
 
-impl PyTryFrom<RyBytes> for PyPongPayload {
-    fn py_try_from(value: RyBytes) -> PyResult<Self> {
+impl PyTryFrom<ReadableBuffer<'_, '_>> for PyPongPayload {
+    fn py_try_from(value: ReadableBuffer<'_, '_>) -> PyResult<Self> {
         if value.as_slice().len() > WS_MSG_PINGPONG_PAYLOAD_MAX_LEN {
             py_value_err!("pong-payload exceeds the websocket limit of 125 bytes")
         } else {
-            Ok(Self(Message::pong(value.into_inner())))
+            Ok(Self(Message::pong(value.to_bytes())))
         }
     }
 }
@@ -377,6 +377,7 @@ impl<'py> FromPyObject<'_, 'py> for PyPongPayload {
     type Error = PyErr;
 
     fn extract(obj: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
-        obj.extract::<RyBytes>().map(Self::py_try_from)?
+        obj.extract::<ReadableBuffer<'_, '_>>()
+            .map(Self::py_try_from)?
     }
 }

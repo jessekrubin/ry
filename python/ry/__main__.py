@@ -10,6 +10,8 @@ from ry.__about__ import (
     __build_profile__,
     __build_timestamp__,
     __crypto_provider__,
+    __git_repo__,
+    __git_sha__,
     __opt_level__,
     __pkgroot__,
     __pyo3_experimental_async__,
@@ -41,6 +43,10 @@ def _lib_info() -> dict[str, str | int | dict[str, str | int]]:
         "version": __version__,
         "authors": __authors__,
         "pkgroot": __pkgroot__,
+        "git": {
+            "sha": __git_sha__,
+            "repo": __git_repo__,
+        },
         "ryo3": _ext_info(),
     }
 

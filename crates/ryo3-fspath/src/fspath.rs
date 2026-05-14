@@ -11,7 +11,7 @@ use pyo3::exceptions::{
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyTuple};
 use pyo3::{BoundObject, IntoPyObjectExt, intern};
-use ryo3_bytes::RyBytes;
+use ryo3_bytes::{ReadableBuffer, RyBytes};
 use ryo3_core::types::PathLike;
 use ryo3_core::{RyMutex, any_repr, py_type_err};
 use ryo3_macro_rules::pytodo;
@@ -379,7 +379,7 @@ impl PyFsPath {
         }
     }
 
-    fn write(&self, py: Python<'_>, data: RyBytes) -> PyResult<usize> {
+    fn write(&self, py: Python<'_>, data: ReadableBuffer) -> PyResult<usize> {
         let b = data.as_slice();
         let write_res = py.detach(|| std::fs::write(self.path(), b));
         match write_res {
@@ -393,7 +393,7 @@ impl PyFsPath {
         }
     }
 
-    fn write_bytes(&self, py: Python<'_>, data: RyBytes) -> PyResult<usize> {
+    fn write_bytes(&self, py: Python<'_>, data: ReadableBuffer) -> PyResult<usize> {
         self.write(py, data)
     }
 

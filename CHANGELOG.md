@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## v0.0.92 [unreleased]
+
+- `ryo3-bytes`
+  - upgrade `strip`, `lstrip`, and `rstrip` methods; return same instance if no
+    stripping
+  - use `ReadableBuffer` for slightly faster access on `ry.Bytes` methods
+  - custom interal iterator for bytes (bc I need it (for work) to be a weeee bit
+    faster)
+
+---
+
 ## v0.0.91 [2026-05-08]
 
 - use readable buffer in `ryo3-flate2`, `ryo3-bzip2` and `ryo3-brotli`

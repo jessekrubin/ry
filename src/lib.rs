@@ -13,6 +13,9 @@ const OPT_LEVEL_STR: &str = env!("OPT_LEVEL");
 const TARGET: &str = env!("TARGET");
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
+const GIT_SHA: &str = env!("GIT_SHA");
+const GIT_REPO: &str = "git@github.com:jessekrubin/ry.git";
+
 const PYO3_EXPERIMENTAL_ASYNC: bool = cfg!(feature = "experimental-async");
 
 #[cfg(feature = "mimalloc")]
@@ -74,6 +77,8 @@ fn ry(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add("__version__", VERSION)?;
     m.add("__build_profile__", BUILD_PROFILE)?;
     m.add("__build_timestamp__", BUILD_TIMESTAMP)?;
+    m.add("__git_sha__", GIT_SHA)?;
+    m.add("__git_repo__", GIT_REPO)?;
     m.add("__opt_level__", opt_level)?;
     m.add("__authors__", AUTHORS)?;
     m.add("__target__", TARGET)?;
@@ -87,6 +92,8 @@ fn ry(m: &Bound<'_, PyModule>) -> PyResult<()> {
     let ryo3_init_time = ti.elapsed();
     tracing::debug!(
         build.profile = %BUILD_PROFILE,
+        build.git_sha = %GIT_SHA,
+        build.git_repo = %GIT_REPO,
         build.target = %TARGET,
         build.timestamp = %BUILD_TIMESTAMP,
         build.version = %VERSION,

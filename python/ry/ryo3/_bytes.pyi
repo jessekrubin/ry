@@ -36,6 +36,7 @@ class Bytes(Buffer):
     def __len__(self) -> int: ...
     def __bytes__(self) -> bytes:
         """Return the underlying data as a Python `bytes` object."""
+    def __iter__(self) -> t.Iterator[int]: ...
     def removeprefix(self, prefix: Buffer, /) -> Bytes:
         """
         If the binary data starts with the prefix string, return `bytes[len(prefix):]`.
@@ -180,6 +181,12 @@ class Bytes(Buffer):
         """
         Return a copy of the sequence with all uppercase ASCII characters converted to
         their corresponding lowercase counterpart and vice versa.
+        """
+    def replace(self, old: Buffer, new: Buffer, count: int = -1) -> Bytes:
+        """
+        Return a copy of the sequence with all occurrences of `old` replaced by `new`.
+        If `count` is given and not negative, only the first `count` occurrences are
+        replaced.
         """
 
 ReadableBuffer: t.TypeAlias = Buffer | bytes | bytearray | memoryview | Bytes

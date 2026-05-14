@@ -3,6 +3,7 @@ mod body;
 mod charset;
 mod client;
 mod client_config;
+mod constants;
 mod errors;
 mod fetch;
 mod form_data;
@@ -16,7 +17,6 @@ mod rustls_provider;
 mod tls;
 mod tls_version;
 mod types;
-mod user_agent;
 pub use client::{RyBlockingClient, RyClient, RyHttpClient};
 pub use client_config::ClientConfig;
 pub use errors::RyReqwestError;
@@ -30,7 +30,6 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     // setup tls provider
     rustls_provider::rustls_provider_install_default();
 
-    // m.add_class::<PyCookie>()?;
     m.add_class::<PyCertificate>()?;
     m.add_class::<PyCertificateRevocationList>()?;
     m.add_class::<PyIdentity>()?;

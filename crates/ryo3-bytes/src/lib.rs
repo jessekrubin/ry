@@ -1,6 +1,5 @@
 #![doc = include_str!("../README.md")]
 #![warn(missing_docs)]
-#![expect(clippy::unwrap_used)]
 #![expect(clippy::unused_self)]
 #![expect(clippy::cast_sign_loss)]
 #![expect(clippy::ptr_as_ptr)]
@@ -10,10 +9,10 @@
 use pyo3::intern;
 use pyo3::prelude::*;
 pub mod bytes;
-mod readable_buffer;
-
 #[cfg(feature = "multiple-pymethods")]
 mod pyo3_bytes;
+mod readable_buffer;
+mod replace;
 
 mod python_bytes_methods;
 mod ryo3_bytes;
