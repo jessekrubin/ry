@@ -446,23 +446,18 @@ impl PyDuration {
 
     #[staticmethod]
     fn from_dict(d: &Bound<'_, PyDict>) -> PyResult<Self> {
-        let secs = d.get_item(interns::secs(d.py()))?;
-        let nanos = d.get_item(interns::nanos(d.py()))?;
-        match (secs, nanos) {
-            (Some(secs), Some(nanos)) => {
-                let secs = secs.extract::<u64>()?;
-                let nanos = nanos.extract::<u32>()?;
-                Self::new(secs, nanos)
-            }
-            // (Some(secs), None) => {
-            //     let secs = secs.extract::<u64>()?;
-            //     Self::new(secs, 0)
-            // }
-            // (None, Some(nanos)) => {
-            //     let nanos = nanos.extract::<u32>()?;
-            //     Self::new(0, nanos)
-            // }
-            _ => py_key_err!("dict must contain 'secs' and/or 'nanos' keys"),
+        let secs: Option<u64> = d
+            .get_item(interns::secs(d.py()))?
+            .map(|s| s.extract())
+            .transpose()?;
+        let nanos: Option<u32> = d
+            .get_item(interns::nanos(d.py()))?
+            .map(|s| s.extract())
+            .transpose()?;
+        if let (Some(secs), Some(nanos)) = (secs, nanos) {
+            Self::new(secs, nanos)
+        } else {
+            py_key_err!("dict must contain 'secs' and 'nanos' keys")
         }
     }
 

@@ -2032,6 +2032,7 @@ name = "ryo3-dev"
 version = "0.0.92"
 dependencies = [
  "pyo3",
+ "ryo3-macro-rules",
  "serde",
  "serde_bytes",
  "serde_json",
