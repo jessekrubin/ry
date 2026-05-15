@@ -1,17 +1,7 @@
+#![expect(unused_crate_dependencies)]
 mod not_implemented;
 #[macro_use]
 mod py_errs;
-
-// #[macro_export]
-// macro_rules! from_for_new_type {
-//     ($new_type:ty, $inner_type:ty) => {
-//         impl From<$inner_type> for $new_type {
-//             fn from(value: $inner_type) -> Self {
-//                 Self(value)
-//             }
-//         }
-//     };
-// }
 
 #[macro_export]
 macro_rules! any_repr {

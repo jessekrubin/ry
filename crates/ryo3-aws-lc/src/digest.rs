@@ -94,8 +94,17 @@ impl<A: PyAlgorithm> PyMutexContext<A> {
         Self(RyMutex::new(PyContext::new_with_data(data)))
     }
 
+    #[inline]
     fn py_lock(&self) -> PyResult<std::sync::MutexGuard<'_, PyContext<A>>> {
         self.0.py_lock()
+    }
+
+    #[inline]
+    fn update(&self, data: &[u8]) -> PyResult<()> {
+        self.0.py_with_lock(|ctx| {
+            ctx.update(data);
+            Ok(())
+        })
     }
 }
 
@@ -314,8 +323,7 @@ impl PySha256 {
 
     fn hexdigest(&self) -> PyResult<PyHexDigest<[u8; SHA256_OUTPUT_LEN]>> {
         let bytes = self.digest_bytes()?;
-        let a = PyHexDigest::from(bytes);
-        Ok(a)
+        Ok(PyHexDigest::from(bytes))
     }
 
     #[expect(clippy::needless_pass_by_value)]
@@ -323,15 +331,9 @@ impl PySha256 {
     fn update(&self, py: Python<'_>, data: ReadableBuffer) -> PyResult<()> {
         if data.len() > HASHLIB_GIL_MINSIZE {
             let slice = data.as_ref();
-            py.detach(|| {
-                let mut ctx = self.0.py_lock()?;
-                ctx.update(slice);
-                Ok(())
-            })
+            py.detach(|| self.0.update(slice))
         } else {
-            let mut ctx = self.0.py_lock()?;
-            ctx.update(data.as_ref());
-            Ok(())
+            self.0.update(data.as_ref())
         }
     }
 
@@ -446,15 +448,9 @@ macro_rules! define_py_hasher {
             fn update(&self, py: Python<'_>, data: ReadableBuffer) -> PyResult<()> {
                 if data.len() > HASHLIB_GIL_MINSIZE {
                     let slice = data.as_ref();
-                    py.detach(|| {
-                        let mut ctx = self.0.py_lock()?;
-                        ctx.update(slice);
-                        Ok(())
-                    })
+                    py.detach(|| self.0.update(slice))
                 } else {
-                    let mut ctx = self.0.py_lock()?;
-                    ctx.update(data.as_ref());
-                    Ok(())
+                    self.0.update(data.as_ref())
                 }
             }
 

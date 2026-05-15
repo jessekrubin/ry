@@ -1,9 +1,8 @@
 use std::sync::Arc;
 
-use cookie::Cookie;
 use pyo3::prelude::*;
 use pyo3::types::PyString;
-use reqwest::header::{CONTENT_ENCODING, SET_COOKIE};
+use reqwest::header::CONTENT_ENCODING;
 use ryo3_bytes::RyBytes;
 use ryo3_cookie::PyCookie;
 use ryo3_core::sync::RyMutex;
@@ -274,20 +273,7 @@ impl RyResponse {
     /// Return the cookies set in the response headers
     #[getter]
     fn set_cookies(&self) -> Option<Vec<PyCookie>> {
-        let headers = self.head.headers.py_read();
-        let py_cookies: Vec<PyCookie> = headers // nom nom nom nom nom
-            .get_all(SET_COOKIE)
-            .iter()
-            .filter_map(|hv| hv.to_str().ok())
-            .map(ToOwned::to_owned)
-            .filter_map(|s| Cookie::parse(s).ok())
-            .map(PyCookie::from)
-            .collect();
-        if py_cookies.is_empty() {
-            None
-        } else {
-            Some(py_cookies)
-        }
+        self.head.py_set_cookies()
     }
 
     /// Alias for `set_cookies` property
@@ -478,20 +464,7 @@ impl RyResponse {
     /// Return the cookies set in the response headers
     #[getter]
     fn set_cookies(&self) -> Option<Vec<PyCookie>> {
-        let headers = self.head.headers.py_read();
-        let py_cookies: Vec<PyCookie> = headers // nom nom nom nom nom
-            .get_all(SET_COOKIE)
-            .iter()
-            .filter_map(|hv| hv.to_str().ok())
-            .map(ToOwned::to_owned)
-            .filter_map(|s| Cookie::parse(s).ok())
-            .map(PyCookie::from)
-            .collect();
-        if py_cookies.is_empty() {
-            None
-        } else {
-            Some(py_cookies)
-        }
+        self.head.py_set_cookies()
     }
 
     /// Alias for `set_cookies` property
@@ -644,7 +617,8 @@ impl RyBlockingResponse {
             cache_mode = jiter::StringCacheMode::All,
             partial_mode = jiter::PartialMode::Off,
             catch_duplicate_keys = false,
-        )
+        ),
+        text_signature = "(self, *, allow_inf_nan=False, cache_mode=\"all\", partial_mode=False, catch_duplicate_keys=False)"
     )]
     fn json<'py>(
         &'py self,
@@ -702,20 +676,7 @@ impl RyBlockingResponse {
     /// Return the cookies set in the response headers
     #[getter]
     fn set_cookies(&self) -> Option<Vec<PyCookie>> {
-        let headers = self.head.headers.py_read();
-        let py_cookies: Vec<PyCookie> = headers // nom nom nom nom nom
-            .get_all(SET_COOKIE)
-            .iter()
-            .filter_map(|hv| hv.to_str().ok())
-            .map(ToOwned::to_owned)
-            .filter_map(|s| Cookie::parse(s).ok())
-            .map(PyCookie::from)
-            .collect();
-        if py_cookies.is_empty() {
-            None
-        } else {
-            Some(py_cookies)
-        }
+        self.head.py_set_cookies()
     }
 
     /// Alias for `set_cookies` property

@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use pyo3::BoundObject;
 use pyo3::prelude::*;
 use ryo3_core::{py_value_err, py_value_error, pytodo};
@@ -9,6 +11,15 @@ use crate::types::PyCookieExpiration;
 #[pyclass(name = "Cookie", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct PyCookie(pub(crate) ::cookie::Cookie<'static>);
+
+impl PyCookie {
+    pub fn parse_cookie<'c, S>(s: S) -> Result<Self, cookie::ParseError>
+    where
+        S: Into<Cow<'c, str>>,
+    {
+        ::cookie::Cookie::parse(s).map(|c| Self(c.into_owned()))
+    }
+}
 
 impl From<::cookie::Cookie<'static>> for PyCookie {
     fn from(value: ::cookie::Cookie<'static>) -> Self {
@@ -108,6 +119,7 @@ impl PyCookie {
     }
 
     #[staticmethod]
+    #[pyo3(name = "parse")]
     fn parse(s: &Bound<'_, PyAny>) -> PyResult<Self> {
         use ryo3_core::PyParse;
         Self::py_parse(s)
