@@ -112,7 +112,7 @@ impl<'py> FromPyObject<'_, 'py> for PyHttpVersion {
                 "HTTP/1.1" | "1.1" => Ok(Self::HTTP_11),
                 "HTTP/2.0" | "HTTP/2" | "2.0" | "2" => Ok(Self::HTTP_2),
                 "HTTP/3" | "HTTP/3.0" | "3.0" | "3" => Ok(Self::HTTP_3),
-                _ => py_value_err!("{HTTP_VERSION_STRING}"),
+                _ => py_value_err!(HTTP_VERSION_STRING),
             }
         } else if let Ok(i) = ob.extract::<u8>() {
             match i {
