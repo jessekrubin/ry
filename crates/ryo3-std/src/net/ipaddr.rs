@@ -976,7 +976,7 @@ impl<'py> FromPyObject<'_, 'py> for Ipv4Like {
         } else if let Ok(IpAddr::V4(addr)) = obj.extract::<IpAddr>() {
             Ok(Self(addr))
         } else {
-            py_type_err!("{IPV4_ADDR_ERROR}")
+            py_type_err!(IPV4_ADDR_ERROR)
         }
     }
 }
@@ -1015,7 +1015,7 @@ impl<'py> FromPyObject<'_, 'py> for Ipv4Args {
         } else if let Ok(ipv4) = obj.extract::<Ipv4Like>() {
             Ok(Self(ipv4.0))
         } else {
-            py_type_err!("{IPV4_ADDR_ERROR}")
+            py_type_err!(IPV4_ADDR_ERROR)
         }
     }
 }
@@ -1037,7 +1037,7 @@ impl<'py> FromPyObject<'_, 'py> for Ipv6Like {
         } else if let Ok(IpAddr::V6(addr)) = obj.extract::<IpAddr>() {
             Ok(Self(addr))
         } else {
-            py_type_err!("{IPV6_ADDR_ERROR}")
+            py_type_err!(IPV6_ADDR_ERROR)
         }
     }
 }
@@ -1084,7 +1084,7 @@ impl<'py> FromPyObject<'_, 'py> for Ipv6Args {
         } else if let Ok(iplike) = obj.extract::<Ipv6Like>() {
             Ok(Self(iplike.0))
         } else {
-            py_type_err!("{IPV6_ADDR_ERROR}")
+            py_type_err!(IPV6_ADDR_ERROR)
         }
     }
 }

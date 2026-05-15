@@ -99,7 +99,7 @@ impl<'py> IntoPyObject<'py> for PyHttpVersion {
     }
 }
 
-const HTTP_VERSION_STRING: &str = "Invalid HTTP version ~ must be one of 'HTTP/0.9'|'0.9', 'HTTP/1.0'|'HTTP/1'|'1.0'|'1', 'HTTP/1.1'|'1.1', 'HTTP/2.0'|'HTTP/2'|'2.0'|'2'|'2.2', 'HTTP/3.0'|'HTTP/3'|'3.0'|'3'";
+const HTTP_VERSION_STRING: &str = "Invalid HTTP version (options: 'HTTP/0.9'|'0.9', 'HTTP/1.0'|'HTTP/1'|'1.0'|'1', 'HTTP/1.1'|'1.1', 'HTTP/2.0'|'HTTP/2'|'2.0'|'2'|'2.2', 'HTTP/3.0'|'HTTP/3'|'3.0'|'3')";
 
 impl<'py> FromPyObject<'_, 'py> for PyHttpVersion {
     type Error = pyo3::PyErr;
@@ -122,11 +122,11 @@ impl<'py> FromPyObject<'_, 'py> for PyHttpVersion {
                 2 | 20 => Ok(Self::HTTP_2),
                 3 | 30 => Ok(Self::HTTP_3),
                 _ => py_value_err!(
-                    "Invalid HTTP version: {i} (options: 0= HTTP/0.0, 1 | 10 = HTTP/1.0, 11 = HTTP/1.1, 2 | 20 = HTTP/2.0, 3 | 30 = HTTP/3.0)"
+                    "Invalid HTTP version int (options: 0 => HTTP/0.0, 1 | 10 => HTTP/1.0, 11 => HTTP/1.1, 2 | 20 => HTTP/2.0, 3 | 30 => HTTP/3.0)"
                 ),
             }
         } else {
-            py_type_err!("Invalid HTTP-version (options: {HTTP_VERSION_STRING})")
+            py_type_err!(HTTP_VERSION_STRING)
         }
     }
 }

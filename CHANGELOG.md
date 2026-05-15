@@ -2,6 +2,10 @@
 
 ## v0.0.92 [unreleased]
 
+- errors
+  - use `format_args!` instead of `format!` in
+    `py_*_err!(...)`/`py_*_error!(...)` macros to avoid allocations on
+    string-literal error messages
 - `ryo3-bytes`
   - upgrade `strip`, `lstrip`, and `rstrip` methods; return same instance if no
     stripping

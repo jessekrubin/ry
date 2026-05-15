@@ -46,10 +46,10 @@ impl<'py> FromPyObject<'_, 'py> for PyBase {
             match base {
                 2 => Ok(Self::Base2),
                 10 => Ok(Self::Base10),
-                _ => py_value_err!("{BASE_ERR_MSG}"),
+                _ => py_value_err!(BASE_ERR_MSG),
             }
         } else {
-            py_type_err!("{BASE_ERR_MSG}")
+            py_type_err!(BASE_ERR_MSG)
         }
     }
 }
@@ -130,7 +130,7 @@ impl<'py> FromPyObject<'_, 'py> for PyStyle {
                 _ => py_value_err!("{STYLE_ERR_MSG} ~ given: {s}"),
             }
         } else {
-            py_type_err!("{STYLE_ERR_MSG}")
+            py_type_err!(STYLE_ERR_MSG)
         }
     }
 }
