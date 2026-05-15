@@ -13,6 +13,7 @@ use ryo3_core::{RyMutex, py_value_err, py_value_error};
 
 use crate::pattern::PyGlobPattern;
 
+use ::glob::GlobError;
 #[derive(Clone, Copy)]
 enum GlobDType {
     FsPath,
@@ -274,15 +275,16 @@ fn extract_dtype(dtype: Option<Bound<'_, PyType>>) -> PyResult<GlobDType> {
             Ok(GlobDType::FsPath)
         } else {
             let repr = dtype.repr()?.to_string_lossy().into_owned();
-            Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
+            py_value_err!(
                 "Invalid dtype: {repr} (only `str`, `pathlib.Path` or `ry.ryo3.FsPath` are supported)"
-            )))
+            )
         }
     } else {
         // default to PathBuf when no dtype is provided
         Ok(GlobDType::PathBuf)
     }
 }
+
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyGlobPattern>()?;
     m.add_function(wrap_pyfunction!(py_glob, m)?)?;
