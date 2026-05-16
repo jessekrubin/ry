@@ -5,6 +5,7 @@ authors.workspace = true
 categories.workspace = true
 documentation.workspace = true
 edition.workspace = true
+rust-version.workspace = true
 homepage.workspace = true
 keywords.workspace = true
 license.workspace = true
@@ -21,7 +22,7 @@ pyo3 = { workspace = true, features = [] }
 pyo3-async-runtimes = { workspace = true, features = ["unstable-streams"] }
 reqwest = { workspace = true, default-features = false, features = ["brotli", "charset", "cookies", "deflate", "form", "gzip", "hickory-dns", "http2", "json", "multipart", "query", "rustls-no-provider", "socks", "stream", "zstd"] }
 rustls = { workspace = true, features = ["logging", "prefer-post-quantum", "std", "tls12"] }
-rustls-native-certs = "0.8.3"
+rustls-native-certs.workspace = true
 ryo3-bytes.workspace = true
 ryo3-cookie.workspace = true
 ryo3-core.workspace = true

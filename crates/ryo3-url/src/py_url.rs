@@ -125,11 +125,7 @@ impl PyUrl {
             }
             .join(&relative_path)
             .map(Self::from)
-            .map_err(|e| {
-                PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
-                    "{e} (relative={relative_path})"
-                ))
-            })
+            .map_err(|e| py_value_error!("{e} (relative={relative_path})"))
         }
     }
 
@@ -138,15 +134,17 @@ impl PyUrl {
     }
 
     fn __truediv__(&self, other: &str) -> PyResult<Self> {
-        self.0.join(other).map(Self::from).map_err(|e| {
-            PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e} (relative={other})"))
-        })
+        self.0
+            .join(other)
+            .map(Self::from)
+            .map_err(|e| py_value_error!("{e} (relative={other})"))
     }
 
     fn __rtruediv__(&self, other: &str) -> PyResult<Self> {
-        self.0.join(other).map(Self::from).map_err(|e| {
-            PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e} (relative={other})"))
-        })
+        self.0
+            .join(other)
+            .map(Self::from)
+            .map_err(|e| py_value_error!("{e} (relative={other})"))
     }
 
     fn equiv(&self, other: &Bound<'_, PyAny>) -> bool {
@@ -310,12 +308,7 @@ impl PyUrl {
     fn from_directory_path(path: PathBuf) -> PyResult<Self> {
         url::Url::from_directory_path(&path)
             .map(Self::from)
-            .map_err(|_e| {
-                PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
-                    "invalid path (path={})",
-                    path.display()
-                ))
-            })
+            .map_err(|_e| py_value_error!("invalid path (path={})", path.display()))
     }
 
     #[staticmethod]
@@ -323,26 +316,18 @@ impl PyUrl {
     fn from_filepath(path: PathBuf) -> PyResult<Self> {
         url::Url::from_file_path(&path)
             .map(Self::from)
-            .map_err(|_e| {
-                PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
-                    "invalid path (path={})",
-                    path.display()
-                ))
-            })
+            .map_err(|_e| py_value_error!("invalid path (path={})", path.display()))
     }
 
     fn to_filepath(&self) -> PyResult<PathBuf> {
-        self.0.to_file_path().map_err(|_e| {
-            PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
-                "Url::to_filepath: {}",
-                self.__str__()
-            ))
-        })
+        self.0
+            .to_file_path()
+            .map_err(|_e| py_value_error!("Url::to_filepath: {}", self.__str__()))
     }
 
     // TODO: figure out if this is problematic... it could be a problem w/ how some
     //       of the underlying set methods take `Option` values...
-    #[expect(clippy::too_many_arguments)]
+    #[expect(clippy::too_many_arguments, reason = "python kwargs")]
     #[pyo3(
         signature = (
             *,

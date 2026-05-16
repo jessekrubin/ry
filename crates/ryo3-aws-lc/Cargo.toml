@@ -5,6 +5,7 @@ authors.workspace = true
 categories.workspace = true
 documentation.workspace = true
 edition.workspace = true
+rust-version.workspace = true
 homepage.workspace = true
 keywords.workspace = true
 license.workspace = true
@@ -12,11 +13,10 @@ repository.workspace = true
 description = "python + aws-lc crate (https://crates.io/crates/aws-lc-rs)"
 
 [dependencies]
-aws-lc-rs = "1.16.0"
+aws-lc-rs.workspace = true
 pyo3 = { workspace = true, features = [] }
 ryo3-bytes.workspace = true
 ryo3-core.workspace = true
-# aws-lc-rs.workspace = true
 
 [features]
 ry = []

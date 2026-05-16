@@ -1,4 +1,5 @@
 use pyo3::prelude::*;
+use ryo3_core::{py_type_err, py_value_error};
 
 use crate::PyUrl;
 pub struct UrlLike(pub url::Url);
@@ -41,24 +42,17 @@ impl<'py> FromPyObject<'_, 'py> for UrlLike {
             let url = url.borrow();
             Ok(Self(url.0.clone()))
         } else if let Ok(s) = obj.extract::<&str>() {
-            let url = url::Url::parse(s).map_err(|e| {
-                PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e} (url={s})"))
-            })?;
-            Ok(Self(url))
+            url::Url::parse(s)
+                .map(Self)
+                .map_err(|e| py_value_error!("{e} (url={s})"))
         } else if let Ok(b) = obj.extract::<&[u8]>() {
-            let s = std::str::from_utf8(b).map_err(|e| {
-                PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
-                    "Invalid UTF-8 sequence: {e} (bytes={b:?})"
-                ))
-            })?;
-            let url = url::Url::parse(s).map_err(|e| {
-                PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{e} (url={s})"))
-            })?;
-            Ok(Self(url))
+            let s = std::str::from_utf8(b)
+                .map_err(|e| py_value_error!("Invalid UTF-8 sequence: {e} (bytes={b:?})"))?;
+            url::Url::parse(s)
+                .map(Self)
+                .map_err(|e| py_value_error!("{e} (url={s})"))
         } else {
-            Err(pyo3::exceptions::PyTypeError::new_err(
-                "Expected str or URL object",
-            ))
+            py_type_err!("Expected str or URL object")
         }
     }
 }
@@ -71,6 +65,6 @@ impl From<UrlLike> for PyUrl {
 
 impl std::fmt::Display for UrlLike {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", &self.0)
+        self.0.fmt(f)
     }
 }

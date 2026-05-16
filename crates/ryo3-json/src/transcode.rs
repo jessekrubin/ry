@@ -6,13 +6,13 @@ use ryo3_bytes::{ReadableBuffer, RyBytes};
 use ryo3_core::{py_type_err, py_value_error};
 use serde_json::{Deserializer, Serializer};
 
-fn minify_json<R: io::Read, W: io::Write>(input: R, output: W) -> Result<(), serde_json::Error> {
-    let mut de = Deserializer::from_reader(input);
+fn minify_json<W: io::Write>(input: &[u8], output: W) -> Result<(), serde_json::Error> {
+    let mut de = Deserializer::from_slice(input);
     let mut ser = Serializer::new(output);
     serde_transcode::transcode(&mut de, &mut ser)
 }
 
-fn py_minify_json<R: io::Read, W: io::Write>(input: R, output: W) -> PyResult<()> {
+fn py_minify_json<W: io::Write>(input: &[u8], output: W) -> PyResult<()> {
     minify_json(input, output).map_err(|e| py_value_error!("Failed to minify JSON: {e}"))
 }
 
@@ -35,13 +35,13 @@ pub(crate) fn minify<'py>(buf: &'py Bound<'py, PyAny>) -> PyResult<RyBytes> {
     }
 }
 
-fn indent2_json<R: io::Read, W: io::Write>(input: R, output: W) -> Result<(), serde_json::Error> {
-    let mut de = Deserializer::from_reader(input);
+fn indent2_json<W: io::Write>(input: &[u8], output: W) -> Result<(), serde_json::Error> {
+    let mut de = Deserializer::from_slice(input);
     let mut ser = Serializer::pretty(output);
     serde_transcode::transcode(&mut de, &mut ser)
 }
 
-fn py_indent2_json<R: io::Read, W: io::Write>(input: R, output: W) -> PyResult<()> {
+fn py_indent2_json<W: io::Write>(input: &[u8], output: W) -> PyResult<()> {
     indent2_json(input, output).map_err(|e| py_value_error!("Failed to format JSON: {e}"))
 }
 
