@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use pyo3::exceptions::PyException;
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyTuple};
@@ -17,11 +15,11 @@ macro_rules! pyerr_response_already_consumed {
 
 #[derive(Debug)]
 #[pyclass(extends=PyException, module="ry.ryo3", name="ReqwestError", frozen, immutable_type, skip_from_py_object)]
-pub struct RyReqwestError(pub Arc<RyMutex<Option<reqwest::Error>, false>>);
+pub struct RyReqwestError(pub RyMutex<Option<reqwest::Error>, false>);
 
 impl From<reqwest::Error> for RyReqwestError {
     fn from(e: reqwest::Error) -> Self {
-        Self(Arc::new(RyMutex::new(Some(e))))
+        Self(RyMutex::new(Some(e)))
     }
 }
 
@@ -31,7 +29,7 @@ impl RyReqwestError {
     #[new]
     #[pyo3(signature = (*args, **kwargs))]
     fn py_new<'py>(args: &Bound<'py, PyTuple>, kwargs: Option<&Bound<'py, PyDict>>) -> Self {
-        Self(Arc::new(RyMutex::new(None)))
+        Self(RyMutex::new(None))
     }
 
     fn __dbg__(&self) -> String {

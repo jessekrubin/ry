@@ -2,6 +2,7 @@ use std::net::SocketAddr;
 use std::sync::Arc;
 
 use reqwest::StatusCode;
+use ryo3_cookie::PyCookie;
 use ryo3_core::RyRwLock;
 
 #[derive(Debug, Clone)]
@@ -31,6 +32,25 @@ impl RyResponseHead {
             content_length: res.content_length(),
             version: res.version(),
             remote_addr: res.remote_addr(),
+        }
+    }
+
+    pub(crate) fn py_set_cookies(&self) -> Option<Vec<PyCookie>> {
+        let headers = self.headers.py_read();
+        if headers.is_empty() {
+            return None;
+        }
+        let py_cookies: Vec<PyCookie> = headers // nom nom nom nom nom
+            .get_all(reqwest::header::SET_COOKIE)
+            .iter()
+            .filter_map(|hv| hv.to_str().ok())
+            .map(ToOwned::to_owned)
+            .filter_map(|s| PyCookie::parse_cookie(s).ok())
+            .collect();
+        if py_cookies.is_empty() {
+            None
+        } else {
+            Some(py_cookies)
         }
     }
 }

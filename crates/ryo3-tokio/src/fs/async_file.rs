@@ -242,6 +242,15 @@ impl PyAsyncFile {
             inner: Arc::new(Mutex::new(inner)),
         }
     }
+
+    fn open_awaitable(slf: Py<Self>, py: Python<'_>) -> PyResult<Bound<'_, PyAny>> {
+        let inner = Arc::clone(&slf.borrow(py).inner);
+        future_into_py(py, async move {
+            let mut locked = inner.lock().await;
+            locked.open().await?;
+            Ok(slf)
+        })
+    }
 }
 
 #[cfg(not(feature = "experimental-async"))]
@@ -262,25 +271,11 @@ impl PyAsyncFile {
     /// This is a coroutine that returns `self` when awaited... so you
     /// can `await` to open the file
     fn __await__(slf: Py<Self>, py: Python<'_>) -> PyResult<Bound<'_, PyAny>> {
-        let inner = Arc::clone(&slf.borrow(py).inner);
-
-        // Create an actual coroutine that returns `slf`, then call `__await__()` on it
-        let fut = future_into_py(py, async move {
-            let mut locked = inner.lock().await;
-            locked.open().await?;
-            Ok(slf)
-        })?;
-        // have to then call `__await__()` on the future and return that.
-        fut.getattr(intern!(py, "__await__"))?.call0()
+        Self::open_awaitable(slf, py)?.call_method0(intern!(py, "__await__"))
     }
 
     fn __aenter__(slf: Py<Self>, py: Python) -> PyResult<Bound<PyAny>> {
-        let inner = Arc::clone(&slf.borrow(py).inner);
-        future_into_py(py, async move {
-            let mut locked = inner.lock().await;
-            locked.open().await?;
-            Ok(slf)
-        })
+        Self::open_awaitable(slf, py)
     }
 
     #[pyo3(name = "__aexit__")]
@@ -546,25 +541,11 @@ impl PyAsyncFile {
     /// This is a coroutine that returns `self` when awaited... so you
     /// can `await` to open the file
     fn __await__(slf: Py<Self>, py: Python<'_>) -> PyResult<Bound<'_, PyAny>> {
-        let inner = Arc::clone(&slf.borrow(py).inner);
-
-        // Create an actual coroutine that returns `slf`, then call `__await__()` on it
-        let fut = future_into_py(py, async move {
-            let mut locked = inner.lock().await;
-            locked.open().await?;
-            Ok(slf)
-        })?;
-        // have to then call `__await__()` on the future and return that.
-        fut.getattr(intern!(py, "__await__"))?.call0()
+        Self::open_awaitable(slf, py)?.call_method0(intern!(py, "__await__"))
     }
 
     fn __aenter__(slf: Py<Self>, py: Python) -> PyResult<Bound<PyAny>> {
-        let inner = Arc::clone(&slf.borrow(py).inner);
-        future_into_py(py, async move {
-            let mut locked = inner.lock().await;
-            locked.open().await?;
-            Ok(slf)
-        })
+        Self::open_awaitable(slf, py)
     }
 
     #[pyo3(name = "__aexit__")]
@@ -600,6 +581,7 @@ impl PyAsyncFile {
         this
     }
 
+    #[expect(clippy::single_match_else, reason = "actually cleaner")]
     fn __anext__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
         let inner = Arc::clone(&self.inner);
         future_into_py(py, async move {

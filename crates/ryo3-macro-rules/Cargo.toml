@@ -12,6 +12,8 @@ repository.workspace = true
 description = "ryo3-macro-rules ~ macro_rules used by ryo3"
 
 [dependencies]
+
+[dev-dependencies]
 pyo3 = { workspace = true, features = [] }
 
 [lints]

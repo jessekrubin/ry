@@ -41,7 +41,7 @@ impl<'py> FromPyObject<'_, 'py> for PyWebSocketMessageKind {
                 ),
             }
         } else {
-            py_type_err!("{WS_MESSAGE_KIND_TYPE_ERR_MSG}")
+            py_type_err!(WS_MESSAGE_KIND_TYPE_ERR_MSG)
         }
     }
 }

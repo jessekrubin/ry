@@ -253,9 +253,11 @@ zstd = { version = "0.13.3", default-features = false, features = [] }
 zstd-safe = { version = "7.2.4", default-features = false, features = [] }
 
 [workspace.lints.rust]
-unsafe_code = "warn"
-unreachable_pub = "warn"
 missing_copy_implementations = "warn"
+unreachable_pub = "warn"
+unsafe_code = "warn"
+unsafe_op_in_unsafe_fn = "warn"
+unused_crate_dependencies = "warn"
 
 [workspace.lints.clippy]
 # groups

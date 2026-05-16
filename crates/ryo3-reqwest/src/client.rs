@@ -8,8 +8,6 @@ use ryo3_url::UrlLike;
 
 use crate::errors::map_reqwest_err;
 use crate::request::{BlockingReqwestKwargs, ReqwestKwargs};
-// #[cfg(feature = "experimental-async")]
-// use crate::response::RyAsyncResponse;
 use crate::response::RyBlockingResponse;
 use crate::{ClientConfig, RyResponse};
 

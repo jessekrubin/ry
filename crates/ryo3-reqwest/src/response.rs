@@ -1,9 +1,6 @@
-use std::sync::Arc;
-
-use cookie::Cookie;
 use pyo3::prelude::*;
 use pyo3::types::PyString;
-use reqwest::header::{CONTENT_ENCODING, SET_COOKIE};
+use reqwest::header::CONTENT_ENCODING;
 use ryo3_bytes::RyBytes;
 use ryo3_cookie::PyCookie;
 use ryo3_core::sync::RyMutex;
@@ -29,7 +26,7 @@ use crate::{RyResponseStream, pyerr_response_already_consumed};
 #[derive(Debug)]
 pub struct RyResponse {
     /// The actual response which will be consumed when read
-    res: Arc<RyMutex<Option<reqwest::Response>>>,
+    res: RyMutex<Option<reqwest::Response>>,
 
     /// Response "head" data (status, headers, url, http-version, etc.)
     head: RyResponseHead,
@@ -40,7 +37,7 @@ pub struct RyResponse {
 #[derive(Debug)]
 pub struct RyBlockingResponse {
     /// The actual response which will be consumed when read
-    res: Arc<RyMutex<Option<reqwest::Response>>>,
+    res: RyMutex<Option<reqwest::Response>>,
 
     /// Response "head" data (status, headers, url, http-version, etc.)
     head: RyResponseHead,
@@ -52,7 +49,7 @@ impl RyResponse {
     pub fn new(res: reqwest::Response) -> Self {
         Self {
             head: RyResponseHead::from(&res),
-            res: Arc::new(RyMutex::new(Some(res))),
+            res: RyMutex::new(Some(res)),
         }
     }
 
@@ -68,7 +65,7 @@ impl RyBlockingResponse {
     pub fn new(res: reqwest::Response) -> Self {
         Self {
             head: RyResponseHead::from(&res),
-            res: Arc::new(RyMutex::new(Some(res))),
+            res: RyMutex::new(Some(res)),
         }
     }
 
@@ -274,20 +271,7 @@ impl RyResponse {
     /// Return the cookies set in the response headers
     #[getter]
     fn set_cookies(&self) -> Option<Vec<PyCookie>> {
-        let headers = self.head.headers.py_read();
-        let py_cookies: Vec<PyCookie> = headers // nom nom nom nom nom
-            .get_all(SET_COOKIE)
-            .iter()
-            .filter_map(|hv| hv.to_str().ok())
-            .map(ToOwned::to_owned)
-            .filter_map(|s| Cookie::parse(s).ok())
-            .map(PyCookie::from)
-            .collect();
-        if py_cookies.is_empty() {
-            None
-        } else {
-            Some(py_cookies)
-        }
+        self.head.py_set_cookies()
     }
 
     /// Alias for `set_cookies` property
@@ -478,20 +462,7 @@ impl RyResponse {
     /// Return the cookies set in the response headers
     #[getter]
     fn set_cookies(&self) -> Option<Vec<PyCookie>> {
-        let headers = self.head.headers.py_read();
-        let py_cookies: Vec<PyCookie> = headers // nom nom nom nom nom
-            .get_all(SET_COOKIE)
-            .iter()
-            .filter_map(|hv| hv.to_str().ok())
-            .map(ToOwned::to_owned)
-            .filter_map(|s| Cookie::parse(s).ok())
-            .map(PyCookie::from)
-            .collect();
-        if py_cookies.is_empty() {
-            None
-        } else {
-            Some(py_cookies)
-        }
+        self.head.py_set_cookies()
     }
 
     /// Alias for `set_cookies` property
@@ -644,7 +615,8 @@ impl RyBlockingResponse {
             cache_mode = jiter::StringCacheMode::All,
             partial_mode = jiter::PartialMode::Off,
             catch_duplicate_keys = false,
-        )
+        ),
+        text_signature = "(self, *, allow_inf_nan=False, cache_mode=\"all\", partial_mode=False, catch_duplicate_keys=False)"
     )]
     fn json<'py>(
         &'py self,
@@ -702,20 +674,7 @@ impl RyBlockingResponse {
     /// Return the cookies set in the response headers
     #[getter]
     fn set_cookies(&self) -> Option<Vec<PyCookie>> {
-        let headers = self.head.headers.py_read();
-        let py_cookies: Vec<PyCookie> = headers // nom nom nom nom nom
-            .get_all(SET_COOKIE)
-            .iter()
-            .filter_map(|hv| hv.to_str().ok())
-            .map(ToOwned::to_owned)
-            .filter_map(|s| Cookie::parse(s).ok())
-            .map(PyCookie::from)
-            .collect();
-        if py_cookies.is_empty() {
-            None
-        } else {
-            Some(py_cookies)
-        }
+        self.head.py_set_cookies()
     }
 
     /// Alias for `set_cookies` property

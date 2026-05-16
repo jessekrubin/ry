@@ -150,23 +150,22 @@ impl PyUlid {
             }
         } else if let Ok(pybytes) = other.cast::<PyBytes>() {
             let slice = pybytes.as_bytes();
-            match slice.len() {
-                16 => {
-                    let ulid = Ulid::from_bytes(
-                        slice
-                            .try_into()
-                            .expect("never to happen; checked length above"),
-                    );
-                    match op {
-                        pyo3::basic::CompareOp::Eq => Ok(self.0 == ulid),
-                        pyo3::basic::CompareOp::Ne => Ok(self.0 != ulid),
-                        pyo3::basic::CompareOp::Lt => Ok(self.0 < ulid),
-                        pyo3::basic::CompareOp::Le => Ok(self.0 <= ulid),
-                        pyo3::basic::CompareOp::Gt => Ok(self.0 > ulid),
-                        pyo3::basic::CompareOp::Ge => Ok(self.0 >= ulid),
-                    }
+            if slice.len() == 16 {
+                let ulid = Ulid::from_bytes(
+                    slice
+                        .try_into()
+                        .expect("wenodis: never to happen; checked length above"),
+                );
+                match op {
+                    pyo3::basic::CompareOp::Eq => Ok(self.0 == ulid),
+                    pyo3::basic::CompareOp::Ne => Ok(self.0 != ulid),
+                    pyo3::basic::CompareOp::Lt => Ok(self.0 < ulid),
+                    pyo3::basic::CompareOp::Le => Ok(self.0 <= ulid),
+                    pyo3::basic::CompareOp::Gt => Ok(self.0 > ulid),
+                    pyo3::basic::CompareOp::Ge => Ok(self.0 >= ulid),
                 }
-                _ => py_value_err!("Bytes must be exactly 16 bytes long"),
+            } else {
+                py_value_err!("Bytes must be exactly 16 bytes long")
             }
         } else {
             match op {
