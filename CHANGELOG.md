@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## v0.0.92 [unreleased]
+## v0.0.92 [2026-05-15]
 
 - errors
   - use `format_args!` instead of `format!` in
