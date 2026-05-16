@@ -13,7 +13,6 @@ use ryo3_core::{RyMutex, py_value_err, py_value_error};
 
 use crate::pattern::PyGlobPattern;
 
-use ::glob::GlobError;
 #[derive(Clone, Copy)]
 enum GlobDType {
     FsPath,
@@ -59,23 +58,18 @@ impl<'py> IntoPyObject<'py> for GlobPathsVec {
     }
 }
 
-impl GlobDType {
-    fn dtype_into_bound_py_any(self, py: Python<'_>, path: PathBuf) -> PyResult<Bound<'_, PyAny>> {
-        match self {
-            Self::FsPath => {
-                let fspath = ryo3_fspath::PyFsPath::from(path);
-                let any = fspath.into_bound_py_any(py)?;
-                Ok(any)
-            }
-            Self::PathBuf => {
-                let any = path.into_bound_py_any(py)?;
-                Ok(any)
-            }
-            Self::OsString => {
-                let os_string = path.into_os_string();
-                let any = os_string.into_bound_py_any(py)?;
-                Ok(any)
-            }
+struct GlobItem(GlobDType, PathBuf);
+
+impl<'py> IntoPyObject<'py> for GlobItem {
+    type Target = PyAny;
+    type Output = Bound<'py, Self::Target>;
+    type Error = PyErr;
+
+    fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
+        match self.0 {
+            GlobDType::FsPath => ryo3_fspath::PyFsPath::from(self.1).into_bound_py_any(py),
+            GlobDType::PathBuf => self.1.into_bound_py_any(py),
+            GlobDType::OsString => OsString::from(self.1).into_bound_py_any(py),
         }
     }
 }
@@ -94,6 +88,66 @@ impl PyGlobPaths {
     fn next_path(&self) -> Option<Result<PathBuf, glob::GlobError>> {
         self.inner.py_lock().next()
     }
+
+    fn py_next(&self) -> Result<Option<GlobItem>, ::glob::GlobError> {
+        loop {
+            match self.next_path() {
+                Some(Ok(path)) => {
+                    return Ok(Some(GlobItem(self.dtype, path)));
+                }
+                Some(Err(e)) => {
+                    if self.strict {
+                        return Err(e);
+                    }
+                }
+                None => return Ok(None),
+            }
+        }
+    }
+
+    fn py_collect(&self) -> Result<Vec<PathBuf>, ::glob::GlobError> {
+        if self.strict {
+            let mut results = Vec::new();
+            for path in self.inner.py_lock().by_ref() {
+                match path {
+                    Ok(path) => {
+                        results.push(path);
+                    }
+                    Err(e) => {
+                        return Err(e);
+                    }
+                }
+            }
+            Ok(results)
+        } else {
+            Ok(self.inner.py_lock().by_ref().flatten().collect::<Vec<_>>())
+        }
+    }
+
+    fn py_take(&self, n: usize) -> Result<Vec<PathBuf>, ::glob::GlobError> {
+        if self.strict {
+            let mut results = Vec::new();
+            for path_result in self.inner.py_lock().by_ref().take(n) {
+                match path_result {
+                    Ok(path) => {
+                        results.push(path);
+                    }
+                    Err(e) => {
+                        return Err(e);
+                    }
+                }
+            }
+            Ok(results)
+        } else {
+            Ok(self
+                .inner
+                .py_lock()
+                .by_ref()
+                .flatten()
+                .take(n)
+                .collect::<Vec<_>>())
+        }
+    }
 }
 
 #[pymethods]
@@ -102,44 +156,13 @@ impl PyGlobPaths {
         slf
     }
 
-    fn __next__<'py>(&self, py: Python<'py>) -> PyResult<Option<Bound<'py, PyAny>>> {
-        loop {
-            match self.next_path() {
-                Some(Ok(path)) => {
-                    let pyany = self.dtype.dtype_into_bound_py_any(py, path)?;
-                    return Ok(Some(pyany));
-                }
-                Some(Err(e)) => {
-                    if self.strict {
-                        return py_value_err!("{e}");
-                    }
-                }
-                None => return Ok(None),
-            }
-        }
+    fn __next__(&self) -> PyResult<Option<GlobItem>> {
+        self.py_next().map_err(|e| py_value_error!("{e}"))
     }
 
     fn collect(&self, py: Python<'_>) -> PyResult<GlobPathsVec> {
         let paths: Vec<PathBuf> = py
-            .detach(|| {
-                if self.strict {
-                    let mut results = Vec::new();
-                    for path in self.inner.py_lock().by_ref() {
-                        match path {
-                            Ok(path) => {
-                                results.push(path);
-                            }
-                            Err(e) => {
-                                return Err(e);
-                            }
-                        }
-                    }
-                    Ok(results)
-                } else {
-                    let a = self.inner.py_lock().by_ref().flatten().collect::<Vec<_>>();
-                    Ok(a)
-                }
-            })
+            .detach(|| self.py_collect())
             .map_err(|e| py_value_error!("{e}"))?;
         Ok(GlobPathsVec::from((self.dtype, paths)))
     }
@@ -148,31 +171,7 @@ impl PyGlobPaths {
     #[pyo3(signature = (n = 1))]
     fn take(&self, py: Python<'_>, n: usize) -> PyResult<GlobPathsVec> {
         let paths: Vec<PathBuf> = py
-            .detach(|| {
-                if self.strict {
-                    let mut results = Vec::new();
-                    for path_result in self.inner.py_lock().by_ref().take(n) {
-                        match path_result {
-                            Ok(path) => {
-                                results.push(path);
-                            }
-                            Err(e) => {
-                                return Err(e);
-                            }
-                        }
-                    }
-                    Ok(results)
-                } else {
-                    let pathbufs = self
-                        .inner
-                        .py_lock()
-                        .by_ref()
-                        .flatten()
-                        .take(n)
-                        .collect::<Vec<_>>();
-                    Ok(pathbufs)
-                }
-            })
+            .detach(|| self.py_take(n))
             .map_err(|e| py_value_error!("{e}"))?;
         Ok(GlobPathsVec::from((self.dtype, paths)))
     }
