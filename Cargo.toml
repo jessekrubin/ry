@@ -5,6 +5,7 @@ authors.workspace = true
 categories.workspace = true
 documentation.workspace = true
 edition.workspace = true
+rust-version.workspace = true
 homepage.workspace = true
 keywords.workspace = true
 license.workspace = true
@@ -79,7 +80,7 @@ inherits = "release"
 lto = "fat"
 
 [workspace.package]
-version = "0.0.92"
+version = "0.0.93"
 authors = [
   "jesse k. rubin <jessekrubin@gmail.com>",
   # hopefully you will contribute!
@@ -87,13 +88,14 @@ authors = [
 categories = ["api-bindings"]
 documentation = "https://github.com/jessekrubin/ry"
 edition = "2024"
+rust-version = "1.95"
 homepage = "https://github.com/jessekrubin/ry"
 keywords = ["python", "pyo3", "ryo3"]
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/jessekrubin/ry"
 
 [workspace]
-resolver = "2"
+resolver = "3"
 members = [
   "crates/_future/ryo3-ignore",
   "crates/_ryo3-dev",
@@ -192,13 +194,17 @@ ryo3-walkdir = { path = "./crates/ryo3-walkdir" }
 ryo3-which = { path = "./crates/ryo3-which" }
 ryo3-zstd = { path = "./crates/ryo3-zstd" }
 
-# pyo3
+# pyo3 et al
 pyo3 = { version = "0.28.2", features = ["macros", "serde"] }
 pyo3-async-runtimes = { git = "https://github.com/PyO3/pyo3-async-runtimes", default-features = false, features = ["tokio-runtime"] }
 pyo3-build-config = { version = "0.28.1", default-features = false, features = ["resolve-config"] }
 
+# allocator(s)
+mimalloc = { version = "0.1.50", default-features = false, features = [] }
+
 # external
 ahash = { version = "0.8.12", default-features = false }
+aws-lc-rs = { version = "1.17.0", default-features = true }
 brotli = { version = "8.0.2", default-features = false }
 bytes = { version = "1.11.0", default-features = false }
 bzip2 = { version = "0.6.1", default-features = false, features = ["default"] }
@@ -218,13 +224,11 @@ ignore = { version = "0.4.24", default-features = false, features = [] }
 jiff = { version = "0.2.24", default-features = false, features = ["default", "perf-inline"] }
 jiter = { version = "0.14", default-features = false, features = ["python"] }
 memchr = { version = "2.7.5", default-features = false, features = [] }
-# allocator(s)
-mimalloc = { version = "0.1.50", default-features = false, features = [] }
-# pyo3 async runtimes
 rand = { version = "0.10.1", default-features = false, features = [] }
 regex = { version = "1.12.2", default-features = false, features = [] }
 reqwest = { version = "0.13.3", default-features = false, features = [] }
 rustls = { version = "0.23.39", default-features = false, features = [] }
+rustls-native-certs = { version = "0.8.3", default-features = false, features = [] }
 same-file = { version = "1.0.6", default-features = false }
 serde = { version = "1.0", default-features = false, features = ["derive"] }
 serde-transcode = { version = "1.1.1", default-features = false, features = [] }
@@ -237,7 +241,6 @@ sqlformat = { version = "0.5.0", default-features = false, features = [] }
 thiserror = { version = "2.0.18", default-features = false, features = [] }
 tokio = { version = "1.52.3", default-features = false, features = ["bytes", "fs", "io-util", "rt", "rt-multi-thread", "sync"] }
 tokio-stream = { version = "0.1.18", default-features = false, features = [] }
-# future
 tokio-websockets = { version = "0.13.1", features = [] }
 tracing = { version = "0.1.44", default-features = false, features = ["std", "attributes"] }
 tracing-log = { version = "0.2.0", default-features = false, features = [] }

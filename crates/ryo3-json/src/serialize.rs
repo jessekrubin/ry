@@ -121,7 +121,7 @@ impl<'py> JsonSerializer<'py> {
 // stringify_fn!(dumps);
 // ```
 
-#[expect(clippy::fn_params_excessive_bools)]
+#[expect(clippy::fn_params_excessive_bools, reason = "python kwargs")]
 #[pyfunction(
     signature=(
         obj,
@@ -168,7 +168,7 @@ pub fn to_vec(obj: &Bound<'_, PyAny>) -> PyResult<Vec<u8>> {
     .serialize_to_vec(obj)
 }
 
-#[expect(clippy::fn_params_excessive_bools)]
+#[expect(clippy::fn_params_excessive_bools, reason = "python kwargs")]
 #[pyfunction(
     signature=(
         obj,

@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## v0.0.93 [unreleased]
+
+- set MSRV to 1.95
+
+---
+
 ## v0.0.92 [2026-05-15]
 
 - errors
