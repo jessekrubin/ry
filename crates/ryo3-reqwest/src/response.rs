@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use pyo3::prelude::*;
 use pyo3::types::PyString;
 use reqwest::header::CONTENT_ENCODING;
@@ -28,7 +26,7 @@ use crate::{RyResponseStream, pyerr_response_already_consumed};
 #[derive(Debug)]
 pub struct RyResponse {
     /// The actual response which will be consumed when read
-    res: Arc<RyMutex<Option<reqwest::Response>>>,
+    res: RyMutex<Option<reqwest::Response>>,
 
     /// Response "head" data (status, headers, url, http-version, etc.)
     head: RyResponseHead,
@@ -39,7 +37,7 @@ pub struct RyResponse {
 #[derive(Debug)]
 pub struct RyBlockingResponse {
     /// The actual response which will be consumed when read
-    res: Arc<RyMutex<Option<reqwest::Response>>>,
+    res: RyMutex<Option<reqwest::Response>>,
 
     /// Response "head" data (status, headers, url, http-version, etc.)
     head: RyResponseHead,
@@ -51,7 +49,7 @@ impl RyResponse {
     pub fn new(res: reqwest::Response) -> Self {
         Self {
             head: RyResponseHead::from(&res),
-            res: Arc::new(RyMutex::new(Some(res))),
+            res: RyMutex::new(Some(res)),
         }
     }
 
@@ -67,7 +65,7 @@ impl RyBlockingResponse {
     pub fn new(res: reqwest::Response) -> Self {
         Self {
             head: RyResponseHead::from(&res),
-            res: Arc::new(RyMutex::new(Some(res))),
+            res: RyMutex::new(Some(res)),
         }
     }
 

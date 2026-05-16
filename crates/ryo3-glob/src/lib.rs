@@ -3,7 +3,6 @@ mod pattern;
 
 use std::ffi::OsString;
 use std::path::PathBuf;
-use std::sync::Arc;
 
 use pyo3::IntoPyObjectExt;
 use pyo3::prelude::*;
@@ -77,7 +76,7 @@ impl<'py> IntoPyObject<'py> for GlobItem {
 #[pyclass(name = "GlobPaths", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct PyGlobPaths {
-    inner: Arc<RyMutex<::glob::Paths, false>>,
+    inner: RyMutex<::glob::Paths, false>,
     strict: bool,
     dtype: GlobDType,
 }
@@ -241,7 +240,7 @@ pub fn py_glob(
         },
     )
     .map(|paths| PyGlobPaths {
-        inner: Arc::new(RyMutex::new(paths)),
+        inner: RyMutex::new(paths),
         strict,
         dtype,
     })
