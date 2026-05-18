@@ -203,11 +203,22 @@ impl RySignedDuration {
     }
 
     #[staticmethod]
-    fn from_isoformat(s: &str) -> PyResult<Self> {
+    fn fromisoformat(s: &str) -> PyResult<Self> {
         crate::constants::SPAN_PARSER
             .parse_duration(s)
             .map(Self::from)
             .map_err(map_py_value_err)
+    }
+
+    #[pyo3(
+        warn(
+            message = "`SignedDuration.from_isoformat` is deprecated; use `SignedDuration.fromisoformat` instead [removal: v0.0.96]",
+            category = pyo3::exceptions::PyDeprecationWarning
+        )
+    )]
+    #[staticmethod]
+    fn from_isoformat(s: &str) -> PyResult<Self> {
+        Self::fromisoformat(s)
     }
 
     #[pyo3(signature = (*, friendly=false), name = "to_string")]

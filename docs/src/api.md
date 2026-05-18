@@ -72,6 +72,8 @@ from ry.ryo3.__about__ import __build_profile__ as __build_profile__
 from ry.ryo3.__about__ import __build_timestamp__ as __build_timestamp__
 from ry.ryo3.__about__ import __crypto_provider__ as __crypto_provider__
 from ry.ryo3.__about__ import __description__ as __description__
+from ry.ryo3.__about__ import __git_repo__ as __git_repo__
+from ry.ryo3.__about__ import __git_sha__ as __git_sha__
 from ry.ryo3.__about__ import __opt_level__ as __opt_level__
 from ry.ryo3.__about__ import __pkg_name__ as __pkg_name__
 from ry.ryo3.__about__ import (
@@ -287,7 +289,6 @@ from ry.ryo3._tokio import AsyncDirEntry as AsyncDirEntry
 from ry.ryo3._tokio import AsyncFile as AsyncFile
 from ry.ryo3._tokio import AsyncFileReadStream as AsyncFileReadStream
 from ry.ryo3._tokio import AsyncReadDir as AsyncReadDir
-from ry.ryo3._tokio import aiopen as aiopen  # type: ignore[deprecated]
 from ry.ryo3._tokio import aopen as aopen
 from ry.ryo3._tokio import asleep as asleep
 from ry.ryo3._tokio import canonicalize_async as canonicalize_async
@@ -357,6 +358,8 @@ __opt_level__: t.Literal["0", "1", "2", "3", "s", "z"]
 __allocator__: t.Literal["mimalloc", "system"]
 __crypto_provider__: t.Literal["ring", "aws-lc-rs"]
 __pyo3_experimental_async__: bool
+__git_repo__: str
+__git_sha__: str
 ```
 
 <h2 id="ry.ryo3._aws_lc"><code>ry.ryo3._aws_lc</code></h2>
@@ -491,6 +494,7 @@ class Bytes(Buffer):
     def __bytes__(self) -> bytes:
         """Return the underlying data as a Python `bytes` object."""
 
+    def __iter__(self) -> t.Iterator[int]: ...
     def removeprefix(self, prefix: Buffer, /) -> Bytes:
         """
         If the binary data starts with the prefix string, return `bytes[len(prefix):]`.
@@ -645,6 +649,13 @@ class Bytes(Buffer):
         """
         Return a copy of the sequence with all uppercase ASCII characters converted to
         their corresponding lowercase counterpart and vice versa.
+        """
+
+    def replace(self, old: Buffer, new: Buffer, count: int = -1) -> Bytes:
+        """
+        Return a copy of the sequence with all occurrences of `old` replaced by `new`.
+        If `count` is given and not negative, only the first `count` occurrences are
+        replaced.
         """
 
 
@@ -2807,6 +2818,11 @@ class SignedDuration(
     # =========================================================================
     def isoformat(self) -> str: ...
     @classmethod
+    def fromisoformat(cls, s: str) -> t.Self: ...
+    @deprecated(
+        "`SignedDuration.from_isoformat` is deprecated; use `SignedDuration.fromisoformat` instead [removal: v0.0.96]"
+    )
+    @classmethod
     def from_isoformat(cls, s: str) -> t.Self: ...
     def to_string(self, *, friendly: bool = False) -> str: ...
     def friendly(self) -> str: ...
@@ -2943,6 +2959,11 @@ class TimeSpan(
     # =========================================================================
     def isoformat(self) -> str: ...
     @classmethod
+    def fromisoformat(cls, s: str) -> t.Self: ...
+    @deprecated(
+        "`TimeSpan.from_isoformat` is deprecated; use `TimeSpan.fromisoformat` instead [removal: v0.0.96]"
+    )
+    @classmethod
     def from_isoformat(cls, s: str) -> t.Self: ...
     def to_string(self, *, friendly: bool = False) -> str: ...
     def friendly(self) -> str: ...
@@ -2963,6 +2984,9 @@ class TimeSpan(
     def from_str(cls, s: str) -> t.Self: ...
     @classmethod
     def parse(cls, s: str | bytes) -> t.Self: ...
+    @deprecated(
+        "`TimeSpan.parse_common_iso` is deprecated; use `TimeSpan.fromisoformat` instead [removal: v0.0.96]"
+    )
     @classmethod
     def parse_common_iso(cls, s: str) -> t.Self: ...
 
@@ -7068,10 +7092,6 @@ class AsyncFile:
 def aopen(
     path: FsPathLike, mode: OpenBinaryMode | str = "rb", buffering: int = -1
 ) -> AsyncFile: ...
-@deprecated("`aiopen` is deprecated; use `aopen` instead [removal: v0.0.93]")
-def aiopen(
-    path: FsPathLike, mode: OpenBinaryMode | str = "rb", buffering: int = -1
-) -> AsyncFile: ...
 
 
 @t.final
@@ -7574,18 +7594,12 @@ def unindent_bytes(b: bytes, /) -> bytes: ...
 <h2 id="ry.ryo3._url"><code>ry.ryo3._url</code></h2>
 
 ```python
-import sys
 import typing as t
 from ipaddress import IPv4Address, IPv6Address
 
 from ry._types import FsPathLike
 from ry.protocols import FromStr, ToString, _Parse
 from ry.ryo3._std import IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr
-
-if sys.version_info >= (3, 13):
-    from warnings import deprecated
-else:
-    from typing_extensions import deprecated
 
 
 @t.final
@@ -7747,48 +7761,6 @@ class URL(FromStr, ToString, _Parse):
     def __gt__(self, other: t.Self) -> bool: ...
     def __ge__(self, other: t.Self) -> bool: ...
     def __hash__(self) -> int: ...
-
-    # =========================================================================
-    # DEPRECATED
-    # =========================================================================
-    @deprecated(
-        "`URL.replace_fragment` is deprecated; use `URL.with_fragment` instead [removal: v0.0.93]"
-    )
-    def replace_fragment(self, fragment: str | None = None) -> t.Self: ...
-    @deprecated(
-        "`URL.replace_host` is deprecated; use `URL.with_host` instead [removal: v0.0.93]"
-    )
-    def replace_host(self, host: str | None = None) -> t.Self: ...
-    @deprecated(
-        "`URL.replace_ip_host` is deprecated; use `URL.with_ip_host` instead [removal: v0.0.93]"
-    )
-    def replace_ip_host(
-        self, address: IPv4Address | IPv6Address | Ipv4Addr | Ipv6Addr | IpAddr
-    ) -> t.Self: ...
-    @deprecated(
-        "`URL.replace_password` is deprecated; use `URL.with_password` instead [removal: v0.0.93]"
-    )
-    def replace_password(self, password: str | None = None) -> t.Self: ...
-    @deprecated(
-        "`URL.replace_path` is deprecated; use `URL.with_path` instead [removal: v0.0.93]"
-    )
-    def replace_path(self, path: str) -> t.Self: ...
-    @deprecated(
-        "`URL.replace_port` is deprecated; use `URL.with_port` instead [removal: v0.0.93]"
-    )
-    def replace_port(self, port: int | None = None) -> t.Self: ...
-    @deprecated(
-        "`URL.replace_query` is deprecated; use `URL.with_query` instead [removal: v0.0.93]"
-    )
-    def replace_query(self, query: str | None = None) -> t.Self: ...
-    @deprecated(
-        "`URL.replace_scheme` is deprecated; use `URL.with_scheme` instead [removal: v0.0.93]"
-    )
-    def replace_scheme(self, scheme: str) -> t.Self: ...
-    @deprecated(
-        "`URL.replace_username` is deprecated; use `URL.with_username` instead [removal: v0.0.93]"
-    )
-    def replace_username(self, username: str) -> t.Self: ...
 ```
 
 <h2 id="ry.ryo3._walkdir"><code>ry.ryo3._walkdir</code></h2>

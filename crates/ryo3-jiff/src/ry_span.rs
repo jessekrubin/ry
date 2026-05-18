@@ -8,7 +8,6 @@ use pyo3::{BoundObject, IntoPyObjectExt};
 use ryo3_core::{PyAsciiString, map_py_overflow_err, map_py_value_err, py_value_err};
 use ryo3_macro_rules::{any_repr, py_overflow_error, py_type_err, py_value_error};
 
-use crate::constants::SPAN_PARSER;
 use crate::py_temporal_like::PyTemporalTypes;
 use crate::ry_signed_duration::RySignedDuration;
 use crate::spanish::Spanish;
@@ -77,11 +76,22 @@ impl RySpan {
     }
 
     #[staticmethod]
-    fn from_isoformat(s: &str) -> PyResult<Self> {
+    fn fromisoformat(s: &str) -> PyResult<Self> {
         crate::constants::SPAN_PARSER
             .parse_span(s)
             .map(Self::from)
             .map_err(map_py_value_err)
+    }
+
+    #[pyo3(
+        warn(
+            message = "`TimeSpan.from_isoformat` is deprecated; use `TimeSpan.fromisoformat` instead [removal: v0.0.96]",
+            category = pyo3::exceptions::PyDeprecationWarning
+        )
+    )]
+    #[staticmethod]
+    fn from_isoformat(s: &str) -> PyResult<Self> {
+        Self::fromisoformat(s)
     }
 
     fn __str__(&self) -> PyAsciiString {
@@ -166,12 +176,15 @@ impl RySpan {
         jiff_span.into_pyobject(py)
     }
 
+    #[pyo3(
+        warn(
+            message = "`TimeSpan.parse_common_iso` is deprecated; use `TimeSpan.fromisoformat` instead [removal: v0.0.96]",
+            category = pyo3::exceptions::PyDeprecationWarning
+        )
+    )]
     #[staticmethod]
     fn parse_common_iso(s: &str) -> PyResult<Self> {
-        SPAN_PARSER
-            .parse_span(s)
-            .map(Self::from)
-            .map_err(map_py_value_err)
+        Self::fromisoformat(s)
     }
 
     // <UNIFORM>

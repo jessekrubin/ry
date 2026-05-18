@@ -118,7 +118,6 @@ from ry.ryo3 import (  # type: ignore[deprecated]
     __target__,
     __version__,
     _dev,
-    aiopen,  # ty:ignore[deprecated]
     aopen,
     asleep,
     brotli,
@@ -378,7 +377,6 @@ __all__ = (
     "__target__",
     "__version__",
     "_dev",
-    "aiopen",
     "aopen",
     "asleep",
     "brotli",

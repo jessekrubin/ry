@@ -193,7 +193,7 @@ class TestTimeSpanStrings:
     def test_span_isoformat(self) -> None:
         s = ry.timespan(years=1)
         assert s.isoformat() == "P1Y"
-        assert s == ry.TimeSpan.from_isoformat("P1Y")
+        assert s == ry.TimeSpan.fromisoformat("P1Y")
 
     def test_all_ones_repr_full(self) -> None:
         assert (

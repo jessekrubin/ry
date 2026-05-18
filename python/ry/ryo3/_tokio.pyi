@@ -102,10 +102,6 @@ class AsyncFile:
 def aopen(
     path: FsPathLike, mode: OpenBinaryMode | str = "rb", buffering: int = -1
 ) -> AsyncFile: ...
-@deprecated("`aiopen` is deprecated; use `aopen` instead [removal: v0.0.93]")
-def aiopen(
-    path: FsPathLike, mode: OpenBinaryMode | str = "rb", buffering: int = -1
-) -> AsyncFile: ...
 
 @t.final
 class AsyncFileReadStream(RyAsyncIterator[Bytes]):

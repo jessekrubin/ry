@@ -81,6 +81,7 @@ ry.Offset.from_seconds
 ry.Offset.parse
 ry.Offset.utc
 ry.SignedDuration.from_hours
+ry.SignedDuration.fromisoformat
 ry.SignedDuration.from_isoformat
 ry.SignedDuration.from_micros
 ry.SignedDuration.from_millis
@@ -127,6 +128,7 @@ ry.Time.now
 ry.Time.parse
 ry.Time.strptime
 ry.Time.utcnow
+ry.TimeSpan.fromisoformat
 ry.TimeSpan.from_isoformat
 ry.TimeSpan.from_pytimedelta
 ry.TimeSpan.parse

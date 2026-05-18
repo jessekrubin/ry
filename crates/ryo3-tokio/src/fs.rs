@@ -362,23 +362,6 @@ pub fn aopen(
     Ok(PyAsyncFile::new(path, mode.into()))
 }
 
-#[pyfunction(
-    signature = (path, mode = PyOpenMode::default(), buffering = -1, **kwargs),
-    text_signature = "(path, mode=\"rb\", buffering=-1, **kwargs)",
-    warn(
-        message = "`aiopen` is deprecated; use `aopen` instead [removal: v0.0.93]",
-        category = pyo3::exceptions::PyDeprecationWarning
-    )
-)]
-pub fn aiopen(
-    path: PathBuf,
-    mode: PyOpenMode,
-    buffering: i8,
-    kwargs: Option<&Bound<'_, PyDict>>,
-) -> PyResult<PyAsyncFile> {
-    aopen(path, mode, buffering, kwargs)
-}
-
 #[pyfunction]
 #[pyo3(signature = (path, read_size = 65536, *, offset = 0, buffered = true, strict = true))]
 pub fn read_stream_async(
@@ -396,7 +379,6 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyAsyncFile>()?;
     m.add_class::<PyAsyncFileReadStream>()?;
     // functions
-    m.add_function(wrap_pyfunction!(aiopen, m)?)?;
     m.add_function(wrap_pyfunction!(aopen, m)?)?;
     m.add_function(wrap_pyfunction!(canonicalize_async, m)?)?;
     m.add_function(wrap_pyfunction!(copy_async, m)?)?;
