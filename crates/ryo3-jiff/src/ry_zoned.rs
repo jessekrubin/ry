@@ -286,16 +286,6 @@ impl RyZoned {
         self.0.in_tz(tz).map(Self::from).map_err(map_py_value_err)
     }
 
-    #[pyo3(
-        warn(
-            message = "`ZonedDateTime.intz` is deprecated; use `ZonedDateTime.in_tz` instead [removal: v0.0.93]",
-            category = pyo3::exceptions::PyDeprecationWarning
-        )
-    )]
-    fn intz(&self, tz: &str) -> PyResult<Self> {
-        self.in_tz(tz)
-    }
-
     fn astimezone(&self, tz: &str) -> PyResult<Self> {
         self.in_tz(tz)
     }

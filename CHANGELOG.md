@@ -9,6 +9,7 @@
       `ry.TimeSpan.parse_common_iso`, and `ry.TimeSpan.from_isoformat` in favor
       of `*.fromisoformat`; this matches python/pandas
   - removed
+    - removed deprecated jiff `.intz(...)` aliases; use `.in_tz(...)` instead
     - `ryo3_tokio::fs::aiopen` (aka `ry.aiopen`); use `ry.aopen` instead (which
       has the benefit of not having the letters "ai")
     - `ryo3_url::URL.replace_*` methods in favor of `ryo3_url::URL.with_*`

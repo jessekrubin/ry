@@ -362,16 +362,6 @@ impl RyDateTime {
             .map_err(map_py_value_err)
     }
 
-    #[pyo3(
-        warn(
-            message = "`DateTime.intz` is deprecated; use `DateTime.in_tz` instead [removal: v0.0.93]",
-            category = pyo3::exceptions::PyDeprecationWarning
-        )
-    )]
-    fn intz(&self, tz: &str) -> PyResult<RyZoned> {
-        self.in_tz(tz)
-    }
-
     fn iso_week_date(&self) -> RyISOWeekDate {
         RyISOWeekDate::from(self)
     }
