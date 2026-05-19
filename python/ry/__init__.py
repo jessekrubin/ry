@@ -1,7 +1,7 @@
 """ry = rust + python"""
 
 from ry import ryo3
-from ry.ryo3 import (  # type: ignore[deprecated]
+from ry.ryo3 import (
     I8_BITS,
     I8_MAX,
     I8_MIN,
@@ -64,7 +64,6 @@ from ry.ryo3 import (  # type: ignore[deprecated]
     GlobSet,
     Globster,
     Headers,
-    HttpClient,  # ty:ignore[deprecated]
     HttpStatus,
     Identity,
     Instant,
@@ -323,7 +322,6 @@ __all__ = (
     "GlobSet",
     "Globster",
     "Headers",
-    "HttpClient",
     "HttpStatus",
     "ISOWeekDate",
     "Identity",

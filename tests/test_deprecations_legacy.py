@@ -103,3 +103,14 @@ class TestUrlReplaceMethodsDeprecations:
 
         # Verify that both results are the same
         assert deprecated_result == new_result
+
+
+@pytest.mark.skip(reason="removed in v0.0.93")
+class TestReqwestDeprecations:
+    def test_http_client_deprecation_warning(self) -> None:
+        with pytest.deprecated_call(
+            match=re.escape(
+                "`HttpClient` is deprecated; use `Client` instead [removal: v0.0.93]"
+            )
+        ):
+            _c = ry.HttpClient()  # type: ignore[attr-defined]

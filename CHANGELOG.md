@@ -14,6 +14,8 @@
       has the benefit of not having the letters "ai")
     - `ryo3_url::URL.replace_*` methods in favor of `ryo3_url::URL.with_*`
       methods
+    - `ry.HttpClient` (`ryo3_reqwest::RyHttpClient`) removed (finally); use
+      instead `ry.Client`
 
 ---
 

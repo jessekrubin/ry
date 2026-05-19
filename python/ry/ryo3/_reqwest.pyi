@@ -1,6 +1,5 @@
 """ryo3-reqwest types"""
 
-import sys
 import typing as t
 
 import ry
@@ -10,11 +9,6 @@ from ry.ryo3._encoding_rs import Encoding
 from ry.ryo3._http import Headers, HttpStatus, HttpVersionLike
 from ry.ryo3._std import Duration, SocketAddr
 from ry.ryo3._url import URL
-
-if sys.version_info >= (3, 13):
-    from warnings import deprecated
-else:
-    from typing_extensions import deprecated
 
 _Body: t.TypeAlias = (
     Buffer
@@ -99,119 +93,6 @@ class ClientConfig(t.TypedDict):
     tls_danger_accept_invalid_hostnames: bool  # default: False
     # __ UNSTABLE __
     _tls_cached_native_certs: bool  # default: False
-
-@deprecated("`HttpClient` is deprecated; use `Client` instead [removal: v0.0.93]")
-@t.final
-class HttpClient:
-    def __new__(
-        cls,
-        *,
-        headers: dict[str, str] | Headers | None = None,
-        cookies: bool = False,
-        user_agent: str | bool | None = None,
-        timeout: Duration | None = None,
-        connect_timeout: Duration | None = None,
-        read_timeout: Duration | None = None,
-        redirect: int | None = 10,
-        resolve: _ResolveMapLike | None = None,
-        referer: bool = True,
-        connection_verbose: bool = False,
-        gzip: bool = True,
-        brotli: bool = True,
-        deflate: bool = True,
-        zstd: bool = True,
-        hickory_dns: bool = True,
-        http1_only: bool = False,
-        https_only: bool = False,
-        http1_title_case_headers: bool = False,
-        http1_allow_obsolete_multiline_headers_in_responses: bool = False,
-        http1_allow_spaces_after_header_name_in_responses: bool = False,
-        http1_ignore_invalid_headers_in_responses: bool = False,
-        http2_prior_knowledge: bool = False,
-        http2_initial_stream_window_size: int | None = None,
-        http2_initial_connection_window_size: int | None = None,
-        http2_adaptive_window: bool = False,
-        http2_max_frame_size: int | None = None,
-        http2_max_header_list_size: int | None = None,
-        http2_keep_alive_interval: Duration | None = None,
-        http2_keep_alive_timeout: Duration | None = None,
-        http2_keep_alive_while_idle: bool = False,
-        pool_idle_timeout: Duration | None = ...,  # 90 seconds
-        pool_max_idle_per_host: int | None = ...,  # usize::MAX
-        tcp_keepalive: Duration | None = ...,  # 15 seconds
-        tcp_keepalive_interval: Duration | None = ...,  # 15 seconds
-        tcp_keepalive_retries: int | None = 3,
-        tcp_nodelay: bool = True,
-        identity: Identity | None = None,
-        tls_certs_only: list[Certificate] | None = None,
-        tls_certs_merge: list[Certificate] | None = None,
-        tls_crls_only: list[CertificateRevocationList] | None = None,
-        tls_version_min: t.Literal["1.0", "1.1", "1.2", "1.3"] | None = None,
-        tls_version_max: t.Literal["1.0", "1.1", "1.2", "1.3"] | None = None,
-        tls_info: bool = False,
-        tls_sni: bool = True,
-        tls_danger_accept_invalid_certs: bool = False,
-        tls_danger_accept_invalid_hostnames: bool = False,
-        proxy: _ProxyKw | None = None,
-        _tls_cached_native_certs: bool = False,
-    ) -> t.Self: ...
-    def config(self) -> ClientConfig: ...
-    async def get(
-        self,
-        url: URL | str,
-        **kwargs: Unpack[RequestKwargs],
-    ) -> Response: ...
-    async def post(
-        self,
-        url: URL | str,
-        **kwargs: Unpack[RequestKwargs],
-    ) -> Response: ...
-    async def put(
-        self,
-        url: URL | str,
-        **kwargs: Unpack[RequestKwargs],
-    ) -> Response: ...
-    async def delete(
-        self,
-        url: URL | str,
-        **kwargs: Unpack[RequestKwargs],
-    ) -> Response: ...
-    async def patch(
-        self,
-        url: URL | str,
-        **kwargs: Unpack[RequestKwargs],
-    ) -> Response: ...
-    async def options(
-        self,
-        url: URL | str,
-        **kwargs: Unpack[RequestKwargs],
-    ) -> Response: ...
-    async def head(
-        self,
-        url: URL | str,
-        **kwargs: Unpack[RequestKwargs],
-    ) -> Response: ...
-    async def fetch(
-        self,
-        url: URL | str,
-        *,
-        method: str = "GET",
-        **kwargs: Unpack[RequestKwargs],
-    ) -> Response: ...
-    def fetch_sync(
-        self,
-        url: URL | str,
-        *,
-        method: str = "GET",
-        **kwargs: Unpack[RequestKwargs],
-    ) -> BlockingResponse: ...
-    async def __call__(
-        self,
-        url: URL | str,
-        *,
-        method: str = "GET",
-        **kwargs: Unpack[RequestKwargs],
-    ) -> Response: ...
 
 @t.final
 class Client:

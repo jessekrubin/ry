@@ -17,7 +17,7 @@ mod rustls_provider;
 mod tls;
 mod tls_version;
 mod types;
-pub use client::{RyBlockingClient, RyClient, RyHttpClient};
+pub use client::{RyBlockingClient, RyClient};
 pub use client_config::ClientConfig;
 pub use errors::RyReqwestError;
 pub use proxy::PyProxy;
@@ -34,7 +34,6 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyCertificateRevocationList>()?;
     m.add_class::<PyIdentity>()?;
     m.add_class::<PyProxy>()?;
-    m.add_class::<RyHttpClient>()?;
     m.add_class::<RyClient>()?;
     m.add_class::<RyBlockingClient>()?;
     m.add_class::<RyResponse>()?;

@@ -121,7 +121,6 @@ from ry.ryo3._reqwest import Certificate as Certificate
 from ry.ryo3._reqwest import CertificateRevocationList as CertificateRevocationList
 from ry.ryo3._reqwest import Client as Client
 from ry.ryo3._reqwest import ClientConfig as ClientConfig
-from ry.ryo3._reqwest import HttpClient as HttpClient  # type: ignore[deprecated]
 from ry.ryo3._reqwest import Identity as Identity
 from ry.ryo3._reqwest import Proxy as Proxy
 from ry.ryo3._reqwest import RequestKwargs as RequestKwargs

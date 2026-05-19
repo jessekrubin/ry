@@ -62,16 +62,12 @@ _DEFAULT_CONFIG: ClientConfig = {
 }
 
 
-_TClient: t.TypeAlias = ry.HttpClient | ry.Client | ry.BlockingClient  # type: ignore[deprecated]
+_TClient: t.TypeAlias = ry.Client | ry.BlockingClient
 
 
 # param fixture
 @pytest.fixture(
     params=(
-        pytest.param(
-            ry.HttpClient,  # type: ignore[deprecated]
-            marks=pytest.mark.filterwarnings("ignore:`HttpClient` is deprecated"),
-        ),
         ry.Client,
         ry.BlockingClient,
     )
@@ -132,7 +128,7 @@ class TestTlsVersions:
     )
     def test_client_config_tls_versions(
         self,
-        client_cls: type[ry.HttpClient | ry.Client | ry.BlockingClient],  # type: ignore[deprecated]
+        client_cls: type[ry.Client | ry.BlockingClient],
         tls_version_min: t.Literal["1.0", "1.1", "1.2", "1.3"] | None,
         tls_version_max: t.Literal["1.0", "1.1", "1.2", "1.3"] | None,
     ) -> None:
@@ -166,7 +162,7 @@ class TestTlsVersions:
 
     def test_client_tls_versions_wrong_type(
         self,
-        client_cls: type[ry.HttpClient | ry.Client | ry.BlockingClient],  # type: ignore[deprecated]
+        client_cls: type[ry.Client | ry.BlockingClient],
     ) -> None:
         match_pat = "TLS version must be a string (options: '1.0', '1.1', '1.2', '1.3')"
         with pytest.raises(TypeError, match=re.escape(match_pat)):
@@ -174,7 +170,7 @@ class TestTlsVersions:
 
     def test_client_config_tls_versions_value_problemo(
         self,
-        client_cls: type[ry.HttpClient | ry.Client | ry.BlockingClient],  # type: ignore[deprecated]
+        client_cls: type[ry.Client | ry.BlockingClient],
     ) -> None:
         match_pat = (
             "Invalid TLS version: snorkling (options: '1.0', '1.1', '1.2', '1.3')"

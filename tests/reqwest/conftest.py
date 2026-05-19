@@ -21,7 +21,7 @@ from uvicorn.server import Server
 
 import ry
 
-TClient: t.TypeAlias = ry.HttpClient | ry.Client | ry.BlockingClient  # type: ignore[deprecated]
+TClient: t.TypeAlias = ry.Client | ry.BlockingClient
 Receive: t.TypeAlias = t.Callable[[], Awaitable[dict[str, t.Any]]]
 Send: t.TypeAlias = t.Callable[[uvt.ASGISendEvent], Coroutine[None, None, None]]
 Scope: t.TypeAlias = dict[str, t.Any]
@@ -353,7 +353,7 @@ def server() -> Iterator[ReqtestServer]:
         yield running
 
 
-@pytest.fixture(params=[ry.HttpClient, ry.Client, ry.BlockingClient])  # type: ignore[deprecated]
+@pytest.fixture(params=[ry.Client, ry.BlockingClient])
 def client_cls(request: pytest.FixtureRequest) -> type[TClient]:
     return t.cast("type[TClient]", request.param)
 
