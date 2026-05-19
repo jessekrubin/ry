@@ -121,7 +121,6 @@ from ry.ryo3._reqwest import Certificate as Certificate
 from ry.ryo3._reqwest import CertificateRevocationList as CertificateRevocationList
 from ry.ryo3._reqwest import Client as Client
 from ry.ryo3._reqwest import ClientConfig as ClientConfig
-from ry.ryo3._reqwest import HttpClient as HttpClient  # type: ignore[deprecated]
 from ry.ryo3._reqwest import Identity as Identity
 from ry.ryo3._reqwest import Proxy as Proxy
 from ry.ryo3._reqwest import RequestKwargs as RequestKwargs
@@ -224,7 +223,6 @@ from ry.ryo3._tokio import AsyncDirEntry as AsyncDirEntry
 from ry.ryo3._tokio import AsyncFile as AsyncFile
 from ry.ryo3._tokio import AsyncFileReadStream as AsyncFileReadStream
 from ry.ryo3._tokio import AsyncReadDir as AsyncReadDir
-from ry.ryo3._tokio import aiopen as aiopen  # type: ignore[deprecated]
 from ry.ryo3._tokio import aopen as aopen
 from ry.ryo3._tokio import asleep as asleep
 from ry.ryo3._tokio import canonicalize_async as canonicalize_async

@@ -72,6 +72,8 @@ from ry.ryo3.__about__ import __build_profile__ as __build_profile__
 from ry.ryo3.__about__ import __build_timestamp__ as __build_timestamp__
 from ry.ryo3.__about__ import __crypto_provider__ as __crypto_provider__
 from ry.ryo3.__about__ import __description__ as __description__
+from ry.ryo3.__about__ import __git_repo__ as __git_repo__
+from ry.ryo3.__about__ import __git_sha__ as __git_sha__
 from ry.ryo3.__about__ import __opt_level__ as __opt_level__
 from ry.ryo3.__about__ import __pkg_name__ as __pkg_name__
 from ry.ryo3.__about__ import (
@@ -184,7 +186,6 @@ from ry.ryo3._reqwest import (
 )
 from ry.ryo3._reqwest import Client as Client
 from ry.ryo3._reqwest import ClientConfig as ClientConfig
-from ry.ryo3._reqwest import HttpClient as HttpClient  # type: ignore[deprecated]
 from ry.ryo3._reqwest import Identity as Identity
 from ry.ryo3._reqwest import Proxy as Proxy
 from ry.ryo3._reqwest import RequestKwargs as RequestKwargs
@@ -287,7 +288,6 @@ from ry.ryo3._tokio import AsyncDirEntry as AsyncDirEntry
 from ry.ryo3._tokio import AsyncFile as AsyncFile
 from ry.ryo3._tokio import AsyncFileReadStream as AsyncFileReadStream
 from ry.ryo3._tokio import AsyncReadDir as AsyncReadDir
-from ry.ryo3._tokio import aiopen as aiopen  # type: ignore[deprecated]
 from ry.ryo3._tokio import aopen as aopen
 from ry.ryo3._tokio import asleep as asleep
 from ry.ryo3._tokio import canonicalize_async as canonicalize_async
@@ -357,6 +357,8 @@ __opt_level__: t.Literal["0", "1", "2", "3", "s", "z"]
 __allocator__: t.Literal["mimalloc", "system"]
 __crypto_provider__: t.Literal["ring", "aws-lc-rs"]
 __pyo3_experimental_async__: bool
+__git_repo__: str
+__git_sha__: str
 ```
 
 <h2 id="ry.ryo3._aws_lc"><code>ry.ryo3._aws_lc</code></h2>
@@ -491,6 +493,7 @@ class Bytes(Buffer):
     def __bytes__(self) -> bytes:
         """Return the underlying data as a Python `bytes` object."""
 
+    def __iter__(self) -> t.Iterator[int]: ...
     def removeprefix(self, prefix: Buffer, /) -> Bytes:
         """
         If the binary data starts with the prefix string, return `bytes[len(prefix):]`.
@@ -645,6 +648,13 @@ class Bytes(Buffer):
         """
         Return a copy of the sequence with all uppercase ASCII characters converted to
         their corresponding lowercase counterpart and vice versa.
+        """
+
+    def replace(self, old: Buffer, new: Buffer, count: int = -1) -> Bytes:
+        """
+        Return a copy of the sequence with all occurrences of `old` replaced by `new`.
+        If `count` is given and not negative, only the first `count` occurrences are
+        replaced.
         """
 
 
@@ -2124,10 +2134,6 @@ class Date(
     def iso_week_date(self) -> ISOWeekDate: ...
     def in_leap_year(self) -> bool: ...
     def in_tz(self, tz: TimezoneName) -> ZonedDateTime: ...
-    @deprecated(
-        "`Date.intz` is deprecated; use `Date.in_tz` instead [removal: v0.0.93]"
-    )
-    def intz(self, tz: TimezoneName) -> ZonedDateTime: ...
     def last_of_month(self) -> t.Self: ...
     def last_of_year(self) -> t.Self: ...
     def nth_weekday(self, nth: int, weekday: Weekday) -> t.Self: ...
@@ -2553,10 +2559,6 @@ class DateTime(
     def first_of_year(self) -> t.Self: ...
     def in_leap_year(self) -> bool: ...
     def in_tz(self, tz: TimezoneName) -> ZonedDateTime: ...
-    @deprecated(
-        "`DateTime.intz` is deprecated; use `DateTime.in_tz` instead [removal: v0.0.93]"
-    )
-    def intz(self, tz: TimezoneName) -> ZonedDateTime: ...
     def iso_week_date(self) -> ISOWeekDate: ...
     def last_of_month(self) -> t.Self: ...
     def last_of_year(self) -> t.Self: ...
@@ -2807,6 +2809,11 @@ class SignedDuration(
     # =========================================================================
     def isoformat(self) -> str: ...
     @classmethod
+    def fromisoformat(cls, s: str) -> t.Self: ...
+    @deprecated(
+        "`SignedDuration.from_isoformat` is deprecated; use `SignedDuration.fromisoformat` instead [removal: v0.0.96]"
+    )
+    @classmethod
     def from_isoformat(cls, s: str) -> t.Self: ...
     def to_string(self, *, friendly: bool = False) -> str: ...
     def friendly(self) -> str: ...
@@ -2943,6 +2950,11 @@ class TimeSpan(
     # =========================================================================
     def isoformat(self) -> str: ...
     @classmethod
+    def fromisoformat(cls, s: str) -> t.Self: ...
+    @deprecated(
+        "`TimeSpan.from_isoformat` is deprecated; use `TimeSpan.fromisoformat` instead [removal: v0.0.96]"
+    )
+    @classmethod
     def from_isoformat(cls, s: str) -> t.Self: ...
     def to_string(self, *, friendly: bool = False) -> str: ...
     def friendly(self) -> str: ...
@@ -2963,6 +2975,9 @@ class TimeSpan(
     def from_str(cls, s: str) -> t.Self: ...
     @classmethod
     def parse(cls, s: str | bytes) -> t.Self: ...
+    @deprecated(
+        "`TimeSpan.parse_common_iso` is deprecated; use `TimeSpan.fromisoformat` instead [removal: v0.0.96]"
+    )
     @classmethod
     def parse_common_iso(cls, s: str) -> t.Self: ...
 
@@ -3357,12 +3372,6 @@ class Timestamp(
     def as_second(self) -> int: ...
     def display_with_offset(self, offset: Offset) -> str: ...
     def in_tz(self, tz: TimezoneName) -> ZonedDateTime: ...
-    @deprecated(
-        "`Timestamp.intz` is deprecated; use `Timestamp.in_tz` instead [removal: v0.0.93]"
-    )
-    def intz(self, tz: TimezoneName) -> ZonedDateTime:
-        """Deprecated ~ use `in_tz`"""
-
     @property
     def is_zero(self) -> bool: ...
     def series(self, period: TimeSpan) -> JiffSeries[t.Self]: ...
@@ -3643,10 +3652,6 @@ class ZonedDateTime(
     def first_of_year(self) -> t.Self: ...
     def in_leap_year(self) -> bool: ...
     def in_tz(self, tz: TimezoneName) -> t.Self: ...
-    @deprecated(
-        "`ZonedDateTime.intz` is deprecated; use `ZonedDateTime.in_tz` instead [removal: v0.0.93]"
-    )
-    def intz(self, tz: TimezoneName) -> t.Self: ...
     def inutc(self) -> t.Self: ...
     def last_of_month(self) -> t.Self: ...
     def last_of_year(self) -> t.Self: ...
@@ -4978,7 +4983,6 @@ class Regex:
 ```python
 """ryo3-reqwest types"""
 
-import sys
 import typing as t
 
 import ry
@@ -4988,11 +4992,6 @@ from ry.ryo3._encoding_rs import Encoding
 from ry.ryo3._http import Headers, HttpStatus, HttpVersionLike
 from ry.ryo3._std import Duration, SocketAddr
 from ry.ryo3._url import URL
-
-if sys.version_info >= (3, 13):
-    from warnings import deprecated
-else:
-    from typing_extensions import deprecated
 
 _Body: t.TypeAlias = (
     Buffer
@@ -5079,120 +5078,6 @@ class ClientConfig(t.TypedDict):
     tls_danger_accept_invalid_hostnames: bool  # default: False
     # __ UNSTABLE __
     _tls_cached_native_certs: bool  # default: False
-
-
-@deprecated("`HttpClient` is deprecated; use `Client` instead [removal: v0.0.93]")
-@t.final
-class HttpClient:
-    def __new__(
-        cls,
-        *,
-        headers: dict[str, str] | Headers | None = None,
-        cookies: bool = False,
-        user_agent: str | bool | None = None,
-        timeout: Duration | None = None,
-        connect_timeout: Duration | None = None,
-        read_timeout: Duration | None = None,
-        redirect: int | None = 10,
-        resolve: _ResolveMapLike | None = None,
-        referer: bool = True,
-        connection_verbose: bool = False,
-        gzip: bool = True,
-        brotli: bool = True,
-        deflate: bool = True,
-        zstd: bool = True,
-        hickory_dns: bool = True,
-        http1_only: bool = False,
-        https_only: bool = False,
-        http1_title_case_headers: bool = False,
-        http1_allow_obsolete_multiline_headers_in_responses: bool = False,
-        http1_allow_spaces_after_header_name_in_responses: bool = False,
-        http1_ignore_invalid_headers_in_responses: bool = False,
-        http2_prior_knowledge: bool = False,
-        http2_initial_stream_window_size: int | None = None,
-        http2_initial_connection_window_size: int | None = None,
-        http2_adaptive_window: bool = False,
-        http2_max_frame_size: int | None = None,
-        http2_max_header_list_size: int | None = None,
-        http2_keep_alive_interval: Duration | None = None,
-        http2_keep_alive_timeout: Duration | None = None,
-        http2_keep_alive_while_idle: bool = False,
-        pool_idle_timeout: Duration | None = ...,  # 90 seconds
-        pool_max_idle_per_host: int | None = ...,  # usize::MAX
-        tcp_keepalive: Duration | None = ...,  # 15 seconds
-        tcp_keepalive_interval: Duration | None = ...,  # 15 seconds
-        tcp_keepalive_retries: int | None = 3,
-        tcp_nodelay: bool = True,
-        identity: Identity | None = None,
-        tls_certs_only: list[Certificate] | None = None,
-        tls_certs_merge: list[Certificate] | None = None,
-        tls_crls_only: list[CertificateRevocationList] | None = None,
-        tls_version_min: t.Literal["1.0", "1.1", "1.2", "1.3"] | None = None,
-        tls_version_max: t.Literal["1.0", "1.1", "1.2", "1.3"] | None = None,
-        tls_info: bool = False,
-        tls_sni: bool = True,
-        tls_danger_accept_invalid_certs: bool = False,
-        tls_danger_accept_invalid_hostnames: bool = False,
-        proxy: _ProxyKw | None = None,
-        _tls_cached_native_certs: bool = False,
-    ) -> t.Self: ...
-    def config(self) -> ClientConfig: ...
-    async def get(
-        self,
-        url: URL | str,
-        **kwargs: Unpack[RequestKwargs],
-    ) -> Response: ...
-    async def post(
-        self,
-        url: URL | str,
-        **kwargs: Unpack[RequestKwargs],
-    ) -> Response: ...
-    async def put(
-        self,
-        url: URL | str,
-        **kwargs: Unpack[RequestKwargs],
-    ) -> Response: ...
-    async def delete(
-        self,
-        url: URL | str,
-        **kwargs: Unpack[RequestKwargs],
-    ) -> Response: ...
-    async def patch(
-        self,
-        url: URL | str,
-        **kwargs: Unpack[RequestKwargs],
-    ) -> Response: ...
-    async def options(
-        self,
-        url: URL | str,
-        **kwargs: Unpack[RequestKwargs],
-    ) -> Response: ...
-    async def head(
-        self,
-        url: URL | str,
-        **kwargs: Unpack[RequestKwargs],
-    ) -> Response: ...
-    async def fetch(
-        self,
-        url: URL | str,
-        *,
-        method: str = "GET",
-        **kwargs: Unpack[RequestKwargs],
-    ) -> Response: ...
-    def fetch_sync(
-        self,
-        url: URL | str,
-        *,
-        method: str = "GET",
-        **kwargs: Unpack[RequestKwargs],
-    ) -> BlockingResponse: ...
-    async def __call__(
-        self,
-        url: URL | str,
-        *,
-        method: str = "GET",
-        **kwargs: Unpack[RequestKwargs],
-    ) -> Response: ...
 
 
 @t.final
@@ -6960,7 +6845,6 @@ ISIZE_MIN: Literal[-2_147_483_648, -9_223_372_036_854_775_808]
 """ryo3-tokio types"""
 
 import pathlib
-import sys
 import typing as t
 from collections.abc import Generator
 from types import TracebackType
@@ -6969,11 +6853,6 @@ from ry import Bytes
 from ry._types import Buffer, FsPathLike, OpenBinaryMode
 from ry.protocols import RyAsyncIterator
 from ry.ryo3._std import FileType, Metadata
-
-if sys.version_info >= (3, 13):
-    from warnings import deprecated
-else:
-    from typing_extensions import deprecated
 
 
 # =============================================================================
@@ -7066,10 +6945,6 @@ class AsyncFile:
 
 
 def aopen(
-    path: FsPathLike, mode: OpenBinaryMode | str = "rb", buffering: int = -1
-) -> AsyncFile: ...
-@deprecated("`aiopen` is deprecated; use `aopen` instead [removal: v0.0.93]")
-def aiopen(
     path: FsPathLike, mode: OpenBinaryMode | str = "rb", buffering: int = -1
 ) -> AsyncFile: ...
 
@@ -7574,18 +7449,12 @@ def unindent_bytes(b: bytes, /) -> bytes: ...
 <h2 id="ry.ryo3._url"><code>ry.ryo3._url</code></h2>
 
 ```python
-import sys
 import typing as t
 from ipaddress import IPv4Address, IPv6Address
 
 from ry._types import FsPathLike
 from ry.protocols import FromStr, ToString, _Parse
 from ry.ryo3._std import IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr
-
-if sys.version_info >= (3, 13):
-    from warnings import deprecated
-else:
-    from typing_extensions import deprecated
 
 
 @t.final
@@ -7747,48 +7616,6 @@ class URL(FromStr, ToString, _Parse):
     def __gt__(self, other: t.Self) -> bool: ...
     def __ge__(self, other: t.Self) -> bool: ...
     def __hash__(self) -> int: ...
-
-    # =========================================================================
-    # DEPRECATED
-    # =========================================================================
-    @deprecated(
-        "`URL.replace_fragment` is deprecated; use `URL.with_fragment` instead [removal: v0.0.93]"
-    )
-    def replace_fragment(self, fragment: str | None = None) -> t.Self: ...
-    @deprecated(
-        "`URL.replace_host` is deprecated; use `URL.with_host` instead [removal: v0.0.93]"
-    )
-    def replace_host(self, host: str | None = None) -> t.Self: ...
-    @deprecated(
-        "`URL.replace_ip_host` is deprecated; use `URL.with_ip_host` instead [removal: v0.0.93]"
-    )
-    def replace_ip_host(
-        self, address: IPv4Address | IPv6Address | Ipv4Addr | Ipv6Addr | IpAddr
-    ) -> t.Self: ...
-    @deprecated(
-        "`URL.replace_password` is deprecated; use `URL.with_password` instead [removal: v0.0.93]"
-    )
-    def replace_password(self, password: str | None = None) -> t.Self: ...
-    @deprecated(
-        "`URL.replace_path` is deprecated; use `URL.with_path` instead [removal: v0.0.93]"
-    )
-    def replace_path(self, path: str) -> t.Self: ...
-    @deprecated(
-        "`URL.replace_port` is deprecated; use `URL.with_port` instead [removal: v0.0.93]"
-    )
-    def replace_port(self, port: int | None = None) -> t.Self: ...
-    @deprecated(
-        "`URL.replace_query` is deprecated; use `URL.with_query` instead [removal: v0.0.93]"
-    )
-    def replace_query(self, query: str | None = None) -> t.Self: ...
-    @deprecated(
-        "`URL.replace_scheme` is deprecated; use `URL.with_scheme` instead [removal: v0.0.93]"
-    )
-    def replace_scheme(self, scheme: str) -> t.Self: ...
-    @deprecated(
-        "`URL.replace_username` is deprecated; use `URL.with_username` instead [removal: v0.0.93]"
-    )
-    def replace_username(self, username: str) -> t.Self: ...
 ```
 
 <h2 id="ry.ryo3._walkdir"><code>ry.ryo3._walkdir</code></h2>

@@ -350,16 +350,6 @@ impl RyTimestamp {
             .map_err(map_py_value_err)
     }
 
-    #[pyo3(
-        warn(
-            message = "`Timestamp.intz` is deprecated; use `Timestamp.in_tz` instead [removal: v0.0.93]",
-            category = pyo3::exceptions::PyDeprecationWarning
-        )
-    )]
-    fn intz(&self, tz: &str) -> PyResult<RyZoned> {
-        self.in_tz(tz)
-    }
-
     #[staticmethod]
     fn from_microsecond(microsecond: i64) -> PyResult<Self> {
         Timestamp::from_microsecond(microsecond)

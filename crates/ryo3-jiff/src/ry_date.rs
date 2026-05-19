@@ -372,16 +372,6 @@ impl RyDate {
             .map_err(map_py_value_err)
     }
 
-    #[pyo3(
-        warn(
-            message = "`Date.intz` is deprecated; use `Date.in_tz` instead [removal: v0.0.93]",
-            category = pyo3::exceptions::PyDeprecationWarning
-        )
-    )]
-    fn intz(&self, tz: &str) -> PyResult<RyZoned> {
-        self.in_tz(tz)
-    }
-
     #[expect(clippy::wrong_self_convention)]
     fn to_dict<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
         use crate::interns;

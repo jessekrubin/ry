@@ -14,31 +14,15 @@ if TYPE_CHECKING:
 
     from .conftest import ReqtestServer
 
-TClient: t.TypeAlias = ry.HttpClient | ry.Client  # type: ignore[deprecated]
+TClient: t.TypeAlias = ry.Client
 
 
-@pytest.fixture(
-    params=(
-        pytest.param(
-            ry.HttpClient,  # type: ignore[deprecated]
-            marks=pytest.mark.filterwarnings("ignore:`HttpClient` is deprecated"),
-        ),
-        ry.Client,
-    )
-)
+@pytest.fixture(params=(ry.Client,))
 def client_cls(request: pytest.FixtureRequest) -> type[TClient]:
     return t.cast("type[TClient]", request.param)
 
 
-@pytest.fixture(
-    params=(
-        pytest.param(
-            ry.HttpClient,  # type: ignore[deprecated]
-            marks=pytest.mark.filterwarnings("ignore:`HttpClient` is deprecated"),
-        ),
-        ry.Client,
-    )
-)
+@pytest.fixture(params=(ry.Client,))
 def client(request: pytest.FixtureRequest) -> TClient:
     return t.cast("TClient", request.param())
 

@@ -13,21 +13,28 @@ repository.workspace = true
 description = "python + tokio (https://docs.rs/tokio/latest/tokio/)"
 
 [dependencies]
-bytes.workspace = true
+bytes = { workspace = true, optional = true }
 pyo3 = { workspace = true, features = [] }
-ryo3-bytes.workspace = true
-ryo3-core.workspace = true
-ryo3-macro-rules = { workspace = true, features = [] }
-ryo3-std = { workspace = true, features = [] }
-ryo3-tokio-rt.workspace = true
-tokio = { workspace = true, features = [] }
-tracing.workspace = true
+ryo3-bytes = { workspace = true, optional = true }
+ryo3-core = { workspace = true, features = [], optional = true }
+ryo3-macro-rules = { workspace = true, features = [], optional = true }
+ryo3-std = { workspace = true, features = [], optional = true }
+ryo3-tokio-rt = { workspace = true, features = [], optional = true }
+tokio = { workspace = true, features = [], optional = true }
 
 [features]
 default = []
 ry = ["fs", "time"]
-fs = ["tokio/fs", "ryo3-std/fs"]
-time = ["tokio/time", "ryo3-std/time"]
+fs = [
+  "dep:bytes",
+  "dep:ryo3-bytes",
+  "dep:ryo3-core",
+  "dep:ryo3-macro-rules",
+  "dep:ryo3-tokio-rt",
+  "ryo3-std/fs",
+  "tokio/fs",
+]
+time = ["tokio/time", "dep:ryo3-tokio-rt"]
 experimental-async = ["pyo3/experimental-async"]
 
 [lints]

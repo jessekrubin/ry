@@ -6,9 +6,9 @@ use pyo3::prelude::*;
 use pyo3::pybacked::PyBackedStr;
 use pyo3::types::PyDict;
 use ryo3_bytes::RyBytes;
+use ryo3_core::py_not_implemented_err;
 use ryo3_core::types::PyOpenMode;
 use ryo3_std::fs::PyMetadata;
-use tracing::warn;
 mod async_file;
 mod async_file_read_stream;
 pub use async_file::PyAsyncFile;
@@ -349,10 +349,10 @@ pub fn aopen(
     kwargs: Option<&Bound<'_, PyDict>>,
 ) -> PyResult<PyAsyncFile> {
     if buffering != -1 {
-        warn!("aopen non-buffered not impl: {kwargs:?}");
+        return py_not_implemented_err!("aopen buffering not implemented: {buffering}");
     }
     if let Some(kwargs) = kwargs {
-        warn!("aopen kwargs not impl: {kwargs:?}");
+        return py_not_implemented_err!("aopen kwargs not implemented: {kwargs:?}");
     }
     if !mode.is_binary() {
         return Err(pyo3::exceptions::PyNotImplementedError::new_err(
@@ -360,23 +360,6 @@ pub fn aopen(
         ));
     }
     Ok(PyAsyncFile::new(path, mode.into()))
-}
-
-#[pyfunction(
-    signature = (path, mode = PyOpenMode::default(), buffering = -1, **kwargs),
-    text_signature = "(path, mode=\"rb\", buffering=-1, **kwargs)",
-    warn(
-        message = "`aiopen` is deprecated; use `aopen` instead [removal: v0.0.93]",
-        category = pyo3::exceptions::PyDeprecationWarning
-    )
-)]
-pub fn aiopen(
-    path: PathBuf,
-    mode: PyOpenMode,
-    buffering: i8,
-    kwargs: Option<&Bound<'_, PyDict>>,
-) -> PyResult<PyAsyncFile> {
-    aopen(path, mode, buffering, kwargs)
 }
 
 #[pyfunction]
@@ -396,7 +379,6 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyAsyncFile>()?;
     m.add_class::<PyAsyncFileReadStream>()?;
     // functions
-    m.add_function(wrap_pyfunction!(aiopen, m)?)?;
     m.add_function(wrap_pyfunction!(aopen, m)?)?;
     m.add_function(wrap_pyfunction!(canonicalize_async, m)?)?;
     m.add_function(wrap_pyfunction!(copy_async, m)?)?;

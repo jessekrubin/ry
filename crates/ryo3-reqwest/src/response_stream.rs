@@ -254,7 +254,7 @@ impl RyResponseStream {
         })
     }
 
-    fn readall<'py>(&self, py: Python<'py>, join: bool) -> PyResult<Bound<'py, PyAny>> {
+    fn readall<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
         let stream = self.inner.stream.clone();
         future_into_py(py, async move {
             let mut guard = stream.lock().await;

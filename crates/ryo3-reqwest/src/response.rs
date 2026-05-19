@@ -168,8 +168,8 @@ impl RyResponse {
     ///
     /// named after jawascript fetch
     #[getter]
-    fn body_used(&self) -> bool {
-        self.res.lock().is_none()
+    fn body_used(&self) -> PyResult<bool> {
+        self.res.py_lock().map(|opt| opt.is_none())
     }
 
     /// Return the response body as bytes (consumes the response)
