@@ -6,9 +6,9 @@ use pyo3::prelude::*;
 use pyo3::pybacked::PyBackedStr;
 use pyo3::types::PyDict;
 use ryo3_bytes::RyBytes;
+use ryo3_core::py_not_implemented_err;
 use ryo3_core::types::PyOpenMode;
 use ryo3_std::fs::PyMetadata;
-use tracing::warn;
 mod async_file;
 mod async_file_read_stream;
 pub use async_file::PyAsyncFile;
@@ -349,10 +349,10 @@ pub fn aopen(
     kwargs: Option<&Bound<'_, PyDict>>,
 ) -> PyResult<PyAsyncFile> {
     if buffering != -1 {
-        warn!("aopen non-buffered not impl: {kwargs:?}");
+        return py_not_implemented_err!("aopen buffering not implemented: {buffering}");
     }
     if let Some(kwargs) = kwargs {
-        warn!("aopen kwargs not impl: {kwargs:?}");
+        return py_not_implemented_err!("aopen kwargs not implemented: {kwargs:?}");
     }
     if !mode.is_binary() {
         return Err(pyo3::exceptions::PyNotImplementedError::new_err(

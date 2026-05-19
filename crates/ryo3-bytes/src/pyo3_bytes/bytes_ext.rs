@@ -66,7 +66,7 @@ impl PyBytes {
     /// >>> value.hex(':', -2)
     /// 'b901:ef'
     #[pyo3(signature = (sep = None, *, bytes_per_sep = 1))]
-    fn hex(&self, sep: Option<char>, bytes_per_sep: usize) -> PyResult<String> {
+    fn hex(&self, sep: Option<char>, bytes_per_sep: usize) -> String {
         self.py_hex(sep, bytes_per_sep)
     }
 

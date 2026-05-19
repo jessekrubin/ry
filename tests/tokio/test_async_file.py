@@ -119,6 +119,14 @@ class TestAsyncFileAiopen:
         self, aopen_fixtures: FileFixtures, mode: str, buffering: int
     ) -> None:
         """Test iterating over lines from a file."""
+        if buffering == 0:
+            with pytest.raises(
+                NotImplementedError, match="aopen buffering not implemented: 0"
+            ):
+                _f = await aopen(
+                    aopen_fixtures.multiline_file_path, mode=mode, buffering=buffering
+                )
+            return
         async with aopen(
             aopen_fixtures.multiline_file_path, mode=mode, buffering=buffering
         ) as file:
@@ -150,6 +158,15 @@ class TestAsyncFileAiopen:
         self, aopen_fixtures: FileFixtures, mode: str, buffering: int
     ) -> None:
         """Test the readlines functionality."""
+
+        if buffering == 0:
+            with pytest.raises(
+                NotImplementedError, match="aopen buffering not implemented: 0"
+            ):
+                _f = await aopen(
+                    aopen_fixtures.multiline_file_path, mode=mode, buffering=buffering
+                )
+            return
         with open(aopen_fixtures.multiline_file_path, mode="rb") as f:
             expected = f.readlines()
 
@@ -223,6 +240,12 @@ async def test_simple_read(
 ) -> None:
     """Just read some bytes from a test file."""
     filename = str(aopen_fixtures.multiline_file_path)
+    if buffering == 0:
+        with pytest.raises(
+            NotImplementedError, match="aopen buffering not implemented: 0"
+        ):
+            _f = await aopen(filename, mode=mode, buffering=buffering)
+        return
     async with aopen(filename, mode=mode, buffering=buffering) as file:
         await file.seek(0)  # Needed for the append mode.
 
@@ -242,6 +265,12 @@ async def test_staggered_read(
 ) -> None:
     """Read bytes repeatedly."""
     filename = str(aopen_fixtures.multiline_file_path)
+    if buffering == 0:
+        with pytest.raises(
+            NotImplementedError, match="aopen buffering not implemented: 0"
+        ):
+            _f = await aopen(filename, mode=mode, buffering=buffering)
+        return
     async with aopen(filename, mode=mode, buffering=buffering) as file:
         await file.seek(0)  # Needed for the append mode.
 
@@ -278,6 +307,13 @@ async def test_simple_seek(mode: str, buffering: int, tmp_path: Path) -> None:
     full_file = tmp_path.joinpath(filename)
     full_file.write_bytes(content)
 
+    if buffering == 0:
+        with pytest.raises(
+            NotImplementedError, match="aopen buffering not implemented: 0"
+        ):
+            _f = await aopen(str(full_file), mode=mode, buffering=buffering)
+        return
+
     async with aopen(str(full_file), mode=mode, buffering=buffering) as file:
         await file.seek(4)
 
@@ -296,6 +332,12 @@ async def test_simple_close_ctx_mgr(mode: str, buffering: int, tmp_path: Path) -
 
     full_file = tmp_path.joinpath(filename)
     full_file.write_bytes(content)
+    if buffering == 0:
+        with pytest.raises(
+            NotImplementedError, match="aopen buffering not implemented: 0"
+        ):
+            _f = await aopen(str(full_file), mode=mode, buffering=buffering)
+        return
 
     async with aopen(str(full_file), mode=mode, buffering=buffering) as file:
         assert not file.closed
@@ -317,6 +359,13 @@ async def test_simple_close_no_ctx_mgr(
 
     full_file = tmp_path.joinpath(filename)
     full_file.write_bytes(content)
+
+    if buffering == 0:
+        with pytest.raises(
+            NotImplementedError, match="aopen buffering not implemented: 0"
+        ):
+            _f = await aopen(str(full_file), mode=mode, buffering=buffering)
+        return
 
     file = await aopen(str(full_file), mode=mode, buffering=buffering)
     assert not file.closed
@@ -343,6 +392,12 @@ async def test_simple_truncate(mode: str, buffering: int, tmp_path: Path) -> Non
 
     full_file = tmp_path.joinpath(filename)
     full_file.write_bytes(content)
+    if buffering == 0:
+        with pytest.raises(
+            NotImplementedError, match="aopen buffering not implemented: 0"
+        ):
+            _f = await aopen(str(full_file), mode=mode, buffering=buffering)
+        return
 
     async with aopen(str(full_file), mode=mode, buffering=buffering) as file:
         # The append modes want us to seek first.
@@ -372,6 +427,13 @@ async def test_simple_write(mode: str, buffering: int, tmp_path: Path) -> None:
     if "r" in mode:
         full_file.touch()  # Read modes want it to already exist.
 
+    if buffering == 0:
+        with pytest.raises(
+            NotImplementedError, match="aopen buffering not implemented: 0"
+        ):
+            _f = await aopen(str(full_file), mode=mode, buffering=buffering)
+        return
+
     async with aopen(str(full_file), mode=mode, buffering=buffering) as file:
         bytes_written = await file.write(content)
 
@@ -391,7 +453,7 @@ async def test_simple_readall(tmp_path: Path) -> None:
     sync_file = tmp_path.joinpath(filename)
     sync_file.write_bytes(content)
 
-    file = await aopen(str(sync_file), mode="rb", buffering=0)
+    file = await aopen(str(sync_file), mode="rb")
 
     actual = await file.readall()
 

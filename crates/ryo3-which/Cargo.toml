@@ -21,6 +21,6 @@ which = { workspace = true, features = ["real-sys"] }
 workspace = true
 
 [features]
-default = ["dep:ryo3-regex", "which/regex"]
+default = ["regex"]
 regex = ["dep:ryo3-regex", "which/regex"]
 tracing = ["which/tracing"]
