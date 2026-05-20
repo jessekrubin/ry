@@ -3,6 +3,13 @@
 ## v0.0.93 [unreleased]
 
 - set MSRV to 1.95
+- `ryo3-reqwest`
+  - refactor internals
+  - don't clone header map, split via `into_parts` and use the actual owned
+    headers map
+  - custom copy pasta charset handling
+  - still no body caching bc I think that is dumb but may add if someone asks
+  - use `ryo3-tokio-rt` helpers more
 - deprecations
   - new
     - deprecated `ry.SignedDuration.from_isoformat`,
@@ -29,8 +36,8 @@
   - upgrade `strip`, `lstrip`, and `rstrip` methods; return same instance if no
     stripping
   - use `ReadableBuffer` for slightly faster access on `ry.Bytes` methods
-  - custom interal iterator for bytes (bc I need it (for work) to be a weeee bit
-    faster)
+  - custom internal iterator for bytes (bc I need it (for work) to be a weeee
+    bit faster)
 
 ---
 
