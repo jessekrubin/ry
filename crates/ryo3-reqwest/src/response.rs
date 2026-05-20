@@ -769,9 +769,26 @@ async fn read_body_bytes(body: reqwest::Body) -> Result<bytes::Bytes, reqwest::E
         .map(http_body_util::Collected::to_bytes)
 }
 
+#[cfg(feature = "experimental-async")]
+#[inline]
+async fn read_body_bytes_with_cancel(
+    body: reqwest::Body,
+    mut cancel: CancelHandle,
+) -> PyResult<bytes::Bytes> {
+    tokio::select! {
+        res = read_body_bytes(body) => res.map_err(map_reqwest_err),
+        _ = cancel.cancelled() => Err(CancelledError::new_err("Response read was cancelled")),
+    }
+}
+
 #[inline]
 async fn read_body_text(body: reqwest::Body, encoding_name: &str) -> PyResult<String> {
     let full = read_body_bytes(body).await.map_err(map_reqwest_err)?;
+    decode_body_text(full, encoding_name)
+}
+
+#[inline]
+fn decode_body_text(full: bytes::Bytes, encoding_name: &str) -> PyResult<String> {
     let encoding =
         encoding_rs::Encoding::for_label(encoding_name.as_bytes()).unwrap_or(encoding_rs::UTF_8);
     let (text, _, _) = encoding.decode(&full);
