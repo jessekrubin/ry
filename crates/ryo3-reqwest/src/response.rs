@@ -16,7 +16,7 @@ use ryo3_tokio_rt::get_tokio_runtime;
 use ryo3_tokio_rt::on_tokio_py;
 use ryo3_url::PyUrl;
 
-use crate::charset::PyEncodingName;
+use crate::charset::PyEncoding;
 use crate::errors::map_reqwest_err;
 use crate::pyo3_json_bytes::Pyo3JsonBytes;
 use crate::response_head::RyResponseHead;
@@ -82,7 +82,7 @@ impl RyResponse {
         }
     }
 
-    fn response_encoding(&self, default: PyEncodingName) -> &'static str {
+    fn response_encoding(&self, default: PyEncoding) -> PyEncoding {
         let default_encoding = default.as_static_str();
         let content_type = self
             .head
@@ -95,8 +95,9 @@ impl RyResponse {
             .as_ref()
             .and_then(|mime| mime.get_param("charset").map(|charset| charset.as_str()))
             .unwrap_or(default_encoding);
+
         encoding_rs::Encoding::for_label(encoding_name.as_bytes())
-            .map_or(default_encoding, encoding_rs::Encoding::name)
+            .map_or(default, PyEncoding::from_encoding)
     }
 }
 
@@ -131,7 +132,7 @@ impl RyBlockingResponse {
         }
     }
 
-    fn response_encoding(&self, default: PyEncodingName) -> &'static str {
+    fn response_encoding(&self, default: PyEncoding) -> PyEncoding {
         let default_encoding = default.as_static_str();
         let content_type = self
             .head
@@ -145,7 +146,7 @@ impl RyBlockingResponse {
             .and_then(|mime| mime.get_param("charset").map(|charset| charset.as_str()))
             .unwrap_or(default_encoding);
         encoding_rs::Encoding::for_label(encoding_name.as_bytes())
-            .map_or(default_encoding, encoding_rs::Encoding::name)
+            .map_or(default, PyEncoding::from_encoding)
     }
 }
 
@@ -261,14 +262,10 @@ impl RyResponse {
 
     /// Return the response body as text/string (consumes the response)
     #[pyo3(
-        signature = (*, encoding = PyEncodingName::UTF_8),
+        signature = (*, encoding = PyEncoding::UTF_8),
         text_signature = "(self, *, encoding=\"utf-8\")"
     )]
-    fn text<'py>(
-        &'py self,
-        py: Python<'py>,
-        encoding: PyEncodingName,
-    ) -> PyResult<Bound<'py, PyAny>> {
+    fn text<'py>(&'py self, py: Python<'py>, encoding: PyEncoding) -> PyResult<Bound<'py, PyAny>> {
         self.text_with_charset(py, encoding)
     }
 
@@ -276,7 +273,7 @@ impl RyResponse {
     fn text_with_charset<'py>(
         &'py self,
         py: Python<'py>,
-        encoding: PyEncodingName,
+        encoding: PyEncoding,
     ) -> PyResult<Bound<'py, PyAny>> {
         let body = self.take_body()?;
         let encoding_name = self.response_encoding(encoding);
@@ -454,19 +451,19 @@ impl RyResponse {
 
     /// Return the response body as text/string (consumes the response)
     #[pyo3(
-        signature = (*, encoding = PyEncodingName::UTF_8),
+        signature = (*, encoding = PyEncoding::UTF_8),
         text_signature = "(self, *, encoding=\"utf-8\")"
     )]
     async fn text(
         &self,
-        encoding: PyEncodingName,
+        encoding: PyEncoding,
         #[pyo3(cancel_handle)] cancel: CancelHandle,
     ) -> PyResult<String> {
         let body = self.take_body()?;
         let encoding_name = self.response_encoding(encoding);
         on_tokio_py(async move {
             let full = read_body_bytes_with_cancel(body, cancel).await?;
-            decode_body_text(full, encoding_name)
+            Ok(decode_body_text(&full, encoding_name))
         })
         .await
     }
@@ -474,14 +471,14 @@ impl RyResponse {
     /// Return the response body as text with encoding (consumes the response)
     async fn text_with_charset(
         &self,
-        encoding: PyEncodingName,
+        encoding: PyEncoding,
         #[pyo3(cancel_handle)] cancel: CancelHandle,
     ) -> PyResult<String> {
         let body = self.take_body()?;
         let encoding_name = self.response_encoding(encoding);
         on_tokio_py(async move {
             let full = read_body_bytes_with_cancel(body, cancel).await?;
-            decode_body_text(full, encoding_name)
+            Ok(decode_body_text(&full, encoding_name))
         })
         .await
     }
@@ -670,10 +667,10 @@ impl RyBlockingResponse {
 
     /// Return the response body as text/string (consumes the response)
     #[pyo3(
-        signature = (*, encoding = PyEncodingName::UTF_8),
+        signature = (*, encoding = PyEncoding::UTF_8),
         text_signature = "(self, *, encoding=\"utf-8\")"
     )]
-    fn text<'py>(&'py self, py: Python<'py>, encoding: PyEncodingName) -> PyResult<String> {
+    fn text<'py>(&'py self, py: Python<'py>, encoding: PyEncoding) -> PyResult<String> {
         let body = self.take_body()?;
         let encoding_name = self.response_encoding(encoding);
         py.detach(|| get_tokio_runtime().block_on(read_body_text(body, encoding_name)))
@@ -683,7 +680,7 @@ impl RyBlockingResponse {
     fn text_with_charset<'py>(
         &'py self,
         py: Python<'py>,
-        encoding: PyEncodingName,
+        encoding: PyEncoding,
     ) -> PyResult<String> {
         let body = self.take_body()?;
         let encoding_name = self.response_encoding(encoding);
@@ -799,15 +796,13 @@ async fn read_body_bytes_with_cancel(
 }
 
 #[inline]
-async fn read_body_text(body: reqwest::Body, encoding_name: &str) -> PyResult<String> {
+async fn read_body_text(body: reqwest::Body, encoding: PyEncoding) -> PyResult<String> {
     let full = read_body_bytes(body).await.map_err(map_reqwest_err)?;
-    decode_body_text(full, encoding_name)
+    Ok(decode_body_text(&full, encoding))
 }
 
 #[inline]
-fn decode_body_text(full: bytes::Bytes, encoding_name: &str) -> PyResult<String> {
-    let encoding =
-        encoding_rs::Encoding::for_label(encoding_name.as_bytes()).unwrap_or(encoding_rs::UTF_8);
-    let (text, _, _) = encoding.decode(&full);
-    Ok(text.into_owned())
+fn decode_body_text(full: &bytes::Bytes, encoding: PyEncoding) -> String {
+    let (text, _, _) = encoding.decode(full);
+    text.into_owned()
 }
