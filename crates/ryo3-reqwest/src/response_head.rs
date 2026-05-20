@@ -10,7 +10,7 @@ pub(crate) struct RyResponseHead {
     /// das status code
     pub(crate) status: StatusCode,
     /// das headers
-    pub(crate) headers: Arc<RyRwLock<reqwest::header::HeaderMap, false>>,
+    pub(crate) headers: Arc<RyRwLock<http::HeaderMap, false>>,
     /// das url
     pub(crate) url: reqwest::Url,
     /// das content length -- if it exists (tho it might not and/or be
@@ -23,15 +23,21 @@ pub(crate) struct RyResponseHead {
 }
 
 impl RyResponseHead {
-    /// Create a new response from a reqwest response
-    pub(crate) fn new(res: &reqwest::Response) -> Self {
+    pub(crate) fn from_parts(
+        status: StatusCode,
+        headers: http::HeaderMap,
+        url: reqwest::Url,
+        content_length: Option<u64>,
+        version: reqwest::Version,
+        remote_addr: Option<SocketAddr>,
+    ) -> Self {
         Self {
-            status: res.status(),
-            headers: Arc::new(RyRwLock::new(res.headers().clone())),
-            url: res.url().clone(),
-            content_length: res.content_length(),
-            version: res.version(),
-            remote_addr: res.remote_addr(),
+            status,
+            headers: Arc::new(RyRwLock::new(headers)),
+            url,
+            content_length,
+            version,
+            remote_addr,
         }
     }
 
@@ -52,11 +58,5 @@ impl RyResponseHead {
         } else {
             Some(py_cookies)
         }
-    }
-}
-
-impl From<&reqwest::Response> for RyResponseHead {
-    fn from(res: &reqwest::Response) -> Self {
-        Self::new(res)
     }
 }

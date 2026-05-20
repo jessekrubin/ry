@@ -13,6 +13,8 @@ use pyo3::exceptions::{PyStopAsyncIteration, PyStopIteration};
 use pyo3::prelude::*;
 use reqwest::StatusCode;
 use ryo3_bytes::RyBytes;
+#[cfg(feature = "experimental-async")]
+use ryo3_tokio_rt::on_tokio_py;
 use ryo3_tokio_rt::{future_into_py, get_tokio_runtime};
 use tokio::sync::Mutex;
 
@@ -58,9 +60,8 @@ pub struct RyResponseStream {
 }
 
 impl ResponseStreamInner {
-    pub(crate) fn from_response(response: reqwest::Response, min_read_size: usize) -> Self {
-        let status = response.status();
-        let bstream = response.bytes_stream();
+    pub(crate) fn from_body(status: StatusCode, body: reqwest::Body, min_read_size: usize) -> Self {
+        let bstream = http_body_util::BodyDataStream::new(body);
         let stream: BoxStream<'static, Result<Bytes, reqwest::Error>> = Box::pin(bstream);
 
         let stream = Arc::new(Mutex::new(stream.fuse()));
@@ -124,8 +125,8 @@ impl ResponseStreamInner {
 }
 
 impl RyResponseStream {
-    pub(crate) fn from_response(response: reqwest::Response, min_read_size: usize) -> Self {
-        let inner = ResponseStreamInner::from_response(response, min_read_size);
+    pub(crate) fn from_body(status: StatusCode, body: reqwest::Body, min_read_size: usize) -> Self {
+        let inner = ResponseStreamInner::from_body(status, body, min_read_size);
         Self { inner }
     }
 }
@@ -163,25 +164,20 @@ impl RyResponseStream {
     // }
 
     async fn readall(&self) -> PyResult<RyBytes> {
-        use ryo3_macro_rules::py_runtime_error;
-        let rt = get_tokio_runtime();
         let stream = self.inner.stream.clone();
-        rt.spawn(async move {
+        on_tokio_py(async move {
             readall_bytes(&stream)
                 .await
                 .map(RyBytes::from)
                 .map_err(map_reqwest_err)
         })
         .await
-        .map_err(|e| py_runtime_error!("{e}"))?
     }
 
     #[pyo3(signature = (n = 1))]
     async fn take(&self, n: usize) -> PyResult<Vec<RyBytes>> {
-        use ryo3_macro_rules::py_runtime_error;
-        let rt = get_tokio_runtime();
         let stream = self.inner.stream.clone();
-        rt.spawn(async move {
+        on_tokio_py(async move {
             let mut guard = stream.lock().await;
             let mut items = Vec::with_capacity(n);
             for _ in 0..n {
@@ -194,30 +190,22 @@ impl RyResponseStream {
             Ok(items)
         })
         .await
-        .map_err(|e| py_runtime_error!("{e}"))?
     }
 
     async fn collect(&self) -> PyResult<Vec<RyBytes>> {
-        use ryo3_macro_rules::py_runtime_error;
-        let rt = get_tokio_runtime();
         let stream = self.inner.stream.clone();
-        let py_bytes_vec = rt
-            .spawn(async move {
-                let mut guard = stream.lock().await;
-                let mut items = Vec::new();
-                while let Some(item) = guard.next().await {
-                    match item {
-                        Ok(bytes) => items.push(bytes),
-                        Err(e) => return Err(e),
-                    }
+        on_tokio_py(async move {
+            let mut guard = stream.lock().await;
+            let mut items = Vec::new();
+            while let Some(item) = guard.next().await {
+                match item {
+                    Ok(bytes) => items.push(bytes),
+                    Err(e) => return Err(map_reqwest_err(e)),
                 }
-                Ok(items)
-            })
-            .await
-            .map_err(|e| py_runtime_error!("{e}"))?
-            .map(|bytes_vec| bytes_vec.into_iter().map(RyBytes::from).collect())
-            .map_err(map_reqwest_err)?;
-        Ok(py_bytes_vec)
+            }
+            Ok(items.into_iter().map(RyBytes::from).collect())
+        })
+        .await
     }
 }
 
@@ -299,8 +287,8 @@ pub struct RyBlockingResponseStream {
 }
 
 impl RyBlockingResponseStream {
-    pub(crate) fn from_response(response: reqwest::Response, min_read_size: usize) -> Self {
-        let inner = ResponseStreamInner::from_response(response, min_read_size);
+    pub(crate) fn from_body(status: StatusCode, body: reqwest::Body, min_read_size: usize) -> Self {
+        let inner = ResponseStreamInner::from_body(status, body, min_read_size);
         Self { inner }
     }
 }

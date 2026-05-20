@@ -8,6 +8,10 @@ pub(crate) struct PyEncodingName(&'static str);
 // const encodings
 impl PyEncodingName {
     pub(crate) const UTF_8: Self = Self("utf-8");
+
+    pub(crate) fn as_static_str(self) -> &'static str {
+        self.0
+    }
 }
 
 impl AsRef<str> for PyEncodingName {
