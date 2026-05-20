@@ -1,6 +1,8 @@
 //! ry `reqwest` based global `fetch` and `fetch_sync` functions
 use std::sync::OnceLock;
 
+#[cfg(feature = "experimental-async")]
+use pyo3::coroutine::CancelHandle;
 use pyo3::prelude::*;
 use ryo3_http::PyHttpMethod;
 
@@ -40,8 +42,9 @@ pub(crate) async fn fetch(
     url: ryo3_url::UrlLike,
     method: PyHttpMethod,
     kwargs: Option<ReqwestKwargs>,
+    #[pyo3(cancel_handle)] cancel: CancelHandle,
 ) -> PyResult<RyResponse> {
-    fetch_client().fetch(url, method, kwargs).await
+    fetch_client().fetch(url, method, kwargs, cancel).await
 }
 
 #[pyfunction(

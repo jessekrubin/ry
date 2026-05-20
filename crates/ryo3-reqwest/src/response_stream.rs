@@ -11,6 +11,8 @@ use futures_util::stream::{BoxStream, Fuse};
 use pyo3::IntoPyObjectExt;
 use pyo3::exceptions::{PyStopAsyncIteration, PyStopIteration};
 use pyo3::prelude::*;
+#[cfg(feature = "experimental-async")]
+use pyo3::{coroutine::CancelHandle, exceptions::asyncio::CancelledError};
 use reqwest::StatusCode;
 use ryo3_bytes::RyBytes;
 #[cfg(feature = "experimental-async")]
@@ -163,47 +165,64 @@ impl RyResponseStream {
     //     }
     // }
 
-    async fn readall(&self) -> PyResult<RyBytes> {
+    async fn readall(&self, #[pyo3(cancel_handle)] mut cancel: CancelHandle) -> PyResult<RyBytes> {
         let stream = self.inner.stream.clone();
         on_tokio_py(async move {
-            readall_bytes(&stream)
-                .await
-                .map(RyBytes::from)
-                .map_err(map_reqwest_err)
+            tokio::select! {
+                res = readall_bytes(&stream) => res.map(RyBytes::from).map_err(map_reqwest_err),
+                _ = cancel.cancelled() => Err(CancelledError::new_err("Response stream read was cancelled")),
+            }
         })
         .await
     }
 
     #[pyo3(signature = (n = 1))]
-    async fn take(&self, n: usize) -> PyResult<Vec<RyBytes>> {
+    async fn take(
+        &self,
+        n: usize,
+        #[pyo3(cancel_handle)] mut cancel: CancelHandle,
+    ) -> PyResult<Vec<RyBytes>> {
         let stream = self.inner.stream.clone();
         on_tokio_py(async move {
-            let mut guard = stream.lock().await;
-            let mut items = Vec::with_capacity(n);
-            for _ in 0..n {
-                match guard.next().await {
-                    Some(Ok(bytes)) => items.push(RyBytes::from(bytes)),
-                    Some(Err(e)) => return Err(map_reqwest_err(e)),
-                    None => break,
-                }
+            tokio::select! {
+                res = async move {
+                    let mut guard = stream.lock().await;
+                    let mut items = Vec::with_capacity(n);
+                    for _ in 0..n {
+                        match guard.next().await {
+                            Some(Ok(bytes)) => items.push(RyBytes::from(bytes)),
+                            Some(Err(e)) => return Err(map_reqwest_err(e)),
+                            None => break,
+                        }
+                    }
+                    Ok(items)
+                } => res,
+                _ = cancel.cancelled() => Err(CancelledError::new_err("Response stream read was cancelled")),
             }
-            Ok(items)
         })
         .await
     }
 
-    async fn collect(&self) -> PyResult<Vec<RyBytes>> {
+    async fn collect(
+        &self,
+        #[pyo3(cancel_handle)] mut cancel: CancelHandle,
+    ) -> PyResult<Vec<RyBytes>> {
         let stream = self.inner.stream.clone();
         on_tokio_py(async move {
-            let mut guard = stream.lock().await;
-            let mut items = Vec::new();
-            while let Some(item) = guard.next().await {
-                match item {
-                    Ok(bytes) => items.push(bytes),
-                    Err(e) => return Err(map_reqwest_err(e)),
-                }
+            tokio::select! {
+                res = async move {
+                    let mut guard = stream.lock().await;
+                    let mut items = Vec::new();
+                    while let Some(item) = guard.next().await {
+                        match item {
+                            Ok(bytes) => items.push(bytes),
+                            Err(e) => return Err(map_reqwest_err(e)),
+                        }
+                    }
+                    Ok(items.into_iter().map(RyBytes::from).collect())
+                } => res,
+                _ = cancel.cancelled() => Err(CancelledError::new_err("Response stream read was cancelled")),
             }
-            Ok(items.into_iter().map(RyBytes::from).collect())
         })
         .await
     }

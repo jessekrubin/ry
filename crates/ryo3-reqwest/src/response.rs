@@ -1,5 +1,7 @@
 use pyo3::prelude::*;
 use pyo3::types::PyString;
+#[cfg(feature = "experimental-async")]
+use pyo3::{coroutine::CancelHandle, exceptions::asyncio::CancelledError};
 use reqwest::header::{CONTENT_ENCODING, CONTENT_TYPE};
 use ryo3_bytes::RyBytes;
 use ryo3_cookie::PyCookie;
@@ -440,13 +442,12 @@ impl RyResponse {
     }
 
     /// Return the response body as bytes (consumes the response)
-    async fn bytes(&self) -> PyResult<RyBytes> {
+    async fn bytes(&self, #[pyo3(cancel_handle)] cancel: CancelHandle) -> PyResult<RyBytes> {
         let body = self.take_body()?;
         on_tokio_py(async move {
-            read_body_bytes(body)
+            read_body_bytes_with_cancel(body, cancel)
                 .await
                 .map(RyBytes::from)
-                .map_err(map_reqwest_err)
         })
         .await
     }
@@ -456,17 +457,33 @@ impl RyResponse {
         signature = (*, encoding = PyEncodingName::UTF_8),
         text_signature = "(self, *, encoding=\"utf-8\")"
     )]
-    async fn text(&self, encoding: PyEncodingName) -> PyResult<String> {
+    async fn text(
+        &self,
+        encoding: PyEncodingName,
+        #[pyo3(cancel_handle)] cancel: CancelHandle,
+    ) -> PyResult<String> {
         let body = self.take_body()?;
         let encoding_name = self.response_encoding(encoding);
-        on_tokio_py(async move { read_body_text(body, encoding_name).await }).await
+        on_tokio_py(async move {
+            let full = read_body_bytes_with_cancel(body, cancel).await?;
+            decode_body_text(full, encoding_name)
+        })
+        .await
     }
 
     /// Return the response body as text with encoding (consumes the response)
-    async fn text_with_charset(&self, encoding: PyEncodingName) -> PyResult<String> {
+    async fn text_with_charset(
+        &self,
+        encoding: PyEncodingName,
+        #[pyo3(cancel_handle)] cancel: CancelHandle,
+    ) -> PyResult<String> {
         let body = self.take_body()?;
         let encoding_name = self.response_encoding(encoding);
-        on_tokio_py(async move { read_body_text(body, encoding_name).await }).await
+        on_tokio_py(async move {
+            let full = read_body_bytes_with_cancel(body, cancel).await?;
+            decode_body_text(full, encoding_name)
+        })
+        .await
     }
 
     /// Return the response body as json (consumes the response)
@@ -486,6 +503,7 @@ impl RyResponse {
         cache_mode: jiter::StringCacheMode,
         partial_mode: jiter::PartialMode,
         catch_duplicate_keys: bool,
+        #[pyo3(cancel_handle)] cancel: CancelHandle,
     ) -> PyResult<Pyo3JsonBytes> {
         let body = self.take_body()?;
         let options = ryo3_jiter::JiterParseOptions {
@@ -495,10 +513,9 @@ impl RyResponse {
             catch_duplicate_keys,
         };
         on_tokio_py(async move {
-            read_body_bytes(body)
+            read_body_bytes_with_cancel(body, cancel)
                 .await
                 .map(|bytes| Pyo3JsonBytes::from((bytes, options)))
-                .map_err(map_reqwest_err)
         })
         .await
     }
