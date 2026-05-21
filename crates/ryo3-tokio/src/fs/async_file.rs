@@ -311,6 +311,7 @@ impl PyAsyncFile {
         this
     }
 
+    #[expect(clippy::single_match_else, reason = "actually cleaner")]
     fn __anext__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
         let inner = Arc::clone(&self.inner);
         future_into_py(py, async move {

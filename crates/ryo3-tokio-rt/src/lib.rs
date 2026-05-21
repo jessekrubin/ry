@@ -1,13 +1,9 @@
 //! tokio-runtime + python
-
 use std::future::Future;
 use std::pin::Pin;
 use std::task::{Context, Poll, ready};
 
-use pyo3::PyResult;
-use pyo3::coroutine::CancelHandle;
 use pyo3::exceptions::PyRuntimeError;
-use pyo3::exceptions::asyncio::CancelledError;
 pub use pyo3_async_runtimes::tokio::future_into_py;
 use tokio::runtime::Runtime;
 
@@ -92,15 +88,20 @@ where
 {
     get_ry_tokio_runtime().py_spawn(fut).await?
 }
-
+// use pyo3::coroutine::CancelHandle;
 /// Execute future w/ tokio rt and listen for cancellation via the provided
 /// `pyo3::coroutine::CancelHandle`.
+#[cfg(feature = "experimental-async")]
 #[inline]
-pub async fn on_tokio_py_cancel<F, T>(fut: F, mut cancel: CancelHandle) -> PyResult<T>
+pub async fn on_tokio_py_cancel<F, T>(
+    fut: F,
+    mut cancel: ::pyo3::coroutine::CancelHandle,
+) -> pyo3::PyResult<T>
 where
-    F: Future<Output = PyResult<T>> + Send + 'static,
+    F: Future<Output = pyo3::PyResult<T>> + Send + 'static,
     T: Send + 'static,
 {
+    use pyo3::exceptions::asyncio::CancelledError;
     tokio::select! {
         res = on_tokio_py(fut) => res,
         _ = cancel.cancelled() => Err(CancelledError::new_err("Operation was cancelled")),

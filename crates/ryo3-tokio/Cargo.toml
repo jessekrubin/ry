@@ -35,7 +35,7 @@ fs = [
   "tokio/fs",
 ]
 time = ["tokio/time", "dep:ryo3-tokio-rt"]
-experimental-async = ["pyo3/experimental-async"]
+experimental-async = ["pyo3/experimental-async", "ryo3-tokio-rt/experimental-async"]
 
 [lints]
 workspace = true
