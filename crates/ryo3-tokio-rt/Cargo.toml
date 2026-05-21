@@ -17,5 +17,8 @@ pyo3 = { workspace = true, features = [] }
 pyo3-async-runtimes.workspace = true
 tokio.workspace = true
 
+[features]
+experimental-async = ["pyo3/experimental-async"]
+
 [lints]
 workspace = true

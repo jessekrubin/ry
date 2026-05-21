@@ -28,8 +28,8 @@ ryo3-quick-maths.workspace = true
 # required ryo3-* dependencies
 ryo3-core = { workspace = true }
 ryo3-dev = { workspace = true, optional = true }
-ryo3-fspath = { workspace = true, optional = false }
-ryo3-std = { workspace = true, optional = false }
+ryo3-fspath = { workspace = true }
+ryo3-std = { workspace = true }
 
 # FUTURE
 # ryo3-ignore = { workspace = true, optional = true }
