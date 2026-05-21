@@ -24,9 +24,9 @@ crate-type = ["cdylib", "rlib"]
 mimalloc = { workspace = true, optional = true }
 pyo3 = { workspace = true, features = [] }
 ryo3 = { workspace = true, features = ["ry"] }
-tracing.workspace = true
+tracing = { workspace = true }
 tracing-log = { workspace = true }
-tracing-subscriber.workspace = true
+tracing-subscriber = { workspace = true }
 
 [features]
 # default = ["aws-lc-rs"]
@@ -35,6 +35,7 @@ mimalloc = ["dep:mimalloc"]
 experimental-async = ["pyo3/experimental-async", "ryo3/experimental-async"]
 ring = ["ryo3/ring"]
 aws-lc-rs = ["ryo3/aws-lc-rs"]
+# tracing  = ["dep:tracing", "dep:tracing-log", "dep:tracing-subscriber"]
 
 [build-dependencies]
 pyo3-build-config.workspace = true
@@ -200,7 +201,7 @@ pyo3-async-runtimes = { git = "https://github.com/PyO3/pyo3-async-runtimes", def
 pyo3-build-config = { version = "0.28.1", default-features = false, features = ["resolve-config"] }
 
 # allocator(s)
-mimalloc = { version = "0.1.50", default-features = false, features = [] }
+mimalloc = { version = "0.1.51", default-features = false, features = [] }
 
 # external
 ahash = { version = "0.8.12", default-features = false }
@@ -220,10 +221,12 @@ glob = { version = "0.3", default-features = false, features = [] }
 globset = { version = "0.4.17", default-features = false, features = ["serde"] }
 heck = { version = "0.5.0", default-features = false }
 http = { version = "1.4", default-features = false, features = ["std"] }
+http-body-util = { version = "0.1.3", default-features = false, features = [] }
 ignore = { version = "0.4.24", default-features = false, features = [] }
 jiff = { version = "0.2.24", default-features = false, features = ["default", "perf-inline"] }
 jiter = { version = "0.15", default-features = false, features = ["python"] }
 memchr = { version = "2.7.5", default-features = false, features = [] }
+mime = { version = "0.3.17", default-features = false, features = [] }
 rand = { version = "0.10.1", default-features = false, features = [] }
 regex = { version = "1.12.2", default-features = false, features = [] }
 reqwest = { version = "0.13.3", default-features = false, features = [] }

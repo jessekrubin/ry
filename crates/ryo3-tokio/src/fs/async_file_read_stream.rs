@@ -414,12 +414,12 @@ impl PyAsyncFileReadStream {
     async fn close(&self) -> PyResult<()> {
         let inner = self.inner.clone();
         let options = self.options.clone();
-        on_tokio(async move {
+        on_tokio_py(async move {
             let mut guard = inner.lock().await;
             *guard = AsyncFileReadStreamWrapper::Closed(options);
             Ok::<_, PyErr>(())
         })
-        .await?
+        .await
     }
 
     fn __repr__(&self) -> String {

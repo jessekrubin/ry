@@ -1,20 +1,22 @@
 use pyo3::prelude::*;
 use pyo3::types::PyString;
-use reqwest::header::CONTENT_ENCODING;
+#[cfg(feature = "experimental-async")]
+use pyo3::{coroutine::CancelHandle, exceptions::asyncio::CancelledError};
+use reqwest::header::{CONTENT_ENCODING, CONTENT_TYPE};
 use ryo3_bytes::RyBytes;
 use ryo3_cookie::PyCookie;
 use ryo3_core::sync::RyMutex;
 use ryo3_http::{PyHeaders, PyHttpStatus, PyHttpVersion, status_code_pystring};
-#[cfg(feature = "experimental-async")]
-use ryo3_macro_rules::py_runtime_error;
 use ryo3_macro_rules::pytodo;
 use ryo3_std::net::PySocketAddr;
 #[cfg(not(feature = "experimental-async"))]
 use ryo3_tokio_rt::future_into_py;
 use ryo3_tokio_rt::get_tokio_runtime;
+#[cfg(feature = "experimental-async")]
+use ryo3_tokio_rt::on_tokio_py;
 use ryo3_url::PyUrl;
 
-use crate::charset::PyEncodingName;
+use crate::charset::PyEncoding;
 use crate::errors::map_reqwest_err;
 use crate::pyo3_json_bytes::Pyo3JsonBytes;
 use crate::response_head::RyResponseHead;
@@ -25,8 +27,8 @@ use crate::{RyResponseStream, pyerr_response_already_consumed};
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Debug)]
 pub struct RyResponse {
-    /// The actual response which will be consumed when read
-    res: RyMutex<Option<reqwest::Response>>,
+    /// The response body, consumed only once
+    body: RyMutex<ResponseBody>,
 
     /// Response "head" data (status, headers, url, http-version, etc.)
     head: RyResponseHead,
@@ -36,26 +38,66 @@ pub struct RyResponse {
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Debug)]
 pub struct RyBlockingResponse {
-    /// The actual response which will be consumed when read
-    res: RyMutex<Option<reqwest::Response>>,
+    /// The response body, consumed only once
+    body: RyMutex<ResponseBody>,
 
     /// Response "head" data (status, headers, url, http-version, etc.)
     head: RyResponseHead,
+}
+
+#[derive(Debug)]
+enum ResponseBody {
+    Stream(reqwest::Body),
+    Consumed,
 }
 
 impl RyResponse {
     /// Create a new response from a reqwest response
     #[must_use]
     pub fn new(res: reqwest::Response) -> Self {
+        let url = res.url().clone();
+        let content_length = res.content_length();
+        let remote_addr = res.remote_addr();
+        let res: http::Response<reqwest::Body> = res.into();
+        let (parts, body) = res.into_parts();
+        let head = RyResponseHead::from_parts(
+            parts.status,
+            parts.headers,
+            url,
+            content_length,
+            parts.version,
+            remote_addr,
+        );
         Self {
-            head: RyResponseHead::from(&res),
-            res: RyMutex::new(Some(res)),
+            head,
+            body: RyMutex::new(ResponseBody::Stream(body)),
         }
     }
 
-    fn take_response(&self) -> PyResult<reqwest::Response> {
-        let mut opt = self.res.py_lock()?;
-        opt.take().ok_or_else(|| pyerr_response_already_consumed!())
+    fn take_body(&self) -> PyResult<reqwest::Body> {
+        let mut state = self.body.py_lock()?;
+        match std::mem::replace(&mut *state, ResponseBody::Consumed) {
+            ResponseBody::Stream(body) => Ok(body),
+            ResponseBody::Consumed => Err(pyerr_response_already_consumed!()),
+        }
+    }
+
+    fn response_encoding(&self, default: PyEncoding) -> PyEncoding {
+        let default_encoding = default.as_static_str();
+        let content_type = self
+            .head
+            .headers
+            .py_read()
+            .get(CONTENT_TYPE)
+            .and_then(|value| value.to_str().ok())
+            .and_then(|value| value.parse::<mime::Mime>().ok());
+        let encoding_name = content_type
+            .as_ref()
+            .and_then(|mime| mime.get_param("charset").map(|charset| charset.as_str()))
+            .unwrap_or(default_encoding);
+
+        encoding_rs::Encoding::for_label(encoding_name.as_bytes())
+            .map_or(default, PyEncoding::from_encoding)
     }
 }
 
@@ -63,15 +105,48 @@ impl RyBlockingResponse {
     /// Create a new response from a reqwest response
     #[must_use]
     pub fn new(res: reqwest::Response) -> Self {
+        let url = res.url().clone();
+        let content_length = res.content_length();
+        let remote_addr = res.remote_addr();
+        let res: http::Response<reqwest::Body> = res.into();
+        let (parts, body) = res.into_parts();
+        let head = RyResponseHead::from_parts(
+            parts.status,
+            parts.headers,
+            url,
+            content_length,
+            parts.version,
+            remote_addr,
+        );
         Self {
-            head: RyResponseHead::from(&res),
-            res: RyMutex::new(Some(res)),
+            head,
+            body: RyMutex::new(ResponseBody::Stream(body)),
         }
     }
 
-    fn take_response(&self) -> PyResult<reqwest::Response> {
-        let mut opt = self.res.py_lock()?;
-        opt.take().ok_or_else(|| pyerr_response_already_consumed!())
+    fn take_body(&self) -> PyResult<reqwest::Body> {
+        let mut state = self.body.py_lock()?;
+        match std::mem::replace(&mut *state, ResponseBody::Consumed) {
+            ResponseBody::Stream(body) => Ok(body),
+            ResponseBody::Consumed => Err(pyerr_response_already_consumed!()),
+        }
+    }
+
+    fn response_encoding(&self, default: PyEncoding) -> PyEncoding {
+        let default_encoding = default.as_static_str();
+        let content_type = self
+            .head
+            .headers
+            .py_read()
+            .get(CONTENT_TYPE)
+            .and_then(|value| value.to_str().ok())
+            .and_then(|value| value.parse::<mime::Mime>().ok());
+        let encoding_name = content_type
+            .as_ref()
+            .and_then(|mime| mime.get_param("charset").map(|charset| charset.as_str()))
+            .unwrap_or(default_encoding);
+        encoding_rs::Encoding::for_label(encoding_name.as_bytes())
+            .map_or(default, PyEncoding::from_encoding)
     }
 }
 
@@ -169,32 +244,28 @@ impl RyResponse {
     /// named after jawascript fetch
     #[getter]
     fn body_used(&self) -> PyResult<bool> {
-        self.res.py_lock().map(|opt| opt.is_none())
+        self.body
+            .py_lock()
+            .map(|state| matches!(*state, ResponseBody::Consumed))
     }
 
     /// Return the response body as bytes (consumes the response)
     fn bytes<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
-        use pyo3::exceptions::PyValueError;
-        let response = self.take_response()?;
+        let body = self.take_body()?;
         future_into_py(py, async move {
-            response
-                .bytes()
+            read_body_bytes(body)
                 .await
                 .map(RyBytes::from)
-                .map_err(|e| PyErr::new::<PyValueError, _>(e.to_string()))
+                .map_err(map_reqwest_err)
         })
     }
 
     /// Return the response body as text/string (consumes the response)
     #[pyo3(
-        signature = (*, encoding = PyEncodingName::UTF_8),
+        signature = (*, encoding = PyEncoding::UTF_8),
         text_signature = "(self, *, encoding=\"utf-8\")"
     )]
-    fn text<'py>(
-        &'py self,
-        py: Python<'py>,
-        encoding: PyEncodingName,
-    ) -> PyResult<Bound<'py, PyAny>> {
+    fn text<'py>(&'py self, py: Python<'py>, encoding: PyEncoding) -> PyResult<Bound<'py, PyAny>> {
         self.text_with_charset(py, encoding)
     }
 
@@ -202,15 +273,11 @@ impl RyResponse {
     fn text_with_charset<'py>(
         &'py self,
         py: Python<'py>,
-        encoding: PyEncodingName,
+        encoding: PyEncoding,
     ) -> PyResult<Bound<'py, PyAny>> {
-        let response = self.take_response()?;
-        future_into_py(py, async move {
-            response
-                .text_with_charset(encoding.as_ref())
-                .await
-                .map_err(map_reqwest_err)
-        })
+        let body = self.take_body()?;
+        let encoding_name = self.response_encoding(encoding);
+        future_into_py(py, async move { read_body_text(body, encoding_name).await })
     }
 
     /// Return the response body as json (consumes the response)
@@ -232,7 +299,7 @@ impl RyResponse {
         partial_mode: jiter::PartialMode,
         catch_duplicate_keys: bool,
     ) -> PyResult<Bound<'py, PyAny>> {
-        let response = self.take_response()?;
+        let body = self.take_body()?;
         let options = ryo3_jiter::JiterParseOptions {
             allow_inf_nan,
             cache_mode,
@@ -240,8 +307,7 @@ impl RyResponse {
             catch_duplicate_keys,
         };
         future_into_py(py, async move {
-            response
-                .bytes()
+            read_body_bytes(body)
                 .await
                 .map(|bytes| Pyo3JsonBytes::from((bytes, options)))
                 .map_err(map_reqwest_err)
@@ -251,8 +317,12 @@ impl RyResponse {
     /// Return a response consuming async iterator over the response body
     #[pyo3(signature = (min_read_size = 0, /))]
     fn bytes_stream(&self, min_read_size: usize) -> PyResult<RyResponseStream> {
-        let response = self.take_response()?;
-        Ok(RyResponseStream::from_response(response, min_read_size))
+        let body = self.take_body()?;
+        Ok(RyResponseStream::from_body(
+            self.head.status,
+            body,
+            min_read_size,
+        ))
     }
 
     /// Return a response consuming async iterator over the response body
@@ -363,42 +433,54 @@ impl RyResponse {
     /// named after jawascript fetch
     #[getter]
     fn body_used(&self) -> PyResult<bool> {
-        self.res.py_lock().map(|opt| opt.is_none())
+        self.body
+            .py_lock()
+            .map(|state| matches!(*state, ResponseBody::Consumed))
     }
 
     /// Return the response body as bytes (consumes the response)
-    async fn bytes(&self) -> PyResult<RyBytes> {
-        let rt = get_tokio_runtime();
-        let response = self.take_response()?;
-        rt.spawn(async move { response.bytes().await })
-            .await
-            .map_err(|e| py_runtime_error!("{e}"))?
-            .map(RyBytes::from)
-            .map_err(map_reqwest_err)
+    async fn bytes(&self, #[pyo3(cancel_handle)] cancel: CancelHandle) -> PyResult<RyBytes> {
+        let body = self.take_body()?;
+        on_tokio_py(async move {
+            read_body_bytes_with_cancel(body, cancel)
+                .await
+                .map(RyBytes::from)
+        })
+        .await
     }
 
     /// Return the response body as text/string (consumes the response)
     #[pyo3(
-        signature = (*, encoding = PyEncodingName::UTF_8),
+        signature = (*, encoding = PyEncoding::UTF_8),
         text_signature = "(self, *, encoding=\"utf-8\")"
     )]
-    async fn text(&self, encoding: PyEncodingName) -> PyResult<String> {
-        let response = self.take_response()?;
-        let rt = get_tokio_runtime();
-        rt.spawn(async move { response.text_with_charset(encoding.as_ref()).await })
-            .await
-            .map_err(|e| py_runtime_error!("{e}"))?
-            .map_err(map_reqwest_err)
+    async fn text(
+        &self,
+        encoding: PyEncoding,
+        #[pyo3(cancel_handle)] cancel: CancelHandle,
+    ) -> PyResult<String> {
+        let body = self.take_body()?;
+        let encoding_name = self.response_encoding(encoding);
+        on_tokio_py(async move {
+            let full = read_body_bytes_with_cancel(body, cancel).await?;
+            Ok(decode_body_text(&full, encoding_name))
+        })
+        .await
     }
 
     /// Return the response body as text with encoding (consumes the response)
-    async fn text_with_charset(&self, encoding: PyEncodingName) -> PyResult<String> {
-        let response = self.take_response()?;
-        let rt = get_tokio_runtime();
-        rt.spawn(async move { response.text_with_charset(encoding.as_ref()).await })
-            .await
-            .map_err(|e| py_runtime_error!("{e}"))?
-            .map_err(map_reqwest_err)
+    async fn text_with_charset(
+        &self,
+        encoding: PyEncoding,
+        #[pyo3(cancel_handle)] cancel: CancelHandle,
+    ) -> PyResult<String> {
+        let body = self.take_body()?;
+        let encoding_name = self.response_encoding(encoding);
+        on_tokio_py(async move {
+            let full = read_body_bytes_with_cancel(body, cancel).await?;
+            Ok(decode_body_text(&full, encoding_name))
+        })
+        .await
     }
 
     /// Return the response body as json (consumes the response)
@@ -418,28 +500,32 @@ impl RyResponse {
         cache_mode: jiter::StringCacheMode,
         partial_mode: jiter::PartialMode,
         catch_duplicate_keys: bool,
+        #[pyo3(cancel_handle)] cancel: CancelHandle,
     ) -> PyResult<Pyo3JsonBytes> {
-        let response = self.take_response()?;
+        let body = self.take_body()?;
         let options = ryo3_jiter::JiterParseOptions {
             allow_inf_nan,
             cache_mode,
             partial_mode,
             catch_duplicate_keys,
         };
-        let rt = get_tokio_runtime();
-        let j = rt
-            .spawn(async move { response.bytes().await })
-            .await
-            .map_err(|e| py_runtime_error!("{e}"))?;
-        j.map(|bytes| Pyo3JsonBytes::from((bytes, options)))
-            .map_err(map_reqwest_err)
+        on_tokio_py(async move {
+            read_body_bytes_with_cancel(body, cancel)
+                .await
+                .map(|bytes| Pyo3JsonBytes::from((bytes, options)))
+        })
+        .await
     }
 
     /// Return a response consuming async iterator over the response body
     #[pyo3(signature = (min_read_size = 0, /))]
     fn bytes_stream(&self, min_read_size: usize) -> PyResult<RyResponseStream> {
-        let response = self.take_response()?;
-        Ok(RyResponseStream::from_response(response, min_read_size))
+        let body = self.take_body()?;
+        Ok(RyResponseStream::from_body(
+            self.head.status,
+            body,
+            min_read_size,
+        ))
     }
 
     /// Return a response consuming async iterator over the response body
@@ -564,16 +650,16 @@ impl RyBlockingResponse {
     /// named after jawascript fetch
     #[getter]
     fn body_used(&self) -> PyResult<bool> {
-        Ok(self.res.py_lock()?.is_none())
+        Ok(matches!(*self.body.py_lock()?, ResponseBody::Consumed))
     }
 
     /// Return the response body as bytes (consumes the response)
     fn bytes(&self, py: Python<'_>) -> PyResult<RyBytes> {
-        let response = self.take_response()?;
+        let body = self.take_body()?;
 
         py.detach(|| {
             get_tokio_runtime()
-                .block_on(async { response.bytes().await })
+                .block_on(read_body_bytes(body))
                 .map(RyBytes::from)
                 .map_err(map_reqwest_err)
         })
@@ -581,30 +667,24 @@ impl RyBlockingResponse {
 
     /// Return the response body as text/string (consumes the response)
     #[pyo3(
-        signature = (*, encoding = PyEncodingName::UTF_8),
+        signature = (*, encoding = PyEncoding::UTF_8),
         text_signature = "(self, *, encoding=\"utf-8\")"
     )]
-    fn text<'py>(&'py self, py: Python<'py>, encoding: PyEncodingName) -> PyResult<String> {
-        let response = self.take_response()?;
-        py.detach(|| {
-            get_tokio_runtime()
-                .block_on(async { response.text_with_charset(encoding.as_ref()).await })
-                .map_err(map_reqwest_err)
-        })
+    fn text<'py>(&'py self, py: Python<'py>, encoding: PyEncoding) -> PyResult<String> {
+        let body = self.take_body()?;
+        let encoding_name = self.response_encoding(encoding);
+        py.detach(|| get_tokio_runtime().block_on(read_body_text(body, encoding_name)))
     }
 
     /// Return the response body as text with encoding (consumes the response)
     fn text_with_charset<'py>(
         &'py self,
         py: Python<'py>,
-        encoding: PyEncodingName,
+        encoding: PyEncoding,
     ) -> PyResult<String> {
-        let response = self.take_response()?;
-        py.detach(|| {
-            get_tokio_runtime()
-                .block_on(async { response.text_with_charset(encoding.as_ref()).await })
-                .map_err(map_reqwest_err)
-        })
+        let body = self.take_body()?;
+        let encoding_name = self.response_encoding(encoding);
+        py.detach(|| get_tokio_runtime().block_on(read_body_text(body, encoding_name)))
     }
 
     /// Return the response body as json (consumes the response)
@@ -626,7 +706,7 @@ impl RyBlockingResponse {
         partial_mode: jiter::PartialMode,
         catch_duplicate_keys: bool,
     ) -> PyResult<Pyo3JsonBytes> {
-        let response = self.take_response()?;
+        let body = self.take_body()?;
         let options = ryo3_jiter::JiterParseOptions {
             allow_inf_nan,
             cache_mode,
@@ -636,8 +716,7 @@ impl RyBlockingResponse {
 
         py.detach(|| {
             get_tokio_runtime().block_on(async {
-                response
-                    .bytes()
+                read_body_bytes(body)
                     .await
                     .map(|bytes| Pyo3JsonBytes::from((bytes, options)))
                     .map_err(map_reqwest_err)
@@ -648,9 +727,10 @@ impl RyBlockingResponse {
     /// Return a response consuming async iterator over the response body
     #[pyo3(signature = (min_read_size = 0, /))]
     fn bytes_stream(&self, min_read_size: usize) -> PyResult<RyBlockingResponseStream> {
-        let response = self.take_response()?;
-        Ok(RyBlockingResponseStream::from_response(
-            response,
+        let body = self.take_body()?;
+        Ok(RyBlockingResponseStream::from_body(
+            self.head.status,
+            body,
             min_read_size,
         ))
     }
@@ -693,4 +773,36 @@ impl std::fmt::Display for RyBlockingResponse {
             url = self.head.url,
         )
     }
+}
+
+#[inline]
+async fn read_body_bytes(body: reqwest::Body) -> Result<bytes::Bytes, reqwest::Error> {
+    use http_body_util::BodyExt;
+    BodyExt::collect(body)
+        .await
+        .map(http_body_util::Collected::to_bytes)
+}
+
+#[cfg(feature = "experimental-async")]
+#[inline]
+async fn read_body_bytes_with_cancel(
+    body: reqwest::Body,
+    mut cancel: CancelHandle,
+) -> PyResult<bytes::Bytes> {
+    tokio::select! {
+        res = read_body_bytes(body) => res.map_err(map_reqwest_err),
+        _ = cancel.cancelled() => Err(CancelledError::new_err("Response read was cancelled")),
+    }
+}
+
+#[inline]
+async fn read_body_text(body: reqwest::Body, encoding: PyEncoding) -> PyResult<String> {
+    let full = read_body_bytes(body).await.map_err(map_reqwest_err)?;
+    Ok(decode_body_text(&full, encoding))
+}
+
+#[inline]
+fn decode_body_text(full: &bytes::Bytes, encoding: PyEncoding) -> String {
+    let (text, _, _) = encoding.decode(full);
+    text.into_owned()
 }

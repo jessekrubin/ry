@@ -1,4 +1,6 @@
 use pyo3::IntoPyObjectExt;
+#[cfg(feature = "experimental-async")]
+use pyo3::coroutine::CancelHandle;
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyTuple};
 use reqwest::{Method, RequestBuilder};
@@ -106,25 +108,29 @@ impl RyClient {
     }
 
     #[cfg(feature = "experimental-async")]
+    async fn send_request(req: RequestBuilder, mut cancel: CancelHandle) -> PyResult<RyResponse> {
+        tokio::select! {
+            res = req.send() => {
+                res.map(RyResponse::from).map_err(map_reqwest_err)
+            }
+            _ = cancel.cancelled() => {
+                Err(pyo3::exceptions::asyncio::CancelledError::new_err("Request was cancelled"))
+            }
+        }
+    }
+
+    #[cfg(feature = "experimental-async")]
     #[inline]
     async fn request(
         &self,
         url: UrlLike,
         method: Method,
         kwargs: Option<ReqwestKwargs>,
+        cancel: CancelHandle,
     ) -> PyResult<RyResponse> {
-        use ryo3_macro_rules::py_runtime_error;
-
+        use ryo3_tokio_rt::on_tokio_py;
         let req = self.request_builder(url, method, kwargs)?;
-
-        let rt = get_tokio_runtime();
-        let r = rt
-            .spawn(async move { req.send().await })
-            .await
-            .map_err(|e| py_runtime_error!("Join error: {e}"))?
-            .map(RyResponse::from)
-            .map_err(crate::RyReqwestError::from)?;
-        Ok(r)
+        on_tokio_py(async move { Self::send_request(req, cancel).await }).await
     }
 
     #[inline]
@@ -220,38 +226,73 @@ impl RyClient {
     }
 
     #[pyo3(signature = (url, **kwargs))]
-    async fn get(&self, url: UrlLike, kwargs: Option<ReqwestKwargs>) -> PyResult<RyResponse> {
-        self.request(url, Method::GET, kwargs).await
+    async fn get(
+        &self,
+        url: UrlLike,
+        kwargs: Option<ReqwestKwargs>,
+        #[pyo3(cancel_handle)] cancel: CancelHandle,
+    ) -> PyResult<RyResponse> {
+        self.request(url, Method::GET, kwargs, cancel).await
     }
 
     #[pyo3(signature = (url, **kwargs))]
-    async fn post(&self, url: UrlLike, kwargs: Option<ReqwestKwargs>) -> PyResult<RyResponse> {
-        self.request(url, Method::POST, kwargs).await
+    async fn post(
+        &self,
+        url: UrlLike,
+        kwargs: Option<ReqwestKwargs>,
+        #[pyo3(cancel_handle)] cancel: CancelHandle,
+    ) -> PyResult<RyResponse> {
+        self.request(url, Method::POST, kwargs, cancel).await
     }
 
     #[pyo3(signature = (url, **kwargs))]
-    async fn put(&self, url: UrlLike, kwargs: Option<ReqwestKwargs>) -> PyResult<RyResponse> {
-        self.request(url, Method::PUT, kwargs).await
+    async fn put(
+        &self,
+        url: UrlLike,
+        kwargs: Option<ReqwestKwargs>,
+        #[pyo3(cancel_handle)] cancel: CancelHandle,
+    ) -> PyResult<RyResponse> {
+        self.request(url, Method::PUT, kwargs, cancel).await
     }
 
     #[pyo3(signature = (url, **kwargs))]
-    async fn patch(&self, url: UrlLike, kwargs: Option<ReqwestKwargs>) -> PyResult<RyResponse> {
-        self.request(url, Method::PATCH, kwargs).await
+    async fn patch(
+        &self,
+        url: UrlLike,
+        kwargs: Option<ReqwestKwargs>,
+        #[pyo3(cancel_handle)] cancel: CancelHandle,
+    ) -> PyResult<RyResponse> {
+        self.request(url, Method::PATCH, kwargs, cancel).await
     }
 
     #[pyo3(signature = (url, **kwargs))]
-    async fn delete(&self, url: UrlLike, kwargs: Option<ReqwestKwargs>) -> PyResult<RyResponse> {
-        self.request(url, Method::DELETE, kwargs).await
+    async fn delete(
+        &self,
+        url: UrlLike,
+        kwargs: Option<ReqwestKwargs>,
+        #[pyo3(cancel_handle)] cancel: CancelHandle,
+    ) -> PyResult<RyResponse> {
+        self.request(url, Method::DELETE, kwargs, cancel).await
     }
 
     #[pyo3(signature = (url, **kwargs))]
-    async fn head(&self, url: UrlLike, kwargs: Option<ReqwestKwargs>) -> PyResult<RyResponse> {
-        self.request(url, Method::HEAD, kwargs).await
+    async fn head(
+        &self,
+        url: UrlLike,
+        kwargs: Option<ReqwestKwargs>,
+        #[pyo3(cancel_handle)] cancel: CancelHandle,
+    ) -> PyResult<RyResponse> {
+        self.request(url, Method::HEAD, kwargs, cancel).await
     }
 
     #[pyo3(signature = (url, **kwargs))]
-    async fn options(&self, url: UrlLike, kwargs: Option<ReqwestKwargs>) -> PyResult<RyResponse> {
-        self.request(url, Method::OPTIONS, kwargs).await
+    async fn options(
+        &self,
+        url: UrlLike,
+        kwargs: Option<ReqwestKwargs>,
+        #[pyo3(cancel_handle)] cancel: CancelHandle,
+    ) -> PyResult<RyResponse> {
+        self.request(url, Method::OPTIONS, kwargs, cancel).await
     }
 
     #[pyo3(
@@ -263,8 +304,9 @@ impl RyClient {
         url: UrlLike,
         method: PyHttpMethod,
         kwargs: Option<ReqwestKwargs>,
+        #[pyo3(cancel_handle)] cancel: CancelHandle,
     ) -> PyResult<RyResponse> {
-        self.request(url, method.into(), kwargs).await
+        self.request(url, method.into(), kwargs, cancel).await
     }
 
     #[pyo3(signature = (url, *, method = PyHttpMethod::GET, **kwargs))]
@@ -273,8 +315,9 @@ impl RyClient {
         url: UrlLike,
         method: PyHttpMethod,
         kwargs: Option<ReqwestKwargs>,
+        #[pyo3(cancel_handle)] cancel: CancelHandle,
     ) -> PyResult<RyResponse> {
-        self.request(url, method.into(), kwargs).await
+        self.request(url, method.into(), kwargs, cancel).await
     }
 
     #[pyo3(

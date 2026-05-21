@@ -35,7 +35,7 @@ build: cargo-test
 
 # build release
 build-release:
-    uv run maturin build --release --features "mimalloc" --uv
+    uv run maturin build --release --features "mimalloc"
 
 # maturin develop release
 devrel:
