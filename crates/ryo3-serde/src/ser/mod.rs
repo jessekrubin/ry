@@ -1,4 +1,5 @@
 //! Serialize python objects
+mod borrowed_iter;
 mod context;
 pub(crate) mod dataclass;
 pub(crate) mod py_serialize;

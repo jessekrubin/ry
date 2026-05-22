@@ -234,6 +234,7 @@ impl<'a, 'py> PyListSerializer<'a, 'py> {
         Self::new(obj, ctx, depth)
     }
 }
+
 impl Serialize for PyListSerializer<'_, '_> {
     #[inline]
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>

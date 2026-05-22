@@ -6,6 +6,7 @@ use crate::constants::{Depth, MAX_DEPTH};
 use crate::errors::pyerr2sererr;
 use crate::ob_type::PyObType;
 use crate::ser::PySerializeContext;
+use crate::ser::borrowed_iter::BorrowedDictIter;
 use crate::ser::py_types::{
     PyBoolSerializer, PyBytesLikeSerializer, PyDateSerializer, PyDateTimeSerializer,
     PyFloatSerializer, PyFrozenSetSerializer, PyIntSerializer, PyListSerializer,
@@ -228,46 +229,42 @@ macro_rules! serialize_map_value {
         }
     };
 }
-// let mut m = serializer.serialize_map(Some(len))?;
-// #[cfg(not(any(PyPy, GraalPy, Py_LIMITED_API)))]
-// {
-//     use pyo3::ffi::PyDict_Next;
-//     let mut pos: isize = 0;
-//     let mut key_ptr: *mut pyo3::ffi::PyObject = std::ptr::null_mut();
-//     let mut val_ptr: *mut pyo3::ffi::PyObject = std::ptr::null_mut();
-//     let mut last_type_ptr = 0;
-//     let mut last_ob_type = PyObType::Unknown;
 
-//     while unsafe {
-//         PyDict_Next(self.obj.as_ptr(), &mut pos, &mut key_ptr, &mut val_ptr)
-//     } != 0
+// ~ ~ ~ NO BORROWED ITER ~ ~ ~
+// ~ ~ ~ NO BORROWED ITER ~ ~ ~
+// ~ ~ ~ NO BORROWED ITER ~ ~ ~
+// impl Serialize for PyDictSerializer<'_, '_> {
+//     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+//     where
+//         S: Serializer,
 //     {
-//         let type_ptr = unsafe { (*val_ptr).ob_type as usize };
-//         let ob_type = if type_ptr == last_type_ptr {
-//             last_ob_type
-//         } else {
-//             let t = self.ctx.typeref.ptr2type(type_ptr);
-//             last_type_ptr = type_ptr;
-//             last_ob_type = t;
-//             t
-//         };
-
-//         let map_key = unsafe { Borrowed::from_ptr(self.obj.py(), key_ptr) };
-//         let map_val = unsafe { Borrowed::from_ptr(self.obj.py(), val_ptr) };
-//         let sk = PyMappingKeySerializer::new(self.ctx, map_key);
-//         m.serialize_key(&sk)?;
-//         serialize_map_value!(ob_type, m, self, map_val);
-//     }
-// }
-// #[cfg(any(PyPy, GraalPy, Py_LIMITED_API))]
-// {
-//     for (map_key, map_val) in self.obj.iter() {
-//         let map_key = map_key.as_borrowed();
-//         let map_val = map_val.as_borrowed();
-//         let sk = PyMappingKeySerializer::new(self.ctx, map_key);
-//         let ob_type = self.ctx.typeref.obtype(map_val);
-//         m.serialize_key(&sk)?;
-//         serialize_map_value!(ob_type, m, self, map_val);
+//         if self.depth == MAX_DEPTH {
+//             return serde_err_recursion!();
+//         }
+//         let len = self.obj.len();
+//         if len == 0 {
+//             return serializer.serialize_map(Some(0))?.end();
+//         }
+//         let mut m = serializer.serialize_map(None)?;
+//         let mut prev_ob_type_ptr = 0;
+//         let mut prev_ob_type = PyObType::Unknown;
+//         for (map_key, map_val) in self.obj.iter() {
+//             let map_key = map_key.as_borrowed();
+//             let map_val = map_val.as_borrowed();
+//             let sk = PyMappingKeySerializer::new(self.ctx, map_key);
+//             let type_ptr = map_val.get_type_ptr() as usize;
+//             let ob_type = if type_ptr == prev_ob_type_ptr {
+//                 prev_ob_type
+//             } else {
+//                 let t = self.ctx.typeref.ptr2type(type_ptr);
+//                 prev_ob_type_ptr = type_ptr;
+//                 prev_ob_type = t;
+//                 t
+//             };
+//             m.serialize_key(&sk)?;
+//             serialize_map_value!(ob_type, m, self, map_val);
+//         }
+//         m.end()
 //     }
 // }
 impl Serialize for PyDictSerializer<'_, '_> {
@@ -282,12 +279,12 @@ impl Serialize for PyDictSerializer<'_, '_> {
         if len == 0 {
             return serializer.serialize_map(Some(0))?.end();
         }
+
         let mut m = serializer.serialize_map(None)?;
         let mut prev_ob_type_ptr = 0;
         let mut prev_ob_type = PyObType::Unknown;
-        for (map_key, map_val) in self.obj.iter() {
-            let map_key = map_key.as_borrowed();
-            let map_val = map_val.as_borrowed();
+
+        for (map_key, map_val) in BorrowedDictIter::new(self.obj) {
             let sk = PyMappingKeySerializer::new(self.ctx, map_key);
             let type_ptr = map_val.get_type_ptr() as usize;
             let ob_type = if type_ptr == prev_ob_type_ptr {
