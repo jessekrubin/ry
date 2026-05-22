@@ -22,6 +22,29 @@ impl<'a, 'py> PyIntSerializer<'a, 'py> {
     }
 }
 
+// impl Serialize for PyIntSerializer<'_, '_> {
+//     #[inline(always)]
+//     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+//     where
+//         S: Serializer,
+//     {
+//         #[cfg(not(any(PyPy, GraalPy, Py_LIMITED_API)))]
+//         {
+//             let ptr = self.obj.as_ptr();
+//             let v = unsafe { pyo3::ffi::PyLong_AsLongLong(ptr) };
+//             if v == -1 && !unsafe { pyo3::ffi::PyErr_Occurred().is_null() } {
+//                 return Err(pyerr2sererr(PyErr::fetch(self.obj.py())));
+//             }
+//             serializer.serialize_i64(v)
+//         }
+//         #[cfg(any(PyPy, GraalPy, Py_LIMITED_API))]
+//         {
+//             let v: i64 = self.obj.extract().map_err(pyerr2sererr)?;
+//             serializer.serialize_i64(v)
+//         }
+//     }
+// }
+
 impl Serialize for PyIntSerializer<'_, '_> {
     #[inline(always)]
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>

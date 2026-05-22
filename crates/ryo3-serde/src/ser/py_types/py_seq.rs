@@ -245,16 +245,27 @@ impl Serialize for PyListSerializer<'_, '_> {
         }
         let len = self.obj.len();
         if len == 0 {
-            serializer.serialize_seq(Some(0))?.end()
-        } else {
-            let mut seq = serializer.serialize_seq(Some(len))?;
-            for element in self.obj.iter() {
-                let element = element.as_borrowed();
-                let ob_type = self.ctx.typeref.obtype(element);
-                serialize_seq_element!(ob_type, seq, self, element);
-            }
-            seq.end()
+            return serializer.serialize_seq(Some(0))?.end();
         }
+
+        // MAIN THINGY
+        let mut prev_ob_type_ptr = 0;
+        let mut prev_ob_type = PyObType::Unknown;
+        let mut seq = serializer.serialize_seq(Some(len))?;
+        for element in self.obj.iter() {
+            let element = element.as_borrowed();
+            let type_ptr = element.get_type_ptr() as usize;
+            let ob_type = if type_ptr == prev_ob_type_ptr {
+                prev_ob_type
+            } else {
+                let t = self.ctx.typeref.ptr2type(type_ptr);
+                prev_ob_type_ptr = type_ptr;
+                prev_ob_type = t;
+                t
+            };
+            serialize_seq_element!(ob_type, seq, self, element);
+        }
+        seq.end()
     }
 }
 
@@ -299,16 +310,26 @@ impl Serialize for PyTupleSerializer<'_, '_> {
         }
         let len = self.obj.len();
         if len == 0 {
-            serializer.serialize_seq(Some(0))?.end()
-        } else {
-            let mut tup = serializer.serialize_tuple(len)?;
-            for element in self.obj.iter() {
-                let element = element.as_borrowed();
-                let ob_type = self.ctx.typeref.obtype(element);
-                serialize_seq_element!(ob_type, tup, self, element);
-            }
-            tup.end()
+            return serializer.serialize_seq(Some(0))?.end();
         }
+
+        let mut tup = serializer.serialize_tuple(len)?;
+        let mut prev_ob_type_ptr = 0;
+        let mut prev_ob_type = PyObType::Unknown;
+
+        for element in self.obj.iter_borrowed() {
+            let type_ptr = element.get_type_ptr() as usize;
+            let ob_type = if type_ptr == prev_ob_type_ptr {
+                prev_ob_type
+            } else {
+                let t = self.ctx.typeref.ptr2type(type_ptr);
+                prev_ob_type_ptr = type_ptr;
+                prev_ob_type = t;
+                t
+            };
+            serialize_seq_element!(ob_type, tup, self, element);
+        }
+        tup.end()
     }
 }
 
