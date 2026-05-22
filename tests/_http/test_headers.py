@@ -161,3 +161,63 @@ class TestHeadersObj:
         assert len(h) == 2
         assert h["Content-Type"] == "application/xml"
         assert h["Accept"] == "application/json"
+
+    def test_and_keys_values(self) -> None:
+        h = Headers({
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+        })
+        keys = h.keys()
+        assert isinstance(keys, list)
+        keyset = set(keys)
+        assert keyset == {"content-type", "accept"}
+        values = h.values()
+        assert isinstance(values, list)
+        assert len(values) == 2
+        assert set(values) == {"application/json"}
+
+    def test_update_headers(self) -> None:
+        h = Headers({
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+        })
+        h.update({
+            "Content-Type": "application/xml",
+            "Accept": "application/xml",
+        })
+        assert len(h) == 2
+        assert h["Content-Type"] == "application/xml"
+        assert h["Accept"] == "application/xml"
+        assert h.to_dict() == {
+            "content-type": "application/xml",
+            "accept": "application/xml",
+        }
+
+    def test_update_headers_append(self) -> None:
+        h = Headers({
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+        })
+        h.update(
+            {
+                "Content-Type": "application/xml",
+                "Accept": "application/xml",
+            },
+            append=True,
+        )
+        assert len(h) == 4
+        assert h["Content-Type"] == "application/json"
+        assert h["Accept"] == "application/json"
+        assert h.get_all("Content-Type") == ["application/json", "application/xml"]
+        assert h.get_all("Accept") == ["application/json", "application/xml"]
+
+    def test_or(self) -> None:
+        h1 = Headers({"Content-Type": "application/json"})
+        h2 = Headers({"Accept": "application/json"})
+        h3 = h1 | h2
+        assert isinstance(h3, Headers)
+        assert len(h3) == 2
+        assert h3.to_dict() == {
+            "content-type": "application/json",
+            "accept": "application/json",
+        }
