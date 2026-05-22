@@ -1,13 +1,19 @@
 //! http python conversions
+use std::collections::HashMap;
+use std::convert::Infallible;
+
+use http::HeaderMap;
 use pyo3::prelude::*;
-use pyo3::types::{PyBytes, PyString};
-use pyo3::{IntoPyObjectExt, intern};
+use pyo3::types::{PyBytes, PyDict, PyList, PyString};
+use pyo3::{BoundObject, intern};
 use ryo3_core::{py_type_err, py_value_err, py_value_error};
 
-use crate::PyHttpHeaderNameRef;
+use crate::headers_like::HeaderValueOrValues;
 use crate::http_types::{
-    PyHttpHeaderName, PyHttpHeaderValue, PyHttpHeaderValueRef, PyHttpMethod, PyHttpVersion,
+    PyHttpHeaderMapRef, PyHttpHeaderName, PyHttpHeaderValue, PyHttpHeaderValueRef, PyHttpMethod,
+    PyHttpVersion,
 };
+use crate::{PyHttpHeaderMap, PyHttpHeaderNameRef};
 
 impl<'py> IntoPyObject<'py> for &PyHttpMethod {
     type Target = PyString;
@@ -235,30 +241,27 @@ impl_header_name_to_pystring_interned! {
 pub(crate) fn header_name_to_pystring<'py>(
     py: Python<'py>,
     name: &http::HeaderName,
-) -> PyResult<Bound<'py, PyAny>> {
-    if let Some(s) = header_name_to_pystring_maybe(py, name) {
-        s.into_bound_py_any(py)
-    } else {
-        let s = name.as_str();
-        let s = PyString::new(py, s);
-        s.into_bound_py_any(py)
-    }
+) -> Bound<'py, PyString> {
+    header_name_to_pystring_maybe(py, name).map_or_else(
+        || PyString::new(py, name.as_str()).as_borrowed().into_bound(),
+        |s| s.as_borrowed().into_bound(),
+    )
 }
 
 impl<'py> IntoPyObject<'py> for &PyHttpHeaderName {
-    type Target = PyAny;
+    type Target = PyString;
     type Output = Bound<'py, Self::Target>;
-    type Error = PyErr;
+    type Error = Infallible;
     #[inline]
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
-        header_name_to_pystring(py, &self.0)
+        Ok(header_name_to_pystring(py, &self.0))
     }
 }
 
 impl<'py> IntoPyObject<'py> for PyHttpHeaderName {
-    type Target = PyAny;
+    type Target = PyString;
     type Output = Bound<'py, Self::Target>;
-    type Error = PyErr;
+    type Error = Infallible;
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
         (&self).into_pyobject(py)
     }
@@ -284,22 +287,22 @@ impl<'py> FromPyObject<'_, 'py> for PyHttpHeaderName {
 }
 
 impl<'py> IntoPyObject<'py> for &PyHttpHeaderNameRef<'_> {
-    type Target = PyAny;
+    type Target = PyString;
     type Output = Bound<'py, Self::Target>;
-    type Error = PyErr;
+    type Error = Infallible;
     #[inline]
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
-        header_name_to_pystring(py, self.0)
+        Ok(header_name_to_pystring(py, self.0))
     }
 }
 
 impl<'py> IntoPyObject<'py> for PyHttpHeaderNameRef<'_> {
-    type Target = PyAny;
+    type Target = PyString;
     type Output = Bound<'py, Self::Target>;
-    type Error = PyErr;
+    type Error = Infallible;
     #[inline]
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
-        header_name_to_pystring(py, self.0)
+        Ok(header_name_to_pystring(py, self.0))
     }
 }
 
@@ -307,28 +310,24 @@ impl<'py> IntoPyObject<'py> for PyHttpHeaderNameRef<'_> {
 // HttpHeaderValue
 // ============================================================================
 
-pub(crate) fn header_value_to_pystring<'py>(
-    py: Python<'py>,
-    value: &http::HeaderValue,
-) -> PyResult<Bound<'py, PyString>> {
-    let s = value
-        .to_str()
-        .map_err(|e| py_value_error!("invalid-header-value: {e}"))?;
-    Ok(PyString::new(py, s))
-}
-
 impl<'py> IntoPyObject<'py> for &PyHttpHeaderValueRef<'_> {
-    type Target = PyString;
+    type Target = PyAny;
     type Output = Bound<'py, Self::Target>;
     type Error = PyErr;
     #[inline]
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
-        header_value_to_pystring(py, self.0)
+        if let Ok(s) = self.0.to_str() {
+            // WENODIS: the header value ref IS "visible-ascii" so we
+            // can safely ascii-string-ify it (according to their docs)
+            Ok(ryo3_core::pystring_fast_new_ascii(py, s).into_any())
+        } else {
+            Ok(PyBytes::new(py, self.0.as_bytes()).into_any())
+        }
     }
 }
 
 impl<'py> IntoPyObject<'py> for PyHttpHeaderValueRef<'_> {
-    type Target = PyString;
+    type Target = PyAny;
     type Output = Bound<'py, Self::Target>;
     type Error = PyErr;
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
@@ -337,17 +336,17 @@ impl<'py> IntoPyObject<'py> for PyHttpHeaderValueRef<'_> {
 }
 
 impl<'py> IntoPyObject<'py> for &PyHttpHeaderValue {
-    type Target = PyString;
+    type Target = PyAny;
     type Output = Bound<'py, Self::Target>;
     type Error = PyErr;
     #[inline]
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
-        header_value_to_pystring(py, &self.0)
+        PyHttpHeaderValueRef(&self.0).into_pyobject(py)
     }
 }
 
 impl<'py> IntoPyObject<'py> for PyHttpHeaderValue {
-    type Target = PyString;
+    type Target = PyAny;
     type Output = Bound<'py, Self::Target>;
     type Error = PyErr;
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
@@ -370,5 +369,63 @@ impl<'py> FromPyObject<'_, 'py> for PyHttpHeaderValue {
         } else {
             py_type_err!("invalid-header-value")
         }
+    }
+}
+
+impl<'py> FromPyObject<'_, 'py> for PyHttpHeaderMap {
+    type Error = PyErr;
+    fn extract(ob: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
+        if let Ok(d) = ob.cast_exact::<pyo3::types::PyDict>() {
+            let extracted = d.extract::<HashMap<PyHttpHeaderName, HeaderValueOrValues>>()?;
+            let mut hm: http::HeaderMap = HeaderMap::with_capacity(extracted.len());
+            for (k, v) in extracted {
+                match v {
+                    HeaderValueOrValues::One(s) => {
+                        hm.try_insert(k.0, s.into())
+                            .map_err(|_e| py_value_error!("max-size-reached"))?;
+                    }
+                    HeaderValueOrValues::Many(v) => {
+                        for s in v {
+                            hm.try_append(&k.0, s.into())
+                                .map_err(|_e| py_value_error!("max-size-reached"))?;
+                        }
+                    }
+                }
+            }
+            Ok(Self::from(hm))
+        } else {
+            py_type_err!("Expected dict[str, str | bytes | list[str | bytes]]")
+        }
+    }
+}
+impl<'py> IntoPyObject<'py> for PyHttpHeaderMapRef<'_> {
+    type Target = PyDict;
+    type Output = Bound<'py, Self::Target>;
+    type Error = PyErr;
+    #[inline]
+    fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
+        let d = PyDict::new(py);
+
+        if self.is_empty() {
+            return Ok(d.into_bound());
+        }
+
+        if self.len() == self.keys_len() {
+            // don't have to worry about duplicates bc of keys_len == len
+            for (k, v) in self.iter() {
+                d.set_item(PyHttpHeaderNameRef(k), PyHttpHeaderValueRef(v))?;
+            }
+        } else {
+            for key in self.keys() {
+                let into_py_header_name = PyHttpHeaderNameRef(key);
+                let values: Vec<_> = self.get_all(key).iter().map(PyHttpHeaderValueRef).collect();
+                if values.len() == 1 {
+                    d.set_item(into_py_header_name, &values[0])?;
+                } else {
+                    d.set_item(into_py_header_name, PyList::new(py, &values)?)?;
+                }
+            }
+        }
+        Ok(d)
     }
 }

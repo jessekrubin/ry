@@ -4,11 +4,13 @@ use std::sync::{Arc, RwLockReadGuard, RwLockWriteGuard};
 
 use http::header::HeaderMap;
 use pyo3::prelude::*;
-use pyo3::types::{PyBytes, PyDict, PyList, PyString, PyTuple};
-use ryo3_core::{RyRwLock, py_runtime_error};
+use pyo3::types::{PyDict, PyList, PyTuple};
+use ryo3_core::{RyRwLock, py_runtime_error, py_value_error};
 
-use crate::http_types::{PyHttpHeaderName, PyHttpHeaderValue, PyHttpHeaderValueRef};
-use crate::py_conversions::{header_name_to_pystring, header_value_to_pystring};
+use crate::http_types::{
+    PyHttpHeaderMapRef, PyHttpHeaderName, PyHttpHeaderNameRef, PyHttpHeaderValue,
+    PyHttpHeaderValueRef,
+};
 use crate::{PyHeadersLike, PyHttpHeaderMap};
 
 #[pyclass(name = "Headers", frozen, immutable_type, mapping, skip_from_py_object)]
@@ -31,52 +33,18 @@ impl PyHeaders {
     }
 
     #[inline]
+    pub(crate) fn with_read<R>(&self, f: impl FnOnce(&HeaderMap) -> R) -> R {
+        let inner = self.read();
+        f(&inner)
+    }
+
+    #[inline]
     fn write(&self) -> RwLockWriteGuard<'_, HeaderMap> {
         self.0.py_write()
     }
 
     fn py_dict<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
-        let inner = self.read();
-        if inner.is_empty() {
-            Ok(PyDict::new(py))
-        } else if inner.len() == inner.keys_len() {
-            // don't have to worry about duplicates bc of keys_len == len
-            let d = PyDict::new(py);
-            for (k, v) in inner.iter() {
-                let key_pystr = header_name_to_pystring(py, k)?;
-                let value_pystr = header_value_to_pystring(py, v)?;
-                d.set_item(key_pystr, value_pystr)?;
-            }
-            Ok(d)
-        } else {
-            // need to handle duplicates
-            let d = PyDict::new(py);
-            for key in inner.keys() {
-                let key_pystr = header_name_to_pystring(py, key)?;
-                let values: Vec<_> = inner.get_all(key).iter().collect();
-                if values.len() == 1 {
-                    let v = values[0];
-                    if let Ok(vstr) = v.to_str() {
-                        d.set_item(key_pystr, vstr)?;
-                    } else {
-                        let pybytes = PyBytes::new(py, v.as_bytes());
-                        d.set_item(key_pystr, pybytes)?;
-                    }
-                } else {
-                    let py_list = PyList::empty(py);
-                    for v in values {
-                        if let Ok(vstr) = v.to_str() {
-                            py_list.append(vstr)?;
-                        } else {
-                            let pybytes = PyBytes::new(py, v.as_bytes());
-                            py_list.append(pybytes)?;
-                        }
-                    }
-                    d.set_item(key_pystr, py_list)?;
-                }
-            }
-            Ok(d)
-        }
+        PyHttpHeaderMapRef(&self.read()).into_pyobject(py)
     }
 
     #[cfg(feature = "pydantic")]
@@ -170,12 +138,12 @@ impl PyHeaders {
 
     #[must_use]
     fn __len__(&self) -> usize {
-        self.read().len()
+        self.with_read(http::HeaderMap::len)
     }
 
     #[must_use]
     fn __eq__(&self, other: &Self) -> bool {
-        *(self.read()) == *(other.read())
+        self.with_read(|inner| inner == &*(other.read()))
     }
 
     #[must_use]
@@ -189,7 +157,7 @@ impl PyHeaders {
     }
 
     fn __getitem__(&self, key: &str) -> Option<PyHttpHeaderValue> {
-        self.read().get(key).map(PyHttpHeaderValue::from)
+        self.with_read(|inner| inner.get(key).map(PyHttpHeaderValue::from))
     }
 
     fn __setitem__(&self, key: PyHttpHeaderName, value: PyHttpHeaderValue) -> PyResult<()> {
@@ -201,8 +169,7 @@ impl PyHeaders {
         self.remove(key);
     }
 
-    #[must_use]
-    fn __iter__<'py>(&self, py: Python<'py>) -> Vec<Bound<'py, PyAny>> {
+    fn __iter__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyList>> {
         self.keys(py)
     }
 
@@ -261,14 +228,14 @@ impl PyHeaders {
         self.read().get(key).map(PyHttpHeaderValue::from)
     }
 
-    fn get_all<'py>(&'py self, py: Python<'py>, key: &str) -> PyResult<Bound<'py, PyAny>> {
-        // iterate and collect but filter out errors...
-        self.read()
+    fn get_all<'py>(&'py self, py: Python<'py>, key: &str) -> PyResult<Bound<'py, PyList>> {
+        let map = self.read();
+        let hvals = map
             .get_all(key)
             .iter()
             .map(PyHttpHeaderValueRef::from)
-            .collect::<Vec<_>>()
-            .into_pyobject(py)
+            .collect::<Vec<_>>();
+        PyList::new(py, hvals)
     }
 
     fn insert(
@@ -292,12 +259,9 @@ impl PyHeaders {
         !self.read().is_empty()
     }
 
-    #[must_use]
-    fn keys<'py>(&self, py: Python<'py>) -> Vec<Bound<'py, PyAny>> {
-        self.read()
-            .keys()
-            .flat_map(|h| header_name_to_pystring(py, h))
-            .collect()
+    fn keys<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyList>> {
+        let map = self.read();
+        PyList::new(py, map.keys().map(PyHttpHeaderNameRef).collect::<Vec<_>>())
     }
 
     #[must_use]
@@ -318,71 +282,51 @@ impl PyHeaders {
         self.remove(key)
     }
 
-    fn values<'py>(&self, py: Python<'py>) -> PyResult<Vec<Bound<'py, PyString>>> {
-        let mut vals = vec![];
-        for v in self.read().values() {
-            let pystr = header_value_to_pystring(py, v)?;
-            vals.push(pystr);
-        }
-        Ok(vals)
+    fn values<'py>(&'py self, py: Python<'py>) -> PyResult<Bound<'py, PyList>> {
+        let map = self.read();
+        let values = map.values().map(PyHttpHeaderValueRef).collect::<Vec<_>>();
+        PyList::new(py, values)
     }
 
     #[pyo3(signature = (headers, *, append = false))]
-    fn update(&self, headers: PyHeadersLike, append: bool) {
+    fn update(&self, headers: PyHeadersLike, append: bool) -> PyResult<()> {
         match headers {
             PyHeadersLike::Headers(other) => {
                 let other_inner = other.read();
                 let mut inner = self.write();
                 if append {
-                    for (k, v) in other_inner.iter() {
-                        inner.append(k, v.into());
-                    }
+                    update_headers_append(&other_inner, &mut inner)
                 } else {
-                    for (k, v) in other_inner.iter() {
-                        inner.insert(k, v.into());
-                    }
+                    update_headers_insert(&other_inner, &mut inner)
                 }
             }
             PyHeadersLike::Map(other) => {
                 let hm = HeaderMap::from(other);
+                let mut inner = self.write();
                 if append {
-                    let mut inner = self.write();
-                    for (k, v) in hm {
-                        if let Some(k) = k {
-                            inner.append(k, v);
-                        }
-                    }
+                    update_headers_append(&hm, &mut inner)
                 } else {
-                    let mut inner = self.write();
-                    for (k, v) in hm {
-                        if let Some(k) = k {
-                            inner.insert(k, v);
-                        }
-                    }
+                    update_headers_insert(&hm, &mut inner)
                 }
             }
         }
+        .map_err(|e| map_max_size_reached_to_pyerr(&e))
     }
 
-    fn __or__(&self, other: PyHeadersLike) -> Self {
-        let mut headers = self.read().clone();
+    fn __or__(&self, other: PyHeadersLike) -> PyResult<Self> {
+        let mut new_map = self.read().clone();
         match other {
             PyHeadersLike::Headers(other) => {
                 let other_inner = other.read();
-                for (k, v) in other_inner.iter() {
-                    headers.insert(k, v.clone());
-                }
+                update_headers_insert(&other_inner, &mut new_map)
             }
             PyHeadersLike::Map(other) => {
-                let h = HeaderMap::from(other);
-                for (k, v) in h {
-                    if let Some(k) = k {
-                        headers.insert(k, v);
-                    }
-                }
+                let hm = HeaderMap::from(other);
+                update_headers_insert(&hm, &mut new_map)
             }
         }
-        Self::from(headers)
+        .map_err(|e| map_max_size_reached_to_pyerr(&e))?;
+        Ok(Self::from(new_map))
     }
 
     fn to_py<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
@@ -470,14 +414,16 @@ impl PyHeaders {
 impl std::hash::Hash for PyHeaders {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
         let inner = self.read();
-        HeaderMapRef(&inner).hash(state);
+        PyHttpHeaderMapRef(&inner).hash(state);
     }
 }
 
-struct HeaderMapRef<'a>(&'a HeaderMap);
-impl std::hash::Hash for HeaderMapRef<'_> {
+impl std::hash::Hash for PyHttpHeaderMapRef<'_> {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
         // sorted keys
+        if self.0.is_empty() {
+            return;
+        }
         let mut keys: Vec<_> = self.0.keys().collect();
         keys.sort_unstable_by(|a, b| a.as_str().cmp(b.as_str()));
         for key in keys {
@@ -535,4 +481,28 @@ impl ryo3_pydantic::GetPydanticCoreSchemaCls for PyHeaders {
             Some(&plain_validator_kwargs),
         )
     }
+}
+
+fn map_max_size_reached_to_pyerr(e: &http::header::MaxSizeReached) -> PyErr {
+    py_value_error!("header-size-limit-reached: {e}")
+}
+
+fn update_headers_append(
+    src: &HeaderMap,
+    dst: &mut HeaderMap,
+) -> Result<(), http::header::MaxSizeReached> {
+    for (k, v) in src {
+        dst.try_append(k, v.into())?;
+    }
+    Ok(())
+}
+
+fn update_headers_insert(
+    src: &HeaderMap,
+    dst: &mut HeaderMap,
+) -> Result<(), http::header::MaxSizeReached> {
+    for (k, v) in src {
+        dst.try_insert(k, v.into())?;
+    }
+    Ok(())
 }

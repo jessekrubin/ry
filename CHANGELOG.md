@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## v0.0.93 [unreleased]
+## v0.0.93 [2026-05-22]
 
 - set MSRV to 1.95
 - `ryo3-reqwest`

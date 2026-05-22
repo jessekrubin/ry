@@ -8,6 +8,8 @@ use http::{HeaderMap, HeaderValue};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PyHttpHeaderMap(pub(crate) HeaderMap<HeaderValue>);
+pub(crate) struct PyHttpHeaderMapRef<'a>(pub(crate) &'a HeaderMap<HeaderValue>);
+
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct PyHttpMethod(pub(crate) http::Method);
 
@@ -23,7 +25,7 @@ impl PyHttpMethod {
     pub const CONNECT: Self = Self(http::Method::CONNECT);
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Hash, Eq)]
 pub struct PyHttpHeaderName(pub(crate) http::HeaderName);
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
@@ -54,6 +56,7 @@ impl PyHttpVersion {
     /// `HTTP/3.0`
     pub const HTTP_3: Self = Self(http::Version::HTTP_3);
 }
+
 // ============================================================================
 //  FROM ~ FROM ~ FROM ~ FROM ~ FROM ~ FROM ~ FROM ~ FROM ~ FROM ~ FROM ~ FROM
 // ============================================================================
@@ -63,6 +66,7 @@ impl From<HeaderMap> for PyHttpHeaderMap {
         Self(h)
     }
 }
+
 impl From<PyHttpHeaderMap> for HeaderMap {
     fn from(h: PyHttpHeaderMap) -> Self {
         h.0
@@ -152,5 +156,12 @@ impl Deref for PyHttpMethod {
     type Target = http::Method;
     fn deref(&self) -> &Self::Target {
         &self.0
+    }
+}
+
+impl Deref for PyHttpHeaderMapRef<'_> {
+    type Target = HeaderMap<HeaderValue>;
+    fn deref(&self) -> &Self::Target {
+        self.0
     }
 }

@@ -670,18 +670,14 @@ impl RyBlockingResponse {
         signature = (*, encoding = PyEncoding::UTF_8),
         text_signature = "(self, *, encoding=\"utf-8\")"
     )]
-    fn text<'py>(&'py self, py: Python<'py>, encoding: PyEncoding) -> PyResult<String> {
+    fn text(&self, py: Python<'_>, encoding: PyEncoding) -> PyResult<String> {
         let body = self.take_body()?;
         let encoding_name = self.response_encoding(encoding);
         py.detach(|| get_tokio_runtime().block_on(read_body_text(body, encoding_name)))
     }
 
     /// Return the response body as text with encoding (consumes the response)
-    fn text_with_charset<'py>(
-        &'py self,
-        py: Python<'py>,
-        encoding: PyEncoding,
-    ) -> PyResult<String> {
+    fn text_with_charset(&self, py: Python<'_>, encoding: PyEncoding) -> PyResult<String> {
         let body = self.take_body()?;
         let encoding_name = self.response_encoding(encoding);
         py.detach(|| get_tokio_runtime().block_on(read_body_text(body, encoding_name)))
@@ -698,9 +694,9 @@ impl RyBlockingResponse {
         ),
         text_signature = "(self, *, allow_inf_nan=False, cache_mode=\"all\", partial_mode=False, catch_duplicate_keys=False)"
     )]
-    fn json<'py>(
-        &'py self,
-        py: Python<'py>,
+    fn json(
+        &self,
+        py: Python<'_>,
         allow_inf_nan: bool,
         cache_mode: jiter::StringCacheMode,
         partial_mode: jiter::PartialMode,
