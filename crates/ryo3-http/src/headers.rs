@@ -43,7 +43,7 @@ impl PyHeaders {
             // don't have to worry about duplicates bc of keys_len == len
             let d = PyDict::new(py);
             for (k, v) in inner.iter() {
-                let key_pystr = header_name_to_pystring(py, k)?;
+                let key_pystr = header_name_to_pystring(py, k);
                 let value_pystr = header_value_to_pystring(py, v)?;
                 d.set_item(key_pystr, value_pystr)?;
             }
@@ -52,7 +52,7 @@ impl PyHeaders {
             // need to handle duplicates
             let d = PyDict::new(py);
             for key in inner.keys() {
-                let key_pystr = header_name_to_pystring(py, key)?;
+                let key_pystr = header_name_to_pystring(py, key);
                 let values: Vec<_> = inner.get_all(key).iter().collect();
                 if values.len() == 1 {
                     let v = values[0];
@@ -202,7 +202,7 @@ impl PyHeaders {
     }
 
     #[must_use]
-    fn __iter__<'py>(&self, py: Python<'py>) -> Vec<Bound<'py, PyAny>> {
+    fn __iter__<'py>(&self, py: Python<'py>) -> Vec<Bound<'py, PyString>> {
         self.keys(py)
     }
 
@@ -293,10 +293,10 @@ impl PyHeaders {
     }
 
     #[must_use]
-    fn keys<'py>(&self, py: Python<'py>) -> Vec<Bound<'py, PyAny>> {
+    fn keys<'py>(&self, py: Python<'py>) -> Vec<Bound<'py, PyString>> {
         self.read()
             .keys()
-            .flat_map(|h| header_name_to_pystring(py, h))
+            .map(|h| header_name_to_pystring(py, h))
             .collect()
     }
 

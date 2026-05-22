@@ -1,7 +1,9 @@
 //! http python conversions
+use std::convert::Infallible;
+
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyString};
-use pyo3::{IntoPyObjectExt, intern};
+use pyo3::{BoundObject, intern};
 use ryo3_core::{py_type_err, py_value_err, py_value_error};
 
 use crate::PyHttpHeaderNameRef;
@@ -235,30 +237,27 @@ impl_header_name_to_pystring_interned! {
 pub(crate) fn header_name_to_pystring<'py>(
     py: Python<'py>,
     name: &http::HeaderName,
-) -> PyResult<Bound<'py, PyAny>> {
-    if let Some(s) = header_name_to_pystring_maybe(py, name) {
-        s.into_bound_py_any(py)
-    } else {
-        let s = name.as_str();
-        let s = PyString::new(py, s);
-        s.into_bound_py_any(py)
-    }
+) -> Bound<'py, PyString> {
+    header_name_to_pystring_maybe(py, name).map_or_else(
+        || PyString::new(py, name.as_str()).as_borrowed().into_bound(),
+        |s| s.as_borrowed().into_bound(),
+    )
 }
 
 impl<'py> IntoPyObject<'py> for &PyHttpHeaderName {
-    type Target = PyAny;
+    type Target = PyString;
     type Output = Bound<'py, Self::Target>;
-    type Error = PyErr;
+    type Error = Infallible;
     #[inline]
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
-        header_name_to_pystring(py, &self.0)
+        Ok(header_name_to_pystring(py, &self.0))
     }
 }
 
 impl<'py> IntoPyObject<'py> for PyHttpHeaderName {
-    type Target = PyAny;
+    type Target = PyString;
     type Output = Bound<'py, Self::Target>;
-    type Error = PyErr;
+    type Error = Infallible;
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
         (&self).into_pyobject(py)
     }
@@ -284,22 +283,22 @@ impl<'py> FromPyObject<'_, 'py> for PyHttpHeaderName {
 }
 
 impl<'py> IntoPyObject<'py> for &PyHttpHeaderNameRef<'_> {
-    type Target = PyAny;
+    type Target = PyString;
     type Output = Bound<'py, Self::Target>;
-    type Error = PyErr;
+    type Error = Infallible;
     #[inline]
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
-        header_name_to_pystring(py, self.0)
+        Ok(header_name_to_pystring(py, self.0))
     }
 }
 
 impl<'py> IntoPyObject<'py> for PyHttpHeaderNameRef<'_> {
-    type Target = PyAny;
+    type Target = PyString;
     type Output = Bound<'py, Self::Target>;
-    type Error = PyErr;
+    type Error = Infallible;
     #[inline]
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
-        header_name_to_pystring(py, self.0)
+        Ok(header_name_to_pystring(py, self.0))
     }
 }
 
