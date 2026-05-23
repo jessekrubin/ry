@@ -1,3 +1,4 @@
+#[derive(Copy, Clone, PartialEq, Eq, Debug)]
 pub(crate) enum PyObType {
     Unknown,
     // ========================================================================
