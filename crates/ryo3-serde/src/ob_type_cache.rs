@@ -250,23 +250,6 @@ macro_rules! py_obj_ptr_feat {
 }
 
 impl PyTypeCache {
-    // #[inline]
-    // pub(crate) fn ptr2type(&self, ptr: usize) -> PyObType {
-    //     use std::cell::Cell;
-    //     thread_local! {
-    //         static LAST_PTR: Cell<usize> = const { Cell::new(0) };
-    //         static LAST_TYPE: Cell<PyObType> = const { Cell::new(PyObType::Unknown) };
-    //     }
-    //     if ptr == LAST_PTR.get() {
-    //         return LAST_TYPE.get();
-    //     }
-
-    //     let res = self.ptr2type_slow(ptr);
-    //     LAST_PTR.set(ptr);
-    //     LAST_TYPE.set(res);
-    //     res
-    // }
-
     #[inline]
     pub(crate) fn ptr2type(&self, ptr: usize) -> PyObType {
         // --- das builtins ---
