@@ -1,4 +1,6 @@
+pub mod dict;
 pub mod errors;
+pub mod kwargs;
 mod map_pyerr;
 mod pyparse;
 mod pystring;

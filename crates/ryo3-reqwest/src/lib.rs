@@ -38,6 +38,11 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<RyBlockingClient>()?;
     m.add_class::<RyResponse>()?;
     m.add_class::<RyReqwestError>()?;
+    m.add_function(wrap_pyfunction!(request::_bench_extract_reqwest_kwargs, m)?)?;
+    m.add_function(wrap_pyfunction!(
+        request::_bench_extract_reqwest_kwargs2,
+        m
+    )?)?;
     m.add_function(wrap_pyfunction!(fetch::fetch, m)?)?;
     m.add_function(wrap_pyfunction!(fetch::fetch_sync, m)?)?;
     Ok(())

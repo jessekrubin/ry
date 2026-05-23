@@ -6,6 +6,7 @@ use pyo3::prelude::*;
 use pyo3::pybacked::PyBackedStr;
 use pyo3::types::PyDict;
 use reqwest::header::{HeaderMap, HeaderValue};
+use ryo3_core::kwargs::KwargsIter;
 use ryo3_http::{PyHeadersLike, PyHttpVersion};
 use ryo3_macro_rules::{py_type_err, py_value_err, py_value_error, pytodo};
 use ryo3_std::time::PyTimeout;
@@ -21,10 +22,29 @@ pub(crate) struct ReqwestKwargs<const BLOCKING: bool = false> {
     bearer_auth: Option<PyBackedStr>,
     version: Option<PyHttpVersion>,
 }
-
+pub(crate) struct ReqwestKwargs2<const BLOCKING: bool = false> {
+    headers: Option<HeaderMap>,
+    query: Option<PyQuery>,
+    body: PyReqwestBody,
+    timeout: Option<Duration>,
+    basic_auth: Option<BasicAuth>,
+    bearer_auth: Option<PyBackedStr>,
+    version: Option<PyHttpVersion>,
+}
 pub(crate) type BlockingReqwestKwargs = ReqwestKwargs<true>;
 
 impl<const BLOCKING: bool> ReqwestKwargs<BLOCKING> {
+    #[inline]
+    pub(crate) fn benchmark_score(&self) -> usize {
+        usize::from(self.headers.is_some())
+            + usize::from(self.query.is_some())
+            + usize::from(!matches!(self.body, PyReqwestBody::None))
+            + usize::from(self.timeout.is_some())
+            + usize::from(self.basic_auth.is_some())
+            + usize::from(self.bearer_auth.is_some())
+            + usize::from(self.version.is_some())
+    }
+
     /// Apply the kwargs to the `reqwest::RequestBuilder`
     #[inline]
     pub(crate) fn apply(self, req: reqwest::RequestBuilder) -> PyResult<reqwest::RequestBuilder> {
@@ -86,6 +106,19 @@ impl<const BLOCKING: bool> ReqwestKwargs<BLOCKING> {
     }
 }
 
+impl<const BLOCKING: bool> ReqwestKwargs2<BLOCKING> {
+    #[inline]
+    pub(crate) fn benchmark_score(&self) -> usize {
+        usize::from(self.headers.is_some())
+            + usize::from(self.query.is_some())
+            + usize::from(!matches!(self.body, PyReqwestBody::None))
+            + usize::from(self.timeout.is_some())
+            + usize::from(self.basic_auth.is_some())
+            + usize::from(self.bearer_auth.is_some())
+            + usize::from(self.version.is_some())
+    }
+}
+
 #[derive(Debug)]
 enum PyReqwestBody {
     Bytes(bytes::Bytes),
@@ -95,6 +128,30 @@ enum PyReqwestBody {
     #[expect(dead_code)]
     Multipart(bool), // placeholder
     None,
+}
+
+#[inline]
+fn extract_body_from_py_body<const BLOCKING: bool>(
+    body: Borrowed<'_, '_, PyAny>,
+) -> PyResult<PyReqwestBody> {
+    let py_body = body.extract::<crate::body::PyBody>()?;
+    match py_body {
+        crate::body::PyBody::Bytes(bs) => Ok(PyReqwestBody::Bytes(bs.into_inner())),
+        crate::body::PyBody::Stream(s) => {
+            if BLOCKING && s.is_async() {
+                return py_type_err!("cannot use async stream body with blocking client");
+            }
+            Ok(PyReqwestBody::Stream(s))
+        }
+    }
+}
+
+#[inline]
+fn extract_form_body(form: Borrowed<'_, '_, PyAny>) -> PyResult<PyReqwestBody> {
+    let py_any_serializer = ryo3_serde::PyAnySerializer::new(form, None);
+    let url_encoded_form = serde_urlencoded::to_string(py_any_serializer)
+        .map_err(|e| py_value_error!("failed to serialize form data: {e}"))?;
+    Ok(PyReqwestBody::Form(url_encoded_form))
 }
 
 impl<'py, const BLOCKING: bool> FromPyObject<'_, 'py> for ReqwestKwargs<BLOCKING> {
@@ -125,30 +182,10 @@ impl<'py, const BLOCKING: bool> FromPyObject<'_, 'py> for ReqwestKwargs<BLOCKING
                 return py_value_err!("body, json, form, multipart are mutually exclusive");
             }
             (Some(body), None, None, None) => {
-                let py_body = body.extract::<crate::body::PyBody>()?;
-                match py_body {
-                    crate::body::PyBody::Bytes(bs) => PyReqwestBody::Bytes(bs.into_inner()),
-                    crate::body::PyBody::Stream(s) => {
-                        // using an async stream with blocking client is a no-go (yo)
-                        if BLOCKING && s.is_async() {
-                            return py_type_err!(
-                                "cannot use async stream body with blocking client"
-                            );
-                        }
-                        PyReqwestBody::Stream(s)
-                    }
-                }
+                extract_body_from_py_body::<BLOCKING>(body.as_borrowed())?
             }
-            (None, Some(json), None, None) => {
-                let b = ryo3_json::to_vec(&json)?;
-                PyReqwestBody::Json(b)
-            }
-            (None, None, Some(form), None) => {
-                let py_any_serializer = ryo3_serde::PyAnySerializer::new(form.as_borrowed(), None);
-                let url_encoded_form = serde_urlencoded::to_string(py_any_serializer)
-                    .map_err(|e| py_value_error!("failed to serialize form data: {e}"))?;
-                PyReqwestBody::Form(url_encoded_form)
-            }
+            (None, Some(json), None, None) => PyReqwestBody::Json(ryo3_json::to_vec(&json)?),
+            (None, None, Some(form), None) => extract_form_body(form.as_borrowed())?,
             (None, None, None, Some(_multipart)) => {
                 pytodo!("multipart not implemented (yet)")
             }
@@ -189,6 +226,177 @@ impl<'py, const BLOCKING: bool> FromPyObject<'_, 'py> for ReqwestKwargs<BLOCKING
     }
 }
 
+//=-=========================================================================
+
+// mod kwargs_iter {
+
+//     //! BORROWED ITERATORS!!!
+//     use pyo3::ffi;
+//     use pyo3::prelude::*;
+//     use pyo3::types::{PyAny, PyDict};
+
+//     // ----------------------------------------------------------------------------
+//     // DICT
+//     // ----------------------------------------------------------------------------
+
+//     /// Modified from `pyo3::types::dict`
+//     ///
+//     /// Big advantage is ref counts arent messed w/ so only use if you know the
+//     /// dict is not being modified during iteration
+//     pub(crate) struct BorrowedDictIter<'a, 'py> {
+//         dict: Borrowed<'a, 'py, PyDict>,
+//         ppos: ffi::Py_ssize_t,
+//         remaining: usize,
+//     }
+
+//     impl<'a, 'py> Iterator for BorrowedDictIter<'a, 'py> {
+//         type Item = (Borrowed<'a, 'py, PyAny>, Borrowed<'a, 'py, PyAny>);
+
+//         #[inline]
+//         fn next(&mut self) -> Option<Self::Item> {
+//             let mut key_ptr: *mut ffi::PyObject = std::ptr::null_mut();
+//             let mut val_ptr: *mut ffi::PyObject = std::ptr::null_mut();
+
+//             #[expect(unsafe_code)]
+//             // Safety: self.dict lives sufficiently long that the pointer is not dangling
+//             if unsafe {
+//                 ffi::PyDict_Next(
+//                     self.dict.as_ptr(),
+//                     &raw mut self.ppos,
+//                     &raw mut key_ptr,
+//                     &raw mut val_ptr,
+//                 )
+//             } != 0
+//             {
+//                 self.remaining -= 1;
+//                 let py = self.dict.py();
+//                 // Safety:
+//                 // - PyDict_Next returns borrowed values
+//                 // - we have already checked that `PyDict_Next` succeeded, so we can assume these to be non-null
+//                 let map_key = unsafe { Borrowed::from_ptr(py, key_ptr) };
+//                 let map_val = unsafe { Borrowed::from_ptr(py, val_ptr) };
+//                 Some((map_key, map_val))
+//             } else {
+//                 None
+//             }
+//         }
+
+//         #[inline]
+//         fn size_hint(&self) -> (usize, Option<usize>) {
+//             let len = self.len();
+//             (len, Some(len))
+//         }
+
+//         #[inline]
+//         fn count(self) -> usize
+//         where
+//             Self: Sized,
+//         {
+//             self.len()
+//         }
+//     }
+
+//     impl ExactSizeIterator for BorrowedDictIter<'_, '_> {
+//         fn len(&self) -> usize {
+//             self.remaining
+//         }
+//     }
+
+//     impl<'a, 'py> BorrowedDictIter<'a, 'py> {
+//         pub(crate) fn new(dict: Borrowed<'a, 'py, PyDict>) -> Self {
+//             let len = dict.len();
+//             BorrowedDictIter {
+//                 dict,
+//                 ppos: 0,
+//                 remaining: len,
+//             }
+//         }
+//     }
+// }
+
+impl<'py, const BLOCKING: bool> FromPyObject<'_, 'py> for ReqwestKwargs2<BLOCKING> {
+    type Error = PyErr;
+
+    fn extract(obj: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
+        let dict = obj.cast_exact::<PyDict>()?;
+
+        let kwargs = KwargsIter::new(dict);
+        // use thingy::BorrowedDictIter;
+
+        let mut res = Self {
+            body: PyReqwestBody::None,
+            headers: None,
+            query: None,
+            timeout: None,
+            basic_auth: None,
+            bearer_auth: None,
+            version: None,
+        };
+
+        let mut body_set = false;
+        for (key, value) in kwargs {
+            // let key_str: &str = key.extract()?;
+            match key {
+                "body" => {
+                    if body_set {
+                        return py_value_err!("body, json, form, multipart are mutually exclusive");
+                    }
+                    body_set = true;
+                    res.body = extract_body_from_py_body::<BLOCKING>(value)?;
+                }
+                "json" => {
+                    if body_set {
+                        return py_value_err!("body, json, form, multipart are mutually exclusive");
+                    }
+                    body_set = true;
+                    res.body = PyReqwestBody::Json(ryo3_json::to_vec(&value)?);
+                }
+                "form" => {
+                    if body_set {
+                        return py_value_err!("body, json, form, multipart are mutually exclusive");
+                    }
+                    body_set = true;
+                    res.body = extract_form_body(value)?;
+                }
+                "multipart" => {
+                    pytodo!("multipart not implemented (yet)");
+                }
+                "query" => {
+                    res.query = Some(value.extract()?);
+                }
+                "headers" => {
+                    res.headers = Some(HeaderMap::from(value.extract::<PyHeadersLike>()?));
+                }
+                "timeout" => {
+                    res.timeout = Some(Duration::from(value.extract::<PyTimeout>()?));
+                }
+                "basic_auth" => {
+                    res.basic_auth = Some(value.extract()?);
+                }
+                "bearer_auth" => {
+                    res.bearer_auth = Some(value.extract()?);
+                }
+                "version" => {
+                    res.version = Some(value.extract()?);
+                }
+                _other => {
+                    return py_type_err!("unexpected keyword argument: {key}");
+                }
+            }
+        }
+        Ok(res)
+    }
+}
+
+#[pyfunction(signature = (**kwargs))]
+pub(crate) fn _bench_extract_reqwest_kwargs(kwargs: Option<ReqwestKwargs>) -> PyResult<usize> {
+    Ok(kwargs.as_ref().map_or(0, ReqwestKwargs::benchmark_score))
+}
+
+#[pyfunction(signature = (**kwargs))]
+pub(crate) fn _bench_extract_reqwest_kwargs2(kwargs: Option<ReqwestKwargs2>) -> PyResult<usize> {
+    Ok(kwargs.as_ref().map_or(0, ReqwestKwargs2::benchmark_score))
+}
 // ===========================================================================
 // REQWEST KWARGS BUILDER TODO?
 // ===========================================================================
