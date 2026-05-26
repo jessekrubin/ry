@@ -103,9 +103,9 @@ checksum = "1505bd5d3d116872e7271a6d4e16d81d0c8570876c8de68093a09ac269d8aac0"
 
 [[package]]
 name = "autocfg"
-version = "1.5.0"
+version = "1.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c08606f8c3cbf4ce6ec8e28fb0014a2c086708fe954eaa885384a6165172e7e8"
+checksum = "f2032f911046de80f0a198e0901378627c33f59ea0ac00e363d481118bd70a53"
 
 [[package]]
 name = "aws-lc-rs"
@@ -196,9 +196,9 @@ dependencies = [
 
 [[package]]
 name = "bumpalo"
-version = "3.20.2"
+version = "3.20.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5d20789868f4b01b2f2caec9f5c4e0213b41e3e5702a50157d699ae31ced2fcb"
+checksum = "72f5acc6cb2ba439de613abc23857ec3d78374d8ed5ac84e9d11336e87da8649"
 
 [[package]]
 name = "bytemuck"
@@ -325,6 +325,16 @@ dependencies = [
  "serde_json",
  "time",
  "url",
+]
+
+[[package]]
+name = "core-foundation"
+version = "0.9.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "91e195e091a93c46f7102ec7818a2aa394e1e1771c3ab4825963fa03e45afb8f"
+dependencies = [
+ "core-foundation-sys",
+ "libc",
 ]
 
 [[package]]
@@ -484,24 +494,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "92773504d58c093f6de2459af4af33faa518c13451eb8f2b5698ed3d36e7c813"
 
 [[package]]
+name = "either"
+version = "1.16.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "91622ff5e7162018101f2fea40d6ebf4a78bbe5a49736a2020649edf9693679e"
+
+[[package]]
 name = "encoding_rs"
 version = "0.8.35"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "75030f3c4f45dafd7586dd6780965a8c7e8e285a5ecb86713e63a79c5b2766f3"
 dependencies = [
  "cfg-if",
-]
-
-[[package]]
-name = "enum-as-inner"
-version = "0.6.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a1e6a265c649f3f5979b601d26f1d05ada116434c87741c9493cb56218f76cbc"
-dependencies = [
- "heck",
- "proc-macro2",
- "quote",
- "syn",
 ]
 
 [[package]]
@@ -749,23 +753,22 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2304e00983f87ffb38b55b444b5e3b60a884b5d30c0fca7d82fe33449bbe55ea"
 
 [[package]]
-name = "hickory-proto"
-version = "0.25.2"
+name = "hickory-net"
+version = "0.26.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f8a6fe56c0038198998a6f217ca4e7ef3a5e51f46163bd6dd60b5c71ca6c6502"
+checksum = "e2295ed2f9c31e471e1428a8f88a3f0e1f4b27c15049592138d1eebe9c35b183"
 dependencies = [
  "async-trait",
  "cfg-if",
  "data-encoding",
- "enum-as-inner",
  "futures-channel",
  "futures-io",
  "futures-util",
+ "hickory-proto",
  "idna",
  "ipnet",
- "once_cell",
- "rand 0.9.4",
- "ring",
+ "jni",
+ "rand 0.10.1",
  "thiserror",
  "tinyvec",
  "tokio",
@@ -774,21 +777,46 @@ dependencies = [
 ]
 
 [[package]]
-name = "hickory-resolver"
-version = "0.25.2"
+name = "hickory-proto"
+version = "0.26.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dc62a9a99b0bfb44d2ab95a7208ac952d31060efc16241c87eaf36406fecf87a"
+checksum = "0bab31817bfb44672a252e97fe81cd0c18d1b2cf892108922f6818820df8c643"
+dependencies = [
+ "data-encoding",
+ "idna",
+ "ipnet",
+ "jni",
+ "once_cell",
+ "prefix-trie",
+ "rand 0.10.1",
+ "ring",
+ "thiserror",
+ "tinyvec",
+ "tracing",
+ "url",
+]
+
+[[package]]
+name = "hickory-resolver"
+version = "0.26.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f0d58d28879ceecde6607729660c2667a081ccdc082e082675042793960f178c"
 dependencies = [
  "cfg-if",
  "futures-util",
+ "hickory-net",
  "hickory-proto",
  "ipconfig",
+ "ipnet",
+ "jni",
  "moka",
+ "ndk-context",
  "once_cell",
  "parking_lot",
- "rand 0.9.4",
+ "rand 0.10.1",
  "resolv-conf",
  "smallvec",
+ "system-configuration",
  "thiserror",
  "tokio",
  "tracing",
@@ -1056,6 +1084,9 @@ name = "ipnet"
 version = "2.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d98f6fed1fde3f8c21bc40a1abb88dd75e67924f9cffc3ef95607bad8017f8e2"
+dependencies = [
+ "serde",
+]
 
 [[package]]
 name = "itoa"
@@ -1065,9 +1096,9 @@ checksum = "8f42a60cbdf9a97f5d2305f08a87dc4e09308d1276d28c869c684d7777685682"
 
 [[package]]
 name = "jiff"
-version = "0.2.25"
+version = "0.2.27"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6835eea34fb6321b9b3aa7b685c2b433948c09447e389dc017fdf687d5d11e65"
+checksum = "392c70591e8749fe235ddaf513e6f58b26bce3dcc16524cecc8936f75afa161e"
 dependencies = [
  "jiff-static",
  "jiff-tzdb-platform",
@@ -1075,14 +1106,14 @@ dependencies = [
  "portable-atomic",
  "portable-atomic-util",
  "serde_core",
- "windows-sys 0.61.2",
+ "windows-link",
 ]
 
 [[package]]
 name = "jiff-static"
-version = "0.2.25"
+version = "0.2.27"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3c22e04db9c58f5136eb1757f3d5c49a7b187f49e52185228cbd2f5acdfcc08c"
+checksum = "47b605b0c050d845fc355bb11eb3f9a8deddc218ea60c76e61aa1f2adfb2c96a"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1180,9 +1211,9 @@ dependencies = [
 
 [[package]]
 name = "js-sys"
-version = "0.3.98"
+version = "0.3.99"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "67df7112613f8bfd9150013a0314e196f4800d3201ae742489d999db2f979f08"
+checksum = "142bc4740e452c1e57ade0cbc129f139c9093e354346f0872ef985f4f5cf5f11"
 dependencies = [
  "cfg-if",
  "futures-util",
@@ -1280,9 +1311,9 @@ dependencies = [
 
 [[package]]
 name = "log"
-version = "0.4.29"
+version = "0.4.30"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5e5032e24019045c762d3c0f28f5b6b8bbf38563a65908389bf7978758920897"
+checksum = "616ec5685824bcc94416c6d4a7a446eea774a31efd7062c8480ba6fd06d7a6e5"
 
 [[package]]
 name = "md-5"
@@ -1362,6 +1393,12 @@ dependencies = [
  "tagptr",
  "uuid",
 ]
+
+[[package]]
+name = "ndk-context"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "27b02d87554356db9e9a873add8782d4ea6e3e58ea071a9adb9a2e8ddb884a8b"
 
 [[package]]
 name = "nu-ansi-term"
@@ -1512,6 +1549,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "85eae3c4ed2f50dcfe72643da4befc30deadb458a9b590d720cde2f2b1e97da9"
 dependencies = [
  "zerocopy",
+]
+
+[[package]]
+name = "prefix-trie"
+version = "0.8.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4cf6e3177f0684016a5c209b00882e15f8bdd3f3bb48f0491df10cd102d0c6e7"
+dependencies = [
+ "either",
+ "ipnet",
+ "num-traits",
 ]
 
 [[package]]
@@ -1751,9 +1799,9 @@ checksum = "dc897dd8d9e8bd1ed8cdad82b5966c3e0ecae09fb1907d58efaa013543185d0a"
 
 [[package]]
 name = "reqwest"
-version = "0.13.3"
+version = "0.13.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "62e0021ea2c22aed41653bc7e1419abb2c97e038ff2c33d0e1309e49a97deec0"
+checksum = "219c5811de6525e5416c7d5d53bb656d3afdbc6c5af816e0802bcfa42dbdc1c3"
 dependencies = [
  "base64",
  "bytes",
@@ -1869,7 +1917,7 @@ version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "26d1e2536ce4f35f4846aa13bff16bd0ff40157cdb14cc056c7b14ba41233ba0"
 dependencies = [
- "core-foundation",
+ "core-foundation 0.10.1",
  "core-foundation-sys",
  "jni",
  "log",
@@ -1910,7 +1958,7 @@ checksum = "b39cdef0fa800fc44525c84ccb54a029961a8215f9619753635a9c0d2538d46d"
 
 [[package]]
 name = "ry"
-version = "0.0.93"
+version = "0.0.94"
 dependencies = [
  "jiff",
  "mimalloc",
@@ -1924,7 +1972,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3"
-version = "0.0.93"
+version = "0.0.94"
 dependencies = [
  "jiff",
  "pyo3",
@@ -1970,7 +2018,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-aws-lc"
-version = "0.0.93"
+version = "0.0.94"
 dependencies = [
  "aws-lc-rs",
  "pyo3",
@@ -1980,7 +2028,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-brotli"
-version = "0.0.93"
+version = "0.0.94"
 dependencies = [
  "brotli",
  "pyo3",
@@ -1989,7 +2037,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-bytes"
-version = "0.0.93"
+version = "0.0.94"
 dependencies = [
  "ahash",
  "bytes",
@@ -1999,7 +2047,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-bzip2"
-version = "0.0.93"
+version = "0.0.94"
 dependencies = [
  "bzip2",
  "pyo3",
@@ -2008,7 +2056,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-cookie"
-version = "0.0.93"
+version = "0.0.94"
 dependencies = [
  "cookie",
  "pyo3",
@@ -2020,7 +2068,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-core"
-version = "0.0.93"
+version = "0.0.94"
 dependencies = [
  "pyo3",
  "pyo3-build-config",
@@ -2029,7 +2077,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-dev"
-version = "0.0.93"
+version = "0.0.94"
 dependencies = [
  "pyo3",
  "ryo3-macro-rules",
@@ -2041,7 +2089,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-dirs"
-version = "0.0.93"
+version = "0.0.94"
 dependencies = [
  "dirs",
  "pyo3",
@@ -2049,7 +2097,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-flate2"
-version = "0.0.93"
+version = "0.0.94"
 dependencies = [
  "flate2",
  "pyo3",
@@ -2058,7 +2106,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-fnv"
-version = "0.0.93"
+version = "0.0.94"
 dependencies = [
  "pyo3",
  "ryo3-bytes",
@@ -2067,7 +2115,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-fspath"
-version = "0.0.93"
+version = "0.0.94"
 dependencies = [
  "pyo3",
  "ryo3-bytes",
@@ -2082,7 +2130,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-glob"
-version = "0.0.93"
+version = "0.0.94"
 dependencies = [
  "glob",
  "pyo3",
@@ -2092,7 +2140,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-globset"
-version = "0.0.93"
+version = "0.0.94"
 dependencies = [
  "globset",
  "pyo3",
@@ -2101,7 +2149,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-heck"
-version = "0.0.93"
+version = "0.0.94"
 dependencies = [
  "heck",
  "pyo3",
@@ -2109,7 +2157,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-http"
-version = "0.0.93"
+version = "0.0.94"
 dependencies = [
  "http",
  "pyo3",
@@ -2122,7 +2170,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-ignore"
-version = "0.0.93"
+version = "0.0.94"
 dependencies = [
  "ignore",
  "pyo3",
@@ -2130,7 +2178,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-jiff"
-version = "0.0.93"
+version = "0.0.94"
 dependencies = [
  "jiff",
  "pyo3",
@@ -2145,7 +2193,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-jiter"
-version = "0.0.93"
+version = "0.0.94"
 dependencies = [
  "jiter",
  "pyo3",
@@ -2154,7 +2202,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-json"
-version = "0.0.93"
+version = "0.0.94"
 dependencies = [
  "pyo3",
  "ryo3-bytes",
@@ -2167,14 +2215,14 @@ dependencies = [
 
 [[package]]
 name = "ryo3-macro-rules"
-version = "0.0.93"
+version = "0.0.94"
 dependencies = [
  "pyo3",
 ]
 
 [[package]]
 name = "ryo3-memchr"
-version = "0.0.93"
+version = "0.0.94"
 dependencies = [
  "memchr",
  "pyo3",
@@ -2184,21 +2232,21 @@ dependencies = [
 
 [[package]]
 name = "ryo3-pydantic"
-version = "0.0.93"
+version = "0.0.94"
 dependencies = [
  "pyo3",
 ]
 
 [[package]]
 name = "ryo3-quick-maths"
-version = "0.0.93"
+version = "0.0.94"
 dependencies = [
  "pyo3",
 ]
 
 [[package]]
 name = "ryo3-regex"
-version = "0.0.93"
+version = "0.0.94"
 dependencies = [
  "pyo3",
  "regex",
@@ -2207,7 +2255,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-reqwest"
-version = "0.0.93"
+version = "0.0.94"
 dependencies = [
  "bytes",
  "encoding_rs",
@@ -2240,7 +2288,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-same-file"
-version = "0.0.93"
+version = "0.0.94"
 dependencies = [
  "pyo3",
  "ryo3-core",
@@ -2249,7 +2297,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-serde"
-version = "0.0.93"
+version = "0.0.94"
 dependencies = [
  "jiff",
  "pyo3",
@@ -2266,7 +2314,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-shlex"
-version = "0.0.93"
+version = "0.0.94"
 dependencies = [
  "pyo3",
  "shlex 2.0.1",
@@ -2274,7 +2322,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-size"
-version = "0.0.93"
+version = "0.0.94"
 dependencies = [
  "pyo3",
  "ryo3-core",
@@ -2283,7 +2331,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-sqlformat"
-version = "0.0.93"
+version = "0.0.94"
 dependencies = [
  "pyo3",
  "sqlformat",
@@ -2291,7 +2339,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-std"
-version = "0.0.93"
+version = "0.0.94"
 dependencies = [
  "bytes",
  "jiff",
@@ -2305,7 +2353,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-tokio"
-version = "0.0.93"
+version = "0.0.94"
 dependencies = [
  "bytes",
  "pyo3",
@@ -2319,7 +2367,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-tokio-rt"
-version = "0.0.93"
+version = "0.0.94"
 dependencies = [
  "pyo3",
  "pyo3-async-runtimes",
@@ -2328,7 +2376,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-tokio-websockets"
-version = "0.0.93"
+version = "0.0.94"
 dependencies = [
  "bytes",
  "futures-util",
@@ -2348,7 +2396,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-twox-hash"
-version = "0.0.93"
+version = "0.0.94"
 dependencies = [
  "pyo3",
  "ryo3-bytes",
@@ -2358,7 +2406,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-ulid"
-version = "0.0.93"
+version = "0.0.94"
 dependencies = [
  "pyo3",
  "ryo3-core",
@@ -2371,7 +2419,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-unindent"
-version = "0.0.93"
+version = "0.0.94"
 dependencies = [
  "pyo3",
  "unindent",
@@ -2379,7 +2427,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-url"
-version = "0.0.93"
+version = "0.0.94"
 dependencies = [
  "pyo3",
  "ryo3-core",
@@ -2392,7 +2440,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-uuid"
-version = "0.0.93"
+version = "0.0.94"
 dependencies = [
  "pyo3",
  "pyo3-build-config",
@@ -2406,7 +2454,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-walkdir"
-version = "0.0.93"
+version = "0.0.94"
 dependencies = [
  "pyo3",
  "ryo3-core",
@@ -2417,7 +2465,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-which"
-version = "0.0.93"
+version = "0.0.94"
 dependencies = [
  "pyo3",
  "ryo3-regex",
@@ -2426,7 +2474,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-zstd"
-version = "0.0.93"
+version = "0.0.94"
 dependencies = [
  "pyo3",
  "ryo3-bytes",
@@ -2471,7 +2519,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b7f4bc775c73d9a02cde8bf7b2ec4c9d12743edf609006c7facc23998404cd1d"
 dependencies = [
  "bitflags",
- "core-foundation",
+ "core-foundation 0.10.1",
  "core-foundation-sys",
  "libc",
  "security-framework-sys",
@@ -2695,6 +2743,27 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn",
+]
+
+[[package]]
+name = "system-configuration"
+version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a13f3d0daba03132c0aa9767f98351b3488edc2c100cda2d2ec2b04f3d8d3c8b"
+dependencies = [
+ "bitflags",
+ "core-foundation 0.9.4",
+ "system-configuration-sys",
+]
+
+[[package]]
+name = "system-configuration-sys"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8e1d1b10ced5ca923a1fcb8d03e96b8d3268065d724548c0211415ff6ac6bac4"
+dependencies = [
+ "core-foundation-sys",
+ "libc",
 ]
 
 [[package]]
@@ -3142,9 +3211,9 @@ dependencies = [
 
 [[package]]
 name = "wasm-bindgen"
-version = "0.2.121"
+version = "0.2.122"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "49ace1d07c165b0864824eee619580c4689389afa9dc9ed3a4c75040d82e6790"
+checksum = "3ed04576f974d2b2fba0f38c51dbc5518011e38c36bf1143164be765528fd409"
 dependencies = [
  "cfg-if",
  "once_cell",
@@ -3155,9 +3224,9 @@ dependencies = [
 
 [[package]]
 name = "wasm-bindgen-futures"
-version = "0.4.71"
+version = "0.4.72"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "96492d0d3ffba25305a7dc88720d250b1401d7edca02cc3bcd50633b424673b8"
+checksum = "9473dbd2991ae90b6291c3c32c30c6187ac49aa32f9905d1cce280ec1e110b0f"
 dependencies = [
  "js-sys",
  "wasm-bindgen",
@@ -3165,9 +3234,9 @@ dependencies = [
 
 [[package]]
 name = "wasm-bindgen-macro"
-version = "0.2.121"
+version = "0.2.122"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8e68e6f4afd367a562002c05637acb8578ff2dea1943df76afb9e83d177c8578"
+checksum = "916151b09da36bd82f6615cbf3a419e2f0ba23a03c6160e8e92eb6bd4aa1dec6"
 dependencies = [
  "quote",
  "wasm-bindgen-macro-support",
@@ -3175,9 +3244,9 @@ dependencies = [
 
 [[package]]
 name = "wasm-bindgen-macro-support"
-version = "0.2.121"
+version = "0.2.122"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d95a9ec35c64b2a7cb35d3fead40c4238d0940c86d107136999567a4703259f2"
+checksum = "299047362ccbfce148b67ab7e73349f77748e00c8296f9542adfad2ad82c5c5e"
 dependencies = [
  "bumpalo",
  "proc-macro2",
@@ -3188,9 +3257,9 @@ dependencies = [
 
 [[package]]
 name = "wasm-bindgen-shared"
-version = "0.2.121"
+version = "0.2.122"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c4e0100b01e9f0d03189a92b96772a1fb998639d981193d7dbab487302513441"
+checksum = "9a929b2c61f11ba3e9bc35b50c1f25cb38e0e892c0c231ae2b8cf78d5dad4437"
 dependencies = [
  "unicode-ident",
 ]
@@ -3244,9 +3313,9 @@ dependencies = [
 
 [[package]]
 name = "web-sys"
-version = "0.3.98"
+version = "0.3.99"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4b572dff8bcf38bad0fa19729c89bb5748b2b9b1d8be70cf90df697e3a8f32aa"
+checksum = "6d621441cfc37b84979402712047321980c178f299193a3589d05b99e8763436"
 dependencies = [
  "js-sys",
  "wasm-bindgen",
