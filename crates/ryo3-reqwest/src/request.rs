@@ -1,7 +1,6 @@
 use std::convert::Into;
 use std::time::Duration;
 
-use pyo3::intern;
 use pyo3::prelude::*;
 use pyo3::pybacked::PyBackedStr;
 use pyo3::types::PyDict;
@@ -22,29 +21,10 @@ pub(crate) struct ReqwestKwargs<const BLOCKING: bool = false> {
     bearer_auth: Option<PyBackedStr>,
     version: Option<PyHttpVersion>,
 }
-pub(crate) struct ReqwestKwargs2<const BLOCKING: bool = false> {
-    headers: Option<HeaderMap>,
-    query: Option<PyQuery>,
-    body: PyReqwestBody,
-    timeout: Option<Duration>,
-    basic_auth: Option<BasicAuth>,
-    bearer_auth: Option<PyBackedStr>,
-    version: Option<PyHttpVersion>,
-}
+
 pub(crate) type BlockingReqwestKwargs = ReqwestKwargs<true>;
 
 impl<const BLOCKING: bool> ReqwestKwargs<BLOCKING> {
-    #[inline]
-    pub(crate) fn benchmark_score(&self) -> usize {
-        usize::from(self.headers.is_some())
-            + usize::from(self.query.is_some())
-            + usize::from(!matches!(self.body, PyReqwestBody::None))
-            + usize::from(self.timeout.is_some())
-            + usize::from(self.basic_auth.is_some())
-            + usize::from(self.bearer_auth.is_some())
-            + usize::from(self.version.is_some())
-    }
-
     /// Apply the kwargs to the `reqwest::RequestBuilder`
     #[inline]
     pub(crate) fn apply(self, req: reqwest::RequestBuilder) -> PyResult<reqwest::RequestBuilder> {
@@ -106,19 +86,6 @@ impl<const BLOCKING: bool> ReqwestKwargs<BLOCKING> {
     }
 }
 
-impl<const BLOCKING: bool> ReqwestKwargs2<BLOCKING> {
-    #[inline]
-    pub(crate) fn benchmark_score(&self) -> usize {
-        usize::from(self.headers.is_some())
-            + usize::from(self.query.is_some())
-            + usize::from(!matches!(self.body, PyReqwestBody::None))
-            + usize::from(self.timeout.is_some())
-            + usize::from(self.basic_auth.is_some())
-            + usize::from(self.bearer_auth.is_some())
-            + usize::from(self.version.is_some())
-    }
-}
-
 #[derive(Debug)]
 enum PyReqwestBody {
     Bytes(bytes::Bytes),
@@ -154,6 +121,7 @@ fn extract_form_body(form: Borrowed<'_, '_, PyAny>) -> PyResult<PyReqwestBody> {
     Ok(PyReqwestBody::Form(url_encoded_form))
 }
 
+#[cfg(any(PyPy, GraalPy, Py_LIMITED_API))]
 impl<'py, const BLOCKING: bool> FromPyObject<'_, 'py> for ReqwestKwargs<BLOCKING> {
     type Error = PyErr;
 
@@ -162,14 +130,14 @@ impl<'py, const BLOCKING: bool> FromPyObject<'_, 'py> for ReqwestKwargs<BLOCKING
         let dict = obj.cast_exact::<PyDict>()?;
 
         // body parts...
-        let body = dict.get_item(intern!(py, "body"))?;
-        let json = dict.get_item(intern!(py, "json"))?;
-        let form = dict.get_item(intern!(py, "form"))?;
-        let multipart = dict.get_item(intern!(py, "multipart"))?;
+        let body = dict.get_item(pyo3::intern!(py, "body"))?;
+        let json = dict.get_item(pyo3::intern!(py, "json"))?;
+        let form = dict.get_item(pyo3::intern!(py, "form"))?;
+        let multipart = dict.get_item(pyo3::intern!(py, "multipart"))?;
 
         // let query: PyResult<Option<String>> =
         let query: Option<PyQuery> = dict
-            .get_item(intern!(py, "query"))?
+            .get_item(pyo3::intern!(py, "query"))?
             .map(|q| q.extract::<PyQuery>())
             .transpose()?;
         let body: PyReqwestBody = match (body, json, form, multipart) {
@@ -193,22 +161,22 @@ impl<'py, const BLOCKING: bool> FromPyObject<'_, 'py> for ReqwestKwargs<BLOCKING
         };
 
         let timeout = dict
-            .get_item(intern!(py, "timeout"))?
+            .get_item(pyo3::intern!(py, "timeout"))?
             .map(|t| t.extract::<PyTimeout>())
             .transpose()?
             .map(Duration::from);
         let headers = dict
-            .get_item(intern!(py, "headers"))?
+            .get_item(pyo3::intern!(py, "headers"))?
             .map(|h| h.extract::<PyHeadersLike>())
             .transpose()?
             .map(HeaderMap::try_from)
             .transpose()?;
         let bearer_auth: Option<PyBackedStr> = dict
-            .get_item(intern!(py, "bearer_auth"))?
+            .get_item(pyo3::intern!(py, "bearer_auth"))?
             .map(|b| b.extract())
             .transpose()?;
         let version: Option<PyHttpVersion> = dict
-            .get_item(intern!(py, "version"))?
+            .get_item(pyo3::intern!(py, "version"))?
             .map(|v| v.extract())
             .transpose()?;
         Ok(Self {
@@ -217,7 +185,7 @@ impl<'py, const BLOCKING: bool> FromPyObject<'_, 'py> for ReqwestKwargs<BLOCKING
             query,
             timeout,
             basic_auth: dict
-                .get_item(intern!(obj.py(), "basic_auth"))?
+                .get_item(pyo3::intern!(obj.py(), "basic_auth"))?
                 .map(|b| b.extract())
                 .transpose()?,
             bearer_auth,
@@ -313,8 +281,8 @@ impl<'py, const BLOCKING: bool> FromPyObject<'_, 'py> for ReqwestKwargs<BLOCKING
 //         }
 //     }
 // }
-
-impl<'py, const BLOCKING: bool> FromPyObject<'_, 'py> for ReqwestKwargs2<BLOCKING> {
+#[cfg(not(any(PyPy, GraalPy, Py_LIMITED_API)))]
+impl<'py, const BLOCKING: bool> FromPyObject<'_, 'py> for ReqwestKwargs<BLOCKING> {
     type Error = PyErr;
 
     fn extract(obj: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
@@ -388,15 +356,6 @@ impl<'py, const BLOCKING: bool> FromPyObject<'_, 'py> for ReqwestKwargs2<BLOCKIN
     }
 }
 
-#[pyfunction(signature = (**kwargs))]
-pub(crate) fn _bench_extract_reqwest_kwargs(kwargs: Option<ReqwestKwargs>) -> PyResult<usize> {
-    Ok(kwargs.as_ref().map_or(0, ReqwestKwargs::benchmark_score))
-}
-
-#[pyfunction(signature = (**kwargs))]
-pub(crate) fn _bench_extract_reqwest_kwargs2(kwargs: Option<ReqwestKwargs2>) -> PyResult<usize> {
-    Ok(kwargs.as_ref().map_or(0, ReqwestKwargs2::benchmark_score))
-}
 // ===========================================================================
 // REQWEST KWARGS BUILDER TODO?
 // ===========================================================================

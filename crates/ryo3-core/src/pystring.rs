@@ -228,18 +228,59 @@ mod pystr_danger_zone {
             to_str_via_ffi(op)
         }
     }
+
+    #[cfg(any(PyPy, GraalPy, Py_LIMITED_API))]
+    #[inline]
+    #[expect(unsafe_code)]
+    unsafe fn pyunicode_to_str_via_ffi<'a>(op: Borrowed<'a, '_, PyString>) -> Option<&'a str> {
+        unsafe {
+            let mut size: pyo3::ffi::Py_ssize_t = 0;
+            let ptr = pyo3::ffi::PyUnicode_AsUTF8AndSize(op.as_ptr(), &raw mut size).cast::<u8>();
+            if ptr.is_null() {
+                None
+            } else {
+                Some(core::str::from_utf8_unchecked(core::slice::from_raw_parts(
+                    ptr,
+                    size as usize,
+                )))
+            }
+        }
+    }
 }
 
-pub(crate) fn fast_pystr_read<'a>(op: Borrowed<'_, '_, PyString>) -> Option<&'a str> {
+#[cfg(any(PyPy, GraalPy, Py_LIMITED_API))]
+#[inline]
+#[expect(unsafe_code)]
+unsafe fn pyunicode_to_str_via_ffi<'a>(ob: Borrowed<'a, '_, PyString>) -> Option<&'a str> {
+    unsafe {
+        let mut size: pyo3::ffi::Py_ssize_t = 0;
+        let ptr = pyo3::ffi::PyUnicode_AsUTF8AndSize(ob.as_ptr(), &raw mut size).cast::<u8>();
+        if ptr.is_null() {
+            None
+        } else {
+            Some(core::str::from_utf8_unchecked(core::slice::from_raw_parts(
+                ptr,
+                size as usize,
+            )))
+        }
+    }
+}
+
+pub(crate) fn fast_pystr_read<'a>(ob: Borrowed<'a, '_, PyString>) -> Option<&'a str> {
     #[cfg(not(any(PyPy, GraalPy, Py_LIMITED_API)))]
     {
         #[expect(unsafe_code)]
         unsafe {
-            pystr_danger_zone::fast_pystr_read(op.as_ptr())
+            pystr_danger_zone::fast_pystr_read(ob.as_ptr())
         }
     }
     #[cfg(any(PyPy, GraalPy, Py_LIMITED_API))]
     {
-        op.to_str().ok()
+        // This is what pyo3 does internally.... gottak tkeep the result tied
+        // to the object borrow w/o going through the `to_str()` wrapper
+        #[expect(unsafe_code)]
+        unsafe {
+            pyunicode_to_str_via_ffi(ob)
+        }
     }
 }

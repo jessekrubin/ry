@@ -12,7 +12,7 @@ impl<'a, 'py> Iterator for KwargsIter<'a, 'py> {
 
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
-        self.0.next().map(|(key, value)| {
+        self.0.next().map(move |(key, value)| {
             #[expect(unsafe_code)]
             let borrowed_str = unsafe { key.cast_unchecked::<PyString>() };
             let s = fast_pystr_read(borrowed_str).expect("kwarg is (theoretically) a valid str");
