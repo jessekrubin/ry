@@ -19,6 +19,7 @@ fn git_stdout(args: &[&str]) -> Option<String> {
 
 fn main() {
     pyo3_build_config::use_pyo3_cfgs();
+    println!("cargo:rerun-if-env-changed=RY_GIT_SHA");
     println!("cargo:rerun-if-changed=.git/HEAD");
     println!("cargo:rerun-if-changed=.git/refs");
     println!("cargo:rerun-if-changed=.git/packed-refs");
@@ -42,6 +43,10 @@ fn main() {
     let target = std::env::var("TARGET").expect("TARGET env var not found");
     println!("cargo:rustc-env=TARGET={target}");
 
-    let git_sha = git_stdout(&["rev-parse", "HEAD"]).unwrap_or_else(|| "unknown".to_owned());
+    let git_sha = std::env::var("RY_GIT_SHA")
+        .ok()
+        .filter(|sha| !sha.trim().is_empty())
+        .or_else(|| git_stdout(&["rev-parse", "HEAD"]))
+        .unwrap_or_else(|| "unknown".to_owned());
     println!("cargo:rustc-env=GIT_SHA={git_sha}");
 }
