@@ -158,7 +158,6 @@ class TestAsyncFileAiopen:
         self, aopen_fixtures: FileFixtures, mode: str, buffering: int
     ) -> None:
         """Test the readlines functionality."""
-
         if buffering == 0:
             with pytest.raises(
                 NotImplementedError, match="aopen buffering not implemented: 0"

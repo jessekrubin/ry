@@ -14,7 +14,7 @@ def ls(
     sort: bool = False,
     objects: t.Literal[False] = False,
 ) -> list[str]:
-    """List directory contents - returns list of strings"""
+    """List directory contents returning a list of strings"""
 
 @t.overload
 def ls(
@@ -24,7 +24,7 @@ def ls(
     sort: bool = False,
     objects: t.Literal[True],
 ) -> list[FsPath]:
-    """List directory contents - returns list of FsPath objects"""
+    """List directory contents returning a list of `FsPath` objects"""
 
 def mkdir(
     path: str | PathLike[str], *, exist_ok: bool = False, recursive: bool = False

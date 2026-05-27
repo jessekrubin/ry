@@ -79,13 +79,11 @@ def load_types(*, strip_overload: bool = True) -> griffe.Object | griffe.Alias:
     build_faux_types_pkg(strip_overload=strip_overload)
 
     # get the dummy types thingy
-    types_package = griffe.load("ryo3types")
-    return types_package
+    return griffe.load("ryo3types")
 
 
 def load_ry() -> griffe.Object | griffe.Alias:
-    ry_package = griffe.load("ry")
-    return ry_package
+    return griffe.load("ry")
 
 
 OVERLOADS = {
@@ -225,8 +223,7 @@ def check_module(mod: ModuleType) -> None:
         res = compare_cls_member(mod, member)
         if not res.missing_from_actual and not res.missing_from_types:
             continue
-        else:
-            print(res)
+        print(res)
 
 
 def main() -> None:

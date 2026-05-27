@@ -99,12 +99,8 @@ def _gen_api_content_readme(
     parts = []
     root_pyi = dictionary_formatted.pop("ry.ryo3.__init__")
 
-    root_level = sorted(
-        e for e in dictionary_formatted.keys() if e.startswith("ry.ryo3.")
-    )
-    submodules = sorted(
-        e for e in dictionary_formatted.keys() if not e.startswith("ry.ryo3.")
-    )
+    root_level = sorted(e for e in dictionary_formatted if e.startswith("ry.ryo3."))
+    submodules = sorted(e for e in dictionary_formatted if not e.startswith("ry.ryo3."))
     sorted_dictionary = {
         **{k: v for k, v in dictionary_formatted.items() if k in root_level},
         **{k: v for k, v in dictionary_formatted.items() if k in submodules},
@@ -151,13 +147,11 @@ def write_text(
         if check:
             msg = f"File is not up to date: {filepath}\n"
             raise ValueError(msg)
-        else:
-            print(f"Writing to file: {filepath}")
-            filepath.write_text(text)
-            return True
-    else:
-        print(f"File is up to date: {filepath}")
-        return False
+        print(f"Writing to file: {filepath}")
+        filepath.write_text(text)
+        return True
+    print(f"File is up to date: {filepath}")
+    return False
 
 
 def update_api_docs(
@@ -179,15 +173,6 @@ def update_docs_examples(*, check: bool = False) -> None:
         ry.walkdir(examples_root, glob="**/*.py", files=True, dirs=False).collect()
     )
     assert files, f"No files found in {examples_root}"
-
-    def _build_part(filepath: FsPath) -> str:
-        # read the file
-        content = filepath.read_text()
-        # format it
-        formatted_content = ruff_format_pyi(content, line_length=80, indent_width=4)
-        return formatted_content
-
-    # format the files
 
     toc = []
 

@@ -30,7 +30,7 @@ def _test_dev_status_code(num: int) -> None:
     assert s == num
     assert s == s
     assert s == ry.HttpStatus(num)
-    try:
+    try:  # noqa: SIM105
         assert s != ry.HttpStatus(num + 1)
     except ValueError:
         ...
