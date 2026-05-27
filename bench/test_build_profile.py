@@ -23,6 +23,6 @@ def test_benchmarking_with_debug_build_profile(benchmark: BenchmarkFixture) -> N
 
     # stupid benchmark to silence pytest-benchmark warning about no benchmarks...
     benchmark(
-        lambda: ry.__build_profile__ == "debug" or ry.__build_profile__ == "release",
+        lambda: ry.__build_profile__ in {"debug", "release"},
     )
     assert ry.__build_profile__ != "debug"

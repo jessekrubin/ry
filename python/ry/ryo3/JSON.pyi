@@ -10,7 +10,7 @@ def minify(buf: Buffer | str, /) -> Bytes:
     """Return minified json data (remove whitespace, newlines)
 
     Args:
-        data: The JSON data to minify.
+        buf: JSON buffer/string to minify
 
     Returns:
         Minified JSON data as a `Bytes` object.
@@ -32,13 +32,13 @@ def minify(buf: Buffer | str, /) -> Bytes:
     """
 
 def fmt(buf: Buffer | str, /) -> Bytes:
-    """Return minified json data (remove whitespace, newlines)
+    """Return formatted json data (add indentation, newlines)
 
     Args:
-        data: The JSON data to minify.
+        buf: JSON buffer/string to format
 
     Returns:
-        Minified JSON data as a `Bytes` object.
+        Formatted JSON data as a `Bytes` object.
 
     Examples:
         >>> import json as pyjson

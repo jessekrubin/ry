@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-import ry as ry
+import ry
 
 if TYPE_CHECKING:
     from pytest_benchmark.fixture import BenchmarkFixture
