@@ -94,6 +94,7 @@ exclude = [
   "dist",
   "node_modules",
   "venv",
+  "docs/**/*.md"
 ]
 
 unfixable = []
