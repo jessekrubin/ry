@@ -504,6 +504,128 @@ class TestBytesReplaceIdentity:
         assert rs_bytes.replace(b"", b"") is rs_bytes
 
 
+class TestBytesFindAndIndex:
+    @given(
+        b=st.binary(),
+        sub=st.one_of(st.binary(), st.integers(min_value=0, max_value=255)),
+        start=st.one_of(st.none(), st.integers(min_value=-20, max_value=20)),
+        end=st.one_of(st.none(), st.integers(min_value=-20, max_value=20)),
+    )
+    def test_find_matches_python(
+        self,
+        b: bytes,
+        sub: bytes | int,
+        start: int | None,
+        end: int | None,
+    ) -> None:
+        ry_bytes = ry.Bytes(b)
+        assert ry_bytes.find(sub, start, end) == b.find(sub, start, end)
+        assert ry_bytes.rfind(sub, start, end) == b.rfind(sub, start, end)
+
+    @given(
+        b=st.binary(),
+        sub=st.one_of(st.binary(), st.integers(min_value=0, max_value=255)),
+        start=st.one_of(st.none(), st.integers(min_value=-20, max_value=20)),
+        end=st.one_of(st.none(), st.integers(min_value=-20, max_value=20)),
+    )
+    def test_index_matches_python(
+        self,
+        b: bytes,
+        sub: bytes | int,
+        start: int | None,
+        end: int | None,
+    ) -> None:
+        ry_bytes = ry.Bytes(b)
+        find_res = b.find(sub, start, end)
+        if find_res == -1:
+            with pytest.raises(ValueError, match="subsection not found"):
+                ry_bytes.index(sub, start, end)
+            with pytest.raises(ValueError, match="subsection not found"):
+                ry_bytes.rindex(sub, start, end)
+        else:
+            assert ry_bytes.index(sub, start, end) == find_res
+            assert ry_bytes.rindex(sub, start, end) == b.rfind(sub, start, end)
+
+    @pytest.mark.parametrize(
+        ("b", "needle", "start", "end"),
+        [
+            (b"abcabc", b"ab", 1, None),
+            (b"abcabc", b"ab", -3, None),
+            (b"abcabc", b"ab", -99, 99),
+            (b"abcabc", b"", 3, 1),
+            (b"abcabc", b"", 99, None),
+            (b"abcabc", b"", -99, -99),
+            (b"abcabc", 97, 1, 4),
+            (b"abcabc", True, None, None),
+            (b"abcabc", False, None, None),
+        ],
+    )
+    def test_find_edge_cases(
+        self,
+        b: bytes,
+        needle: bytes | int | bool,  # noqa: FBT001
+        start: int | None,
+        end: int | None,
+    ) -> None:
+        ry_bytes = ry.Bytes(b)
+        assert ry_bytes.find(needle, start, end) == b.find(needle, start, end)
+        assert ry_bytes.rfind(needle, start, end) == b.rfind(needle, start, end)
+
+    @pytest.mark.parametrize(
+        ("b", "needle", "start", "end"),
+        [
+            (b"abcabc", b"ab", 1, None),
+            (b"abcabc", b"ab", -3, None),
+            (b"abcabc", b"ab", -99, 99),
+            (b"abcabc", b"", 3, 1),
+            (b"abcabc", b"", 99, None),
+            (b"abcabc", b"", -99, -99),
+            (b"abcabc", 97, 1, 4),
+            (b"abcabc", True, None, None),
+            (b"abcabc", False, None, None),
+        ],
+    )
+    def test_index_edge_cases(
+        self,
+        b: bytes,
+        needle: bytes | int | bool,  # noqa: FBT001
+        start: int | None,
+        end: int | None,
+    ) -> None:
+        should_raise = b.find(needle, start, end) == -1
+        if should_raise:
+            with pytest.raises(ValueError, match="subsection not found"):
+                ry.Bytes(b).index(needle, start, end)
+            with pytest.raises(ValueError, match="subsection not found"):
+                ry.Bytes(b).rindex(needle, start, end)
+            return
+
+        ry_bytes = ry.Bytes(b)
+        assert ry_bytes.index(needle, start, end) == b.index(needle, start, end)
+        assert ry_bytes.rindex(needle, start, end) == b.rindex(needle, start, end)
+
+    @pytest.mark.parametrize(("sub"), [300, -1])
+    @pytest.mark.parametrize(("fnname"), ["find", "rfind", "index", "rindex"])
+    def test_rejects_bad_int(self, sub: int, fnname: str) -> None:
+        ry_bytes = ry.Bytes(b"abc")
+        with pytest.raises(ValueError, match="byte must be in range"):
+            getattr(ry_bytes, fnname)(sub)
+
+    @pytest.mark.parametrize("sub", [1.2, "a", object()])
+    @pytest.mark.parametrize(("fnname"), ["find", "rfind", "index", "rindex"])
+    def test_err_on_bad_input(self, sub: object, fnname: str) -> None:
+        ry_bytes = ry.Bytes(b"abc")
+        with pytest.raises(
+            TypeError, match="argument should be integer or bytes-like object"
+        ):
+            getattr(ry_bytes, fnname)(sub)
+
+    @pytest.mark.parametrize(("fnname"), ["find", "rfind", "index", "rindex"])
+    def test_no_kwargs(self, fnname: str) -> None:
+        with pytest.raises(TypeError):
+            getattr(ry.Bytes(b"abc"), fnname)(sub=b"a")
+
+
 @given(st.binary())
 def test_hex_and_fromhex(
     b: bytes,
@@ -587,14 +709,10 @@ def test_bytes_decode_default(
         "__rmod__",
         "center",
         "count",
-        "find",
-        "index",
         "join",
         "ljust",
         "maketrans",
         "partition",
-        "rfind",
-        "rindex",
         "rjust",
         "rpartition",
         "rsplit",
