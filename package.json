@@ -10,8 +10,10 @@
   "author": "jesse rubin <jessekrubin@gmail.com>",
   "license": "MIT OR Apache-2.0",
   "devDependencies": {
-    "dprint": "^0.50.1",
-    "prettier": "^3.5.3",
-    "pyright": "^1.1.396"
+    "dprint": "^0.54.0",
+    "prettier": "^3.8.3"
+  },
+  "dependencies": {
+    "pyright": "^1.1.410"
   }
 }

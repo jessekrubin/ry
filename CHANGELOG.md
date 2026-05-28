@@ -3,7 +3,7 @@
 ## v0.0.94 [unreleased]
 
 - `ryo3-reqwest`
-  - upate to `0.13.4` which notably updates `hickory-resolver` to `0.26`
+  - update to `0.13.4` which notably updates `hickory-resolver` to `0.26`
 
 ---
 
