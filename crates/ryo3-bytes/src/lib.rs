@@ -16,6 +16,7 @@ mod replace;
 
 mod python_bytes_methods;
 mod ryo3_bytes;
+mod search;
 pub use ::bytes::Bytes;
 pub use readable_buffer::{ExactReadableBuffer, ReadableBuffer};
 

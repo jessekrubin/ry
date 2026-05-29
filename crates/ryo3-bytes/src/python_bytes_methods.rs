@@ -4,12 +4,12 @@ use std::hash::Hash;
 use std::num::NonZeroUsize;
 use std::ops::Range;
 
-use pyo3::exceptions::PyValueError;
+use pyo3::exceptions::{PyTypeError, PyValueError};
 use pyo3::prelude::*;
 use pyo3::types::PyString;
 use pyo3::{IntoPyObjectExt, PyClass};
 
-use crate::ReadableBuffer;
+use crate::{ReadableBuffer, search};
 
 pub(crate) trait PythonBytesMethods: AsRef<[u8]> + From<Vec<u8>> + Sized + PyClass {
     /// Hash bytes
@@ -316,6 +316,121 @@ pub(crate) trait PythonBytesMethods: AsRef<[u8]> + From<Vec<u8>> + Sized + PyCla
         }
         Self::from(out)
     }
+
+    fn py_find_subslice(&self, sub: &[u8], range: Option<Range<usize>>) -> Option<usize> {
+        let Range { start, end } = range?;
+        let b = self.as_ref();
+        search::find_subslice(&b[start..end], sub).map(|ix| ix + start)
+    }
+
+    fn py_find_byte(&self, byte: u8, range: Option<Range<usize>>) -> Option<usize> {
+        let Range { start, end } = range?;
+        let b = self.as_ref();
+        search::memchr(byte, &b[start..end]).map(|ix| ix + start)
+    }
+
+    fn py_search<const ERR: bool>(
+        &self,
+        needle: BufferOrByte,
+        start: Option<isize>,
+        end: Option<isize>,
+    ) -> PySearchResult<ERR> {
+        let range = normalize_find_bounds(self.as_ref().len(), start, end);
+        match needle {
+            BufferOrByte::Buffer(buf) => self.py_find_subslice(buf.as_slice(), range).into(),
+            BufferOrByte::Byte(byte) => self.py_find_byte(byte, range).into(),
+        }
+    }
+
+    fn py_find(
+        &self,
+        needle: BufferOrByte,
+        start: Option<isize>,
+        end: Option<isize>,
+    ) -> PyFindResult {
+        self.py_search::<false>(needle, start, end)
+    }
+
+    fn py_index(
+        &self,
+        needle: BufferOrByte,
+        start: Option<isize>,
+        end: Option<isize>,
+    ) -> PyIndexResult {
+        self.py_search::<true>(needle, start, end)
+    }
+
+    fn py_rfind_subslice(&self, sub: &[u8], range: Option<Range<usize>>) -> Option<usize> {
+        let Range { start, end } = range?;
+        let b = self.as_ref();
+        search::rfind_subslice(&b[start..end], sub).map(|ix| ix + start)
+    }
+
+    fn py_rfind_byte(&self, byte: u8, range: Option<Range<usize>>) -> Option<usize> {
+        let Range { start, end } = range?;
+        let b = self.as_ref();
+        search::memrchr(byte, &b[start..end]).map(|ix| ix + start)
+    }
+
+    fn py_rsearch<const ERR: bool>(
+        &self,
+        needle: BufferOrByte,
+        start: Option<isize>,
+        end: Option<isize>,
+    ) -> PySearchResult<ERR> {
+        let range = normalize_find_bounds(self.as_ref().len(), start, end);
+        match needle {
+            BufferOrByte::Buffer(buf) => self.py_rfind_subslice(buf.as_slice(), range).into(),
+            BufferOrByte::Byte(byte) => self.py_rfind_byte(byte, range).into(),
+        }
+    }
+
+    fn py_rfind(
+        &self,
+        needle: BufferOrByte,
+        start: Option<isize>,
+        end: Option<isize>,
+    ) -> PyFindResult {
+        self.py_rsearch::<false>(needle, start, end)
+    }
+
+    fn py_rindex(
+        &self,
+        needle: BufferOrByte,
+        start: Option<isize>,
+        end: Option<isize>,
+    ) -> PyIndexResult {
+        self.py_rsearch::<true>(needle, start, end)
+    }
+}
+
+pub(crate) fn normalize_find_bounds(
+    len: usize,
+    start: Option<isize>,
+    end: Option<isize>,
+) -> Option<Range<usize>> {
+    let raw_start = start.unwrap_or(0);
+    if raw_start > len as isize {
+        return None;
+    }
+    let start = {
+        if raw_start < 0 {
+            (raw_start + len as isize).max(0) as usize
+        } else {
+            (raw_start as usize).min(len)
+        }
+    };
+    let end = {
+        let raw_end = end.unwrap_or(len as isize);
+        if raw_end > len as isize {
+            len
+        } else if raw_end < 0 {
+            (raw_end + len as isize).max(0) as usize
+        } else {
+            raw_end as usize
+        }
+    };
+    (start <= end).then_some(start..end)
 }
 
 macro_rules! rangify {
@@ -580,5 +695,76 @@ impl PyHexFormatter {
             let _ = write!(output, "{b:02x}");
         }
         output
+    }
+}
+
+pub(crate) enum PySearchResult<const ERR: bool> {
+    /// nobody is home
+    NotFound,
+    /// found a match @ index
+    Found(usize),
+}
+
+pub(crate) type PyFindResult = PySearchResult<false>;
+pub(crate) type PyIndexResult = PySearchResult<true>;
+
+impl<const ERR: bool> From<Option<usize>> for PySearchResult<ERR> {
+    fn from(value: Option<usize>) -> Self {
+        match value {
+            Some(ix) => Self::Found(ix),
+            None => Self::NotFound,
+        }
+    }
+}
+
+impl<'py> IntoPyObject<'py> for PySearchResult<false> {
+    type Target = pyo3::types::PyInt;
+    type Output = Bound<'py, Self::Target>;
+    type Error = std::convert::Infallible;
+
+    fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
+        match self {
+            Self::NotFound => (-1i8).into_pyobject(py),
+            Self::Found(ix) => ix.into_pyobject(py),
+        }
+    }
+}
+
+impl<'py> IntoPyObject<'py> for PySearchResult<true> {
+    type Target = pyo3::types::PyInt;
+    type Output = Bound<'py, Self::Target>;
+    type Error = PyErr;
+
+    fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
+        match self {
+            Self::NotFound => Err(PyValueError::new_err("subsection not found")),
+            Self::Found(ix) => Ok(ix.into_pyobject(py)?),
+        }
+    }
+}
+
+pub(crate) enum BufferOrByte<'a, 'py> {
+    Buffer(ReadableBuffer<'a, 'py>),
+    Byte(u8),
+}
+
+impl<'a, 'py> FromPyObject<'a, 'py> for BufferOrByte<'a, 'py> {
+    type Error = PyErr;
+
+    fn extract(ob: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
+        if let Ok(index) = ob.extract::<isize>() {
+            if let Ok(byte) = u8::try_from(index) {
+                return Ok(Self::Byte(byte));
+            }
+            return Err(PyValueError::new_err("byte must be in range(0, 256)"));
+        }
+        if let Ok(buf) = ob.extract::<ReadableBuffer<'a, 'py>>() {
+            return Ok(Self::Buffer(buf));
+        }
+
+        Err(PyTypeError::new_err(format!(
+            "argument should be integer or bytes-like object, not '{}'",
+            ob.get_type().name()?
+        )))
     }
 }

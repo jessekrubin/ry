@@ -1,27 +1,4 @@
-mod utils {
-    #[cfg(feature = "memchr")]
-    pub(super) fn memchr(needle: u8, haystack: &[u8]) -> Option<usize> {
-        ::memchr::memchr(needle, haystack)
-    }
-
-    #[cfg(feature = "memchr")]
-    pub(super) fn memchr_iter(needle: u8, haystack: &[u8]) -> ::memchr::Memchr<'_> {
-        ::memchr::memchr_iter(needle, haystack)
-    }
-
-    #[cfg(not(feature = "memchr"))]
-    pub(super) fn memchr(needle: u8, haystack: &[u8]) -> Option<usize> {
-        haystack.iter().position(|&b| b == needle)
-    }
-
-    #[cfg(not(feature = "memchr"))]
-    pub(super) fn memchr_iter(needle: u8, haystack: &[u8]) -> impl Iterator<Item = usize> + '_ {
-        haystack
-            .iter()
-            .enumerate()
-            .filter_map(move |(i, &b)| (b == needle).then_some(i))
-    }
-}
+use crate::search;
 
 pub(crate) enum ReplaceBytes {
     Unchanged,
@@ -66,7 +43,7 @@ struct Byte2Byte {
 
 impl Byte2Byte {
     fn apply(&self, buf: &[u8]) -> ReplaceBytes {
-        let Some(first_match) = utils::memchr(self.old, buf) else {
+        let Some(first_match) = search::memchr(self.old, buf) else {
             return ReplaceBytes::Unchanged;
         };
 
@@ -94,7 +71,7 @@ struct Byte2Many<'a> {
 
 impl Byte2Many<'_> {
     fn apply(&self, buf: &[u8]) -> ReplaceBytes {
-        let match_count = utils::memchr_iter(self.old, buf).take(self.count).count();
+        let match_count = search::memchr_iter(self.old, buf).take(self.count).count();
         if match_count == 0 {
             return ReplaceBytes::Unchanged;
         }
@@ -107,7 +84,7 @@ impl Byte2Many<'_> {
         ));
         let mut start = 0usize;
 
-        for index in utils::memchr_iter(self.old, buf).take(self.count) {
+        for index in search::memchr_iter(self.old, buf).take(self.count) {
             out.extend_from_slice(&buf[start..index]);
             out.extend_from_slice(self.new);
             start = index + 1;
@@ -125,7 +102,7 @@ struct ReplaceUno<'a> {
 
 impl ReplaceUno<'_> {
     fn apply(&self, buf: &[u8]) -> ReplaceBytes {
-        let Some(index) = find_subslice(buf, self.old) else {
+        let Some(index) = search::find_subslice(buf, self.old) else {
             return ReplaceBytes::Unchanged;
         };
 
@@ -166,7 +143,7 @@ struct RemoveByte {
 
 impl RemoveByte {
     fn apply(&self, buf: &[u8]) -> ReplaceBytes {
-        let match_count = utils::memchr_iter(self.old, buf).take(self.count).count();
+        let match_count = search::memchr_iter(self.old, buf).take(self.count).count();
         if match_count == 0 {
             return ReplaceBytes::Unchanged;
         }
@@ -174,7 +151,7 @@ impl RemoveByte {
         let mut out = Vec::with_capacity(buf.len().saturating_sub(match_count));
         let mut start = 0usize;
 
-        for index in utils::memchr_iter(self.old, buf).take(self.count) {
+        for index in search::memchr_iter(self.old, buf).take(self.count) {
             out.extend_from_slice(&buf[start..index]);
             start = index + 1;
         }
@@ -204,7 +181,7 @@ impl EqualLengthSubstring<'_> {
         let mut replaced = 0usize;
 
         while replaced < self.count {
-            let Some(index) = find_subslice(remainder, self.old) else {
+            let Some(index) = search::find_subslice(remainder, self.old) else {
                 break;
             };
             let absolute_index = offset + index;
@@ -244,7 +221,7 @@ fn replace_substrings(buf: &[u8], old: &[u8], new: &[u8], count: usize) -> Repla
     let mut replaced = 0usize;
 
     while replaced < count {
-        let Some(index) = find_subslice(remainder, old) else {
+        let Some(index) = search::find_subslice(remainder, old) else {
             break;
         };
         let absolute_index = offset + index;
@@ -358,22 +335,12 @@ pub(crate) fn replace_bytes(buf: &[u8], old: &[u8], new: &[u8], count: isize) ->
     ReplacePlan::select(buf, old, new, count).apply(buf)
 }
 
-fn find_subslice(buf: &[u8], needle: &[u8]) -> Option<usize> {
-    match needle {
-        [] => Some(0),
-        [byte] => utils::memchr(*byte, buf),
-        _ => buf
-            .windows(needle.len())
-            .position(|window| window == needle),
-    }
-}
-
 fn count_subslice_matches_limit(buf: &[u8], needle: &[u8], count: usize) -> usize {
     let mut n_replacements = 0usize;
     let mut remainder = buf;
 
     while n_replacements < count {
-        let Some(index) = find_subslice(remainder, needle) else {
+        let Some(index) = search::find_subslice(remainder, needle) else {
             break;
         };
         remainder = &remainder[index + needle.len()..];
