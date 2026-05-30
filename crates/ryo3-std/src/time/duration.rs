@@ -148,44 +148,44 @@ impl PyDuration {
         ("secs", "nanos")
     }
 
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn ZERO() -> Self {
         Self(Duration::ZERO)
     }
 
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn MIN() -> Self {
         Self(Duration::ZERO)
     }
 
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn MAX() -> Self {
         Self(Duration::MAX)
     }
 
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn SECOND() -> Self {
         Self(Duration::from_secs(1))
     }
 
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn MILLISECOND() -> Self {
         Self(Duration::from_millis(1))
     }
 
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn MICROSECOND() -> Self {
         Self(Duration::from_micros(1))
     }
 
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn NANOSECOND() -> Self {
         Self(Duration::from_nanos(1))
     }

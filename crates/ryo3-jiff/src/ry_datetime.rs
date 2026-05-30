@@ -26,8 +26,7 @@ use crate::{
     RyDateTimeRound, RyTimestamp,
 };
 
-#[cfg_attr(feature = "serde", derive(serde::Serialize))]
-#[cfg_attr(feature = "serde", serde(transparent))]
+#[cfg_attr(feature = "serde", derive(serde::Serialize), serde(transparent))]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd)]
 #[pyclass(name = "DateTime", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
@@ -88,20 +87,20 @@ impl RyDateTime {
         )
     }
 
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn MIN() -> Self {
         Self(DateTime::MIN)
     }
 
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn MAX() -> Self {
         Self(DateTime::MAX)
     }
 
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn ZERO() -> Self {
         Self(DateTime::ZERO)
     }

@@ -113,25 +113,25 @@ impl PyUuid {
     }
 
     #[classattr]
-    #[expect(non_snake_case)]
+    #[expect(non_snake_case, reason = "python classattr")]
     pub(crate) fn NAMESPACE_DNS() -> Self {
         Self(uuid::Uuid::NAMESPACE_DNS)
     }
 
     #[classattr]
-    #[expect(non_snake_case)]
+    #[expect(non_snake_case, reason = "python classattr")]
     pub(crate) fn NAMESPACE_URL() -> Self {
         Self(uuid::Uuid::NAMESPACE_URL)
     }
 
     #[classattr]
-    #[expect(non_snake_case)]
+    #[expect(non_snake_case, reason = "python classattr")]
     pub(crate) fn NAMESPACE_OID() -> Self {
         Self(uuid::Uuid::NAMESPACE_OID)
     }
 
     #[classattr]
-    #[expect(non_snake_case)]
+    #[expect(non_snake_case, reason = "python classattr")]
     pub(crate) fn NAMESPACE_X500() -> Self {
         Self(uuid::Uuid::NAMESPACE_X500)
     }

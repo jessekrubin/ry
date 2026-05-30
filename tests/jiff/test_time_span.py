@@ -3,6 +3,7 @@ from __future__ import annotations
 import datetime as pydt
 import functools
 import itertools as it
+from collections.abc import Mapping
 
 import pytest
 
@@ -42,6 +43,22 @@ def test_span_dict() -> None:
         "nanoseconds": 1,
     }
     assert s.to_dict() == s.fieldwise()
+
+
+def test_span_mapping() -> None:
+    s = ry.timespan(years=1, weeks=3)
+    expected = {"years": 1, "weeks": 3}
+    assert isinstance(s, Mapping)
+    assert s.keys() == ("years", "weeks")
+    assert tuple(s) == ("years", "weeks")
+    assert len(s) == 2
+    assert "years" in s
+    assert "months" not in s
+    assert s["years"] == 1
+    assert dict(s) == expected
+    assert {**s} == expected
+    with pytest.raises(KeyError):
+        _ = s["months"]
 
 
 def test_builder_pattern() -> None:

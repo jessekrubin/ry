@@ -30,8 +30,7 @@ const NANOS_PER_SEC: i32 = 1_000_000_000;
 const SECS_PER_MINUTE: i64 = 60;
 const MINS_PER_HOUR: i64 = 60;
 
-#[cfg_attr(feature = "serde", derive(serde::Serialize))]
-#[cfg_attr(feature = "serde", serde(transparent))]
+#[cfg_attr(feature = "serde", derive(serde::Serialize), serde(transparent))]
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
 #[pyclass(name = "SignedDuration", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
@@ -94,20 +93,20 @@ impl RySignedDuration {
         ("secs", "nanos")
     }
 
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn MIN() -> Self {
         Self(SignedDuration::MIN)
     }
 
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn MAX() -> Self {
         Self(SignedDuration::MAX)
     }
 
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn ZERO() -> Self {
         Self(SignedDuration::ZERO)
     }

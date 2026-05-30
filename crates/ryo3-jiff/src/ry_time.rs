@@ -20,8 +20,7 @@ use crate::{
     RyTimestamp, RyZoned,
 };
 
-#[cfg_attr(feature = "serde", derive(serde::Serialize))]
-#[cfg_attr(feature = "serde", serde(transparent))]
+#[cfg_attr(feature = "serde", derive(serde::Serialize), serde(transparent))]
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, PartialOrd, Ord)]
 #[pyclass(name = "Time", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
@@ -57,14 +56,14 @@ impl RyTime {
         ("hour", "minute", "second", "subsec_nanosecond")
     }
 
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn MIN() -> Self {
         Self(Time::MIN)
     }
 
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn MAX() -> Self {
         Self(Time::MAX)
     }

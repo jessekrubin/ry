@@ -11,7 +11,7 @@ use ryo3_macro_rules::{any_repr, py_type_err};
 
 use crate::{JiffWeekday, RyDate, RyDateTime, RyTimestamp, RyZoned};
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 #[pyclass(name = "ISOWeekDate", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyISOWeekDate(pub(crate) ISOWeekDate);
@@ -47,22 +47,22 @@ impl RyISOWeekDate {
     }
 
     /// The minimum representable `ISOWeekDate`.
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn MIN() -> Self {
         Self(ISOWeekDate::MIN)
     }
 
     /// The maximum representable `ISOWeekDate`.
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn MAX() -> Self {
         Self(ISOWeekDate::MAX)
     }
 
     /// The zero `ISOWeekDate`.
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn ZERO() -> Self {
         Self(ISOWeekDate::ZERO)
     }
@@ -173,6 +173,7 @@ impl RyISOWeekDate {
             CompareOp::Ge => self.0 >= other.0,
         }
     }
+
     fn __hash__(&self) -> u64 {
         let mut hasher = DefaultHasher::new();
         self.0.hash(&mut hasher);

@@ -43,6 +43,7 @@ mod ry_zoned;
 #[cfg(feature = "serde")]
 mod serde;
 mod series;
+mod span_units;
 mod spanish;
 mod test;
 mod tz;

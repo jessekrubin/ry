@@ -228,435 +228,435 @@ impl PyHttpStatus {
 
     // <CLASS-ATTRS>
     /// 100 ~ Continue
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn CONTINUE(py: Python<'_>) -> PyResult<Py<Self>> {
         py_cached_http_status(py, ::http::StatusCode::CONTINUE)
     }
 
     /// 101 ~ Switching Protocols
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn SWITCHING_PROTOCOLS(py: Python<'_>) -> PyResult<Py<Self>> {
         py_cached_http_status(py, ::http::StatusCode::SWITCHING_PROTOCOLS)
     }
 
     /// 102 ~ Processing
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn PROCESSING(py: Python<'_>) -> PyResult<Py<Self>> {
         py_cached_http_status(py, ::http::StatusCode::PROCESSING)
     }
 
     /// 103 ~ Early Hints
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn EARLY_HINTS(py: Python<'_>) -> PyResult<Py<Self>> {
         py_cached_http_status(py, ::http::StatusCode::EARLY_HINTS)
     }
 
     /// 200 ~ OK
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn OK(py: Python<'_>) -> PyResult<Py<Self>> {
         py_cached_http_status(py, ::http::StatusCode::OK)
     }
 
     /// 201 ~ Created
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn CREATED(py: Python<'_>) -> PyResult<Py<Self>> {
         py_cached_http_status(py, ::http::StatusCode::CREATED)
     }
 
     /// 202 ~ Accepted
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn ACCEPTED(py: Python<'_>) -> PyResult<Py<Self>> {
         py_cached_http_status(py, ::http::StatusCode::ACCEPTED)
     }
 
     /// 203 ~ Non Authoritative Information
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn NON_AUTHORITATIVE_INFORMATION(py: Python<'_>) -> PyResult<Py<Self>> {
         py_cached_http_status(py, ::http::StatusCode::NON_AUTHORITATIVE_INFORMATION)
     }
 
     /// 204 ~ No Content
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn NO_CONTENT(py: Python<'_>) -> PyResult<Py<Self>> {
         py_cached_http_status(py, ::http::StatusCode::NO_CONTENT)
     }
 
     /// 205 ~ Reset Content
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn RESET_CONTENT(py: Python<'_>) -> PyResult<Py<Self>> {
         py_cached_http_status(py, ::http::StatusCode::RESET_CONTENT)
     }
 
     /// 206 ~ Partial Content
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn PARTIAL_CONTENT(py: Python<'_>) -> PyResult<Py<Self>> {
         py_cached_http_status(py, ::http::StatusCode::PARTIAL_CONTENT)
     }
 
     /// 207 ~ Multi-Status
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn MULTI_STATUS(py: Python<'_>) -> PyResult<Py<Self>> {
         py_cached_http_status(py, ::http::StatusCode::MULTI_STATUS)
     }
 
     /// 208 ~ Already Reported
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn ALREADY_REPORTED(py: Python<'_>) -> PyResult<Py<Self>> {
         py_cached_http_status(py, ::http::StatusCode::ALREADY_REPORTED)
     }
 
     /// 226 ~ IM Used
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn IM_USED(py: Python<'_>) -> PyResult<Py<Self>> {
         py_cached_http_status(py, ::http::StatusCode::IM_USED)
     }
 
     /// 300 ~ Multiple Choices
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn MULTIPLE_CHOICES(py: Python<'_>) -> PyResult<Py<Self>> {
         py_cached_http_status(py, ::http::StatusCode::MULTIPLE_CHOICES)
     }
 
     /// 301 ~ Moved Permanently
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn MOVED_PERMANENTLY(py: Python<'_>) -> PyResult<Py<Self>> {
         py_cached_http_status(py, ::http::StatusCode::MOVED_PERMANENTLY)
     }
 
     /// 302 ~ Found
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn FOUND(py: Python<'_>) -> PyResult<Py<Self>> {
         py_cached_http_status(py, ::http::StatusCode::FOUND)
     }
 
     /// 303 ~ See Other
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn SEE_OTHER(py: Python<'_>) -> PyResult<Py<Self>> {
         py_cached_http_status(py, ::http::StatusCode::SEE_OTHER)
     }
 
     /// 304 ~ Not Modified
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn NOT_MODIFIED(py: Python<'_>) -> PyResult<Py<Self>> {
         py_cached_http_status(py, ::http::StatusCode::NOT_MODIFIED)
     }
 
     /// 305 ~ Use Proxy
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn USE_PROXY(py: Python<'_>) -> PyResult<Py<Self>> {
         py_cached_http_status(py, ::http::StatusCode::USE_PROXY)
     }
 
     /// 307 ~ Temporary Redirect
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn TEMPORARY_REDIRECT(py: Python<'_>) -> PyResult<Py<Self>> {
         py_cached_http_status(py, ::http::StatusCode::TEMPORARY_REDIRECT)
     }
 
     /// 308 ~ Permanent Redirect
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn PERMANENT_REDIRECT(py: Python<'_>) -> PyResult<Py<Self>> {
         py_cached_http_status(py, ::http::StatusCode::PERMANENT_REDIRECT)
     }
 
     /// 400 ~ Bad Request
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn BAD_REQUEST(py: Python<'_>) -> PyResult<Py<Self>> {
         py_cached_http_status(py, ::http::StatusCode::BAD_REQUEST)
     }
 
     /// 401 ~ Unauthorized
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn UNAUTHORIZED(py: Python<'_>) -> PyResult<Py<Self>> {
         py_cached_http_status(py, ::http::StatusCode::UNAUTHORIZED)
     }
 
     /// 402 ~ Payment Required
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn PAYMENT_REQUIRED(py: Python<'_>) -> PyResult<Py<Self>> {
         py_cached_http_status(py, ::http::StatusCode::PAYMENT_REQUIRED)
     }
 
     /// 403 ~ Forbidden
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn FORBIDDEN(py: Python<'_>) -> PyResult<Py<Self>> {
         py_cached_http_status(py, ::http::StatusCode::FORBIDDEN)
     }
 
     /// 404 ~ Not Found
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn NOT_FOUND(py: Python<'_>) -> PyResult<Py<Self>> {
         py_cached_http_status(py, ::http::StatusCode::NOT_FOUND)
     }
 
     /// 405 ~ Method Not Allowed
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn METHOD_NOT_ALLOWED(py: Python<'_>) -> PyResult<Py<Self>> {
         py_cached_http_status(py, ::http::StatusCode::METHOD_NOT_ALLOWED)
     }
 
     /// 406 ~ Not Acceptable
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn NOT_ACCEPTABLE(py: Python<'_>) -> PyResult<Py<Self>> {
         py_cached_http_status(py, ::http::StatusCode::NOT_ACCEPTABLE)
     }
 
     /// 407 ~ Proxy Authentication Required
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn PROXY_AUTHENTICATION_REQUIRED(py: Python<'_>) -> PyResult<Py<Self>> {
         py_cached_http_status(py, ::http::StatusCode::PROXY_AUTHENTICATION_REQUIRED)
     }
 
     /// 408 ~ Request Timeout
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn REQUEST_TIMEOUT(py: Python<'_>) -> PyResult<Py<Self>> {
         py_cached_http_status(py, ::http::StatusCode::REQUEST_TIMEOUT)
     }
 
     /// 409 ~ Conflict
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn CONFLICT(py: Python<'_>) -> PyResult<Py<Self>> {
         py_cached_http_status(py, ::http::StatusCode::CONFLICT)
     }
 
     /// 410 ~ Gone
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn GONE(py: Python<'_>) -> PyResult<Py<Self>> {
         py_cached_http_status(py, ::http::StatusCode::GONE)
     }
 
     /// 411 ~ Length Required
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn LENGTH_REQUIRED(py: Python<'_>) -> PyResult<Py<Self>> {
         py_cached_http_status(py, ::http::StatusCode::LENGTH_REQUIRED)
     }
 
     /// 412 ~ Precondition Failed
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn PRECONDITION_FAILED(py: Python<'_>) -> PyResult<Py<Self>> {
         py_cached_http_status(py, ::http::StatusCode::PRECONDITION_FAILED)
     }
 
     /// 413 ~ Payload Too Large
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn PAYLOAD_TOO_LARGE(py: Python<'_>) -> PyResult<Py<Self>> {
         py_cached_http_status(py, ::http::StatusCode::PAYLOAD_TOO_LARGE)
     }
 
     /// 414 ~ URI Too Long
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn URI_TOO_LONG(py: Python<'_>) -> PyResult<Py<Self>> {
         py_cached_http_status(py, ::http::StatusCode::URI_TOO_LONG)
     }
 
     /// 415 ~ Unsupported Media Type
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn UNSUPPORTED_MEDIA_TYPE(py: Python<'_>) -> PyResult<Py<Self>> {
         py_cached_http_status(py, ::http::StatusCode::UNSUPPORTED_MEDIA_TYPE)
     }
 
     /// 416 ~ Range Not Satisfiable
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn RANGE_NOT_SATISFIABLE(py: Python<'_>) -> PyResult<Py<Self>> {
         py_cached_http_status(py, ::http::StatusCode::RANGE_NOT_SATISFIABLE)
     }
 
     /// 417 ~ Expectation Failed
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn EXPECTATION_FAILED(py: Python<'_>) -> PyResult<Py<Self>> {
         py_cached_http_status(py, ::http::StatusCode::EXPECTATION_FAILED)
     }
 
     /// 418 ~ I'm a teapot
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn IM_A_TEAPOT(py: Python<'_>) -> PyResult<Py<Self>> {
         py_cached_http_status(py, ::http::StatusCode::IM_A_TEAPOT)
     }
 
     /// 421 ~ Misdirected Request
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn MISDIRECTED_REQUEST(py: Python<'_>) -> PyResult<Py<Self>> {
         py_cached_http_status(py, ::http::StatusCode::MISDIRECTED_REQUEST)
     }
 
     /// 422 ~ Unprocessable Entity
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn UNPROCESSABLE_ENTITY(py: Python<'_>) -> PyResult<Py<Self>> {
         py_cached_http_status(py, ::http::StatusCode::UNPROCESSABLE_ENTITY)
     }
 
     /// 423 ~ Locked
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn LOCKED(py: Python<'_>) -> PyResult<Py<Self>> {
         py_cached_http_status(py, ::http::StatusCode::LOCKED)
     }
 
     /// 424 ~ Failed Dependency
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn FAILED_DEPENDENCY(py: Python<'_>) -> PyResult<Py<Self>> {
         py_cached_http_status(py, ::http::StatusCode::FAILED_DEPENDENCY)
     }
 
     /// 425 ~ Too Early
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn TOO_EARLY(py: Python<'_>) -> PyResult<Py<Self>> {
         py_cached_http_status(py, ::http::StatusCode::TOO_EARLY)
     }
 
     /// 426 ~ Upgrade Required
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn UPGRADE_REQUIRED(py: Python<'_>) -> PyResult<Py<Self>> {
         py_cached_http_status(py, ::http::StatusCode::UPGRADE_REQUIRED)
     }
 
     /// 428 ~ Precondition Required
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn PRECONDITION_REQUIRED(py: Python<'_>) -> PyResult<Py<Self>> {
         py_cached_http_status(py, ::http::StatusCode::PRECONDITION_REQUIRED)
     }
 
     /// 429 ~ Too Many Requests
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn TOO_MANY_REQUESTS(py: Python<'_>) -> PyResult<Py<Self>> {
         py_cached_http_status(py, ::http::StatusCode::TOO_MANY_REQUESTS)
     }
 
     /// 431 ~ Request Header Fields Too Large
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn REQUEST_HEADER_FIELDS_TOO_LARGE(py: Python<'_>) -> PyResult<Py<Self>> {
         py_cached_http_status(py, ::http::StatusCode::REQUEST_HEADER_FIELDS_TOO_LARGE)
     }
 
     /// 451 ~ Unavailable For Legal Reasons
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn UNAVAILABLE_FOR_LEGAL_REASONS(py: Python<'_>) -> PyResult<Py<Self>> {
         py_cached_http_status(py, ::http::StatusCode::UNAVAILABLE_FOR_LEGAL_REASONS)
     }
 
     /// 500 ~ Internal Server Error
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn INTERNAL_SERVER_ERROR(py: Python<'_>) -> PyResult<Py<Self>> {
         py_cached_http_status(py, ::http::StatusCode::INTERNAL_SERVER_ERROR)
     }
 
     /// 501 ~ Not Implemented
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn NOT_IMPLEMENTED(py: Python<'_>) -> PyResult<Py<Self>> {
         py_cached_http_status(py, ::http::StatusCode::NOT_IMPLEMENTED)
     }
 
     /// 502 ~ Bad Gateway
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn BAD_GATEWAY(py: Python<'_>) -> PyResult<Py<Self>> {
         py_cached_http_status(py, ::http::StatusCode::BAD_GATEWAY)
     }
 
     /// 503 ~ Service Unavailable
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn SERVICE_UNAVAILABLE(py: Python<'_>) -> PyResult<Py<Self>> {
         py_cached_http_status(py, ::http::StatusCode::SERVICE_UNAVAILABLE)
     }
 
     /// 504 ~ Gateway Timeout
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn GATEWAY_TIMEOUT(py: Python<'_>) -> PyResult<Py<Self>> {
         py_cached_http_status(py, ::http::StatusCode::GATEWAY_TIMEOUT)
     }
 
     /// 505 ~ HTTP Version Not Supported
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn HTTP_VERSION_NOT_SUPPORTED(py: Python<'_>) -> PyResult<Py<Self>> {
         py_cached_http_status(py, ::http::StatusCode::HTTP_VERSION_NOT_SUPPORTED)
     }
 
     /// 506 ~ Variant Also Negotiates
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn VARIANT_ALSO_NEGOTIATES(py: Python<'_>) -> PyResult<Py<Self>> {
         py_cached_http_status(py, ::http::StatusCode::VARIANT_ALSO_NEGOTIATES)
     }
 
     /// 507 ~ Insufficient Storage
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn INSUFFICIENT_STORAGE(py: Python<'_>) -> PyResult<Py<Self>> {
         py_cached_http_status(py, ::http::StatusCode::INSUFFICIENT_STORAGE)
     }
 
     /// 508 ~ Loop Detected
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn LOOP_DETECTED(py: Python<'_>) -> PyResult<Py<Self>> {
         py_cached_http_status(py, ::http::StatusCode::LOOP_DETECTED)
     }
 
     /// 510 ~ Not Extended
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn NOT_EXTENDED(py: Python<'_>) -> PyResult<Py<Self>> {
         py_cached_http_status(py, ::http::StatusCode::NOT_EXTENDED)
     }
 
     /// 511 ~ Network Authentication Required
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn NETWORK_AUTHENTICATION_REQUIRED(py: Python<'_>) -> PyResult<Py<Self>> {
         py_cached_http_status(py, ::http::StatusCode::NETWORK_AUTHENTICATION_REQUIRED)
     }

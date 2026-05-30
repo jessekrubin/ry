@@ -29,8 +29,7 @@ use crate::{
     JiffWeekday, JiffZoned, RyDate,
 };
 
-#[cfg_attr(feature = "serde", derive(serde::Serialize))]
-#[cfg_attr(feature = "serde", serde(transparent))]
+#[cfg_attr(feature = "serde", derive(serde::Serialize), serde(transparent))]
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[pyclass(name = "ZonedDateTime", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
