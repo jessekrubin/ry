@@ -1077,6 +1077,8 @@ class TimeSpan(
     FromStr,
     _Parse,
 ):
+    MIN: t.Final[TimeSpan]
+    MAX: t.Final[TimeSpan]
     def __new__(
         cls,
         *,

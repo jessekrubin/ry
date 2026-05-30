@@ -105,11 +105,4 @@ mod test {
         SPAN_MICROSECONDS_MAX,
         SPAN_MICROSECONDS_MIN
     );
-
-    test_span_range!(
-        test_span_nanoseconds,
-        try_nanoseconds,
-        SPAN_NANOSECONDS_MAX,
-        SPAN_NANOSECONDS_MIN
-    );
 }

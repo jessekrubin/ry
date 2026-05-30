@@ -4,8 +4,7 @@ use jiff::Span;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    JiffWeekday, RyDate, RyDateTime, RyISOWeekDate, RySignedDuration, RySpan, RyTime, RyTimestamp,
-    RyZoned,
+    RyDate, RyDateTime, RyISOWeekDate, RySignedDuration, RySpan, RyTime, RyTimestamp, RyZoned,
 };
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

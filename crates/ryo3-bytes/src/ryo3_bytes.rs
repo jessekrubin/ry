@@ -299,7 +299,10 @@ impl PyBytes {
         }
     }
 
-    #[pyo3(signature = (old, new, count = -1, /))]
+    #[pyo3(
+        signature = (old, new, count = -1, /),
+        text_signature = "(self, old, new, count=-1, /)"
+    )]
     fn replace(
         slf: PyRef<'_, Self>,
         old: ReadableBuffer,
@@ -552,7 +555,10 @@ impl PyBytes {
         self.py_expandtabs(tabsize)
     }
 
-    #[pyo3(signature = (chars = PythonBytesStrip::AsciiWhitespace, /), text_signature = "(chars=None, /)")]
+    #[pyo3(
+        signature = (chars = PythonBytesStrip::AsciiWhitespace, /),
+        text_signature = "(self, chars=None, /)")
+    ]
     fn strip(slf: PyRef<'_, Self>, chars: PythonBytesStrip) -> PyResult<Py<Self>> {
         let bytes = &slf.0;
         let range = chars.strip_range(slf.as_slice());
@@ -563,7 +569,10 @@ impl PyBytes {
         }
     }
 
-    #[pyo3(signature = (chars = PythonBytesStrip::AsciiWhitespace, /), text_signature = "(chars=None, /)")]
+    #[pyo3(
+        signature = (chars = PythonBytesStrip::AsciiWhitespace, /),
+        text_signature = "(self, chars=None, /)"
+    )]
     fn lstrip(slf: PyRef<'_, Self>, chars: PythonBytesStrip) -> PyResult<Py<Self>> {
         let bytes = &slf.0;
         let ix = chars.lstrip_range(slf.as_slice());
@@ -574,7 +583,10 @@ impl PyBytes {
         }
     }
 
-    #[pyo3(signature = (chars = PythonBytesStrip::AsciiWhitespace, /), text_signature = "(chars=None, /)")]
+    #[pyo3(
+        signature = (chars = PythonBytesStrip::AsciiWhitespace, /),
+        text_signature = "(self, chars=None, /)"
+    )]
     fn rstrip(slf: PyRef<'_, Self>, chars: PythonBytesStrip) -> PyResult<Py<Self>> {
         let bytes = &slf.0;
         let ix = chars.rstrip_range(slf.as_slice());

@@ -12,6 +12,7 @@ use ryo3_macro_rules::{any_repr, py_type_err};
 use crate::{JiffWeekday, RyDate, RyDateTime, RyTimestamp, RyZoned};
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize), serde(transparent))]
 #[pyclass(name = "ISOWeekDate", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyISOWeekDate(pub(crate) ISOWeekDate);
