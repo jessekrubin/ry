@@ -608,8 +608,7 @@ impl<'a, 'py> FromPyObject<'a, 'py> for TimestampSubInput<'a, 'py> {
         if let Ok(ts) = ob.cast_exact::<RyTimestamp>() {
             Ok(Self::Timestamp(ts))
         } else {
-            let spanish = ob.extract::<Spanish>()?;
-            Ok(Self::Spanish(spanish))
+            ob.extract::<Spanish>().map(Self::Spanish)
         }
     }
 }
