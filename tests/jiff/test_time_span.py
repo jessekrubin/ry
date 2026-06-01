@@ -27,7 +27,7 @@ def test_span_fn_no_positionals_allowed() -> None:
         ry.timespan(1)  # type: ignore
 
 
-def test_span_dict() -> None:
+def test_span_dict(subtests: pytest.Subtests) -> None:
     s = _TIMESPAN_ONES
     assert s.to_dict() == {
         "years": 1,
@@ -41,7 +41,28 @@ def test_span_dict() -> None:
         "microseconds": 1,
         "nanoseconds": 1,
     }
+    assert len(s) == 10
     assert s.to_dict() == s.fieldwise()
+    for k, v in s.to_dict().items():
+        with subtests.test(k=k):
+            assert k in s
+            assert s[k] == v
+    assert "not-span-key" not in s
+
+
+def test_span_mapping() -> None:
+    s = ry.timespan(years=1, weeks=3)
+    expected = {"years": 1, "weeks": 3}
+    assert s.keys() == ("years", "weeks")
+    assert tuple(s) == ("years", "weeks")
+    assert len(s) == 2
+    assert "years" in s
+    assert "months" not in s
+    assert s["years"] == 1
+    assert dict(s) == expected
+    assert {**s} == expected
+    with pytest.raises(KeyError):
+        _ = s["months"]
 
 
 def test_builder_pattern() -> None:

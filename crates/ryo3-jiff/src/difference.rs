@@ -58,8 +58,7 @@ use jiff::civil::{DateDifference, DateTimeDifference, TimeDifference};
 use pyo3::IntoPyObjectExt;
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyTuple};
-use ryo3_core::PyAsciiString;
-use ryo3_macro_rules::py_type_err;
+use ryo3_core::{PyAsciiString, py_type_err};
 
 use crate::ry_datetime::RyDateTime;
 use crate::ry_time::RyTime;

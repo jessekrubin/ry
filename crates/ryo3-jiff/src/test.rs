@@ -3,7 +3,9 @@
 use jiff::Span;
 use serde::{Deserialize, Serialize};
 
-use crate::{RyDate, RyDateTime, RySignedDuration, RySpan, RyTime, RyTimestamp, RyZoned};
+use crate::{
+    RyDate, RyDateTime, RyISOWeekDate, RySignedDuration, RySpan, RyTime, RyTimestamp, RyZoned,
+};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 struct Stuff {
@@ -14,6 +16,7 @@ struct Stuff {
     time: RyTime,
     timestamp: RyTimestamp,
     zoned: RyZoned,
+    iso_week_date: RyISOWeekDate,
 }
 
 // the test
@@ -36,6 +39,7 @@ fn test_deserialize_and_serialize() {
         time: ry_time,
         timestamp: ry_timestamp,
         zoned: ry_zoned,
+        iso_week_date: ry_date.iso_week_date(),
     };
 
     let serialized = serde_json::to_string_pretty(&s).unwrap();

@@ -36,7 +36,7 @@ impl RyTimeZone {
     }
 
     #[classattr]
-    #[expect(non_snake_case)]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn UTC() -> Self {
         Self::from(TimeZone::UTC)
     }

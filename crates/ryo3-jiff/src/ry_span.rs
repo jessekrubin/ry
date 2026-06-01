@@ -3,24 +3,63 @@ use std::hash::{DefaultHasher, Hash, Hasher};
 
 use jiff::{SignedDuration, Span, SpanArithmetic, SpanRelativeTo, SpanRound};
 use pyo3::prelude::*;
-use pyo3::types::{PyDelta, PyDict, PyFloat, PyInt, PyTuple};
+use pyo3::types::{PyDelta, PyDict, PyFloat, PyInt, PyIterator, PyTuple};
 use pyo3::{BoundObject, IntoPyObjectExt};
-use ryo3_core::{PyAsciiString, map_py_overflow_err, map_py_value_err, py_value_err};
-use ryo3_macro_rules::{any_repr, py_overflow_error, py_type_err, py_value_error};
+use ryo3_core::{
+    PyAsciiString, any_repr, map_py_overflow_err, map_py_value_err, py_key_err, py_overflow_error,
+    py_type_err, py_value_err, py_value_error,
+};
 
 use crate::py_temporal_like::PyTemporalTypes;
 use crate::ry_signed_duration::RySignedDuration;
+use crate::span_units::{SpanUnit, SpanUnits};
 use crate::spanish::Spanish;
 use crate::{
-    JiffRoundMode, JiffSpan, JiffUnit, RyDate, RyDateTime, RyTime, RyTimestamp, RyZoned, timespan,
+    JiffRoundMode, JiffSpan, JiffUnit, RyDate, RyDateTime, RyTime, RyTimestamp, RyZoned, constants,
+    timespan,
 };
 
-#[cfg_attr(feature = "serde", derive(serde::Serialize))]
-#[cfg_attr(feature = "serde", serde(transparent))]
+#[cfg_attr(feature = "serde", derive(serde::Serialize), serde(transparent))]
 #[derive(Debug, Clone, Copy)]
-#[pyclass(name = "TimeSpan", frozen, immutable_type, skip_from_py_object)]
+#[pyclass(
+    name = "TimeSpan",
+    frozen,
+    immutable_type,
+    mapping,
+    skip_from_py_object
+)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RySpan(pub(crate) Span);
+
+impl RySpan {
+    fn max_jiff_span() -> Span {
+        Span::new()
+            .years(constants::SPAN_YEARS_MAX)
+            .months(constants::SPAN_MONTHS_MAX)
+            .weeks(constants::SPAN_WEEKS_MAX)
+            .days(constants::SPAN_DAYS_MAX)
+            .hours(constants::SPAN_HOURS_MAX)
+            .minutes(constants::SPAN_MINUTES_MAX)
+            .seconds(constants::SPAN_SECONDS_MAX)
+            .milliseconds(constants::SPAN_MILLISECONDS_MAX)
+            .microseconds(constants::SPAN_MICROSECONDS_MAX)
+            .nanoseconds(constants::SPAN_NANOSECONDS_MAX)
+    }
+
+    fn min_jiff_span() -> Span {
+        Span::new()
+            .years(constants::SPAN_YEARS_MIN)
+            .months(constants::SPAN_MONTHS_MIN)
+            .weeks(constants::SPAN_WEEKS_MIN)
+            .days(constants::SPAN_DAYS_MIN)
+            .hours(constants::SPAN_HOURS_MIN)
+            .minutes(constants::SPAN_MINUTES_MIN)
+            .seconds(constants::SPAN_SECONDS_MIN)
+            .milliseconds(constants::SPAN_MILLISECONDS_MIN)
+            .microseconds(constants::SPAN_MICROSECONDS_MIN)
+            .nanoseconds(constants::SPAN_NANOSECONDS_MIN)
+    }
+}
 
 impl PartialEq for RySpan {
     fn eq(&self, other: &Self) -> bool {
@@ -75,6 +114,18 @@ impl RySpan {
         )
     }
 
+    #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
+    fn MIN() -> Self {
+        Self::min_jiff_span().into()
+    }
+
+    #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
+    fn MAX() -> Self {
+        Self::max_jiff_span().into()
+    }
+
     #[staticmethod]
     fn fromisoformat(s: &str) -> PyResult<Self> {
         crate::constants::SPAN_PARSER
@@ -100,8 +151,92 @@ impl RySpan {
 
     fn __getnewargs_ex__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
         let args = PyTuple::empty(py).into_bound_py_any(py)?;
-        let kwargs = self.to_dict(py)?.into_bound_py_any(py)?;
+        let kwargs = self.py_to_dict(py)?.into_bound_py_any(py)?;
         PyTuple::new(py, vec![args, kwargs])
+    }
+
+    fn __iter__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyIterator>> {
+        self.keys(py)?.try_iter()
+    }
+
+    fn keys<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
+        if self.0.is_zero() {
+            return Ok(PyTuple::empty(py));
+        }
+        let mut units = Vec::new();
+        macro_rules! unite_das_units {
+            ($field:ident, $unit:expr) => {
+                if self.0.$field() != 0 {
+                    units.push($unit);
+                }
+            };
+        }
+
+        unite_das_units!(get_years, SpanUnit::Years);
+        unite_das_units!(get_months, SpanUnit::Months);
+        unite_das_units!(get_weeks, SpanUnit::Weeks);
+        unite_das_units!(get_days, SpanUnit::Days);
+        unite_das_units!(get_hours, SpanUnit::Hours);
+        unite_das_units!(get_minutes, SpanUnit::Minutes);
+        unite_das_units!(get_seconds, SpanUnit::Seconds);
+        unite_das_units!(get_milliseconds, SpanUnit::Milliseconds);
+        unite_das_units!(get_microseconds, SpanUnit::Microseconds);
+        unite_das_units!(get_nanoseconds, SpanUnit::Nanoseconds);
+        PyTuple::new(py, units)
+    }
+
+    fn __len__(&self) -> usize {
+        usize::from(SpanUnits::from(&self.0).count())
+    }
+
+    fn __contains__(&self, key: &str) -> bool {
+        match key {
+            "years" => self.0.get_years() != 0,
+            "months" => self.0.get_months() != 0,
+            "weeks" => self.0.get_weeks() != 0,
+            "days" => self.0.get_days() != 0,
+            "hours" => self.0.get_hours() != 0,
+            "minutes" => self.0.get_minutes() != 0,
+            "seconds" => self.0.get_seconds() != 0,
+            "milliseconds" => self.0.get_milliseconds() != 0,
+            "microseconds" => self.0.get_microseconds() != 0,
+            "nanoseconds" => self.0.get_nanoseconds() != 0,
+            _ => false,
+        }
+    }
+
+    fn __getitem__(&self, key: &str) -> PyResult<i64> {
+        macro_rules! get_da_unit_or_error {
+            (@into, $field:ident) => {
+                if self.0.$field() != 0 {
+                    Ok(self.0.$field().into())
+                } else {
+                    py_key_err!("Unit '{key}' is not present in the TimeSpan")
+                }
+            };
+            ($field:ident) => {
+                if self.0.$field() != 0 {
+                    Ok(self.0.$field())
+                } else {
+                    py_key_err!("Unit '{key}' is not present in the TimeSpan")
+                }
+            };
+        }
+        match key {
+            "years" => get_da_unit_or_error!(@into, get_years),
+            "months" => get_da_unit_or_error!(@into, get_months),
+            "weeks" => get_da_unit_or_error!(@into, get_weeks),
+            "days" => get_da_unit_or_error!(@into, get_days),
+            "hours" => get_da_unit_or_error!(@into, get_hours),
+            "minutes" => get_da_unit_or_error!(@into, get_minutes),
+            "seconds" => get_da_unit_or_error!(get_seconds),
+            "milliseconds" => get_da_unit_or_error!(get_milliseconds),
+            "microseconds" => get_da_unit_or_error!(get_microseconds),
+            "nanoseconds" => get_da_unit_or_error!(get_nanoseconds),
+            _ => py_key_err!(
+                "Invalid key: {key} (options: 'years', 'months', 'weeks', 'days', 'hours', 'minutes', 'seconds', 'milliseconds', 'microseconds', 'nanoseconds')"
+            ),
+        }
     }
 
     fn __format__(&self, fmt: &str) -> PyResult<String> {
@@ -153,7 +288,7 @@ impl RySpan {
     }
 
     fn abs(&self) -> Self {
-        self.__abs__()
+        Self(self.0.abs())
     }
 
     fn __invert__(&self) -> Self {
@@ -364,25 +499,31 @@ impl RySpan {
         hasher.finish()
     }
 
-    #[expect(clippy::wrong_self_convention)]
-    fn to_dict<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
-        use crate::interns;
+    #[pyo3(name = "to_dict")]
+    fn py_to_dict<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
         let dict = PyDict::new(py);
-        dict.set_item(interns::years(py), self.0.get_years())?;
-        dict.set_item(interns::months(py), self.0.get_months())?;
-        dict.set_item(interns::weeks(py), self.0.get_weeks())?;
-        dict.set_item(interns::days(py), self.0.get_days())?;
-        dict.set_item(interns::hours(py), self.0.get_hours())?;
-        dict.set_item(interns::minutes(py), self.0.get_minutes())?;
-        dict.set_item(interns::seconds(py), self.0.get_seconds())?;
-        dict.set_item(interns::milliseconds(py), self.0.get_milliseconds())?;
-        dict.set_item(interns::microseconds(py), self.0.get_microseconds())?;
-        dict.set_item(interns::nanoseconds(py), self.0.get_nanoseconds())?;
+        macro_rules! set_da_unit_in_da_dict {
+            ($field:ident, $unit:expr) => {
+                if self.0.$field() != 0 {
+                    dict.set_item($unit, self.0.$field())?;
+                }
+            };
+        }
+        set_da_unit_in_da_dict!(get_years, SpanUnit::Years);
+        set_da_unit_in_da_dict!(get_months, SpanUnit::Months);
+        set_da_unit_in_da_dict!(get_weeks, SpanUnit::Weeks);
+        set_da_unit_in_da_dict!(get_days, SpanUnit::Days);
+        set_da_unit_in_da_dict!(get_hours, SpanUnit::Hours);
+        set_da_unit_in_da_dict!(get_minutes, SpanUnit::Minutes);
+        set_da_unit_in_da_dict!(get_seconds, SpanUnit::Seconds);
+        set_da_unit_in_da_dict!(get_milliseconds, SpanUnit::Milliseconds);
+        set_da_unit_in_da_dict!(get_microseconds, SpanUnit::Microseconds);
+        set_da_unit_in_da_dict!(get_nanoseconds, SpanUnit::Nanoseconds);
         Ok(dict)
     }
 
     fn fieldwise<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
-        self.to_dict(py)
+        self.py_to_dict(py)
     }
 
     #[pyo3(signature = (relative = None))]

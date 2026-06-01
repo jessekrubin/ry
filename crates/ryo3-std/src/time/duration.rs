@@ -6,7 +6,7 @@ use std::time::Duration;
 use jiff::fmt::friendly::Designator;
 use pyo3::basic::CompareOp;
 use pyo3::prelude::*;
-use pyo3::types::{PyAnyMethods, PyDict, PyDictMethods, PyInt, PyTuple};
+use pyo3::types::{PyAnyMethods, PyDict, PyDictMethods, PyTuple};
 use pyo3::{BoundObject, IntoPyObjectExt};
 use ryo3_core::{PyFromStr, PyParse};
 use ryo3_macro_rules::{
@@ -148,44 +148,44 @@ impl PyDuration {
         ("secs", "nanos")
     }
 
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn ZERO() -> Self {
         Self(Duration::ZERO)
     }
 
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn MIN() -> Self {
         Self(Duration::ZERO)
     }
 
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn MAX() -> Self {
         Self(Duration::MAX)
     }
 
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn SECOND() -> Self {
         Self(Duration::from_secs(1))
     }
 
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn MILLISECOND() -> Self {
         Self(Duration::from_millis(1))
     }
 
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn MICROSECOND() -> Self {
         Self(Duration::from_micros(1))
     }
 
-    #[expect(non_snake_case)]
     #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn NANOSECOND() -> Self {
         Self(Duration::from_nanos(1))
     }
@@ -269,36 +269,31 @@ impl PyDuration {
         self.__sub__(other)
     }
 
-    fn __truediv__<'py>(
+    fn __truediv__(
         &self,
-        py: Python<'py>,
-        other: &Bound<'py, PyAny>,
-    ) -> PyResult<Bound<'py, PyAny>> {
-        if let Ok(f) = other.cast::<PyInt>() {
-            let i = f.extract::<u32>()?;
-            if i == 0 {
-                return py_zero_division_err!("division by zero");
+        other: arithmetic::DurationTrueDivInput,
+    ) -> PyResult<arithmetic::DurationTrueDivOutput> {
+        match other {
+            arithmetic::DurationTrueDivInput::Int(i) => {
+                if i == 0 {
+                    py_zero_division_err!("division by zero")
+                } else {
+                    self.checked_div(i)
+                        .ok_or_else(|| py_overflow_error!("overflow in Duration division"))
+                        .map(Into::into)
+                }
             }
-            self.checked_div(i)
-                .ok_or_else(|| py_overflow_error!("overflow in Duration division"))?
-                .into_bound_py_any(py)
-        } else if let Ok(f) = other.cast::<pyo3::types::PyFloat>() {
-            let f = f.extract::<f64>()?;
-            self.div_f64(f).and_then(|d| d.into_bound_py_any(py))
-        } else if let Ok(d) = other.cast_exact::<Self>() {
-            let rs_dur = d.get();
-            self.div_duration_f64(rs_dur)?.into_bound_py_any(py)
-        } else if let Ok(d) = other.cast::<pyo3::types::PyDelta>() {
-            let rs_dur: Duration = d.extract()?;
-            if rs_dur.is_zero() {
-                py_zero_division_err!()
-            } else {
-                self.0.div_duration_f64(rs_dur).into_bound_py_any(py)
+            arithmetic::DurationTrueDivInput::Float(f) => self.div_f64(f).map(Into::into),
+            arithmetic::DurationTrueDivInput::Duration(d) => {
+                self.div_duration_f64(d.get()).map(Into::into)
             }
-        } else {
-            py_type_err!(
-                "unsupported operand type(s); must be int | float | Duration | datetime.timedelta"
-            )
+            arithmetic::DurationTrueDivInput::PyDelta(d) => {
+                if d.is_zero() {
+                    py_zero_division_err!()
+                } else {
+                    Ok(self.0.div_duration_f64(d).into())
+                }
+            }
         }
     }
 
@@ -936,6 +931,7 @@ impl From<PyDuration> for Option<Duration> {
 mod arithmetic {
     use std::time::Duration;
 
+    use pyo3::IntoPyObjectExt;
     use pyo3::prelude::*;
     use ryo3_core::py_type_err;
 
@@ -964,8 +960,70 @@ mod arithmetic {
         }
     }
 
-    // TODO: do other dunder impls
-    // - __mul__
-    // - __truediv__
-    //
+    pub(super) enum DurationTrueDivInput<'a, 'py> {
+        Int(u32),
+        Float(f64),
+        Duration(Borrowed<'a, 'py, PyDuration>),
+        PyDelta(Duration),
+    }
+
+    pub(super) enum DurationTrueDivOutput {
+        Float(f64),
+        Duration(PyDuration),
+    }
+
+    impl From<f64> for DurationTrueDivOutput {
+        fn from(f: f64) -> Self {
+            Self::Float(f)
+        }
+    }
+
+    impl From<PyDuration> for DurationTrueDivOutput {
+        fn from(d: PyDuration) -> Self {
+            Self::Duration(d)
+        }
+    }
+
+    impl<'a, 'py> FromPyObject<'a, 'py> for DurationTrueDivInput<'a, 'py> {
+        type Error = PyErr;
+        fn extract(obj: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
+            if let Ok(pi) = obj.cast_exact::<pyo3::types::PyInt>() {
+                let i = pi.extract::<u32>()?;
+                return Ok(Self::Int(i));
+            }
+
+            if let Ok(pf) = obj.cast_exact::<pyo3::types::PyFloat>() {
+                let f = pf.extract::<f64>()?;
+                return Ok(Self::Float(f));
+            }
+
+            if let Ok(inst) = obj.cast_exact::<PyDuration>() {
+                return Ok(Self::Duration(inst));
+            }
+
+            if let Ok(inst) = obj.cast::<pyo3::types::PyDelta>() {
+                let dur: Duration = inst.extract()?;
+                return Ok(Self::PyDelta(dur));
+            }
+
+            py_type_err!(
+                "unsupported operand type(s); must be int | float | Duration | datetime.timedelta"
+            )
+        }
+    }
+
+    impl<'py> IntoPyObject<'py> for DurationTrueDivOutput {
+        type Target = PyAny;
+
+        type Output = Bound<'py, Self::Target>;
+
+        type Error = PyErr;
+
+        fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
+            match self {
+                Self::Float(f) => f.into_bound_py_any(py),
+                Self::Duration(d) => d.into_bound_py_any(py),
+            }
+        }
+    }
 }

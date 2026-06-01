@@ -1,7 +1,8 @@
 use serde::Serialize;
 
 use crate::{
-    RyDate, RyDateTime, RySignedDuration, RySpan, RyTime, RyTimeZone, RyTimestamp, RyZoned,
+    RyDate, RyDateTime, RyISOWeekDate, RySignedDuration, RySpan, RyTime, RyTimeZone, RyTimestamp,
+    RyZoned,
 };
 
 impl Serialize for RyTimeZone {
@@ -36,3 +37,4 @@ impl_deserialize!(RySpan, jiff::Span);
 impl_deserialize!(RyTime, jiff::civil::Time);
 impl_deserialize!(RyTimestamp, jiff::Timestamp);
 impl_deserialize!(RyZoned, jiff::Zoned);
+impl_deserialize!(RyISOWeekDate, jiff::civil::ISOWeekDate);
