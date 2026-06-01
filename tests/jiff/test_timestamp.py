@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import datetime as pydt
+import typing as t
 
+import pytest
 from hypothesis import given
 from hypothesis.strategies import sampled_from
 
@@ -180,6 +182,35 @@ class TestTimestampSinceUntil:
         dur = later.duration_since(earlier)
         assert isinstance(dur, ry.SignedDuration)
         assert dur == ry.SignedDuration(secs=392509800)
+
+
+class TestTimestampSub:
+    def test_overflow(self) -> None:
+        with pytest.raises(OverflowError):
+            _ = ry.Timestamp.MIN - ry.SignedDuration.MIN
+
+        kwargs2sub: dict[str, int] = {
+            k: t.cast("int", v)
+            for k, v in ry.TimeSpan.MIN.to_dict().items()
+            if k
+            in {
+                "hours",
+                "minutes",
+                "seconds",
+                "milliseconds",
+                "microseconds",
+                "nanoseconds",
+            }
+        }
+        with pytest.raises(OverflowError):
+            _ = ry.Timestamp.MIN.sub(**kwargs2sub)
+
+    def test_value_error_invalid_params(self) -> None:
+        with pytest.raises(
+            ValueError,
+            match="operation can only be performed with units of hours or smaller",
+        ):
+            _ = ry.Timestamp.MIN - ry.TimeSpan.MIN
 
 
 class TestTimestampSaturatingAddSub:

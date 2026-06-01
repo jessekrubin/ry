@@ -592,7 +592,7 @@ class Bytes(Buffer):
     def decode(self, encoding: str = "utf-8", errors: str = "strict") -> str:
         """Decode the binary data using the given encoding."""
 
-    def hex(self, sep: str | None = None, bytes_per_sep: int | None = None) -> str:
+    def hex(self, sep: str | None = None, *, bytes_per_sep: int = 1) -> str:
         """Return a hexadecimal representation of the binary data."""
 
     @classmethod
@@ -650,12 +650,48 @@ class Bytes(Buffer):
         their corresponding lowercase counterpart and vice versa.
         """
 
-    def replace(self, old: Buffer, new: Buffer, count: int = -1) -> Bytes:
+    def replace(self, old: Buffer, new: Buffer, count: int = -1, /) -> Bytes:
         """
         Return a copy of the sequence with all occurrences of `old` replaced by `new`.
         If `count` is given and not negative, only the first `count` occurrences are
         replaced.
         """
+
+    def find(
+        self,
+        sub: Buffer | int,
+        start: int | None = None,
+        end: int | None = None,
+        /,
+    ) -> int:
+        """Return the lowest index where `sub` is found, or `-1`."""
+
+    def rfind(
+        self,
+        sub: Buffer | int,
+        start: int | None = None,
+        end: int | None = None,
+        /,
+    ) -> int:
+        """Return the highest index where `sub` is found, or `-1`."""
+
+    def index(
+        self,
+        sub: Buffer | int,
+        start: int | None = None,
+        end: int | None = None,
+        /,
+    ) -> int:
+        """Return the lowest index where `sub` is found or raise `ValueError`."""
+
+    def rindex(
+        self,
+        sub: Buffer | int,
+        start: int | None = None,
+        end: int | None = None,
+        /,
+    ) -> int:
+        """Return the highest index where `sub` is found or raise `ValueError`."""
 
 
 ReadableBuffer: t.TypeAlias = Buffer | bytes | bytearray | memoryview | Bytes
@@ -2930,6 +2966,9 @@ class TimeSpan(
     FromStr,
     _Parse,
 ):
+    MIN: t.Final[TimeSpan]
+    MAX: t.Final[TimeSpan]
+
     def __new__(
         cls,
         *,
@@ -3034,6 +3073,10 @@ class TimeSpan(
     def __ne__(self, other: object) -> bool: ...
     def __rmul__(self, other: int) -> t.Self: ...
     def __hash__(self) -> int: ...
+    def __iter__(self) -> t.Iterator[str]: ...
+    def __len__(self) -> int: ...
+    def __contains__(self, key: str) -> bool: ...
+    def __getitem__(self, key: str) -> int: ...
 
     # =========================================================================
     # ARITHMETIC METHODS
@@ -3047,6 +3090,7 @@ class TimeSpan(
     # =========================================================================
 
     def abs(self) -> t.Self: ...
+    def keys(self) -> tuple[str, ...]: ...
     def to_dict(self) -> TimeSpanTypedDict: ...
     def fieldwise(self) -> TimeSpanTypedDict: ...
     def compare(
@@ -7800,7 +7844,7 @@ def minify(buf: Buffer | str, /) -> Bytes:
     """Return minified json data (remove whitespace, newlines)
 
     Args:
-        data: The JSON data to minify.
+        buf: JSON buffer/string to minify
 
     Returns:
         Minified JSON data as a `Bytes` object.
@@ -7823,13 +7867,13 @@ def minify(buf: Buffer | str, /) -> Bytes:
 
 
 def fmt(buf: Buffer | str, /) -> Bytes:
-    """Return minified json data (remove whitespace, newlines)
+    """Return formatted json data (add indentation, newlines)
 
     Args:
-        data: The JSON data to minify.
+        buf: JSON buffer/string to format
 
     Returns:
-        Minified JSON data as a `Bytes` object.
+        Formatted JSON data as a `Bytes` object.
 
     Examples:
         >>> import json as pyjson
@@ -7972,7 +8016,7 @@ def ls(
     sort: bool = False,
     objects: t.Literal[False] = False,
 ) -> list[str]:
-    """List directory contents - returns list of strings"""
+    """List directory contents returning a list of strings"""
 
 
 @t.overload
@@ -7983,7 +8027,7 @@ def ls(
     sort: bool = False,
     objects: t.Literal[True],
 ) -> list[FsPath]:
-    """List directory contents - returns list of FsPath objects"""
+    """List directory contents returning a list of `FsPath` objects"""
 
 
 def mkdir(
@@ -8454,14 +8498,16 @@ class SignedDurationTypedDict(TypedDict):
     nanos: int
 
 
-class TimeSpanTypedDict(TypedDict):
+class TimeSpanTypedDict(TypedDict, total=False):
     """TimeSpan TypedDict
 
     Examples:
         >>> import ry
         >>> ts = ry.timespan(years=1, months=2, weeks=3)
         >>> ts.to_dict()
-        {'years': 1, 'months': 2, 'weeks': 3, 'days': 0, 'hours': 0, 'minutes': 0, 'seconds': 0, 'milliseconds': 0, 'microseconds': 0, 'nanoseconds': 0}
+        {'years': 1, 'months': 2, 'weeks': 3}
+        >>> {**ts}
+        {'years': 1, 'months': 2, 'weeks': 3}
 
     """
 

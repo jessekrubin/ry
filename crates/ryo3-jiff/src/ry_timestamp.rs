@@ -7,7 +7,9 @@ use pyo3::BoundObject;
 use pyo3::basic::CompareOp;
 use pyo3::prelude::*;
 use pyo3::types::PyTuple;
-use ryo3_core::{PyAsciiString, map_py_overflow_err, map_py_value_err, py_overflow_err};
+use ryo3_core::{
+    PyAsciiString, map_py_overflow_err, map_py_value_err, py_overflow_err, py_value_err,
+};
 use ryo3_macro_rules::{any_repr, py_type_err};
 
 use crate::difference::{RyTimestampDifference, TimestampDifferenceArg};
@@ -181,7 +183,13 @@ impl RyTimestamp {
             }
             TimestampSubInput::Spanish(spanish) => match self.0.checked_sub(spanish) {
                 Ok(z) => TimestampSubOutput::Timestamp(Self::from(z)),
-                Err(err) => TimestampSubOutput::Overflow(err),
+                Err(err) => {
+                    if err.is_range() {
+                        TimestampSubOutput::Overflow(err)
+                    } else {
+                        TimestampSubOutput::ValueError(err)
+                    }
+                }
             },
         }
     }
@@ -278,7 +286,13 @@ impl RyTimestamp {
 
                 match self.0.checked_sub(span) {
                     Ok(z) => Ok(TimestampSubOutput::Timestamp(Self::from(z))),
-                    Err(err) => Ok(TimestampSubOutput::Overflow(err)),
+                    Err(err) => {
+                        if err.is_range() {
+                            Ok(TimestampSubOutput::Overflow(err))
+                        } else {
+                            Ok(TimestampSubOutput::ValueError(err))
+                        }
+                    }
                 }
             }
             (Some(_), true) => {
@@ -606,6 +620,7 @@ impl<'a, 'py> FromPyObject<'a, 'py> for TimestampSubInput<'a, 'py> {
 }
 
 enum TimestampSubOutput {
+    ValueError(jiff::Error),
     Overflow(jiff::Error),
     Timestamp(RyTimestamp),
     Span(RySpan),
@@ -620,6 +635,7 @@ impl<'py> IntoPyObject<'py> for TimestampSubOutput {
             Self::Timestamp(ts) => ts.into_pyobject(py).map(Bound::into_any),
             Self::Span(span) => span.into_pyobject(py).map(Bound::into_any),
             Self::Overflow(err) => py_overflow_err!("{err}"),
+            Self::ValueError(err) => py_value_err!("{err}"),
         }
     }
 }
