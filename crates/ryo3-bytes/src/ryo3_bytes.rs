@@ -14,7 +14,9 @@ use pyo3::types::{PyDict, PySlice, PyString, PyTuple};
 use pyo3::{IntoPyObjectExt, ffi};
 
 use crate::ReadableBuffer;
-use crate::python_bytes_methods::{PyHexSep, PythonBytesMethods, PythonBytesStrip};
+use crate::python_bytes_methods::{
+    BufferOrByte, PyFindResult, PyHexSep, PyIndexResult, PythonBytesMethods, PythonBytesStrip,
+};
 use crate::replace::{ReplaceBytes, replace_bytes};
 
 /// A wrapper around a [`bytes::Bytes`][].
@@ -596,6 +598,27 @@ impl PyBytes {
             Py::new(slf.py(), Self::new(bytes.slice(0..ix)))
         }
     }
+
+    #[pyo3(signature = (sub, start = None, end = None, /))]
+    fn find(&self, sub: BufferOrByte, start: Option<isize>, end: Option<isize>) -> PyFindResult {
+        self.py_find(sub, start, end)
+    }
+
+    #[pyo3(signature = (sub, start = None, end = None, /))]
+    fn rfind(&self, sub: BufferOrByte, start: Option<isize>, end: Option<isize>) -> PyFindResult {
+        self.py_rfind(sub, start, end)
+    }
+
+    #[pyo3(signature = (sub, start = None, end = None, /))]
+    fn index(&self, sub: BufferOrByte, start: Option<isize>, end: Option<isize>) -> PyIndexResult {
+        self.py_index(sub, start, end)
+    }
+
+    #[pyo3(signature = (sub, start = None, end = None, /))]
+    fn rindex(&self, sub: BufferOrByte, start: Option<isize>, end: Option<isize>) -> PyIndexResult {
+        self.py_rindex(sub, start, end)
+    }
+
     // </python-bytes-methods>
 }
 

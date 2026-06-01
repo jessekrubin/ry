@@ -95,8 +95,14 @@ warn_redundant_casts = true
 
 # plugins = ['pydantic.mypy']
 [tool.pyright]
-include = [ "ry", "tests" ]
-reportUnnecessaryTypeIgnoreComment = true
+include = [ "python", "tests" ]
+pythonVersion = "3.11"
+reportMissingTypeStubs = false
+reportMissingImports = "error"
+useLibraryCodeForTypes = false
+executionEnvironments = [
+  { root = "tests/xxhash", reportAttributeAccessIssue = false },
+]
 
 [tool.pytest]
 ini_options.testpaths = [ "tests" ]

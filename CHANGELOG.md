@@ -9,6 +9,7 @@
     representable time spans
   - made `ry.TimeSpan` mapping-like so you can spread it into a dict or
     kwargs...
+  - update to `0.13.4` which notably updates `hickory-resolver` to `0.26`
 
 ---
 

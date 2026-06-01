@@ -188,5 +188,37 @@ class Bytes(Buffer):
         If `count` is given and not negative, only the first `count` occurrences are
         replaced.
         """
+    def find(
+        self,
+        sub: Buffer | int,
+        start: int | None = None,
+        end: int | None = None,
+        /,
+    ) -> int:
+        """Return the lowest index where `sub` is found, or `-1`."""
+    def rfind(
+        self,
+        sub: Buffer | int,
+        start: int | None = None,
+        end: int | None = None,
+        /,
+    ) -> int:
+        """Return the highest index where `sub` is found, or `-1`."""
+    def index(
+        self,
+        sub: Buffer | int,
+        start: int | None = None,
+        end: int | None = None,
+        /,
+    ) -> int:
+        """Return the lowest index where `sub` is found or raise `ValueError`."""
+    def rindex(
+        self,
+        sub: Buffer | int,
+        start: int | None = None,
+        end: int | None = None,
+        /,
+    ) -> int:
+        """Return the highest index where `sub` is found or raise `ValueError`."""
 
 ReadableBuffer: t.TypeAlias = Buffer | bytes | bytearray | memoryview | Bytes
