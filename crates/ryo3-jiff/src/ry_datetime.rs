@@ -581,10 +581,8 @@ impl RyDateTime {
     }
 
     /// Return the era year as a tuple (era, year)
-    fn era_year<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
-        let era_year = JiffEraYear(self.0.era_year());
-        let obj = era_year.into_pyobject(py)?;
-        Ok(obj.into_any())
+    fn era_year(&self) -> JiffEraYear {
+        JiffEraYear(self.0.era_year())
     }
 
     fn first_of_year(&self) -> Self {
