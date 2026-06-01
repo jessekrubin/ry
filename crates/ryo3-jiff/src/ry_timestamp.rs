@@ -184,14 +184,6 @@ impl RyTimestamp {
                 Err(err) => TimestampSubOutput::Overflow(err),
             },
         }
-        // if let Ok(ob) = other.cast_exact::<Self>() {
-        //     let span = self.0.sub(ob.get().0);
-        //     Ok(TimestampSubOutput::Span(RySpan::from(span)))
-        // } else {
-        //     let spanish = other.extract::<Spanish>()?;
-        //     let z = self.0.checked_sub(spanish).map_err(map_py_overflow_err)?;
-        //     Ok(TimestampSubOutput::Timestamp(Self::from(z)))
-        // }
     }
 
     fn __add__(&self, other: Spanish) -> PyResult<Self> {
