@@ -41,6 +41,7 @@ def test_span_dict(subtests: pytest.Subtests) -> None:
         "microseconds": 1,
         "nanoseconds": 1,
     }
+    assert len(s) == 10
     assert s.to_dict() == s.fieldwise()
     for k, v in s.to_dict().items():
         with subtests.test(k=k):
