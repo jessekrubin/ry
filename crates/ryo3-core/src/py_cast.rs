@@ -1,7 +1,63 @@
-use pyo3::PyTypeInfo;
+//! `PyO3` casting extension methods.
+//!
+//! `PyO3`'s casting methods return `Result<T, pyo3::CastError>`, whereas these
+//! extension traits return `Option<T>` to avoid constructing a [`pyo3::CastError`].
 use pyo3::prelude::{Borrowed, Bound, PyAny, PyAnyMethods};
+use pyo3::{PyTypeCheck, PyTypeInfo};
 
-/// Extension methods for exact Python type checks w/o `::pyo3::CastError`
+pub trait PyCastOpt<'a> {
+    type Output<T: PyTypeCheck + 'a>;
+
+    /// Casts to `T` if the object's Python type is `T` or a subtype of `T`.
+    ///
+    /// Unlike `PyO3`'s `cast`, this returns `None` on a mismatch without constructing
+    /// a [`pyo3::CastError`].
+    fn cast_opt<T>(self) -> Option<Self::Output<T>>
+    where
+        T: PyTypeCheck + 'a;
+}
+
+impl<'a, 'py> PyCastOpt<'a> for &'a Bound<'py, PyAny> {
+    type Output<T: PyTypeCheck + 'a> = &'a Bound<'py, T>;
+
+    #[inline]
+    fn cast_opt<T>(self) -> Option<Self::Output<T>>
+    where
+        T: PyTypeCheck + 'a,
+    {
+        if self.is_instance_of::<T>() {
+            // SAFETY: the Python type was checked immediately above.
+            #[expect(unsafe_code, reason = "wenodis")]
+            unsafe {
+                Some(self.cast_unchecked())
+            }
+        } else {
+            None
+        }
+    }
+}
+
+impl<'a, 'py> PyCastOpt<'a> for Borrowed<'a, 'py, PyAny> {
+    type Output<T: PyTypeCheck + 'a> = Borrowed<'a, 'py, T>;
+
+    #[inline]
+    fn cast_opt<T>(self) -> Option<Self::Output<T>>
+    where
+        T: PyTypeCheck + 'a,
+    {
+        if self.is_instance_of::<T>() {
+            // SAFETY: the Python type was checked immediately above.
+            #[expect(unsafe_code, reason = "wenodis")]
+            unsafe {
+                Some(self.cast_unchecked())
+            }
+        } else {
+            None
+        }
+    }
+}
+
+/// Extension methods for exact Python type checks which do not need a diagnostic error.
 ///
 /// Use [`pyo3::Bound::cast_exact`] or [`pyo3::Borrowed::cast_exact`] instead
 /// when the [`pyo3::CastError`] will be returned to the caller.
