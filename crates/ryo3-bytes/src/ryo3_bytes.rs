@@ -211,11 +211,7 @@ impl PyBytes {
         self.0.as_ref() == other.as_ref()
     }
 
-    fn __getitem__<'py>(
-        &self,
-        py: Python<'py>,
-        key: BytesGetItemKey<'py>,
-    ) -> PyResult<Bound<'py, PyAny>> {
+    fn __getitem__(&self, key: BytesGetItemKey<'_>) -> PyResult<BytesGetItemResult> {
         match key {
             BytesGetItemKey::Int(mut index) => {
                 if index < 0 {
@@ -226,12 +222,12 @@ impl PyBytes {
                 }
                 self.0
                     .get(index as usize)
-                    .ok_or_else(|| PyIndexError::new_err("Index out of range"))?
-                    .into_bound_py_any(py)
+                    .map(|b| BytesGetItemResult::Byte(*b))
+                    .ok_or_else(|| PyIndexError::new_err("Index out of range"))
             }
             BytesGetItemKey::Slice(slice) => {
                 let s = self.slice(&slice)?;
-                s.into_bound_py_any(py)
+                Ok(BytesGetItemResult::Slice(s))
             }
         }
     }
@@ -735,8 +731,27 @@ enum BytesGetItemKey<'py> {
     Slice(Bound<'py, PySlice>),
 }
 
-/// optimized bytes-iterator...
+enum BytesGetItemResult {
+    /// A single byte as an integer
+    Byte(u8),
+    /// A slice of bytes as a new `PyBytes`
+    Slice(PyBytes),
+}
 
+impl<'py> IntoPyObject<'py> for BytesGetItemResult {
+    type Target = PyAny;
+    type Output = Bound<'py, Self::Target>;
+    type Error = PyErr;
+
+    fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
+        match self {
+            Self::Byte(b) => b.into_bound_py_any(py),
+            Self::Slice(s) => s.into_bound_py_any(py),
+        }
+    }
+}
+
+/// optimized bytes-iterator...
 #[pyclass(name = "BytesIterator", immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub(crate) struct PyBytesIterator(::bytes::buf::IntoIter<Bytes>);
