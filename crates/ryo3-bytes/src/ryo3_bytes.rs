@@ -625,7 +625,12 @@ impl<'py> FromPyObject<'_, 'py> for PyBytes {
         if ob.is_exact_instance_of::<pyo3::types::PyBytes>() {
             let pbb = ob.extract::<PyBackedBytes>()?;
             Ok(Bytes::from_owner(pbb).into())
-        } else if let Ok(pb) = ob.cast_exact::<Self>() {
+        } else if ob.is_exact_instance_of::<Self>() {
+            #[expect(unsafe_code)]
+            let pb = unsafe {
+                // SAFETY: wenodis (see line above)
+                ob.cast_unchecked::<Self>()
+            };
             Ok(Self(pb.get().0.clone())) // supa fast clone the inner bytes::Bytes
         } else {
             let buffer = ob.extract::<PyBytesWrapper>()?;

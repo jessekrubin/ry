@@ -1,7 +1,5 @@
 //! ryo3-jiff difference options
 //!
-//!
-//!
 //! `SpanRound` is used internally by several of the underlying difference
 //! structs so for ref, here are the span-round defaults:
 //!
@@ -58,7 +56,7 @@ use jiff::civil::{DateDifference, DateTimeDifference, TimeDifference};
 use pyo3::IntoPyObjectExt;
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyTuple};
-use ryo3_core::{PyAsciiString, py_type_err};
+use ryo3_core::{PyAsciiString, PyCastExactOpt, py_type_err};
 
 use crate::ry_datetime::RyDateTime;
 use crate::ry_time::RyTime;
@@ -287,11 +285,11 @@ impl<'a, 'py> FromPyObject<'a, 'py> for DateDifferenceArg<'a, 'py> {
     type Error = PyErr;
 
     fn extract(obj: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
-        if let Ok(z) = obj.cast_exact::<RyZoned>() {
+        if let Some(z) = obj.cast_exact_opt::<RyZoned>() {
             Ok(Self::Zoned(z))
-        } else if let Ok(t) = obj.cast_exact::<RyDate>() {
+        } else if let Some(t) = obj.cast_exact_opt::<RyDate>() {
             Ok(Self::Date(t))
-        } else if let Ok(dt) = obj.cast_exact::<RyDateTime>() {
+        } else if let Some(dt) = obj.cast_exact_opt::<RyDateTime>() {
             Ok(Self::DateTime(dt))
         } else {
             py_type_err!("Expected ZonedDateTime, DateTime, or Date")
@@ -523,11 +521,11 @@ impl<'a, 'py> FromPyObject<'a, 'py> for DateTimeDifferenceArg<'a, 'py> {
     type Error = PyErr;
 
     fn extract(obj: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
-        if let Ok(z) = obj.cast_exact::<RyZoned>() {
+        if let Some(z) = obj.cast_exact_opt::<RyZoned>() {
             Ok(Self::Zoned(z))
-        } else if let Ok(t) = obj.cast_exact::<RyDate>() {
+        } else if let Some(t) = obj.cast_exact_opt::<RyDate>() {
             Ok(Self::Date(t))
-        } else if let Ok(dt) = obj.cast_exact::<RyDateTime>() {
+        } else if let Some(dt) = obj.cast_exact_opt::<RyDateTime>() {
             Ok(Self::DateTime(dt))
         } else {
             py_type_err!("Expected ZonedDateTime, DateTime, or Date")
@@ -765,11 +763,11 @@ impl<'a, 'py> FromPyObject<'a, 'py> for TimeDifferenceArg<'a, 'py> {
     type Error = PyErr;
 
     fn extract(obj: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
-        if let Ok(z) = obj.cast_exact::<RyZoned>() {
+        if let Some(z) = obj.cast_exact_opt::<RyZoned>() {
             Ok(Self::Zoned(z))
-        } else if let Ok(t) = obj.cast_exact::<RyTime>() {
+        } else if let Some(t) = obj.cast_exact_opt::<RyTime>() {
             Ok(Self::Time(t))
-        } else if let Ok(dt) = obj.cast_exact::<RyDateTime>() {
+        } else if let Some(dt) = obj.cast_exact_opt::<RyDateTime>() {
             Ok(Self::DateTime(dt))
         } else {
             py_type_err!("Expected ZonedDateTime, Time, or DateTime")
@@ -1007,9 +1005,9 @@ impl<'a, 'py> FromPyObject<'a, 'py> for TimestampDifferenceArg<'a, 'py> {
     type Error = PyErr;
 
     fn extract(obj: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
-        if let Ok(z) = obj.cast_exact::<RyZoned>() {
+        if let Some(z) = obj.cast_exact_opt::<RyZoned>() {
             Ok(Self::Zoned(z))
-        } else if let Ok(t) = obj.cast_exact::<RyTimestamp>() {
+        } else if let Some(t) = obj.cast_exact_opt::<RyTimestamp>() {
             Ok(Self::Timestamp(t))
         } else {
             py_type_err!("Expected ZonedDateTime or Timestamp")

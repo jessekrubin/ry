@@ -1,5 +1,6 @@
 pub mod errors;
 mod map_pyerr;
+mod py_cast;
 mod pyparse;
 mod pystring;
 mod pytryfrom;
@@ -7,6 +8,7 @@ pub mod sync;
 pub mod types;
 pub use errors::{FeatureNotEnabledError, PanicError, UnreachableError};
 pub use map_pyerr::{map_py_overflow_err, map_py_runtime_err, map_py_value_err};
+pub use py_cast::PyCastExactOpt;
 pub use pyparse::{PyFromStr, PyParse};
 pub use pystring::{
     PyAsciiStr, PyAsciiString, pystring_ascii_new, pystring_fast_new, pystring_fast_new_ascii,

@@ -1,6 +1,6 @@
 use pyo3::prelude::*;
 
-use crate::map_py_value_err;
+use crate::{PyCastExactOpt, map_py_value_err};
 
 pub trait PyFromStr: Sized {
     /// Parse from a string (basically `FromStr` but maps errors to `PyResult`)
@@ -34,10 +34,10 @@ where
     fn py_parse(ob: &Bound<'_, PyAny>) -> PyResult<Self> {
         // TODO (non-fugue-state-jesse): add support for bytearray/memview/buffer
         // protocol?
-        if let Ok(s) = ob.cast_exact::<pyo3::types::PyString>() {
+        if let Some(s) = ob.cast_exact_opt::<pyo3::types::PyString>() {
             let s = s.to_str()?;
             T::py_from_str(s).map_err(map_py_value_err)
-        } else if let Ok(b) = ob.cast_exact::<pyo3::types::PyBytes>() {
+        } else if let Some(b) = ob.cast_exact_opt::<pyo3::types::PyBytes>() {
             let a = String::from_utf8_lossy(b.as_bytes());
             T::py_from_str(&a).map_err(map_py_value_err)
         } else {
