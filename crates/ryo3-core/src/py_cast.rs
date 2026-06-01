@@ -14,14 +14,19 @@ pub trait PyCastExactOpt<'a> {
     /// where this method returns `Option<Self::Output<T>>` and simply returns
     /// `None` if the type check faails saving the overhead of constructing
     /// a `CastError` (ref-count-bumping)
-    fn cast_exact_opt<T: PyTypeInfo + 'a>(self) -> Option<Self::Output<T>>;
+    fn cast_exact_opt<T>(self) -> Option<Self::Output<T>>
+    where
+        T: PyTypeInfo + 'a;
 }
 
 impl<'a, 'py> PyCastExactOpt<'a> for &'a Bound<'py, PyAny> {
     type Output<T: PyTypeInfo + 'a> = &'a Bound<'py, T>;
 
     #[inline]
-    fn cast_exact_opt<T: PyTypeInfo + 'a>(self) -> Option<Self::Output<T>> {
+    fn cast_exact_opt<T>(self) -> Option<Self::Output<T>>
+    where
+        T: PyTypeInfo + 'a,
+    {
         if self.is_exact_instance_of::<T>() {
             // SAFETY: the exact Python type was checked immediately above.
             #[expect(unsafe_code, reason = "wenodis")]
@@ -38,7 +43,10 @@ impl<'a, 'py> PyCastExactOpt<'a> for Borrowed<'a, 'py, PyAny> {
     type Output<T: PyTypeInfo + 'a> = Borrowed<'a, 'py, T>;
 
     #[inline]
-    fn cast_exact_opt<T: PyTypeInfo + 'a>(self) -> Option<Self::Output<T>> {
+    fn cast_exact_opt<T>(self) -> Option<Self::Output<T>>
+    where
+        T: PyTypeInfo + 'a,
+    {
         if self.is_exact_instance_of::<T>() {
             // SAFETY: the exact Python type was checked immediately above.
             #[expect(unsafe_code, reason = "wenodis")]
