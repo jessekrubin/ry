@@ -21,6 +21,12 @@ impl From<size::Size> for PySize {
 
 impl From<i64> for PySize {
     fn from(size: i64) -> Self {
+        Self::from_const(size)
+    }
+}
+
+impl PySize {
+    const fn from_const(size: i64) -> Self {
         Self(size::Size::from_const(size))
     }
 }
@@ -337,6 +343,190 @@ impl PySize {
     #[staticmethod]
     fn from_tib(size: PySizeIntermediate) -> Self {
         size.into_tib().into()
+    }
+
+    // ========================================================================
+    // CLASS ATTRIBUTES / CONSTS
+    // ========================================================================
+
+    #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
+    fn MIN() -> Self {
+        Self::from_const(i64::MIN)
+    }
+
+    #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
+    fn MAX() -> Self {
+        Self::from_const(i64::MAX)
+    }
+
+    #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
+    fn ZERO() -> Self {
+        Self::from_const(0)
+    }
+
+    /// Basic "byte" constant, used across all bases.
+    #[classattr]
+    #[pyo3(name = "BYTE")]
+    #[expect(non_snake_case, reason = "python classattr")]
+    fn CONST_BYTE() -> Self {
+        Self::from_const(::size::consts::BYTE)
+    }
+    /// Base-10 "kilobyte" constant, equal to 1000 bytes.
+    #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
+    fn KILOBYTE() -> Self {
+        Self::from_const(::size::consts::KILOBYTE)
+    }
+    /// Base-10 "megabyte" constant, equal to 1000 kilobytes.
+    #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
+    fn MEGABYTE() -> Self {
+        Self::from_const(::size::consts::MEGABYTE)
+    }
+    /// Base-10 "gigabyte" constant, equal to 1000 megabytes.
+    #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
+    fn GIGABYTE() -> Self {
+        Self::from_const(::size::consts::GIGABYTE)
+    }
+
+    /// Base-10 "terabyte" constant, equal to 1000 gigabytes.
+    #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
+    fn TERABYTE() -> Self {
+        Self::from_const(::size::consts::TERABYTE)
+    }
+    /// Base-10 "petabyte" constant, equal to 1000 terabytes.
+    #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
+    fn PETABYTE() -> Self {
+        Self::from_const(::size::consts::PETABYTE)
+    }
+    /// Base-10 "exabyte" constant, equal to 1000 petabytes.
+    #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
+    fn EXABYTE() -> Self {
+        Self::from_const(::size::consts::EXABYTE)
+    }
+
+    /// Abbreviated "byte" constant. Identical to [`BYTE`].
+    #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
+    fn B() -> Self {
+        Self::from_const(::size::consts::BYTE)
+    }
+    /// Abbreviated base-10 "kilobyte" constant, equal to 1000 bytes. Identical to [`KILOBYTE`].
+    #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
+    fn KB() -> Self {
+        Self::from_const(::size::consts::KILOBYTE)
+    }
+    /// Abbreviated base-10 "megabyte" constant, equal to 1000 kilobytes. Identical to [`MEGABYTE`].
+    #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
+    fn MB() -> Self {
+        Self::from_const(::size::consts::MEGABYTE)
+    }
+    /// Abbreviated base-10 "gigabyte" constant, equal to 1000 megabytes. Identical to [`GIGABYTE`].
+    #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
+    fn GB() -> Self {
+        Self::from_const(::size::consts::GIGABYTE)
+    }
+    /// Abbreviated base-10 "terabyte" constant, equal to 1000 gigabytes. Identical to [`TERABYTE`].
+    #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
+    fn TB() -> Self {
+        Self::from_const(::size::consts::TERABYTE)
+    }
+    /// Abbreviated base-10 "petabyte" constant, equal to 1000 terabytes. Identical to [`PETABYTE`].
+    #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
+    fn PB() -> Self {
+        Self::from_const(::size::consts::PETABYTE)
+    }
+    /// Abbreviated base-10 "exabyte" constant, equal to 1000 petabytes. Identical to [`EXABYTE`].
+    #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
+    fn EB() -> Self {
+        Self::from_const(::size::consts::EXABYTE)
+    }
+
+    /// Base-2 "kibibyte" constant, equal to 2^10 bytes.
+    #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
+    fn KIBIBYTE() -> Self {
+        Self::from_const(::size::consts::KIBIBYTE)
+    }
+    /// Base-2 "mebibyte" constant, equal to 2^20 bytes.
+    #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
+    fn MEBIBYTE() -> Self {
+        Self::from_const(::size::consts::MEBIBYTE)
+    }
+    /// Base-2 "gibibyte" constant, equal to 2^30 bytes.
+    #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
+    fn GIBIBYTE() -> Self {
+        Self::from_const(::size::consts::GIBIBYTE)
+    }
+    /// Base-2 "tebibyte" constant, equal to 2^40 bytes.
+    #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
+    fn TEBIBYTE() -> Self {
+        Self::from_const(::size::consts::TEBIBYTE)
+    }
+    /// Base-2 "pebibyte" constant, equal to 2^50 bytes.
+    #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
+    fn PEBIBYTE() -> Self {
+        Self::from_const(::size::consts::PEBIBYTE)
+    }
+    /// Base-2 "exbibyte" constant, equal to 2^60 bytes.
+    #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
+    fn EXBIBYTE() -> Self {
+        Self::from_const(::size::consts::EXBIBYTE)
+    }
+
+    /// Abbreviated base-2 "kibibyte" constant, equal to 1024 bytes. Identical to [`KIBIBYTE`].
+    #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
+    fn KIB() -> Self {
+        Self::from_const(::size::consts::KIBIBYTE)
+    }
+    /// Abbreviated base-2 "mebibyte" constant, equal to 1024 kibibytes. Identical to [`MEBIBYTE`].
+    #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
+    fn MIB() -> Self {
+        Self::from_const(::size::consts::MEBIBYTE)
+    }
+    /// Abbreviated base-2 "gibibyte" constant, equal to 1024 mebibytes. Identical to [`GIBIBYTE`].
+    #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
+    fn GIB() -> Self {
+        Self::from_const(::size::consts::GIBIBYTE)
+    }
+    /// Abbreviated base-2 "tebibyte" constant, equal to 1024 gibibytes. Identical to [`TEBIBYTE`].
+    #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
+    fn TIB() -> Self {
+        Self::from_const(::size::consts::TEBIBYTE)
+    }
+    /// Abbreviated base-2 "pebibyte" constant, equal to 1024 tebibytes. Identical to [`PEBIBYTE`].
+    #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
+    fn PIB() -> Self {
+        Self::from_const(::size::consts::PEBIBYTE)
+    }
+    /// Abbreviated base-2 "exbibyte" constant, equal to 1024 pebibytes. Identical to [`EXBIBYTE`].
+    #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
+    fn EIB() -> Self {
+        Self::from_const(::size::consts::EXBIBYTE)
     }
 }
 
