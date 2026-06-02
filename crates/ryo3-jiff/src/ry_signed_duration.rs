@@ -14,13 +14,10 @@ use ryo3_macro_rules::{
 };
 use ryo3_std::time::PyDuration;
 
-use crate::py_temporal_like::PyTemporalTypes;
 use crate::pydatetime_conversions::signed_duration_from_pyobject;
 use crate::round::RySignedDurationRound;
 use crate::ry_span::RySpan;
-use crate::{
-    JiffRoundMode, JiffSignedDuration, JiffUnit, RyDate, RyDateTime, RyTime, RyTimestamp, RyZoned,
-};
+use crate::{JiffRoundMode, JiffSignedDuration, JiffUnit};
 
 const NANOS_PER_SEC: i32 = 1_000_000_000;
 // const NANOS_PER_MILLI: i32 = 1_000_000;
@@ -259,55 +256,37 @@ impl RySignedDuration {
         hasher.finish()
     }
 
-    #[expect(clippy::needless_pass_by_value)]
-    fn __add__<'py>(
+    fn __add__(
         &self,
-        py: Python<'py>,
-        other: SignedDurationAddTarget<'_, 'py>,
-    ) -> PyResult<Bound<'py, PyAny>> {
-        other.add_signed_duration(py, self)
+        other: maths::SignedDurationAddTarget<'_, '_>,
+    ) -> PyResult<maths::PySignedDurationAddOutput> {
+        use maths::PySignedDurationAdd;
+        other.add_signed_duration(self)
     }
 
-    fn __radd__<'py>(
+    fn __radd__(
         &self,
-        py: Python<'py>,
-        other: SignedDurationAddTarget<'_, 'py>,
-    ) -> PyResult<Bound<'py, PyAny>> {
-        self.__add__(py, other)
+        other: maths::SignedDurationAddTarget<'_, '_>,
+    ) -> PyResult<maths::PySignedDurationAddOutput> {
+        use maths::PySignedDurationAdd;
+        other.add_signed_duration(self)
     }
 
-    #[expect(clippy::needless_pass_by_value)]
-    fn __sub__<'py>(
-        &self,
-        py: Python<'py>,
-        other: SignedDurationSubTarget<'_, 'py>,
-    ) -> PyResult<Bound<'py, Self>> {
-        other.sub_signed_duration(py, self)
+    fn __sub__(&self, other: maths::SignedDurationSubTarget<'_, '_>) -> PyResult<Self> {
+        use maths::PySignedDurationSub;
+        other.sub_signed_duration(self)
     }
 
-    #[expect(clippy::needless_pass_by_value)]
-    fn __rsub__<'py>(
-        &self,
-        py: Python<'py>,
-        other: SignedDurationSubTarget<'_, 'py>,
-    ) -> PyResult<Bound<'py, Self>> {
-        other.rsub_signed_duration(py, self)
+    fn __rsub__(&self, other: maths::SignedDurationSubTarget<'_, '_>) -> PyResult<Self> {
+        use maths::PySignedDurationSub;
+        other.rsub_signed_duration(self)
     }
 
-    fn __mul__(&self, other: &Bound<'_, PyAny>) -> PyResult<Self> {
-        if let Ok(i) = other.extract::<i32>() {
-            self.0
-                .checked_mul(i)
-                .map(Self::from)
-                .ok_or_else(|| py_overflow_error!())
-        } else if let Ok(f) = other.extract::<f64>() {
-            self.mul_f64(f)
-        } else {
-            py_type_err!("unsupported operand type(s); must be int or float")
-        }
+    fn __mul__(&self, other: maths::PySignedDurationMulInput) -> PyResult<Self> {
+        other.multiply_signed_duration(self)
     }
 
-    fn __rmul__(&self, other: &Bound<'_, PyAny>) -> PyResult<Self> {
+    fn __rmul__(&self, other: maths::PySignedDurationMulInput) -> PyResult<Self> {
         self.__mul__(other)
     }
 
@@ -705,9 +684,8 @@ impl RySignedDuration {
     }
 
     #[staticmethod]
-    fn parse(s: &Bound<'_, PyAny>) -> PyResult<Self> {
-        use ryo3_core::PyParse;
-        Self::py_parse(s)
+    fn parse(value: ryo3_core::PyParseArg<Self>) -> Self {
+        value.into_inner()
     }
 
     fn isoformat(&self) -> PyAsciiString {
@@ -727,198 +705,307 @@ impl Display for RySignedDuration {
     }
 }
 
-#[derive(Debug, Clone)]
-pub(crate) enum SignedDurationAddTarget<'a, 'py> {
-    SignedDuration(Borrowed<'a, 'py, RySignedDuration>),
-    Delta(SignedDuration),
-    TemporalType(PyTemporalTypes<'a, 'py>),
-}
+// ===========================================================================
+//               ███╗   ███╗ █████╗ ████████╗██╗  ██╗███████╗
+//               ████╗ ████║██╔══██╗╚══██╔══╝██║  ██║██╔════╝
+//               ██╔████╔██║███████║   ██║   ███████║███████╗
+//               ██║╚██╔╝██║██╔══██║   ██║   ██╔══██║╚════██║
+//               ██║ ╚═╝ ██║██║  ██║   ██║   ██║  ██║███████║
+//               ╚═╝     ╚═╝╚═╝  ╚═╝   ╚═╝   ╚═╝  ╚═╝╚══════╝
+// ===========================================================================
+mod maths {
 
-impl<'a, 'py> FromPyObject<'a, 'py> for SignedDurationAddTarget<'a, 'py> {
-    type Error = PyErr;
+    use jiff::SignedDuration;
+    use pyo3::IntoPyObjectExt;
+    use pyo3::prelude::*;
+    use ryo3_core::{PyCastExactOpt, map_py_overflow_err};
+    use ryo3_macro_rules::{py_overflow_error, py_type_err};
 
-    fn extract(obj: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
-        if let Ok(sd) = obj.cast_exact::<RySignedDuration>() {
-            Ok(Self::SignedDuration(sd))
-        } else if let Ok(dur) = obj.cast_exact::<ryo3_std::time::PyDuration>() {
-            RySignedDuration::try_from(dur.get()).map(|rysd| Self::Delta(rysd.into()))
-        } else if let Ok(d) = obj.cast::<pyo3::types::PyDelta>() {
-            let rs_dur: SignedDuration = d.extract()?;
-            Ok(Self::Delta(rs_dur))
-        } else if let Ok(date_time_type) = obj.extract::<PyTemporalTypes<'a, 'py>>() {
-            Ok(Self::TemporalType(date_time_type))
-        } else {
-            py_type_err!(
-                "unsupported operand type(s); must be SignedDuration | datetime.timedelta | TemporalType( Date | DateTime | Time | Zoned | Timestamp )"
-            )
+    use super::RySignedDuration;
+    use crate::py_temporal_like::PyTemporalTypes;
+    use crate::{RyDate, RyDateTime, RyTime, RyTimestamp, RyZoned};
+
+    // ========================================================================
+    // ADD
+    // ========================================================================
+    #[derive(Debug, Clone)]
+    pub(crate) enum SignedDurationAddTarget<'a, 'py> {
+        SignedDuration(Borrowed<'a, 'py, RySignedDuration>),
+        Delta(SignedDuration),
+        TemporalType(PyTemporalTypes<'a, 'py>),
+    }
+
+    impl<'a, 'py> FromPyObject<'a, 'py> for SignedDurationAddTarget<'a, 'py> {
+        type Error = PyErr;
+
+        fn extract(obj: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
+            if let Ok(sd) = obj.cast_exact::<RySignedDuration>() {
+                Ok(Self::SignedDuration(sd))
+            } else if let Ok(dur) = obj.cast_exact::<ryo3_std::time::PyDuration>() {
+                RySignedDuration::try_from(dur.get()).map(|rysd| Self::Delta(rysd.into()))
+            } else if let Ok(d) = obj.cast::<pyo3::types::PyDelta>() {
+                let rs_dur: SignedDuration = d.extract()?;
+                Ok(Self::Delta(rs_dur))
+            } else if let Ok(date_time_type) = obj.extract::<PyTemporalTypes<'a, 'py>>() {
+                Ok(Self::TemporalType(date_time_type))
+            } else {
+                py_type_err!(
+                    "unsupported operand type(s); must be SignedDuration | datetime.timedelta | TemporalType( Date | DateTime | Time | Zoned | Timestamp )"
+                )
+            }
         }
     }
-}
 
-trait PySignedDurationAdd<'a, 'py> {
-    type Target;
-    type Output;
-    fn add_signed_duration(&self, py: Python<'py>, sd: &RySignedDuration)
-    -> PyResult<Self::Output>;
-}
+    pub(super) trait PySignedDurationAdd<'a, 'py> {
+        type Output;
+        fn add_signed_duration(self, sd: &RySignedDuration) -> PyResult<Self::Output>;
+    }
 
-// this is some fugue-state-jesse shit from last week -- idk wtf I was dgoing,
-// but I was absolutely in that insane macro-flow state
-macro_rules! impl_signed_duration_add_for_borrowed_temporal {
-    ($ty:ty) => {
-        impl<'a, 'py> PySignedDurationAdd<'a, 'py> for Borrowed<'a, 'py, $ty> {
-            type Target = $ty;
-            type Output = Bound<'py, Self::Target>;
-            fn add_signed_duration(
-                &self,
-                py: Python<'py>,
-                sd: &RySignedDuration,
-            ) -> PyResult<Self::Output> {
-                self.get()
+    // this is some fugue-state-jesse shit from last week -- idk wtf I was dgoing,
+    // but I was absolutely in that insane macro-flow state
+    macro_rules! impl_signed_duration_add_for_borrowed_temporal {
+        ($ty:ty) => {
+            impl<'a, 'py> PySignedDurationAdd<'a, 'py> for Borrowed<'a, 'py, $ty> {
+                type Output = $ty;
+                fn add_signed_duration(self, sd: &RySignedDuration) -> PyResult<Self::Output> {
+                    self.get()
+                        .0
+                        .checked_add(sd.0)
+                        .map(Self::Output::from)
+                        .map_err(map_py_overflow_err)
+                }
+            }
+        };
+    }
+
+    pub(super) enum PySignedDurationAddOutput {
+        SignedDuration(RySignedDuration),
+        Zoned(RyZoned),
+        Date(RyDate),
+        DateTime(RyDateTime),
+        Time(RyTime),
+        Timestamp(RyTimestamp),
+    }
+
+    impl<'py> IntoPyObject<'py> for PySignedDurationAddOutput {
+        type Target = PyAny;
+
+        type Output = Bound<'py, PyAny>;
+
+        type Error = PyErr;
+        fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, PyErr> {
+            match self {
+                Self::SignedDuration(sd) => sd.into_bound_py_any(py),
+                Self::Zoned(z) => z.into_bound_py_any(py),
+                Self::Date(d) => d.into_bound_py_any(py),
+                Self::DateTime(dt) => dt.into_bound_py_any(py),
+                Self::Time(t) => t.into_bound_py_any(py),
+                Self::Timestamp(ts) => ts.into_bound_py_any(py),
+            }
+        }
+    }
+
+    impl_signed_duration_add_for_borrowed_temporal!(RyDate);
+    impl_signed_duration_add_for_borrowed_temporal!(RyDateTime);
+    impl_signed_duration_add_for_borrowed_temporal!(RyTime);
+    impl_signed_duration_add_for_borrowed_temporal!(RyZoned);
+    impl_signed_duration_add_for_borrowed_temporal!(RyTimestamp);
+
+    impl<'a, 'py> PySignedDurationAdd<'a, 'py> for PyTemporalTypes<'a, 'py> {
+        type Output = PySignedDurationAddOutput;
+        fn add_signed_duration(self, sd: &RySignedDuration) -> PyResult<Self::Output> {
+            match self {
+                Self::Date(date) => date
+                    .add_signed_duration(sd)
+                    .map(PySignedDurationAddOutput::Date),
+                Self::DateTime(datetime) => datetime
+                    .add_signed_duration(sd)
+                    .map(PySignedDurationAddOutput::DateTime),
+                Self::Time(time) => time
+                    .add_signed_duration(sd)
+                    .map(PySignedDurationAddOutput::Time),
+                Self::Zoned(zoned) => zoned
+                    .add_signed_duration(sd)
+                    .map(PySignedDurationAddOutput::Zoned),
+                Self::Timestamp(timestamp) => timestamp
+                    .add_signed_duration(sd)
+                    .map(PySignedDurationAddOutput::Timestamp),
+            }
+        }
+    }
+
+    impl<'a, 'py> PySignedDurationAdd<'a, 'py> for SignedDurationAddTarget<'a, 'py> {
+        // type Target = PyAny;
+        type Output = PySignedDurationAddOutput;
+
+        fn add_signed_duration(self, lhs: &RySignedDuration) -> PyResult<Self::Output> {
+            match self {
+                Self::SignedDuration(rhs) => lhs
                     .0
-                    .checked_add(sd.0)
-                    .map(Self::Target::from)
-                    .map_err(map_py_overflow_err)
-                    .map(|r| r.into_pyobject(py))?
-            }
-        }
-    };
-}
-
-impl_signed_duration_add_for_borrowed_temporal!(RyDate);
-impl_signed_duration_add_for_borrowed_temporal!(RyDateTime);
-impl_signed_duration_add_for_borrowed_temporal!(RyTime);
-impl_signed_duration_add_for_borrowed_temporal!(RyZoned);
-impl_signed_duration_add_for_borrowed_temporal!(RyTimestamp);
-
-impl<'a, 'py> PySignedDurationAdd<'a, 'py> for PyTemporalTypes<'a, 'py> {
-    type Target = PyAny;
-    type Output = Bound<'py, PyAny>;
-    fn add_signed_duration(
-        &self,
-        py: Python<'py>,
-        sd: &RySignedDuration,
-    ) -> PyResult<Self::Output> {
-        match self {
-            Self::Date(date) => date.add_signed_duration(py, sd).map(Bound::into_any),
-            Self::DateTime(datetime) => datetime.add_signed_duration(py, sd).map(Bound::into_any),
-            Self::Time(time) => time.add_signed_duration(py, sd).map(Bound::into_any),
-            Self::Zoned(zoned) => zoned.add_signed_duration(py, sd).map(Bound::into_any),
-            Self::Timestamp(timestamp) => {
-                timestamp.add_signed_duration(py, sd).map(Bound::into_any)
+                    .checked_add(rhs.get().0)
+                    .map(|e| {
+                        let sd = RySignedDuration::from(e);
+                        PySignedDurationAddOutput::SignedDuration(sd)
+                    })
+                    .ok_or_else(|| py_overflow_error!()),
+                Self::Delta(rhs) => lhs
+                    .0
+                    .checked_add(rhs)
+                    .map(|e| {
+                        let sd = RySignedDuration::from(e);
+                        PySignedDurationAddOutput::SignedDuration(sd)
+                    })
+                    .ok_or_else(|| py_overflow_error!()),
+                Self::TemporalType(t) => t.add_signed_duration(lhs),
             }
         }
     }
-}
 
-impl<'a, 'py> PySignedDurationAdd<'a, 'py> for SignedDurationAddTarget<'a, 'py> {
-    type Target = PyAny;
-    type Output = Bound<'py, PyAny>;
+    // ========================================================================
+    // SUB
+    // ========================================================================
+    pub(super) trait PySignedDurationSub<'a, 'py> {
+        type Output;
+        fn sub_signed_duration(self, sd: &RySignedDuration) -> PyResult<Self::Output>;
 
-    fn add_signed_duration(
-        &self,
-        py: Python<'py>,
-        lhs: &RySignedDuration,
-    ) -> PyResult<Self::Output> {
-        match self {
-            Self::SignedDuration(rhs) => lhs
-                .0
-                .checked_add(rhs.get().0)
-                .map(RySignedDuration::from)
-                .ok_or_else(|| py_overflow_error!())
-                .map(|e| e.into_bound_py_any(py))?,
-            Self::Delta(rhs) => lhs
-                .0
-                .checked_add(*rhs)
-                .map(RySignedDuration::from)
-                .ok_or_else(|| py_overflow_error!())
-                .map(|e| e.into_bound_py_any(py))?,
-            Self::TemporalType(t) => t.add_signed_duration(py, lhs),
-        }
+        fn rsub_signed_duration(self, sd: &RySignedDuration) -> PyResult<Self::Output>;
     }
-}
 
-trait PySignedDurationSub<'a, 'py> {
-    type Target;
-    type Output;
-    fn sub_signed_duration(&self, py: Python<'py>, sd: &RySignedDuration)
-    -> PyResult<Self::Output>;
-
-    fn rsub_signed_duration(
-        &self,
-        py: Python<'py>,
-        sd: &RySignedDuration,
-    ) -> PyResult<Self::Output>;
-}
-
-#[derive(Debug, Clone)]
-pub(crate) enum SignedDurationSubTarget<'a, 'py> {
-    SignedDuration(Borrowed<'a, 'py, RySignedDuration>),
-    Delta(SignedDuration),
-}
-
-impl<'a, 'py> FromPyObject<'a, 'py> for SignedDurationSubTarget<'a, 'py> {
-    type Error = PyErr;
-
-    fn extract(obj: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
-        if let Ok(sd) = obj.cast_exact::<RySignedDuration>() {
-            Ok(Self::SignedDuration(sd))
-        } else if let Ok(dur) = obj.cast_exact::<ryo3_std::time::PyDuration>() {
-            RySignedDuration::try_from(dur.get()).map(|rysd| Self::Delta(rysd.into()))
-        } else if let Ok(d) = obj.cast::<pyo3::types::PyDelta>() {
-            let rs_dur: SignedDuration = d.extract()?;
-            Ok(Self::Delta(rs_dur))
-        } else {
-            py_type_err!("unsupported operand type(s); must be SignedDuration | datetime.timedelta")
-        }
+    #[derive(Debug, Clone)]
+    pub(super) enum SignedDurationSubTarget<'a, 'py> {
+        SignedDuration(Borrowed<'a, 'py, RySignedDuration>),
+        Delta(SignedDuration),
     }
-}
 
-impl<'a, 'py> PySignedDurationSub<'a, 'py> for SignedDurationSubTarget<'a, 'py> {
-    type Target = RySignedDuration;
-    type Output = Bound<'py, Self::Target>;
+    impl<'a, 'py> FromPyObject<'a, 'py> for SignedDurationSubTarget<'a, 'py> {
+        type Error = PyErr;
 
-    fn sub_signed_duration(
-        &self,
-        py: Python<'py>,
-        lhs: &RySignedDuration, // rename
-    ) -> PyResult<Self::Output> {
-        match self {
-            Self::SignedDuration(rhs) => lhs
-                .0
-                .checked_sub(rhs.get().0)
-                .map(RySignedDuration::from)
-                .ok_or_else(|| py_overflow_error!())
-                .map(|e| e.into_pyobject(py))?,
-            Self::Delta(rhs) => lhs
-                .0
-                .checked_sub(*rhs)
-                .map(RySignedDuration::from)
-                .ok_or_else(|| py_overflow_error!())
-                .map(|e| e.into_pyobject(py))?,
+        fn extract(obj: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
+            if let Ok(sd) = obj.cast_exact::<RySignedDuration>() {
+                Ok(Self::SignedDuration(sd))
+            } else if let Ok(dur) = obj.cast_exact::<ryo3_std::time::PyDuration>() {
+                RySignedDuration::try_from(dur.get()).map(|rysd| Self::Delta(rysd.into()))
+            } else if let Ok(d) = obj.cast::<pyo3::types::PyDelta>() {
+                let rs_dur: SignedDuration = d.extract()?;
+                Ok(Self::Delta(rs_dur))
+            } else {
+                py_type_err!(
+                    "unsupported operand type(s); must be SignedDuration | datetime.timedelta"
+                )
+            }
         }
     }
 
-    fn rsub_signed_duration(
-        &self,
-        py: Python<'py>,
-        rhs: &RySignedDuration,
-    ) -> PyResult<Self::Output> {
-        match self {
-            // I dont think this shit is possible bc the sub-would have
-            // already taken care of it?
-            Self::SignedDuration(lhs) => lhs
-                .get()
-                .0
-                .checked_sub(rhs.0)
-                .map(RySignedDuration::from)
-                .ok_or_else(|| py_overflow_error!())
-                .map(|e| e.into_pyobject(py))?,
-            Self::Delta(lhs) => (*lhs)
-                .checked_sub(rhs.0)
-                .map(RySignedDuration::from)
-                .ok_or_else(|| py_overflow_error!())
-                .map(|e| e.into_pyobject(py))?,
+    impl<'a, 'py> PySignedDurationSub<'a, 'py> for SignedDurationSubTarget<'a, 'py> {
+        type Output = RySignedDuration;
+
+        fn sub_signed_duration(
+            self,
+            lhs: &RySignedDuration, // rename
+        ) -> PyResult<Self::Output> {
+            match self {
+                Self::SignedDuration(rhs) => lhs
+                    .0
+                    .checked_sub(rhs.get().0)
+                    .map(RySignedDuration::from)
+                    .ok_or_else(|| py_overflow_error!()),
+                // .map(|e| e.into_pyobject(py))?,
+                Self::Delta(rhs) => lhs
+                    .0
+                    .checked_sub(rhs)
+                    .map(RySignedDuration::from)
+                    .ok_or_else(|| py_overflow_error!()),
+                // .map(|e| e.into_pyobject(py))?,
+            }
+        }
+
+        fn rsub_signed_duration(self, rhs: &RySignedDuration) -> PyResult<Self::Output> {
+            match self {
+                // I dont think this shit is possible bc the sub-would have
+                // already taken care of it?
+                Self::SignedDuration(lhs) => lhs
+                    .get()
+                    .0
+                    .checked_sub(rhs.0)
+                    .map(RySignedDuration::from)
+                    .ok_or_else(|| py_overflow_error!()),
+                Self::Delta(lhs) => (lhs)
+                    .checked_sub(rhs.0)
+                    .map(RySignedDuration::from)
+                    .ok_or_else(|| py_overflow_error!()),
+            }
+        }
+    }
+
+    // ========================================================================
+    // MUL
+    // ========================================================================
+
+    pub(super) enum PySignedDurationMulInput {
+        Int(i32),
+        Float(f64),
+    }
+
+    impl PySignedDurationMulInput {
+        pub(super) fn multiply_signed_duration(
+            self,
+            sd: &RySignedDuration,
+        ) -> PyResult<RySignedDuration> {
+            match self {
+                Self::Int(n) => sd.checked_mul(n).ok_or_else(|| py_overflow_error!()),
+                Self::Float(f) => sd.mul_f64(f),
+            }
+        }
+    }
+
+    impl<'a, 'py> FromPyObject<'a, 'py> for PySignedDurationMulInput {
+        type Error = PyErr;
+
+        fn extract(obj: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
+            if let Ok(i) = obj.extract::<i32>() {
+                Ok(Self::Int(i))
+            } else if let Ok(f) = obj.extract::<f64>() {
+                Ok(Self::Float(f))
+            } else {
+                py_type_err!("unsupported operand type(s); must be int or float")
+            }
+        }
+    }
+
+    // ========================================================================
+    // TRUEDIV
+    // ========================================================================
+    pub(super) enum PySignedDurationTrueDivInput<'a, 'py> {
+        PySignedDuration(Borrowed<'a, 'py, RySignedDuration>),
+        SignedDuration(SignedDuration),
+        Int(i32),
+        Float(f64),
+    }
+
+    // impl PySignedDurationTrueDivInput<'_, '_> {
+    //     // TODO
+    // }
+
+    impl<'a, 'py> FromPyObject<'a, 'py> for PySignedDurationTrueDivInput<'a, 'py> {
+        type Error = PyErr;
+
+        fn extract(obj: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
+            if let Some(sd) = obj.cast_exact_opt::<RySignedDuration>() {
+                Ok(Self::PySignedDuration(sd))
+            } else if let Ok(dur) = obj.cast_exact::<ryo3_std::time::PyDuration>() {
+                RySignedDuration::try_from(dur.get()).map(|rysd| Self::SignedDuration(rysd.into()))
+            } else if let Ok(d) = obj.cast::<pyo3::types::PyDelta>() {
+                let rs_dur: SignedDuration = d.extract()?;
+                Ok(Self::SignedDuration(rs_dur))
+            } else if let Ok(i) = obj.extract::<i32>() {
+                Ok(Self::Int(i))
+            } else if let Ok(f) = obj.extract::<f64>() {
+                Ok(Self::Float(f))
+            } else {
+                py_type_err!(
+                    "unsupported operand type(s); must be SignedDuration | Duration | datetime.timedelta | int | float"
+                )
+            }
         }
     }
 }
