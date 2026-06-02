@@ -321,13 +321,10 @@ impl PyFsPath {
     }
 
     #[getter]
-    fn stem(&self) -> PyResult<String> {
-        self.path()
-            .file_stem()
-            .map(|s| s.to_string_lossy().to_string())
-            .ok_or_else(|| {
-                PyValueError::new_err("stem() - path contains invalid unicode characters")
-            })
+    fn stem(&self) -> PyResult<&OsStr> {
+        self.path().file_stem().ok_or_else(|| {
+            PyValueError::new_err("stem() - path contains invalid unicode characters")
+        })
     }
 
     #[staticmethod]
