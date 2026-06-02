@@ -186,7 +186,7 @@ impl PySize {
 
     #[staticmethod]
     fn from_bytes(size: PySizeIntermediate) -> Self {
-        Self(size::Size::from_bytes(size.float64()))
+        size.into_bytes().into()
     }
 
     // ========================================================================
@@ -407,14 +407,7 @@ macro_rules! impl_intermediate_to_size_fn {
 }
 
 // impl_intermediate_to_size_fn!(to_eb, from_eb);
-impl_intermediate_to_size_fn!(into_eb, from_eb);
-impl_intermediate_to_size_fn!(into_eib, from_eib);
-impl_intermediate_to_size_fn!(into_exabytes, from_exabytes);
-impl_intermediate_to_size_fn!(into_exbibytes, from_exbibytes);
-impl_intermediate_to_size_fn!(into_gb, from_gb);
-impl_intermediate_to_size_fn!(into_gib, from_gib);
-impl_intermediate_to_size_fn!(into_gibibytes, from_gibibytes);
-impl_intermediate_to_size_fn!(into_gigabytes, from_gigabytes);
+impl_intermediate_to_size_fn!(into_bytes, from_bytes);
 impl_intermediate_to_size_fn!(into_kb, from_kb);
 impl_intermediate_to_size_fn!(into_kib, from_kib);
 impl_intermediate_to_size_fn!(into_kibibytes, from_kibibytes);
@@ -423,25 +416,22 @@ impl_intermediate_to_size_fn!(into_mb, from_mb);
 impl_intermediate_to_size_fn!(into_mebibytes, from_mebibytes);
 impl_intermediate_to_size_fn!(into_megabytes, from_megabytes);
 impl_intermediate_to_size_fn!(into_mib, from_mib);
-impl_intermediate_to_size_fn!(into_pb, from_pb);
-impl_intermediate_to_size_fn!(into_pebibytes, from_pebibytes);
-impl_intermediate_to_size_fn!(into_petabytes, from_petabytes);
-impl_intermediate_to_size_fn!(into_pib, from_pib);
+impl_intermediate_to_size_fn!(into_gb, from_gb);
+impl_intermediate_to_size_fn!(into_gib, from_gib);
+impl_intermediate_to_size_fn!(into_gibibytes, from_gibibytes);
+impl_intermediate_to_size_fn!(into_gigabytes, from_gigabytes);
 impl_intermediate_to_size_fn!(into_tb, from_tb);
 impl_intermediate_to_size_fn!(into_tebibytes, from_tebibytes);
 impl_intermediate_to_size_fn!(into_terabytes, from_terabytes);
 impl_intermediate_to_size_fn!(into_tib, from_tib);
-
-impl PySizeIntermediate {
-    #[expect(clippy::cast_precision_loss)]
-    fn float64(self) -> f64 {
-        match self {
-            Self::Float64(f) => f,
-            Self::Int64(i) => i as f64,
-            Self::UInt64(u) => u as f64,
-        }
-    }
-}
+impl_intermediate_to_size_fn!(into_pb, from_pb);
+impl_intermediate_to_size_fn!(into_pebibytes, from_pebibytes);
+impl_intermediate_to_size_fn!(into_petabytes, from_petabytes);
+impl_intermediate_to_size_fn!(into_pib, from_pib);
+impl_intermediate_to_size_fn!(into_eb, from_eb);
+impl_intermediate_to_size_fn!(into_eib, from_eib);
+impl_intermediate_to_size_fn!(into_exabytes, from_exabytes);
+impl_intermediate_to_size_fn!(into_exbibytes, from_exbibytes);
 
 #[derive(Debug, Clone, Copy, FromPyObject)]
 enum PySizeArithmetic {
