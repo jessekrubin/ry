@@ -112,7 +112,8 @@ def test_duration_from_pydelta() -> None:
     assert pydelta.seconds == (2 * 60 * 60) + (3 * 60) + 4
     assert pydelta.microseconds == 5
     assert ryduration.days == 1
-    assert ryduration.seconds == (2 * 60 * 60) + (3 * 60) + 4
+    assert ryduration.secs == 93784
+    assert ryduration.seconds_remainder == (2 * 60 * 60) + (3 * 60) + 4
     assert ryduration.microseconds == 5
 
 
