@@ -51,9 +51,9 @@ impl PyUrl {
     }
 
     #[staticmethod]
-    fn from_str(s: &str) -> PyResult<Self> {
-        use ryo3_core::PyFromStr;
-        Self::py_from_str(s)
+    #[pyo3(signature = (s, /))]
+    fn from_str(s: ryo3_core::PyFromStrArg<Self>) -> Self {
+        s.into_inner()
     }
 
     #[staticmethod]

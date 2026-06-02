@@ -2302,6 +2302,7 @@ dependencies = [
  "jiff",
  "pyo3",
  "pyo3-build-config",
+ "ryo3-core",
  "ryo3-http",
  "ryo3-jiff",
  "ryo3-std",
