@@ -1,7 +1,7 @@
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyString};
 
-use crate::pystring::pystring_fast_new_ascii;
+use crate::py_str::pystring_fast_new_ascii;
 
 const HEX_CHARS_LOWER: &[u8; 16] = b"0123456789abcdef";
 

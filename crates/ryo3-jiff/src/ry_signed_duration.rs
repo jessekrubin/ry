@@ -217,7 +217,7 @@ impl RySignedDuration {
         Self::fromisoformat(s)
     }
 
-    #[pyo3(signature = (*, friendly=false), name = "to_string")]
+    #[pyo3(signature = (*, friendly = false), name = "to_string")]
     fn py_to_string(&self, friendly: bool) -> String {
         if friendly {
             format!("{:#}", self.0)
@@ -662,6 +662,7 @@ impl RySignedDuration {
     }
 
     #[staticmethod]
+    #[pyo3(signature = (value, /))]
     fn parse(value: ryo3_core::PyParseArg<Self>) -> Self {
         value.into_inner()
     }

@@ -241,6 +241,7 @@ impl RyISOWeekDate {
     }
 
     #[staticmethod]
+    #[pyo3(signature = (value, /))]
     fn parse(value: ryo3_core::PyParseArg<Self>) -> Self {
         value.into_inner()
     }

@@ -8,7 +8,7 @@ use pyo3::basic::CompareOp;
 use pyo3::prelude::*;
 use pyo3::types::{PyAnyMethods, PyDict, PyDictMethods, PyTuple};
 use pyo3::{BoundObject, IntoPyObjectExt};
-use ryo3_core::{PyFromStr, PyParse};
+use ryo3_core::PyFromStr;
 use ryo3_macro_rules::{
     py_key_err, py_overflow_err, py_overflow_error, py_type_err, py_value_err, py_zero_division_err,
 };
@@ -545,8 +545,9 @@ impl PyDuration {
     }
 
     #[staticmethod]
-    fn parse(s: &Bound<'_, PyAny>) -> PyResult<Self> {
-        Self::py_parse(s)
+    #[pyo3(signature = (value, /))]
+    fn parse(value: ryo3_core::PyParseArg<Self>) -> Self {
+        value.into_inner()
     }
 
     // ========================================================================

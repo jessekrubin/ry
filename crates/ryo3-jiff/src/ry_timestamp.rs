@@ -8,7 +8,7 @@ use pyo3::basic::CompareOp;
 use pyo3::prelude::*;
 use pyo3::types::PyTuple;
 use ryo3_core::{
-    PyAsciiString, PyParseArg, map_py_overflow_err, map_py_value_err, py_overflow_err, py_value_err,
+    PyAsciiString, map_py_overflow_err, map_py_value_err, py_overflow_err, py_value_err,
 };
 use ryo3_macro_rules::{any_repr, py_type_err};
 
@@ -581,8 +581,9 @@ impl RyTimestamp {
     }
 
     #[staticmethod]
-    fn parse(s: PyParseArg<Self>) -> Self {
-        s.into_inner()
+    #[pyo3(signature = (value, /))]
+    fn parse(value: ryo3_core::PyParseArg<Self>) -> Self {
+        value.into_inner()
     }
 
     fn isoformat(&self) -> PyAsciiString {

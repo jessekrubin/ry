@@ -3,7 +3,7 @@ use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr, SocketAddrV4, SocketAddrV
 
 use pyo3::BoundObject;
 use pyo3::prelude::*;
-use ryo3_core::{PyAsciiString, PyFromStr, PyParse};
+use ryo3_core::{PyAsciiString, PyFromStr};
 use ryo3_macro_rules::{any_repr, py_type_err, py_type_error, py_value_err};
 
 use crate::net::PyIpv6Addr;
@@ -95,8 +95,9 @@ impl PySocketAddrV4 {
     }
 
     #[staticmethod]
-    fn parse(s: &Bound<'_, PyAny>) -> PyResult<Self> {
-        Self::py_parse(s)
+    #[pyo3(signature = (value, /))]
+    fn parse(value: ryo3_core::PyParseArg<Self>) -> Self {
+        value.into_inner()
     }
 
     #[classattr]
@@ -309,8 +310,9 @@ impl PySocketAddrV6 {
     }
 
     #[staticmethod]
-    fn parse(s: &Bound<'_, PyAny>) -> PyResult<Self> {
-        Self::py_parse(s)
+    #[pyo3(signature = (value, /))]
+    fn parse(value: ryo3_core::PyParseArg<Self>) -> Self {
+        value.into_inner()
     }
 
     #[classattr]
@@ -516,8 +518,9 @@ impl PySocketAddr {
     }
 
     #[staticmethod]
-    fn parse(s: &Bound<'_, PyAny>) -> PyResult<Self> {
-        Self::py_parse(s)
+    #[pyo3(signature = (value, /))]
+    fn parse(value: ryo3_core::PyParseArg<Self>) -> Self {
+        value.into_inner()
     }
 
     #[expect(clippy::wrong_self_convention)]
