@@ -352,8 +352,15 @@ impl RySignedDuration {
         self.0.as_secs() / 86400
     }
 
+    /// Return the number of seconds in the duration counting days
     #[getter]
     fn seconds(&self) -> i64 {
+        self.0.as_secs()
+    }
+
+    /// Return the seconds % days (self.seconds % 86400)
+    #[getter]
+    fn seconds_remainder(&self) -> i64 {
         self.0.as_secs() % 86400
     }
 

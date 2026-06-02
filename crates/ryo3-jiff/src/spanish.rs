@@ -5,6 +5,7 @@ use jiff::tz::OffsetArithmetic;
 use jiff::{SignedDuration, TimestampArithmetic, ZonedArithmetic};
 use pyo3::prelude::*;
 use pyo3::types::PyDelta;
+use ryo3_core::PyCastExactOpt;
 use ryo3_macro_rules::py_type_err;
 use ryo3_std::time::PyDuration;
 
@@ -22,13 +23,13 @@ impl<'a, 'py> FromPyObject<'a, 'py> for Spanish<'a, 'py> {
     type Error = PyErr;
 
     fn extract(ob: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
-        if let Ok(span) = ob.cast_exact::<RySpan>() {
+        if let Some(span) = ob.cast_exact_opt::<RySpan>() {
             Ok(Self::Span(span))
-        } else if let Ok(duration) = ob.cast_exact::<PyDuration>() {
+        } else if let Some(duration) = ob.cast_exact_opt::<PyDuration>() {
             Ok(Self::Duration(duration))
-        } else if let Ok(signed_duration) = ob.cast_exact::<RySignedDuration>() {
+        } else if let Some(signed_duration) = ob.cast_exact_opt::<RySignedDuration>() {
             Ok(Self::SignedDuration(signed_duration))
-        } else if let Ok(signed_duration) = ob.cast_exact::<PyDelta>() {
+        } else if let Some(signed_duration) = ob.cast_exact_opt::<PyDelta>() {
             let signed_duration = signed_duration.extract::<SignedDuration>()?;
             Ok(Self::PyTimeDelta(signed_duration))
         } else {

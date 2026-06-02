@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 use pyo3::prelude::*;
-use ryo3_core::{py_type_err, py_value_err};
+use ryo3_core::{PyCastExactOpt, py_type_err, py_value_err};
 
 use super::PyDuration;
 
@@ -30,9 +30,9 @@ impl From<PyTimeout> for PyDuration {
 impl<'py> FromPyObject<'_, 'py> for PyTimeout {
     type Error = PyErr;
     fn extract(obj: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
-        if let Ok(pydur) = obj.cast_exact::<PyDuration>() {
+        if let Some(pydur) = obj.cast_exact_opt::<PyDuration>() {
             Ok(Self(pydur.get().into()))
-        } else if let Ok(pydelta) = obj.cast_exact::<pyo3::types::PyDelta>() {
+        } else if let Some(pydelta) = obj.cast_exact_opt::<pyo3::types::PyDelta>() {
             pydelta.extract::<Duration>().map(Self)
         } else if let Ok(seconds) = obj.extract::<f64>() {
             if !seconds.is_finite() || seconds < 0.0 {

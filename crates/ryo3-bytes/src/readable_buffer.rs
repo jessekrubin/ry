@@ -74,9 +74,19 @@ impl<'a, 'py> FromPyObject<'a, 'py> for ReadableBuffer<'a, 'py> {
     type Error = PyErr;
 
     fn extract(ob: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
-        if let Ok(pybytes) = ob.cast_exact::<pyo3::types::PyBytes>() {
+        if ob.is_exact_instance_of::<pyo3::types::PyBytes>() {
+            #[expect(unsafe_code)]
+            let pybytes = unsafe {
+                // SAFETY: wenodis (see line above)
+                ob.cast_unchecked::<pyo3::types::PyBytes>()
+            };
             Ok(Self::PyBytes(pybytes))
-        } else if let Ok(rybytes) = ob.cast_exact::<PyBytes>() {
+        } else if ob.is_exact_instance_of::<PyBytes>() {
+            #[expect(unsafe_code)]
+            let rybytes = unsafe {
+                // SAFETY: wenodis (see line above)
+                ob.cast_unchecked::<PyBytes>()
+            };
             Ok(Self::RyBytes(rybytes))
         } else if let Ok(buffer) = ob.extract::<PyBytes>() {
             // TODO: possibly short circuit here and dont extracct via thingy

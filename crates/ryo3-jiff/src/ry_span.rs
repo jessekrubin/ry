@@ -6,8 +6,8 @@ use pyo3::prelude::*;
 use pyo3::types::{PyDelta, PyDict, PyFloat, PyInt, PyIterator, PyTuple};
 use pyo3::{BoundObject, IntoPyObjectExt};
 use ryo3_core::{
-    PyAsciiString, any_repr, map_py_overflow_err, map_py_value_err, py_key_err, py_overflow_error,
-    py_type_err, py_value_err, py_value_error,
+    PyAsciiString, PyCastExactOpt, any_repr, map_py_overflow_err, map_py_value_err, py_key_err,
+    py_overflow_error, py_type_err, py_value_err, py_value_error,
 };
 
 use crate::py_temporal_like::PyTemporalTypes;
@@ -980,11 +980,11 @@ impl<'a, 'py> FromPyObject<'a, 'py> for RySpanRelativeTo<'a, 'py> {
     type Error = PyErr;
 
     fn extract(obj: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
-        if let Ok(z) = obj.cast_exact::<RyZoned>() {
+        if let Some(z) = obj.cast_exact_opt::<RyZoned>() {
             Ok(Self::Zoned(z))
-        } else if let Ok(d) = obj.cast_exact::<RyDate>() {
+        } else if let Some(d) = obj.cast_exact_opt::<RyDate>() {
             Ok(Self::Date(d))
-        } else if let Ok(dt) = obj.cast_exact::<RyDateTime>() {
+        } else if let Some(dt) = obj.cast_exact_opt::<RyDateTime>() {
             Ok(Self::DateTime(dt))
         } else {
             Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(

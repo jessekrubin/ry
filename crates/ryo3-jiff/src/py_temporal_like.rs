@@ -1,5 +1,5 @@
 use pyo3::prelude::*;
-use ryo3_core::py_type_err;
+use ryo3_core::{PyCastExactOpt, py_type_err};
 
 use crate::{RyDate, RyDateTime, RyTime, RyTimestamp, RyZoned};
 
@@ -18,11 +18,12 @@ impl<'a, 'py> FromPyObject<'a, 'py> for PyTemporalTypes<'a, 'py> {
     fn extract(obj: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
         macro_rules! try_extract_type {
             ($ty:ty, $variant:ident) => {
-                if let Ok(val) = obj.cast_exact::<$ty>() {
+                if let Some(val) = obj.cast_exact_opt::<$ty>() {
                     return Ok(Self::$variant(val));
                 }
             };
         }
+
         try_extract_type!(RyZoned, Zoned);
         try_extract_type!(RyTimestamp, Timestamp);
         try_extract_type!(RyDateTime, DateTime);

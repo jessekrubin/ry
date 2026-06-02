@@ -8,7 +8,7 @@ use pyo3::basic::CompareOp;
 use pyo3::prelude::*;
 use pyo3::types::PyTuple;
 use ryo3_core::{
-    PyAsciiString, map_py_overflow_err, map_py_value_err, py_overflow_err, py_value_err,
+    PyAsciiString, PyParseArg, map_py_overflow_err, map_py_value_err, py_overflow_err, py_value_err,
 };
 use ryo3_macro_rules::{any_repr, py_type_err};
 
@@ -539,9 +539,10 @@ impl RyTimestamp {
         } else if let Ok(d) = value.cast_exact::<RyZoned>() {
             Self::from(d.get()).into_pyobject(py)
         } else if let Ok(dt) = value.cast_exact::<RyDateTime>() {
-            let zdt = dt.get().0.to_zoned(TimeZone::UTC)?;
-            let ts = zdt.timestamp();
-            Self::from(ts).into_pyobject(py)
+            jiff::tz::Offset::UTC
+                .to_timestamp(dt.get().0)
+                .map(Self::from)?
+                .into_pyobject(py)
         } else if let Ok(ts) = value.extract::<Timestamp>() {
             Self::from(ts).into_pyobject(py)
         } else {
@@ -580,9 +581,8 @@ impl RyTimestamp {
     }
 
     #[staticmethod]
-    fn parse(s: &Bound<'_, PyAny>) -> PyResult<Self> {
-        use ryo3_core::PyParse;
-        Self::py_parse(s)
+    fn parse(s: PyParseArg<Self>) -> Self {
+        s.into_inner()
     }
 
     fn isoformat(&self) -> PyAsciiString {
@@ -613,8 +613,10 @@ impl<'a, 'py> FromPyObject<'a, 'py> for TimestampSubInput<'a, 'py> {
     fn extract(ob: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
         if let Ok(ts) = ob.cast_exact::<RyTimestamp>() {
             Ok(Self::Timestamp(ts))
+        } else if let Ok(spanish) = ob.extract::<Spanish>() {
+            Ok(Self::Spanish(spanish))
         } else {
-            ob.extract::<Spanish>().map(Self::Spanish)
+            py_type_err!("Expected a Timestamp or span-like object")
         }
     }
 }
