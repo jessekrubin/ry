@@ -145,11 +145,9 @@ impl PySize {
             PySizeArithmetic::Size(s) => base.checked_mul(s.0.bytes()),
 
             PySizeArithmetic::Int64(i) => base.checked_mul(i),
-
-            PySizeArithmetic::U64(u) => {
+            PySizeArithmetic::UInt64(u) => {
                 let lhs = i128::from(base);
                 let rhs = i128::from(u);
-
                 let product = lhs
                     .checked_mul(rhs)
                     .ok_or_else(|| py_overflow_error!("overflow (size * u64)"))?;
@@ -186,7 +184,6 @@ impl PySize {
         self.__mul__(other)
     }
 
-    #[expect(clippy::needless_pass_by_value)]
     #[staticmethod]
     fn from_bytes(size: PySizeIntermediate) -> Self {
         Self(size::Size::from_bytes(size.float64()))
@@ -222,148 +219,124 @@ impl PySize {
     // size::Size::from_tib
     // ========================================================================
 
-    #[expect(clippy::needless_pass_by_value)]
     #[staticmethod]
     fn from_eb(size: PySizeIntermediate) -> Self {
-        Self(size::Size::from_eb(size.float64()))
+        size.into_eb().into()
     }
 
-    #[expect(clippy::needless_pass_by_value)]
     #[staticmethod]
     fn from_eib(size: PySizeIntermediate) -> Self {
-        Self(size::Size::from_eib(size.float64()))
+        size.into_eib().into()
     }
 
-    #[expect(clippy::needless_pass_by_value)]
     #[staticmethod]
     fn from_exabytes(size: PySizeIntermediate) -> Self {
-        Self(size::Size::from_exabytes(size.float64()))
+        size.into_exabytes().into()
     }
 
-    #[expect(clippy::needless_pass_by_value)]
     #[staticmethod]
     fn from_exbibytes(size: PySizeIntermediate) -> Self {
-        Self(size::Size::from_exbibytes(size.float64()))
+        size.into_exbibytes().into()
     }
 
-    #[expect(clippy::needless_pass_by_value)]
     #[staticmethod]
     fn from_gb(size: PySizeIntermediate) -> Self {
-        Self(size::Size::from_gb(size.float64()))
+        size.into_gb().into()
     }
 
-    #[expect(clippy::needless_pass_by_value)]
     #[staticmethod]
     fn from_gib(size: PySizeIntermediate) -> Self {
-        Self(size::Size::from_gib(size.float64()))
+        size.into_gib().into()
     }
 
-    #[expect(clippy::needless_pass_by_value)]
     #[staticmethod]
     fn from_gibibytes(size: PySizeIntermediate) -> Self {
-        Self(size::Size::from_gibibytes(size.float64()))
+        size.into_gibibytes().into()
     }
 
-    #[expect(clippy::needless_pass_by_value)]
     #[staticmethod]
     fn from_gigabytes(size: PySizeIntermediate) -> Self {
-        Self(size::Size::from_gigabytes(size.float64()))
+        size.into_gigabytes().into()
     }
 
-    #[expect(clippy::needless_pass_by_value)]
     #[staticmethod]
     fn from_kb(size: PySizeIntermediate) -> Self {
-        Self(size::Size::from_kb(size.float64()))
+        size.into_kb().into()
     }
 
-    #[expect(clippy::needless_pass_by_value)]
     #[staticmethod]
     fn from_kib(size: PySizeIntermediate) -> Self {
-        Self(size::Size::from_kib(size.float64()))
+        size.into_kib().into()
     }
 
-    #[expect(clippy::needless_pass_by_value)]
     #[staticmethod]
     fn from_kibibytes(size: PySizeIntermediate) -> Self {
-        Self(size::Size::from_kibibytes(size.float64()))
+        size.into_kibibytes().into()
     }
 
-    #[expect(clippy::needless_pass_by_value)]
     #[staticmethod]
     fn from_kilobytes(size: PySizeIntermediate) -> Self {
-        Self(size::Size::from_kilobytes(size.float64()))
+        size.into_kilobytes().into()
     }
 
-    #[expect(clippy::needless_pass_by_value)]
     #[staticmethod]
     fn from_mb(size: PySizeIntermediate) -> Self {
-        Self(size::Size::from_mb(size.float64()))
+        size.into_mb().into()
     }
 
-    #[expect(clippy::needless_pass_by_value)]
     #[staticmethod]
     fn from_mebibytes(size: PySizeIntermediate) -> Self {
-        Self(size::Size::from_mebibytes(size.float64()))
+        size.into_mebibytes().into()
     }
 
-    #[expect(clippy::needless_pass_by_value)]
     #[staticmethod]
     fn from_megabytes(size: PySizeIntermediate) -> Self {
-        Self(size::Size::from_megabytes(size.float64()))
+        size.into_megabytes().into()
     }
 
-    #[expect(clippy::needless_pass_by_value)]
     #[staticmethod]
     fn from_mib(size: PySizeIntermediate) -> Self {
-        Self(size::Size::from_mib(size.float64()))
+        size.into_mib().into()
     }
 
-    #[expect(clippy::needless_pass_by_value)]
     #[staticmethod]
     fn from_pb(size: PySizeIntermediate) -> Self {
-        Self(size::Size::from_pb(size.float64()))
+        size.into_pb().into()
     }
 
-    #[expect(clippy::needless_pass_by_value)]
     #[staticmethod]
     fn from_pebibytes(size: PySizeIntermediate) -> Self {
-        Self(size::Size::from_pebibytes(size.float64()))
+        size.into_pebibytes().into()
     }
 
-    #[expect(clippy::needless_pass_by_value)]
     #[staticmethod]
     fn from_petabytes(size: PySizeIntermediate) -> Self {
-        Self(size::Size::from_petabytes(size.float64()))
+        size.into_petabytes().into()
     }
 
-    #[expect(clippy::needless_pass_by_value)]
     #[staticmethod]
     fn from_pib(size: PySizeIntermediate) -> Self {
-        Self(size::Size::from_pib(size.float64()))
+        size.into_pib().into()
     }
 
-    #[expect(clippy::needless_pass_by_value)]
     #[staticmethod]
     fn from_tb(size: PySizeIntermediate) -> Self {
-        Self(size::Size::from_tb(size.float64()))
+        size.into_tb().into()
     }
 
-    #[expect(clippy::needless_pass_by_value)]
     #[staticmethod]
     fn from_tebibytes(size: PySizeIntermediate) -> Self {
-        Self(size::Size::from_tebibytes(size.float64()))
+        size.into_tebibytes().into()
     }
 
-    #[expect(clippy::needless_pass_by_value)]
     #[staticmethod]
     fn from_terabytes(size: PySizeIntermediate) -> Self {
-        Self(size::Size::from_terabytes(size.float64()))
+        size.into_terabytes().into()
     }
 
-    #[expect(clippy::needless_pass_by_value)]
     #[staticmethod]
     fn from_tib(size: PySizeIntermediate) -> Self {
-        Self(size::Size::from_tib(size.float64()))
+        size.into_tib().into()
     }
 }
 
@@ -415,16 +388,57 @@ impl FromStr for PySize {
 enum PySizeIntermediate {
     Float64(f64),
     Int64(i64),
-    U64(u64),
+    UInt64(u64),
 }
+
+// implement intermidate `into_` functions using `from_` functions on `size::Size`
+macro_rules! impl_intermediate_to_size_fn {
+    ($to_fnname:ident, $from_fnname:ident ) => {
+        impl PySizeIntermediate {
+            fn $to_fnname(self) -> size::Size {
+                match self {
+                    Self::Float64(f) => size::Size::$from_fnname(f),
+                    Self::Int64(i) => size::Size::$from_fnname(i),
+                    Self::UInt64(u) => size::Size::$from_fnname(u),
+                }
+            }
+        }
+    };
+}
+
+// impl_intermediate_to_size_fn!(to_eb, from_eb);
+impl_intermediate_to_size_fn!(into_eb, from_eb);
+impl_intermediate_to_size_fn!(into_eib, from_eib);
+impl_intermediate_to_size_fn!(into_exabytes, from_exabytes);
+impl_intermediate_to_size_fn!(into_exbibytes, from_exbibytes);
+impl_intermediate_to_size_fn!(into_gb, from_gb);
+impl_intermediate_to_size_fn!(into_gib, from_gib);
+impl_intermediate_to_size_fn!(into_gibibytes, from_gibibytes);
+impl_intermediate_to_size_fn!(into_gigabytes, from_gigabytes);
+impl_intermediate_to_size_fn!(into_kb, from_kb);
+impl_intermediate_to_size_fn!(into_kib, from_kib);
+impl_intermediate_to_size_fn!(into_kibibytes, from_kibibytes);
+impl_intermediate_to_size_fn!(into_kilobytes, from_kilobytes);
+impl_intermediate_to_size_fn!(into_mb, from_mb);
+impl_intermediate_to_size_fn!(into_mebibytes, from_mebibytes);
+impl_intermediate_to_size_fn!(into_megabytes, from_megabytes);
+impl_intermediate_to_size_fn!(into_mib, from_mib);
+impl_intermediate_to_size_fn!(into_pb, from_pb);
+impl_intermediate_to_size_fn!(into_pebibytes, from_pebibytes);
+impl_intermediate_to_size_fn!(into_petabytes, from_petabytes);
+impl_intermediate_to_size_fn!(into_pib, from_pib);
+impl_intermediate_to_size_fn!(into_tb, from_tb);
+impl_intermediate_to_size_fn!(into_tebibytes, from_tebibytes);
+impl_intermediate_to_size_fn!(into_terabytes, from_terabytes);
+impl_intermediate_to_size_fn!(into_tib, from_tib);
 
 impl PySizeIntermediate {
     #[expect(clippy::cast_precision_loss)]
-    fn float64(&self) -> f64 {
+    fn float64(self) -> f64 {
         match self {
-            Self::Float64(f) => *f,
-            Self::Int64(i) => *i as f64,
-            Self::U64(u) => *u as f64,
+            Self::Float64(f) => f,
+            Self::Int64(i) => i as f64,
+            Self::UInt64(u) => u as f64,
         }
     }
 }
@@ -433,7 +447,7 @@ impl PySizeIntermediate {
 enum PySizeArithmetic {
     Size(PySize),
     Int64(i64),
-    U64(u64),
+    UInt64(u64),
     Float64(f64), // must make float last
 }
 
