@@ -424,6 +424,12 @@ class TestDurationArithmetic:
         assert isinstance(divided, float)
         assert divided == 4.0
 
+    def test_div_duration(self) -> None:
+        dur = ry.SignedDuration(16, 0)
+        divided = dur / ry.Duration(4, 0)
+        assert isinstance(divided, float)
+        assert divided == 4.0
+
     def test_div_zero_raises_zero_division_error(self) -> None:
         dur = ry.SignedDuration(1, 0)
         with pytest.raises(ZeroDivisionError):
@@ -432,6 +438,8 @@ class TestDurationArithmetic:
             _r = dur / 0.0
         with pytest.raises(ZeroDivisionError):
             _f = dur / ry.SignedDuration.ZERO
+        with pytest.raises(ZeroDivisionError):
+            _f = dur / ry.Duration.ZERO
         with pytest.raises(ZeroDivisionError):
             _f = dur / pydt.timedelta()
         with pytest.raises(ZeroDivisionError):
@@ -705,24 +713,26 @@ class TestDurationArithmetic:
         self, operator: str, value: complex | list[int] | str
     ) -> None:
         dur = ry.SignedDuration(1, 0)
-        if operator in ["__add__", "__radd__", "__sub__", "__rsub__"]:
-            _res = getattr(dur, operator)(value)
-            assert _res is NotImplemented
-            if operator == "__add__":
-                with pytest.raises(TypeError):
-                    _ = dur + value  # type: ignore[operator, ty:unsupported-operator]
-            elif operator == "__sub__":
-                with pytest.raises(TypeError):
-                    _ = dur - value  # type: ignore[operator, ty:unsupported-operator]
-            elif operator == "__rsub__":
-                with pytest.raises(TypeError):
-                    _ = value - dur  # type: ignore[operator, ty:unsupported-operator]
-            else:  # operator == "__radd__":
-                with pytest.raises(TypeError):
-                    _ = value + dur  # type: ignore[operator, ty:unsupported-operator]
-        else:
+        _res = getattr(dur, operator)(value)
+        assert _res is NotImplemented
+        if operator == "__add__":
             with pytest.raises(TypeError):
-                _res = getattr(dur, operator)(value)
+                _ = dur + value  # type: ignore[operator, ty:unsupported-operator]
+        elif operator == "__sub__":
+            with pytest.raises(TypeError):
+                _ = dur - value  # type: ignore[operator, ty:unsupported-operator]
+        elif operator == "__rsub__":
+            with pytest.raises(TypeError):
+                _ = value - dur  # type: ignore[operator, ty:unsupported-operator]
+        elif operator == "__radd__":
+            with pytest.raises(TypeError):
+                _ = value + dur  # type: ignore[operator, ty:unsupported-operator]
+        elif operator == "__truediv__":
+            with pytest.raises(TypeError):
+                _ = dur / value  # type: ignore[operator, ty:unsupported-operator]
+        else:  # operator == "__mul__":
+            with pytest.raises(TypeError):
+                _ = dur * value  # type: ignore[operator, ty:unsupported-operator]
 
 
 class TestSignedDurationCheckedArithmetic:
