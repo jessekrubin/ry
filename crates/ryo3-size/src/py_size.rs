@@ -576,9 +576,9 @@ impl FromStr for PySize {
 
 #[derive(Debug, Clone, FromPyObject)]
 enum PySizeIntermediate {
-    Float64(f64),
     Int64(i64),
     UInt64(u64),
+    Float64(f64),
 }
 
 // implement intermidate `into_` functions using `from_` functions on `size::Size`
