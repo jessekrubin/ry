@@ -90,6 +90,7 @@ impl PySocketAddrV4 {
     }
 
     #[staticmethod]
+    #[pyo3(signature = (s, /))]
     fn from_str(s: &str) -> PyResult<Self> {
         Self::py_from_str(s)
     }
@@ -305,6 +306,7 @@ impl PySocketAddrV6 {
     }
 
     #[staticmethod]
+    #[pyo3(signature = (s, /))]
     fn from_str(s: &str) -> PyResult<Self> {
         Self::py_from_str(s)
     }
@@ -513,6 +515,7 @@ impl PySocketAddr {
     }
 
     #[staticmethod]
+    #[pyo3(signature = (s, /))]
     fn from_str(s: &str) -> PyResult<Self> {
         Self::py_from_str(s)
     }

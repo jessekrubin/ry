@@ -229,6 +229,7 @@ impl PyUuid {
     }
 
     #[staticmethod]
+    #[pyo3(signature = (s, /))]
     fn from_str(s: &str) -> PyResult<Self> {
         uuid::Uuid::parse_str(s)
             .map(PyUuid)

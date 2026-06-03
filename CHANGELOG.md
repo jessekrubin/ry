@@ -18,7 +18,7 @@
 - `ryo3-cookie`
   - added `ry.Cookie.to_string()` for consistency w/ other `ry` types
 - `ryo3-size`
-  - added constants/classattrs to `ry.Size` for `ZERO`, `MIN`, `MAX`
+  - added constants/classattrs to `ry.Size`
     - min/max/zero
       - `ry.Size.ZERO: t.Final[Size]  # Size(0)`
       - `ry.Size.MAX: t.Final[Size]  # Size(9_223_372_036_854_775_807)`

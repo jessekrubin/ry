@@ -227,6 +227,7 @@ impl PyIpv4Addr {
     // CLASSMETHODS
     // ========================================================================
     #[staticmethod]
+    #[pyo3(signature = (s, /))]
     fn from_str(s: &str) -> PyResult<Self> {
         Self::py_from_str(s)
     }
@@ -481,6 +482,7 @@ impl PyIpv6Addr {
     // CLASSMETHODS
     // ========================================================================
     #[staticmethod]
+    #[pyo3(signature = (s, /))]
     fn from_str(s: &str) -> PyResult<Self> {
         Self::py_from_str(s)
     }
@@ -748,6 +750,7 @@ impl PyIpAddr {
     // CLASSMETHODS
     // ========================================================================
     #[staticmethod]
+    #[pyo3(signature = (s, /))]
     fn from_str(s: &str) -> PyResult<Self> {
         Self::py_from_str(s)
     }

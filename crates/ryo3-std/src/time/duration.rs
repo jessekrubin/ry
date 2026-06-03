@@ -530,16 +530,15 @@ impl PyDuration {
     #[cfg(feature = "jiff")]
     #[staticmethod]
     fn fromisoformat(s: &str) -> PyResult<Self> {
-        use jiff::fmt::temporal::SpanParser;
         use ryo3_macro_rules::py_value_error;
-        let parser = SpanParser::new();
-        let duration = parser
+        TEMPORAL_SPAN_PARSER
             .parse_unsigned_duration(s)
-            .map_err(|e| py_value_error!("invalid isoformat string: {e}"))?;
-        Ok(Self(duration))
+            .map(Self)
+            .map_err(|e| py_value_error!("invalid isoformat string: {e}"))
     }
 
     #[staticmethod]
+    #[pyo3(signature = (s, /))]
     fn from_str(s: &str) -> PyResult<Self> {
         Self::py_from_str(s)
     }
@@ -571,7 +570,9 @@ impl PyDuration {
         } else if fmt.is_empty() {
             Ok(self.py_to_string())
         } else {
-            py_type_err!("Invalid format specifier '{fmt}' for Duration")
+            py_type_err!(
+                "Invalid format specifier '{fmt}' for Duration; only '' and '#' are supported"
+            )
         }
     }
 
@@ -596,7 +597,7 @@ impl PyDuration {
                 .unsigned_duration_to_string(&self.0)),
             other => {
                 py_value_err!(
-                    "invalid designator: {other} (expected 'human'/'human-time', 'short', or 'compact')"
+                    "invalid designator: {other} (expected 'human'/'human-time', 'short', 'compact', or 'verbose')"
                 )
             }
         }
