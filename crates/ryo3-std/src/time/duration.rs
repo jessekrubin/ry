@@ -168,6 +168,18 @@ impl PyDuration {
 
     #[classattr]
     #[expect(non_snake_case, reason = "python classattr")]
+    fn HOUR() -> Self {
+        Self(Duration::from_secs(3600))
+    }
+
+    #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
+    fn MINUTE() -> Self {
+        Self(Duration::from_secs(60))
+    }
+
+    #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
     fn SECOND() -> Self {
         Self(Duration::from_secs(1))
     }
@@ -266,7 +278,11 @@ impl PyDuration {
     }
 
     fn __rsub__(&self, other: DurationLike) -> PyResult<Self> {
-        self.__sub__(other)
+        let other: Duration = other.into();
+        other
+            .checked_sub(self.0)
+            .map(Self::from)
+            .ok_or_else(|| py_overflow_error!("overflow in Duration subtraction"))
     }
 
     fn __truediv__(
@@ -297,20 +313,16 @@ impl PyDuration {
         }
     }
 
-    fn __mul__(&self, other: &Bound<'_, PyAny>) -> PyResult<Self> {
-        if let Ok(i) = other.extract::<u32>() {
-            self.0
+    fn __mul__(&self, other: arithmetic::DurationMulInput) -> PyResult<Self> {
+        match other {
+            arithmetic::DurationMulInput::Int(i) => self
                 .checked_mul(i)
-                .map(Self::from)
-                .ok_or_else(|| py_overflow_error!("overflow in Duration multiplication"))
-        } else if let Ok(f) = other.extract::<f64>() {
-            self.mul_f64(f)
-        } else {
-            py_overflow_err!("unsupported operand type(s); must be int | float")
+                .ok_or_else(|| py_overflow_error!("overflow in Duration multiplication")),
+            arithmetic::DurationMulInput::Float(f) => self.mul_f64(f),
         }
     }
 
-    fn __rmul__(&self, other: &Bound<'_, PyAny>) -> PyResult<Self> {
+    fn __rmul__(&self, other: arithmetic::DurationMulInput) -> PyResult<Self> {
         self.__mul__(other)
     }
 
@@ -649,20 +661,8 @@ impl PyDuration {
     //     Ok(())
     // }
 
-    fn abs_diff(&self, other: Bound<'_, PyAny>) -> PyResult<Self> {
-        if let Ok(d) = other.cast_exact::<Self>() {
-            let rs_dur = d.get();
-            Ok(Self(self.0.abs_diff(rs_dur.0)))
-        } else if let Ok(d) = other.cast::<pyo3::types::PyDelta>() {
-            if let Ok(dur) = d.extract::<Duration>() {
-                Ok(Self(self.0.abs_diff(dur)))
-            } else {
-                // TODO: allow negative timedelta if non-overflowing?
-                py_value_err!("cannot compare with negative timedelta")
-            }
-        } else {
-            py_type_err!("unsupported operand type(s); must be Duration | datetime.timedelta")
-        }
+    fn abs_diff(&self, other: DurationLike) -> Self {
+        self.0.abs_diff(other.into()).into()
     }
 
     fn checked_add(&self, other: &Self) -> Option<Self> {
@@ -935,7 +935,7 @@ mod arithmetic {
 
     use pyo3::IntoPyObjectExt;
     use pyo3::prelude::*;
-    use ryo3_core::py_type_err;
+    use ryo3_core::{PyCastExactOpt, py_type_err};
 
     use crate::time::PyDuration;
 
@@ -950,7 +950,7 @@ mod arithmetic {
     impl<'py> FromPyObject<'_, 'py> for DurationLike {
         type Error = PyErr;
         fn extract(obj: Borrowed<'_, 'py, PyAny>) -> Result<Self, Self::Error> {
-            if let Ok(inst) = obj.cast_exact::<PyDuration>() {
+            if let Some(inst) = obj.cast_exact_opt::<PyDuration>() {
                 let dur = inst.get();
                 Ok(Self(dur.0))
             } else if let Ok(inst) = obj.cast::<pyo3::types::PyDelta>() {
@@ -1025,6 +1025,26 @@ mod arithmetic {
             match self {
                 Self::Float(f) => f.into_bound_py_any(py),
                 Self::Duration(d) => d.into_bound_py_any(py),
+            }
+        }
+    }
+
+    pub(super) enum DurationMulInput {
+        Int(u32),
+        Float(f64),
+    }
+
+    impl<'a, 'py> FromPyObject<'a, 'py> for DurationMulInput {
+        type Error = PyErr;
+        fn extract(obj: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
+            if let Some(pi) = obj.cast_exact_opt::<pyo3::types::PyInt>() {
+                let i = pi.extract::<u32>()?;
+                Ok(Self::Int(i))
+            } else if let Some(pf) = obj.cast_exact_opt::<pyo3::types::PyFloat>() {
+                let f = pf.extract::<f64>()?;
+                Ok(Self::Float(f))
+            } else {
+                py_type_err!("unsupported operand type(s); must be int | float")
             }
         }
     }

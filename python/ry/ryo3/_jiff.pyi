@@ -914,6 +914,12 @@ class SignedDuration(
     MIN: t.Final[SignedDuration]
     MAX: t.Final[SignedDuration]
     ZERO: t.Final[SignedDuration]
+    NANOSECOND: t.Final[SignedDuration]
+    MICROSECOND: t.Final[SignedDuration]
+    MILLISECOND: t.Final[SignedDuration]
+    SECOND: t.Final[SignedDuration]
+    MINUTE: t.Final[SignedDuration]
+    HOUR: t.Final[SignedDuration]
     __match_args__: t.Final[tuple[str, str]] = ("secs", "nanos")
 
     def __new__(cls, secs: int = 0, nanos: int = 0) -> t.Self: ...
@@ -1025,6 +1031,12 @@ class SignedDuration(
     def subsec_millis(self) -> int: ...
     @property
     def subsec_nanos(self) -> int: ...
+    @property
+    def ns(self) -> int:
+        """Alias for `nanos`"""
+    @property
+    def nanoseconds(self) -> int:
+        """Alias for `nanos`"""
 
     # =========================================================================
     # INSTANCE METHODS

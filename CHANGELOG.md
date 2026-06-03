@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## v0.0.94 [unreleased]
+## v0.0.94 [2026-06-03]
 
 - `ryo3-reqwest`
   - upate to `0.13.4` which notably updates `hickory-resolver` to `0.26`

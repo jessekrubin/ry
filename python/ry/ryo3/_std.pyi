@@ -27,6 +27,8 @@ class Duration(FromStr, ToPyTimeDelta, ToPy[pydt.timedelta], ToString, _Parse):
     MICROSECOND: t.Final[Duration]
     MILLISECOND: t.Final[Duration]
     SECOND: t.Final[Duration]
+    MINUTE: t.Final[Duration]
+    HOUR: t.Final[Duration]
     __match_args__: t.Final[tuple[str, str]] = ("secs", "nanos")
 
     def __new__(cls, secs: int = 0, nanos: int = 0) -> t.Self: ...
