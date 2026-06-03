@@ -290,6 +290,7 @@ impl RyTimeZone {
     // ========================================================================
     // <STD-METHODS>
     #[staticmethod]
+    #[pyo3(signature = (s, /))]
     fn from_str(s: &str) -> PyResult<Self> {
         use ryo3_core::PyFromStr;
         Self::py_from_str(s)

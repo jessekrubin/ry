@@ -143,12 +143,22 @@ class TestDurationArithmetic:
     def test_sub_with_timedelta_rsub(
         self, left: ry.Duration, right: pydt.timedelta
     ) -> None:
-        if left < ry.Duration.from_pytimedelta(right):
+        right_duration = ry.Duration.from_pytimedelta(right)
+        if right_duration < left:
             with pytest.raises(OverflowError):
                 _res = right - left
             return
-        result = left - right
+        result = right - left
         assert isinstance(result, ry.Duration)
+        assert result == right_duration - left
+
+    def test_sub_with_timedelta_rsub_order(self) -> None:
+        left = ry.Duration(3, 0)
+        right = pydt.timedelta(seconds=10)
+
+        result = right - left
+
+        assert result == ry.Duration(7, 0)
 
     # =========================================================================
     # DIVISION
@@ -424,6 +434,13 @@ class TestDurationArithmetic:
         with pytest.raises(OverflowError):
             _r = dur.mul_f64(float("-inf"))
 
+    def test_mul_type_error(self) -> None:
+        dur = ry.Duration(1, 0)
+        with pytest.raises(TypeError):
+            _ = dur * "string"  # type: ignore[operator, ty:unsupported-operator]
+        with pytest.raises(TypeError):
+            _ = "string" * dur  # type: ignore[operator, ty:unsupported-operator]
+
     # =========================================================================
     # ABS_DIFF
     # =========================================================================
@@ -441,7 +458,8 @@ class TestDurationArithmetic:
     ) -> None:
         if right.total_seconds() < 0:
             with pytest.raises(
-                ValueError, match="cannot compare with negative timedelta"
+                ValueError,
+                match="It is not possible to convert a negative timedelta to a Rust Duration",
             ):
                 _ = ry.Duration.abs_diff(left, right)
         else:

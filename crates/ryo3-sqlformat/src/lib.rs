@@ -1,5 +1,6 @@
 #![doc = include_str!("../README.md")]
 use std::collections::HashMap;
+use std::convert::Infallible;
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::hash::{Hash, Hasher};
 
@@ -210,13 +211,13 @@ impl std::fmt::Debug for PyIndent {
 impl<'py> IntoPyObject<'py> for &PyIndent {
     type Target = PyInt;
     type Output = Bound<'py, Self::Target>;
-    type Error = pyo3::PyErr;
+    type Error = Infallible;
 
     #[inline]
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
         match self.0 {
-            sqlformat::Indent::Tabs => Ok((-1i8).into_pyobject(py)?),
-            sqlformat::Indent::Spaces(n) => Ok(n.into_pyobject(py)?),
+            sqlformat::Indent::Tabs => (-1i8).into_pyobject(py),
+            sqlformat::Indent::Spaces(n) => n.into_pyobject(py),
         }
     }
 }
@@ -224,7 +225,7 @@ impl<'py> IntoPyObject<'py> for &PyIndent {
 impl<'py> IntoPyObject<'py> for PyIndent {
     type Target = PyInt;
     type Output = Bound<'py, Self::Target>;
-    type Error = pyo3::PyErr;
+    type Error = Infallible;
 
     #[inline]
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {

@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## v0.0.94 [unreleased]
+## v0.0.94 [2026-06-03]
 
 - `ryo3-reqwest`
   - upate to `0.13.4` which notably updates `hickory-resolver` to `0.26`
@@ -12,8 +12,49 @@
   - update to `0.13.4` which notably updates `hickory-resolver` to `0.26`
   - `ry.SignedDuration.seconds` returns the total seconds instead of the seconds
     remainder (seconds % 86400) and added `ry.SignedDuration.seconds_remainder`
+  - `ry.SignedDuration.__truediv__` now supports being divided by `ry.Duration`
 - `ryo3-bytes`
   - `__getitem__` return via enum + `impl IntoPyObject`
+- `ryo3-cookie`
+  - added `ry.Cookie.to_string()` for consistency w/ other `ry` types
+- `ryo3-size`
+  - added constants/classattrs to `ry.Size`
+    - min/max/zero
+      - `ry.Size.ZERO: t.Final[Size]  # Size(0)`
+      - `ry.Size.MAX: t.Final[Size]  # Size(9_223_372_036_854_775_807)`
+      - `ry.Size.MIN: t.Final[Size]  # Size(-9_223_372_036_854_775_808)`
+    - byte units
+      - `ry.Size.B: t.Final[Size]  # Size(1)`
+      - `ry.Size.BYTE: t.Final[Size]  # Size(1)`
+      - `ry.Size.KB: t.Final[Size]  # Size(1_000)`
+      - `ry.Size.KIB: t.Final[Size]  # Size(1_024)`
+      - `ry.Size.KIBIBYTE: t.Final[Size]  # Size(1_024)`
+      - `ry.Size.KILOBYTE: t.Final[Size]  # Size(1_000)`
+      - `ry.Size.MB: t.Final[Size]  # Size(1_000_000)`
+      - `ry.Size.MEBIBYTE: t.Final[Size]  # Size(1_048_576)`
+      - `ry.Size.MEGABYTE: t.Final[Size]  # Size(1_000_000)`
+      - `ry.Size.MIB: t.Final[Size]  # Size(1_048_576)`
+      - `ry.Size.GB: t.Final[Size]  # Size(1_000_000_000)`
+      - `ry.Size.GIB: t.Final[Size]  # Size(1_073_741_824)`
+      - `ry.Size.GIBIBYTE: t.Final[Size]  # Size(1_073_741_824)`
+      - `ry.Size.GIGABYTE: t.Final[Size]  # Size(1_000_000_000)`
+      - `ry.Size.TB: t.Final[Size]  # Size(1_000_000_000_000)`
+      - `ry.Size.TEBIBYTE: t.Final[Size]  # Size(1_099_511_627_776)`
+      - `ry.Size.TERABYTE: t.Final[Size]  # Size(1_000_000_000_000)`
+      - `ry.Size.TIB: t.Final[Size]  # Size(1_099_511_627_776)`
+      - `ry.Size.PB: t.Final[Size]  # Size(1_000_000_000_000_000)`
+      - `ry.Size.PEBIBYTE: t.Final[Size]  # Size(1_125_899_906_842_624)`
+      - `ry.Size.PETABYTE: t.Final[Size]  # Size(1_000_000_000_000_000)`
+      - `ry.Size.PIB: t.Final[Size]  # Size(1_125_899_906_842_624)`
+      - `ry.Size.EB: t.Final[Size]  # Size(1_000_000_000_000_000_000)`
+      - `ry.Size.EIB: t.Final[Size]  # Size(1_152_921_504_606_846_976)`
+      - `ry.Size.EXABYTE: t.Final[Size]  # Size(1_000_000_000_000_000_000)`
+      - `ry.Size.EXBIBYTE: t.Final[Size]  # Size(1_152_921_504_606_846_976)`
+  - internal refactoring to preserve integer inputs as opposed to coercing them
+    to floats when doing `ry.Size.from_*`
+
+- parsing
+  - `parse(...)`/`from_str(...)` are positional only now
 
 ---
 

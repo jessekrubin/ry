@@ -113,6 +113,7 @@ impl PyCookie {
     // STATIC "CLASS" METHODS (aka "constructors")
     // ------------------------------------------------------------------------
     #[staticmethod]
+    #[pyo3(signature = (s, /))]
     fn from_str(s: &str) -> PyResult<Self> {
         use ryo3_core::PyFromStr;
         Self::py_from_str(s)
@@ -125,6 +126,7 @@ impl PyCookie {
     }
 
     #[staticmethod]
+    #[pyo3(signature = (s, /))]
     fn parse_encoded(s: &str) -> PyResult<Self> {
         match cookie::Cookie::parse_encoded(s) {
             Ok(c) => Ok(Self(c.into_owned())),

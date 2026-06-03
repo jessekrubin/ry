@@ -1,13 +1,13 @@
 use pyo3::prelude::*;
 use pyo3::types::PyInt;
-use ryo3_macro_rules::{py_type_err, py_value_err, py_value_error};
+use ryo3_macro_rules::{py_type_err, py_value_err};
 
 use crate::JiffWeekday;
 
 impl<'py> IntoPyObject<'py> for JiffWeekday {
     type Target = PyInt;
     type Output = Bound<'py, Self::Target>;
-    type Error = PyErr;
+    type Error = std::convert::Infallible;
 
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
         (&self).into_pyobject(py)
@@ -17,7 +17,7 @@ impl<'py> IntoPyObject<'py> for JiffWeekday {
 impl<'py> IntoPyObject<'py> for &JiffWeekday {
     type Target = PyInt;
     type Output = Bound<'py, Self::Target>;
-    type Error = PyErr;
+    type Error = std::convert::Infallible;
 
     #[inline]
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
@@ -31,7 +31,6 @@ impl<'py> IntoPyObject<'py> for &JiffWeekday {
             jiff::civil::Weekday::Sunday => 7,
         };
         num.into_pyobject(py)
-            .map_err(|e| py_value_error!("{e} (weekday={num})"))
     }
 }
 

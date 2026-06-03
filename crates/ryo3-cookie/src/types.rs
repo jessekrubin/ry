@@ -1,5 +1,7 @@
 //! py-types/extractors/converters
 
+use std::convert::Infallible;
+
 use pyo3::prelude::*;
 use pyo3::types::PyString;
 use pyo3::{IntoPyObjectExt, intern};
@@ -23,7 +25,7 @@ impl PyCookieSameSite {
 impl<'py> IntoPyObject<'py> for &PyCookieSameSite {
     type Target = PyString;
     type Output = Borrowed<'py, 'py, Self::Target>;
-    type Error = PyErr;
+    type Error = Infallible;
     #[inline]
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
         let s = match self.0 {
@@ -31,15 +33,14 @@ impl<'py> IntoPyObject<'py> for &PyCookieSameSite {
             cookie::SameSite::Strict => intern!(py, "Strict"),
             cookie::SameSite::None => intern!(py, "None"),
         };
-        let b = s.as_borrowed();
-        Ok(b)
+        Ok(s.as_borrowed())
     }
 }
 
 impl<'py> IntoPyObject<'py> for PyCookieSameSite {
     type Target = PyString;
     type Output = Borrowed<'py, 'py, Self::Target>;
-    type Error = PyErr;
+    type Error = Infallible;
 
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
         (&self).into_pyobject(py)

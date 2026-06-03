@@ -79,7 +79,7 @@ impl<'py> FromPyObject<'_, 'py> for PyHttpMethod {
 impl<'py> IntoPyObject<'py> for &PyHttpVersion {
     type Target = PyString;
     type Output = Borrowed<'py, 'py, Self::Target>;
-    type Error = PyErr;
+    type Error = Infallible;
     #[inline]
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
         let s = match self.0 {
@@ -90,15 +90,14 @@ impl<'py> IntoPyObject<'py> for &PyHttpVersion {
             http::Version::HTTP_3 => pyo3::intern!(py, "HTTP/3"),
             _ => unreachable!(),
         };
-        let b = s.as_borrowed();
-        Ok(b)
+        Ok(s.as_borrowed())
     }
 }
 
 impl<'py> IntoPyObject<'py> for PyHttpVersion {
     type Target = PyString;
     type Output = Borrowed<'py, 'py, Self::Target>;
-    type Error = PyErr;
+    type Error = Infallible;
 
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
         (&self).into_pyobject(py)
@@ -313,7 +312,7 @@ impl<'py> IntoPyObject<'py> for PyHttpHeaderNameRef<'_> {
 impl<'py> IntoPyObject<'py> for &PyHttpHeaderValueRef<'_> {
     type Target = PyAny;
     type Output = Bound<'py, Self::Target>;
-    type Error = PyErr;
+    type Error = Infallible;
     #[inline]
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
         if let Ok(s) = self.0.to_str() {
@@ -329,7 +328,7 @@ impl<'py> IntoPyObject<'py> for &PyHttpHeaderValueRef<'_> {
 impl<'py> IntoPyObject<'py> for PyHttpHeaderValueRef<'_> {
     type Target = PyAny;
     type Output = Bound<'py, Self::Target>;
-    type Error = PyErr;
+    type Error = Infallible;
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
         (&self).into_pyobject(py)
     }
@@ -338,7 +337,7 @@ impl<'py> IntoPyObject<'py> for PyHttpHeaderValueRef<'_> {
 impl<'py> IntoPyObject<'py> for &PyHttpHeaderValue {
     type Target = PyAny;
     type Output = Bound<'py, Self::Target>;
-    type Error = PyErr;
+    type Error = Infallible;
     #[inline]
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
         PyHttpHeaderValueRef(&self.0).into_pyobject(py)
@@ -348,7 +347,7 @@ impl<'py> IntoPyObject<'py> for &PyHttpHeaderValue {
 impl<'py> IntoPyObject<'py> for PyHttpHeaderValue {
     type Target = PyAny;
     type Output = Bound<'py, Self::Target>;
-    type Error = PyErr;
+    type Error = Infallible;
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
         (&self).into_pyobject(py)
     }
@@ -398,6 +397,7 @@ impl<'py> FromPyObject<'_, 'py> for PyHttpHeaderMap {
         }
     }
 }
+
 impl<'py> IntoPyObject<'py> for PyHttpHeaderMapRef<'_> {
     type Target = PyDict;
     type Output = Bound<'py, Self::Target>;

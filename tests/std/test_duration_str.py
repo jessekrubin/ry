@@ -81,7 +81,7 @@ class TestDurationFriendlyStr:
         with pytest.raises(
             ValueError,
             match=re.escape(
-                "invalid designator: dingo (expected 'human'/'human-time', 'short', or 'compact')"
+                "invalid designator: dingo (expected 'human'/'human-time', 'short', 'compact', or 'verbose')"
             ),
         ):
             _s = max_dur.friendly("dingo")  # type: ignore[arg-type]

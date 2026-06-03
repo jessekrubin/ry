@@ -194,6 +194,7 @@ def test_equality() -> None:
         (ry.SignedDuration(1, 0), ry.SignedDuration(2, 0), False),
         (ry.SignedDuration(1, 0), pydt.timedelta(seconds=2), False),
         (ry.SignedDuration(1, 0), ry.Duration(2), False),
+        (ry.SignedDuration(-1, 0), ry.Duration(1), False),
     ],
 )
 def test_equiv(

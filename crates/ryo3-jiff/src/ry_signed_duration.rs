@@ -108,6 +108,42 @@ impl RySignedDuration {
         Self(SignedDuration::ZERO)
     }
 
+    #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
+    fn HOUR() -> Self {
+        Self(SignedDuration::from_secs(3600))
+    }
+
+    #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
+    fn MINUTE() -> Self {
+        Self(SignedDuration::from_secs(60))
+    }
+
+    #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
+    fn SECOND() -> Self {
+        Self(SignedDuration::from_secs(1))
+    }
+
+    #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
+    fn MILLISECOND() -> Self {
+        Self(SignedDuration::from_millis(1))
+    }
+
+    #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
+    fn MICROSECOND() -> Self {
+        Self(SignedDuration::from_micros(1))
+    }
+
+    #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
+    fn NANOSECOND() -> Self {
+        Self(SignedDuration::from_nanos(1))
+    }
+
     #[getter]
     fn secs(&self) -> i64 {
         self.0.as_secs()
@@ -115,6 +151,16 @@ impl RySignedDuration {
 
     #[getter]
     fn nanos(&self) -> i32 {
+        self.0.subsec_nanos()
+    }
+
+    #[getter]
+    fn ns(&self) -> i32 {
+        self.0.subsec_nanos()
+    }
+
+    #[getter]
+    fn nanoseconds(&self) -> i32 {
         self.0.subsec_nanos()
     }
 
@@ -331,7 +377,12 @@ impl RySignedDuration {
             let sd = other_sd.get();
             Ok(self.0 == sd.0)
         } else if let Ok(other_ud) = other.cast_exact::<PyDuration>() {
-            Ok(self.0.unsigned_abs() == other_ud.get().0)
+            if self.0.is_negative() {
+                Ok(false)
+            } else {
+                Ok(SignedDuration::try_from(*other_ud.get().inner())
+                    .is_ok_and(|duration| self.0 == duration))
+            }
         } else if let Ok(other_td) = other.cast::<pyo3::types::PyDelta>() {
             let extract_ed = signed_duration_from_pyobject(other_td)?;
             Ok(self.0 == extract_ed)
@@ -656,6 +707,7 @@ impl RySignedDuration {
     // ========================================================================
     // <STD-METHODS>
     #[staticmethod]
+    #[pyo3(signature = (s, /))]
     fn from_str(s: &str) -> PyResult<Self> {
         use ryo3_core::PyFromStr;
         Self::py_from_str(s)
