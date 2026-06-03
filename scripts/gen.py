@@ -46,6 +46,7 @@ def _gen_init() -> None:
         *import_lines,
         "",
         *package_all_list_lines,
+        "",  # empty final line
     ]
 
     # __init__.py string

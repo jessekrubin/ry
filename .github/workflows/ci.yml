@@ -88,6 +88,7 @@ jobs:
           python3 -m venv .venv
           source .venv/bin/activate
           pip install ry --no-index --no-deps --find-links dist --force-reinstall
+          python -m ry
           pip install -r requirements.dev.txt
           pip install pytest
           pytest
@@ -238,6 +239,7 @@ jobs:
           set -e
           pip install ry --no-index --no-deps --find-links dist --force-reinstall
           pip install -r requirements.dev.txt
+          python -m ry
           pytest
 
   macos:
