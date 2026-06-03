@@ -5,7 +5,7 @@ use std::path::{Path, PathBuf};
 use bytes::{Bytes, BytesMut};
 use pyo3::prelude::*;
 use ryo3_bytes::RyBytes;
-use ryo3_core::RyMutex;
+use ryo3_core::sync::RyMutex;
 use ryo3_macro_rules::py_value_err;
 
 pub(crate) const DEFAULT_READ_SIZE: usize = 65536;

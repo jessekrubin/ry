@@ -1,7 +1,7 @@
 use pyo3::exceptions::PyException;
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyTuple};
-use ryo3_core::RyMutex;
+use ryo3_core::sync::RyMutex;
 use ryo3_http::PyHttpStatus;
 use ryo3_url::PyUrl;
 

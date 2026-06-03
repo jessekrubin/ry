@@ -8,8 +8,9 @@ use pyo3::prelude::*;
 use pyo3::types::{PyString, PyTuple};
 use pyo3::{IntoPyObjectExt, intern};
 use ryo3_bytes::ReadableBuffer;
+use ryo3_core::sync::RyMutex;
 use ryo3_core::types::{PyDigest, PyHexDigest};
-use ryo3_core::{PyAsciiString, RyMutex, py_type_err};
+use ryo3_core::{PyAsciiString, py_type_err};
 
 const FNV1A_64_OFFSET: u64 = 0xcbf2_9ce4_8422_2325;
 const FNV1A_64_PRIME: u64 = 0x0100_0000_01b3;

@@ -5,7 +5,7 @@ use std::time::Duration;
 use futures_util::{SinkExt, StreamExt};
 use pyo3::exceptions::PyStopAsyncIteration;
 use pyo3::prelude::*;
-use ryo3_core::RyMutex;
+use ryo3_core::sync::RyMutex;
 use ryo3_http::{PyHeaders, PyHeadersLike, PyHttpStatus};
 use ryo3_macro_rules::py_runtime_err;
 use ryo3_std::time::{PyDuration, PyTimeout};

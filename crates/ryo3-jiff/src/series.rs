@@ -1,5 +1,5 @@
 use pyo3::prelude::*;
-use ryo3_core::RyMutex;
+use ryo3_core::sync::RyMutex;
 use ryo3_macro_rules::py_value_err;
 
 use crate::{RyDate, RyDateTime, RySpan, RyTime, RyTimestamp, RyZoned};

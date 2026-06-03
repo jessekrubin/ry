@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use reqwest::StatusCode;
 use ryo3_cookie::PyCookie;
-use ryo3_core::RyRwLock;
+use ryo3_core::sync::RyRwLock;
 
 #[derive(Debug, Clone)]
 pub(crate) struct RyResponseHead {

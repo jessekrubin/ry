@@ -1,6 +1,7 @@
 pub mod errors;
 mod map_pyerr;
 mod py_cast;
+pub mod py_dict;
 mod py_parse;
 mod py_str;
 mod py_try_from;
@@ -21,4 +22,3 @@ pub use ryo3_macro_rules::{
     py_type_error, py_value_err, py_value_error, py_zero_division_err, py_zero_division_error,
     pytodo,
 };
-pub use sync::{PyLock, PyRead, PyWrite, RyMutex, RyRwLock};

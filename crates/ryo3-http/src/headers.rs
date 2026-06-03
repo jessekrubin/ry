@@ -5,7 +5,8 @@ use std::sync::{Arc, RwLockReadGuard, RwLockWriteGuard};
 use http::header::HeaderMap;
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyList, PyTuple};
-use ryo3_core::{RyRwLock, py_runtime_error, py_value_error};
+use ryo3_core::sync::RyRwLock;
+use ryo3_core::{py_runtime_error, py_value_error};
 
 use crate::http_types::{
     PyHttpHeaderMapRef, PyHttpHeaderName, PyHttpHeaderNameRef, PyHttpHeaderValue,
