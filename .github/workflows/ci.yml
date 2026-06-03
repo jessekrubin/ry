@@ -21,6 +21,7 @@ concurrency:
 
 env:
   CARGO_PROFILE: ${{ startsWith(github.ref, 'refs/tags/') && 'release' || 'release-thin' }}
+  RY_GIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
 
 jobs:
   linux:
@@ -60,6 +61,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v6
+      - uses: ./.github/actions/ry-git-sha
       - name: install-uv
         uses: astral-sh/setup-uv@v7
         with:
@@ -68,8 +70,6 @@ jobs:
         run: uv python install 3.11 3.12 3.13 3.13t 3.14 3.14t pypy3.11
       - name: Build wheels
         uses: PyO3/maturin-action@v1
-        env:
-          RY_GIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         with:
           target: ${{ matrix.platform.target }}
           args: --out dist --interpreter 3.11 3.12 3.13 3.13t 3.14 3.14t pypy3.11 --profile ${{ env.CARGO_PROFILE }} --features ${{ matrix.platform.features }}
@@ -136,6 +136,7 @@ jobs:
             target: armv7
     steps:
       - uses: actions/checkout@v6
+      - uses: ./.github/actions/ry-git-sha
       - name: install-uv
         uses: astral-sh/setup-uv@v7
         with:
@@ -144,8 +145,6 @@ jobs:
         run: uv python install 3.11 3.12 3.13 3.13t 3.14 3.14t pypy3.11
       - name: Build wheels
         uses: PyO3/maturin-action@v1
-        env:
-          RY_GIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         with:
           target: ${{ matrix.platform.target }}
           args: --out dist --interpreter 3.11 3.12 3.13 3.13t 3.14 3.14t pypy3.11 --profile ${{ env.CARGO_PROFILE }}
@@ -208,6 +207,7 @@ jobs:
             architecture: arm64
     steps:
       - uses: actions/checkout@v6
+      - uses: ./.github/actions/ry-git-sha
       - uses: actions/setup-python@v6
         with:
           # python-version: 3.x
@@ -221,8 +221,6 @@ jobs:
           architecture: ${{ matrix.platform.architecture }}
       - name: Build wheels
         uses: PyO3/maturin-action@v1
-        env:
-          RY_GIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         with:
           target: ${{ matrix.platform.target }}
           args: --out dist --profile ${{ env.CARGO_PROFILE }} --interpreter 3.11 3.12 3.13 3.14 --features "mimalloc"
@@ -255,6 +253,7 @@ jobs:
           #   target: x86_64
     steps:
       - uses: actions/checkout@v6
+      - uses: ./.github/actions/ry-git-sha
       - name: install-uv
         uses: astral-sh/setup-uv@v7
         with:
@@ -263,8 +262,6 @@ jobs:
         run: uv python install 3.11 3.12 3.13 3.13t 3.14 3.14t pypy3.11
       - name: Build wheels
         uses: PyO3/maturin-action@v1
-        env:
-          RY_GIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         with:
           target: ${{ matrix.platform.target }}
           args: --out dist --interpreter 3.11 3.12 3.13 3.13t 3.14 3.14t pypy3.11 --profile ${{ env.CARGO_PROFILE }} --features "mimalloc"
@@ -286,10 +283,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+      - uses: ./.github/actions/ry-git-sha
       - name: Build sdist
         uses: PyO3/maturin-action@v1
-        env:
-          RY_GIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         with:
           command: sdist
           args: --out dist
