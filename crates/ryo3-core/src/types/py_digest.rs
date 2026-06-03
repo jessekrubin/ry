@@ -69,7 +69,7 @@ macro_rules! impl_into_py_object_py_digest_uint {
         impl<'py> IntoPyObject<'py> for PyDigest<$t> {
             type Target = PyBytes;
             type Output = Bound<'py, Self::Target>;
-            type Error = PyErr;
+            type Error = std::convert::Infallible;
 
             #[inline]
             fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
