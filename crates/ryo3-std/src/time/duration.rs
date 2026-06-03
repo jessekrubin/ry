@@ -169,13 +169,13 @@ impl PyDuration {
     #[classattr]
     #[expect(non_snake_case, reason = "python classattr")]
     fn HOUR() -> Self {
-        Self(Duration::from_secs(3600))
+        Self(Duration::from_hours(1))
     }
 
     #[classattr]
     #[expect(non_snake_case, reason = "python classattr")]
     fn MINUTE() -> Self {
-        Self(Duration::from_secs(60))
+        Self(Duration::from_mins(1))
     }
 
     #[classattr]
