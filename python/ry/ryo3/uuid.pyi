@@ -8,7 +8,6 @@ REF: https://github.com/python/typeshed/blob/main/stdlib/uuid.pyi
 import builtins
 import typing as t
 import uuid as pyuuid
-from enum import Enum
 
 from ry._types import Buffer
 from ry.protocols import FromStr
@@ -21,17 +20,17 @@ _FieldsType: t.TypeAlias = tuple[int, int, int, int, int, int]
 
 @t.final
 class UUID(FromStr):
-    NAMESPACE_DNS: t.Final[UUID]  # UUID('6ba7b810-9dad-11d1-80b4-00c04fd430c8')
-    NAMESPACE_URL: t.Final[UUID]  # UUID('6ba7b811-9dad-11d1-80b4-00c04fd430c8')
-    NAMESPACE_OID: t.Final[UUID]  # UUID('6ba7b812-9dad-11d1-80b4-00c04fd430c8')
-    NAMESPACE_X500: t.Final[UUID]  # UUID('6ba7b814-9dad-11d1-80b4-00c04fd430c8')
-    NIL: t.Final[UUID]  # UUID('00000000-0000-0000-0000-000000000000')
-    MAX: t.Final[UUID]  # UUID('ffffffff-ffff-ffff-ffff-ffffffffffff')
-
+    NAMESPACE_DNS: t.Final[UUID]
+    NAMESPACE_URL: t.Final[UUID]
+    NAMESPACE_OID: t.Final[UUID]
+    NAMESPACE_X500: t.Final[UUID]
+    NIL: t.Final[UUID]
+    MAX: t.Final[UUID]
     RESERVED_NCS: t.Final = "reserved for NCS compatibility"
     RFC_4122: t.Final = "specified in RFC 4122"
     RESERVED_MICROSOFT: t.Final = "reserved for Microsoft compatibility"
     RESERVED_FUTURE: t.Final = "reserved for future definition"
+
     @t.overload
     def __new__(cls, hex: str, *, version: _V | None = None) -> t.Self: ...
     @t.overload
@@ -133,13 +132,12 @@ def uuid8(
     buf: None = None,
 ) -> UUID: ...
 
-NAMESPACE_DNS: t.Final[UUID]  # UUID('6ba7b810-9dad-11d1-80b4-00c04fd430c8')
-NAMESPACE_URL: t.Final[UUID]  # UUID('6ba7b811-9dad-11d1-80b4-00c04fd430c8')
-NAMESPACE_OID: t.Final[UUID]  # UUID('6ba7b812-9dad-11d1-80b4-00c04fd430c8')
-NAMESPACE_X500: t.Final[UUID]  # UUID('6ba7b814-9dad-11d1-80b4-00c04fd430c8')
-NIL: t.Final[UUID]  # UUID('00000000-0000-0000-0000-000000000000')
-MAX: t.Final[UUID]  # UUID('ffffffff-ffff-ffff-ffff-ffffffffffff')
-
+NAMESPACE_DNS: t.Final[UUID]
+NAMESPACE_URL: t.Final[UUID]
+NAMESPACE_OID: t.Final[UUID]
+NAMESPACE_X500: t.Final[UUID]
+NIL: t.Final[UUID]
+MAX: t.Final[UUID]
 RESERVED_NCS: t.Final = "reserved for NCS compatibility"
 RFC_4122: t.Final = "specified in RFC 4122"
 RESERVED_MICROSOFT: t.Final = "reserved for Microsoft compatibility"
