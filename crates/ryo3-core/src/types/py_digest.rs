@@ -10,24 +10,57 @@ pub struct PyDigest<T>(pub T);
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct PyHexDigest<T>(pub T);
 
+impl<T> PyDigest<T> {
+    #[inline]
+    #[must_use]
+    pub fn new(t: T) -> Self {
+        Self(t)
+    }
+
+    #[inline]
+    #[must_use]
+    pub fn inner(&self) -> &T {
+        &self.0
+    }
+
+    #[inline]
+    #[must_use]
+    pub fn into_inner(self) -> T {
+        self.0
+    }
+}
+
+impl<T> PyHexDigest<T> {
+    #[inline]
+    #[must_use]
+    pub fn new(t: T) -> Self {
+        Self(t)
+    }
+
+    #[inline]
+    #[must_use]
+    pub fn inner(&self) -> &T {
+        &self.0
+    }
+
+    #[inline]
+    #[must_use]
+    pub fn into_inner(self) -> T {
+        self.0
+    }
+}
+
 impl<T> From<T> for PyDigest<T> {
     #[inline]
     fn from(t: T) -> Self {
-        Self(t)
+        Self::new(t)
     }
 }
 
 impl<T> From<T> for PyHexDigest<T> {
     #[inline]
     fn from(t: T) -> Self {
-        Self(t)
-    }
-}
-
-impl<T> PyHexDigest<T> {
-    #[inline]
-    pub fn into_inner(self) -> T {
-        self.0
+        Self::new(t)
     }
 }
 
