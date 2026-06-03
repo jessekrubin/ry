@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import tomllib
 from pathlib import Path
 
@@ -41,6 +42,15 @@ def test_check_build_profile() -> None:
     assert ry.__build_profile__ in ("debug", "release"), (
         f"ry.__build_profile__ is not 'debug'/'release': {ry.__build_profile__}"
     )
+
+
+def test_git_sha_is_set_in_ci() -> None:
+    if os.environ.get("CI"):
+        assert ry.__git_sha__ != "unknown"
+
+    expected_git_sha = os.environ.get("RY_GIT_SHA")
+    if expected_git_sha:
+        assert ry.__git_sha__ == expected_git_sha
 
 
 def test_package_description_and_pyproject_match() -> None:

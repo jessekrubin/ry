@@ -11,10 +11,22 @@ use pyo3::types::{PyAny, PyDict};
 ///
 /// Big advantage is ref counts arent messed w/ so only use if you know the
 /// dict is not being modified during iteration
-pub(crate) struct BorrowedDictIter<'a, 'py> {
+pub struct BorrowedDictIter<'a, 'py> {
     dict: Borrowed<'a, 'py, PyDict>,
     ppos: ffi::Py_ssize_t,
     remaining: usize,
+}
+
+impl<'a, 'py> BorrowedDictIter<'a, 'py> {
+    #[must_use]
+    pub fn new(dict: Borrowed<'a, 'py, PyDict>) -> Self {
+        let len = dict.len();
+        BorrowedDictIter {
+            dict,
+            ppos: 0,
+            remaining: len,
+        }
+    }
 }
 
 impl<'a, 'py> Iterator for BorrowedDictIter<'a, 'py> {
@@ -67,16 +79,5 @@ impl<'a, 'py> Iterator for BorrowedDictIter<'a, 'py> {
 impl ExactSizeIterator for BorrowedDictIter<'_, '_> {
     fn len(&self) -> usize {
         self.remaining
-    }
-}
-
-impl<'a, 'py> BorrowedDictIter<'a, 'py> {
-    pub(crate) fn new(dict: Borrowed<'a, 'py, PyDict>) -> Self {
-        let len = dict.len();
-        BorrowedDictIter {
-            dict,
-            ppos: 0,
-            remaining: len,
-        }
     }
 }

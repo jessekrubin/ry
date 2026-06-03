@@ -74,6 +74,7 @@ python-source = "python"
 features = [ "pyo3/extension-module" ]
 module-name = "ry.ryo3"
 bindings = "pyo3"
+include = [ { path = "python/ry/.git-sha", format = "sdist" } ]
 
 [tool.uv]
 # UV problemo: https://github.com/astral-sh/setup-uv/issues/489

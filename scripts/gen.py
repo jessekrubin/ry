@@ -10,7 +10,7 @@ def eprint(*args: Any, **kwargs: Any) -> None:
     print(*args, **kwargs, file=sys.stderr)
 
 
-def main() -> None:
+def _gen_init() -> None:
     ry_all = ryo3.__all__  # type: ignore[attr-defined]
 
     eprint(ryo3.__description__)
@@ -28,7 +28,7 @@ def main() -> None:
     # import lines for __init__.py
     import_lines = [
         "from ry import ryo3",
-        "from ry.ryo3 import (  # type: ignore[deprecated]",
+        "from ry.ryo3 import (",
         *(f"    {x}," for x in all_tuple_sorted),
         ")",
     ]
@@ -46,6 +46,7 @@ def main() -> None:
         *import_lines,
         "",
         *package_all_list_lines,
+        "",  # empty final line
     ]
 
     # __init__.py string
@@ -56,9 +57,13 @@ def main() -> None:
         exec(init_string)  # noqa: S102
         sys.stdout.buffer.write(init_string.encode("utf-8"))
     except Exception as e:
-        print(init_string)
+        eprint(init_string)
         eprint(e)
         raise e from None
+
+
+def main() -> None:
+    _gen_init()
 
 
 if __name__ == "__main__":

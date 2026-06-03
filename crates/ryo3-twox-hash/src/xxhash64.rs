@@ -4,8 +4,9 @@ use pyo3::intern;
 use pyo3::prelude::*;
 use pyo3::types::PyString;
 use ryo3_bytes::ReadableBuffer;
+use ryo3_core::PyAsciiString;
+use ryo3_core::sync::RyMutex;
 use ryo3_core::types::{PyDigest, PyHexDigest};
-use ryo3_core::{PyAsciiString, RyMutex};
 use twox_hash::XxHash64 as XxHash3_64;
 
 const HASHLIB_GIL_MINSIZE: usize = 2048;

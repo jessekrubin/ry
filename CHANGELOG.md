@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## v0.0.95 [unreleased]
+
+- build
+  - fix cicd git-hash embedding
+
+---
+
 ## v0.0.94 [2026-06-03]
 
 - `ryo3-reqwest`

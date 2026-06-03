@@ -1,0 +1,24 @@
+name: ry-git-sha
+description: Export the release commit SHA and persist it for sdist builds.
+
+outputs:
+  sha:
+    description: The git SHA used for package build metadata.
+    value: ${{ steps.git-sha.outputs.sha }}
+
+runs:
+  using: composite
+  steps:
+    - id: git-sha
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        sha="${RY_GIT_SHA:-}"
+        if [ -z "$sha" ]; then
+          sha="$(git rev-parse HEAD)"
+        fi
+
+        printf 'RY_GIT_SHA=%s\n' "$sha" >> "$GITHUB_ENV"
+        printf '%s\n' "$sha" > python/ry/.git-sha
+        printf 'sha=%s\n' "$sha" >> "$GITHUB_OUTPUT"

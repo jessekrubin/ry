@@ -23,8 +23,9 @@ use aws_lc_rs::digest::{Context, Digest};
 use pyo3::prelude::*;
 use pyo3::types::PyString;
 use ryo3_bytes::ReadableBuffer;
+use ryo3_core::PyAsciiString;
+use ryo3_core::sync::RyMutex;
 use ryo3_core::types::PyHexDigest;
-use ryo3_core::{PyAsciiString, RyMutex};
 
 const HASHLIB_GIL_MINSIZE: usize = 2048;
 

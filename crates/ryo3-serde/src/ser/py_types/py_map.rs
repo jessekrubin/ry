@@ -6,7 +6,6 @@ use crate::constants::{Depth, MAX_DEPTH};
 use crate::errors::pyerr2sererr;
 use crate::ob_type::PyObType;
 use crate::ser::PySerializeContext;
-use crate::ser::borrowed_iter::BorrowedDictIter;
 use crate::ser::py_types::{
     PyBoolSerializer, PyBytesLikeSerializer, PyDateSerializer, PyDateTimeSerializer,
     PyFloatSerializer, PyFrozenSetSerializer, PyIntSerializer, PyListSerializer,
@@ -285,7 +284,7 @@ impl Serialize for PyDictSerializer<'_, '_> {
         let mut prev_ob_type = PyObType::Unknown;
 
         #[cfg(not(Py_GIL_DISABLED))]
-        for (map_key, map_val) in BorrowedDictIter::new(self.obj) {
+        for (map_key, map_val) in ryo3_core::py_dict::BorrowedDictIter::new(self.obj) {
             let type_ptr = map_val.get_type_ptr() as usize;
             let ob_type = if type_ptr == prev_ob_type_ptr {
                 prev_ob_type

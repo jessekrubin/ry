@@ -11,8 +11,9 @@ use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyTuple};
 use pyo3::{BoundObject, intern};
 use ryo3_bytes::{ReadableBuffer, RyBytes};
+use ryo3_core::sync::RyMutex;
 use ryo3_core::types::{PathLike, PyUtf8Bytes};
-use ryo3_core::{RyMutex, any_repr, py_type_err};
+use ryo3_core::{any_repr, py_type_err};
 use ryo3_macro_rules::pytodo;
 
 // separator

@@ -70,6 +70,7 @@ jobs:
           uv run maturin develop --profile fast-build
         env:
           RUST_BACKTRACE: 1
+      - run: uv run python -m ry
       - run: uv pip freeze
       - run: uv run pytest tests
 
