@@ -45,7 +45,7 @@ impl PyCookie {
         same_site = None,
         secure = None,
     ))]
-    #[expect(clippy::too_many_arguments)]
+    #[expect(clippy::too_many_arguments, reason = "python kwargs")]
     fn py_new(
         name: String,
         value: String,
@@ -119,10 +119,9 @@ impl PyCookie {
     }
 
     #[staticmethod]
-    #[pyo3(name = "parse")]
-    fn parse(s: &Bound<'_, PyAny>) -> PyResult<Self> {
-        use ryo3_core::PyParse;
-        Self::py_parse(s)
+    #[pyo3(signature = (value, /))]
+    fn parse(value: ryo3_core::PyParseArg<Self>) -> Self {
+        value.into_inner()
     }
 
     #[staticmethod]
@@ -139,7 +138,9 @@ impl PyCookie {
         if let Ok(cookie) = value.cast_exact::<Self>() {
             Ok(cookie.as_borrowed().into_bound())
         } else {
-            Self::parse(value).map(|cookie| cookie.into_pyobject(py))?
+            value
+                .extract::<ryo3_core::PyParseArg<Self>>()
+                .map(|arg| arg.into_inner().into_pyobject(py))?
         }
     }
 
@@ -147,6 +148,11 @@ impl PyCookie {
     // STR/REPR/FORMAT
     // ------------------------------------------------------------------------
     fn __str__(&self) -> String {
+        self.py_to_string()
+    }
+
+    #[pyo3(name = "to_string")]
+    fn py_to_string(&self) -> String {
         self.0.to_string()
     }
 

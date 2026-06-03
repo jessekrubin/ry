@@ -5,14 +5,13 @@ use std::path::{Path, PathBuf};
 
 use pyo3::basic::CompareOp;
 use pyo3::exceptions::{
-    PyFileExistsError, PyFileNotFoundError, PyNotADirectoryError, PyUnicodeDecodeError,
-    PyValueError,
+    PyFileExistsError, PyFileNotFoundError, PyNotADirectoryError, PyValueError,
 };
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyTuple};
-use pyo3::{BoundObject, IntoPyObjectExt, intern};
+use pyo3::{BoundObject, intern};
 use ryo3_bytes::{ReadableBuffer, RyBytes};
-use ryo3_core::types::PathLike;
+use ryo3_core::types::{PathLike, PyUtf8Bytes};
 use ryo3_core::{RyMutex, any_repr, py_type_err};
 use ryo3_macro_rules::pytodo;
 
@@ -321,13 +320,10 @@ impl PyFsPath {
     }
 
     #[getter]
-    fn stem(&self) -> PyResult<String> {
-        self.path()
-            .file_stem()
-            .map(|s| s.to_string_lossy().to_string())
-            .ok_or_else(|| {
-                PyValueError::new_err("stem() - path contains invalid unicode characters")
-            })
+    fn stem(&self) -> PyResult<&OsStr> {
+        self.path().file_stem().ok_or_else(|| {
+            PyValueError::new_err("stem() - path contains invalid unicode characters")
+        })
     }
 
     #[staticmethod]
@@ -368,15 +364,9 @@ impl PyFsPath {
         Ok(fbytes)
     }
 
-    fn read_text<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
+    fn read_text(&self, py: Python<'_>) -> PyResult<PyUtf8Bytes> {
         let fbytes = py.detach(|| std::fs::read(self.path()))?;
-        match std::str::from_utf8(&fbytes) {
-            Ok(s) => s.into_bound_py_any(py),
-            Err(e) => {
-                let decode_err = PyUnicodeDecodeError::new_utf8(py, &fbytes, e)?;
-                Err(decode_err.into())
-            }
-        }
+        Ok(fbytes.into())
     }
 
     fn write(&self, py: Python<'_>, data: ReadableBuffer) -> PyResult<usize> {

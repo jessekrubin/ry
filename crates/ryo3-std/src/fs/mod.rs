@@ -7,14 +7,12 @@ use std::sync::Mutex;
 use std::time::SystemTime;
 
 pub use file_type::PyFileType;
-use pyo3::exceptions::{
-    PyIOError, PyIsADirectoryError, PyNotADirectoryError, PyRuntimeError, PyUnicodeDecodeError,
-};
+use pyo3::exceptions::{PyIOError, PyIsADirectoryError, PyNotADirectoryError, PyRuntimeError};
+use pyo3::intern;
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyDict};
-use pyo3::{IntoPyObjectExt, intern};
 use ryo3_bytes::RyBytes;
-use ryo3_core::types::PathLike;
+use ryo3_core::types::{PathLike, PyUtf8Bytes};
 use ryo3_macro_rules::py_type_err;
 
 use crate::fs::file_read_stream::PyFileReadStream;
@@ -259,15 +257,9 @@ pub fn read_bytes(py: Python<'_>, path: PathLike) -> PyResult<Py<PyAny>> {
 }
 
 #[pyfunction]
-pub fn read_text(py: Python<'_>, path: PathLike) -> PyResult<Bound<'_, PyAny>> {
+pub fn read_text(py: Python<'_>, path: PathLike) -> PyResult<PyUtf8Bytes> {
     let fbytes = py.detach(|| std::fs::read(path))?;
-    match std::str::from_utf8(&fbytes) {
-        Ok(s) => s.into_bound_py_any(py),
-        Err(e) => {
-            let decode_err = PyUnicodeDecodeError::new_utf8(py, &fbytes, e)?;
-            Err(decode_err.into())
-        }
-    }
+    Ok(fbytes.into())
 }
 
 fn write_impl<P: AsRef<Path>, C: AsRef<[u8]>>(fspath: P, b: C) -> PyResult<usize> {

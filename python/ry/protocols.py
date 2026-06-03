@@ -39,14 +39,14 @@ class FromStr(t.Protocol):
     """Protocol for types that have a `.from_str()` class method."""
 
     @classmethod
-    def from_str(cls, s: str) -> t.Self: ...
+    def from_str(cls, s: str, /) -> t.Self: ...
 
 
 class _Parse(t.Protocol):
     """Protocol for types that have a `.parse()` class method."""
 
     @classmethod
-    def parse(cls, s: str | bytes) -> t.Self: ...
+    def parse(cls, value: str | bytes, /) -> t.Self: ...
 
 
 class ToString(t.Protocol):

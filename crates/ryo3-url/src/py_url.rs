@@ -51,15 +51,15 @@ impl PyUrl {
     }
 
     #[staticmethod]
-    fn from_str(s: &str) -> PyResult<Self> {
-        use ryo3_core::PyFromStr;
-        Self::py_from_str(s)
+    #[pyo3(signature = (s, /))]
+    fn from_str(s: ryo3_core::PyFromStrArg<Self>) -> Self {
+        s.into_inner()
     }
 
     #[staticmethod]
-    fn parse(s: &Bound<'_, PyAny>) -> PyResult<Self> {
-        use ryo3_core::PyParse;
-        Self::py_parse(s)
+    #[pyo3(signature = (value, /))]
+    fn parse(value: ryo3_core::PyParseArg<Self>) -> Self {
+        value.into_inner()
     }
 
     #[staticmethod]
@@ -179,30 +179,9 @@ impl PyUrl {
         self.0.domain()
     }
 
-    #[cfg(not(feature = "ryo3-std"))]
     #[getter]
-    fn host(&self) -> Option<&str> {
-        self.0.host_str()
-    }
-
-    #[cfg(feature = "ryo3-std")]
-    #[getter]
-    fn host<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
-        use pyo3::IntoPyObjectExt;
-        if let Some(host) = self.0.host() {
-            match host {
-                url::Host::Domain(d) => d.into_bound_py_any(py),
-                url::Host::Ipv4(ipv4) => {
-                    ryo3_std::net::PyIpv4Addr::from(ipv4).into_bound_py_any(py)
-                }
-                url::Host::Ipv6(ipv6) => {
-                    ryo3_std::net::PyIpv6Addr::from(ipv6).into_bound_py_any(py)
-                }
-            }
-        } else {
-            let n = py.None();
-            n.into_bound_py_any(py)
-        }
+    fn host(&self) -> Option<PyUrlHost<'_>> {
+        self.0.host().map(Into::into)
     }
 
     #[getter]
@@ -607,5 +586,43 @@ fn extract_ip_host(address: &Bound<'_, PyAny>) -> PyResult<IpAddr> {
         Ok(ip)
     } else {
         py_type_err!("Expected ipaddress.IPv4Address or ipaddress.IPv6Address",)
+    }
+}
+
+struct PyUrlHost<'a>(url::Host<&'a str>);
+
+impl<'a> From<url::Host<&'a str>> for PyUrlHost<'a> {
+    fn from(host: url::Host<&'a str>) -> Self {
+        Self(host)
+    }
+}
+
+impl<'py> IntoPyObject<'py> for PyUrlHost<'py> {
+    type Target = PyAny;
+
+    type Output = Bound<'py, PyAny>;
+
+    type Error = PyErr;
+
+    fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
+        use pyo3::IntoPyObjectExt;
+
+        #[cfg(feature = "ryo3-std")]
+        {
+            use ryo3_std::net::{PyIpv4Addr, PyIpv6Addr};
+            match self.0 {
+                url::Host::Domain(s) => s.into_bound_py_any(py),
+                url::Host::Ipv4(addr) => PyIpv4Addr::from(addr).into_bound_py_any(py),
+                url::Host::Ipv6(addr) => PyIpv6Addr::from(addr).into_bound_py_any(py),
+            }
+        }
+        #[cfg(not(feature = "ryo3-std"))]
+        {
+            match self.0 {
+                url::Host::Domain(s) => s.into_bound_py_any(py),
+                url::Host::Ipv4(addr) => addr.into_bound_py_any(py),
+                url::Host::Ipv6(addr) => addr.into_bound_py_any(py),
+            }
+        }
     }
 }

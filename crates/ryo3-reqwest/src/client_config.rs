@@ -1,7 +1,8 @@
 use pyo3::intern;
 use pyo3::prelude::*;
-use pyo3::types::PyDict;
+use pyo3::types::{PyDict, PyString};
 use reqwest::header::HeaderValue;
+use ryo3_core::pystr_read_fast;
 use ryo3_http::{PyHeaders, PyHeadersLike};
 use ryo3_macro_rules::{py_type_err, py_value_error};
 use ryo3_std::time::{PyDuration, PyTimeout};
@@ -160,9 +161,9 @@ impl<'py> FromPyObject<'_, 'py> for ClientConfig {
         let mut cfg = Self::default();
 
         for (k, v) in dict.iter() {
-            // TODO: move the fast_pystr_read from ryo3-serde to `ryo3-core` and use that
-            // here
-            let key_str = k.extract::<&str>()?;
+            let key = k.cast_exact::<PyString>()?;
+            let key = key.as_borrowed();
+            let key_str = pystr_read_fast(key)?;
             match key_str {
                 "headers" => {
                     cfg.headers = v.extract::<Option<PyHeadersLike>>()?.map(PyHeaders::from);

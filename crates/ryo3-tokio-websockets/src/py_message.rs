@@ -246,12 +246,8 @@ impl PyWsMessage {
     }
 
     #[getter]
-    fn data<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
-        if let Some(text) = self.0.as_text() {
-            text.into_bound_py_any(py)
-        } else {
-            RyBytes::from(self.payload_bytes()).into_bound_py_any(py)
-        }
+    fn data(&self) -> PyPayLoadData<'_> {
+        self.into()
     }
 
     #[getter]
@@ -288,6 +284,36 @@ impl std::fmt::Display for PyWsMessage {
             write!(f, "WsMessage.pong({:?})", self.payload_bytes())
         } else {
             write!(f, "WsMessage(unknown)")
+        }
+    }
+}
+
+enum PyPayLoadData<'a> {
+    Text(&'a str),
+    Binary(Bytes),
+}
+
+impl<'a> From<&'a PyWsMessage> for PyPayLoadData<'a> {
+    fn from(msg: &'a PyWsMessage) -> Self {
+        if let Some(text) = msg.0.as_text() {
+            Self::Text(text)
+        } else {
+            Self::Binary(msg.payload_bytes())
+        }
+    }
+}
+
+impl<'py> IntoPyObject<'py> for PyPayLoadData<'py> {
+    type Target = PyAny;
+
+    type Output = Bound<'py, PyAny>;
+
+    type Error = PyErr;
+
+    fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
+        match self {
+            PyPayLoadData::Text(s) => s.into_bound_py_any(py),
+            PyPayLoadData::Binary(b) => RyBytes::from(b).into_bound_py_any(py),
         }
     }
 }

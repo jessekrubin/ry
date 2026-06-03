@@ -79,7 +79,7 @@ class Size(FromStr, _Parse):
     # PARSING
     # -------------------------------------------------------------------------
     @classmethod
-    def parse(cls, s: str | builtins.bytes) -> Size: ...
+    def parse(cls, value: str | builtins.bytes, /) -> Size: ...
     @classmethod
     def from_str(cls, s: str) -> Size: ...
 
@@ -182,3 +182,43 @@ class Size(FromStr, _Parse):
     def __hash__(self) -> int: ...
     def __bool__(self) -> bool: ...
     def __int__(self) -> int: ...
+
+    # -------------------------------------------------------------------------
+    # CONSTANTS
+    # -------------------------------------------------------------------------
+    ZERO: t.Final[Size]  # Size(0)
+    MAX: t.Final[Size]  # Size(9_223_372_036_854_775_807)
+    MIN: t.Final[Size]  # Size(-9_223_372_036_854_775_808)
+    # byte
+    B: t.Final[Size]  # Size(1)
+    BYTE: t.Final[Size]  # Size(1)
+    # kilobyte
+    KB: t.Final[Size]  # Size(1_000)
+    KIB: t.Final[Size]  # Size(1_024)
+    KIBIBYTE: t.Final[Size]  # Size(1_024)
+    KILOBYTE: t.Final[Size]  # Size(1_000)
+    # megabyte
+    MB: t.Final[Size]  # Size(1_000_000)
+    MEBIBYTE: t.Final[Size]  # Size(1_048_576)
+    MEGABYTE: t.Final[Size]  # Size(1_000_000)
+    MIB: t.Final[Size]  # Size(1_048_576)
+    # gigabyte
+    GB: t.Final[Size]  # Size(1_000_000_000)
+    GIB: t.Final[Size]  # Size(1_073_741_824)
+    GIBIBYTE: t.Final[Size]  # Size(1_073_741_824)
+    GIGABYTE: t.Final[Size]  # Size(1_000_000_000)
+    # terabyte
+    TB: t.Final[Size]  # Size(1_000_000_000_000)
+    TEBIBYTE: t.Final[Size]  # Size(1_099_511_627_776)
+    TERABYTE: t.Final[Size]  # Size(1_000_000_000_000)
+    TIB: t.Final[Size]  # Size(1_099_511_627_776)
+    # petabyte
+    PB: t.Final[Size]  # Size(1_000_000_000_000_000)
+    PEBIBYTE: t.Final[Size]  # Size(1_125_899_906_842_624)
+    PETABYTE: t.Final[Size]  # Size(1_000_000_000_000_000)
+    PIB: t.Final[Size]  # Size(1_125_899_906_842_624)
+    # exabyte
+    EB: t.Final[Size]  # Size(1_000_000_000_000_000_000)
+    EIB: t.Final[Size]  # Size(1_152_921_504_606_846_976)
+    EXABYTE: t.Final[Size]  # Size(1_000_000_000_000_000_000)
+    EXBIBYTE: t.Final[Size]  # Size(1_152_921_504_606_846_976)

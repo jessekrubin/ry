@@ -1,6 +1,6 @@
 use pyo3::prelude::*;
 
-use crate::{PyCastExactOpt, map_py_value_err};
+use crate::{PyCastExactOpt, map_py_value_err, pystr_read_fast};
 
 pub trait PyFromStr: Sized {
     /// Parse from a string (basically `FromStr` but maps errors to `PyResult`)
@@ -22,7 +22,7 @@ where
 /// Trait for parsing from Python objects (str or bytes)
 pub trait PyParse: Sized {
     /// Parse from a string/bytes
-    fn py_parse(ob: &Bound<'_, PyAny>) -> PyResult<Self>;
+    fn py_parse(ob: Borrowed<'_, '_, PyAny>) -> PyResult<Self>;
 }
 
 /// Blanket impl for any type that implements `PyFromStr`
@@ -31,11 +31,11 @@ where
     T: PyFromStr,
 {
     #[inline]
-    fn py_parse(ob: &Bound<'_, PyAny>) -> PyResult<Self> {
+    fn py_parse(ob: Borrowed<'_, '_, PyAny>) -> PyResult<Self> {
         // TODO (non-fugue-state-jesse): add support for bytearray/memview/buffer
         // protocol?
         if let Some(s) = ob.cast_exact_opt::<pyo3::types::PyString>() {
-            let s = s.to_str()?;
+            let s = pystr_read_fast(s)?;
             T::py_from_str(s).map_err(map_py_value_err)
         } else if let Some(b) = ob.cast_exact_opt::<pyo3::types::PyBytes>() {
             let s = std::str::from_utf8(b.as_bytes())?;
@@ -45,6 +45,39 @@ where
                 "Expected a str or bytes object",
             ))
         }
+    }
+}
+
+pub struct PyFromStrArg<T>(T);
+
+impl<T> PyFromStrArg<T> {
+    #[inline]
+    pub fn into_inner(self) -> T {
+        self.0
+    }
+}
+
+impl<'a, 'py, T> FromPyObject<'a, 'py> for PyFromStrArg<T>
+where
+    T: PyFromStr,
+{
+    type Error = PyErr;
+
+    #[inline]
+    fn extract(obj: Borrowed<'a, 'py, PyAny>) -> PyResult<Self> {
+        // TODO (non-fugue-state-jesse): add support for bytearray/memview/buffer
+        // protocol?
+        if let Some(s) = obj.cast_exact_opt::<pyo3::types::PyString>() {
+            let s = pystr_read_fast(s)?;
+            return T::py_from_str(s).map_err(map_py_value_err).map(Self);
+        }
+
+        // extract subclass
+        if let Ok(s) = obj.extract::<&str>() {
+            return T::py_from_str(s).map_err(map_py_value_err).map(Self);
+        }
+
+        Err(pyo3::exceptions::PyTypeError::new_err("Expected a str"))
     }
 }
 
@@ -59,8 +92,7 @@ where
 
     #[inline]
     fn extract(obj: Borrowed<'a, 'py, PyAny>) -> PyResult<Self> {
-        let val = PyParse::py_parse(&obj)?;
-        Ok(Self(val))
+        PyParse::py_parse(obj).map(Self)
     }
 }
 
