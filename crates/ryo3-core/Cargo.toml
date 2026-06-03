@@ -19,5 +19,9 @@ ryo3-macro-rules = { workspace = true }
 [build-dependencies]
 pyo3-build-config = { workspace = true }
 
+[features]
+default = []
+experimental-inspect = ["pyo3/experimental-inspect"]
+
 [lints]
 workspace = true
