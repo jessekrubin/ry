@@ -27,7 +27,7 @@ fn gen_new() -> PyResult<Ulid> {
 }
 
 #[pyclass(name = "ULID", frozen, immutable_type, skip_from_py_object, weakref)]
-#[cfg_attr(feature = "ry", pyo3(module = "ry.ulid"))]
+#[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[cfg_attr(feature = "serde", derive(serde::Serialize), serde(transparent))]
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct PyUlid(Ulid);

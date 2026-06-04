@@ -27,35 +27,27 @@ macro_rules! dirs_pyfunction (
     ($name:ident, $dirs_fn:ident, $doc:expr) => {
         #[pyfunction]
         #[doc = $doc]
-        #[must_use] pub fn $name() -> Option<String> {
-            dirs::$dirs_fn().map(|p| {
-                p.to_string_lossy().to_string()
-            })
+        #[must_use] pub fn $name() -> Option<std::ffi::OsString> {
+            dirs::$dirs_fn().map(::std::path::PathBuf::into_os_string)
         }
 
         #[pyfunction]
         #[doc = $doc]
-        #[must_use] pub fn $dirs_fn() -> Option<String> {
-            dirs::$dirs_fn().map(|p| {
-                p.to_string_lossy().to_string()
-            })
+        #[must_use] pub fn $dirs_fn() -> Option<std::ffi::OsString> {
+            dirs::$dirs_fn().map(::std::path::PathBuf::into_os_string)
         }
     };
     ($name:ident, $dirs_fn:ident) => {
         #[pyfunction]
         #[must_use]
-        pub fn $name() -> Option<String> {
-            dirs::$dirs_fn().map(|p| {
-                p.to_string_lossy().to_string()
-            })
+        pub fn $name() -> Option<std::ffi::OsString> {
+            dirs::$dirs_fn().map(::std::path::PathBuf::into_os_string)
         }
 
         #[pyfunction]
         #[must_use]
-        pub fn $dirs_fn() -> Option<String> {
-            dirs::$dirs_fn().map(|p| {
-                p.to_string_lossy().to_string()
-            })
+        pub fn $dirs_fn() -> Option<std::ffi::OsString> {
+            dirs::$dirs_fn().map(::std::path::PathBuf::into_os_string)
         }
     };
 );
@@ -63,7 +55,7 @@ macro_rules! dirs_pyfunction (
 dirs_pyfunction!(
     home,
     home_dir,
-    r"Return home directory string or None.
+    r"Return home directory or None.
 
 lin: `Some($HOME)`
 win: `Some({FOLDERID_Profile})`
@@ -74,7 +66,7 @@ mac: `Some($HOME)`
 dirs_pyfunction!(
     cache,
     cache_dir,
-    r"Return cache directory string or None.
+    r"Return cache directory or None.
     lin: `Some($XDG_CACHE_HOME)` or `Some($HOME/.cache)`
     win: `Some({FOLDERID_LocalAppData})`
     mac: `Some($HOME/Library/Caches)`

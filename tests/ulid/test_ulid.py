@@ -15,7 +15,7 @@ import uuid
 import pytest
 
 import ry
-from ry.ulid import ULID
+from ry import ULID
 
 if t.TYPE_CHECKING:
     from collections.abc import Callable
@@ -39,9 +39,7 @@ def test_ulid() -> None:
     assert len(ulid.bytes) == 16
     assert len(str(ulid)) == (10 + 16)
 
-    assert isinstance(ulid.to_uuid(), uuid.UUID) or isinstance(
-        ulid.to_uuid4(), ry.uuid.UUID
-    )
+    assert isinstance(ulid.to_uuid(), uuid.UUID) or isinstance(ulid.to_uuid4(), ry.UUID)
 
     assert isinstance(ulid.timestamp, float)
     assert ulid.timestamp == pytest.approx(t)

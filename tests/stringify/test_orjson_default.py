@@ -21,9 +21,9 @@ pytest_mark_skip_orjson = pytest.mark.skipif(
 
 RYTYPES_JSON_SER = {
     # uuid ~ ryo3-uuid
-    "uuid": ry.uuid.UUID("88475448-f091-42ef-b574-2452952931c1"),
+    "uuid": ry.UUID("88475448-f091-42ef-b574-2452952931c1"),
     # ulid ~ ryo3-ulid
-    "ulid": ry.ulid.ULID("01H7Z5F8Y3V9G4J6K8D5E6F7G8"),
+    "ulid": ry.ULID("01H7Z5F8Y3V9G4J6K8D5E6F7G8"),
     # url ~ ryo3-url
     "url": ry.URL("https://example.com"),
     # http

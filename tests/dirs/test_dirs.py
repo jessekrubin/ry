@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import pytest
 
+import ry
 from ry import dirs
 
 fns = (
@@ -50,6 +51,13 @@ fns = (
 def test_dirs_fn_exists(fn: str) -> None:
     assert hasattr(dirs, fn)
     fn = getattr(dirs, fn)
+    assert callable(fn)
+
+
+@pytest.mark.parametrize("fn", [e for e in fns if e.endswith("_dir")])
+def test_dirs_w_suffix_in_ry_root(fn: str) -> None:
+    assert hasattr(ry, fn)
+    fn = getattr(ry, fn)
     assert callable(fn)
 
 

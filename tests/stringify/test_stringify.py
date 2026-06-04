@@ -232,7 +232,7 @@ def test_uuid() -> None:
     """Test that `ry.stringify` handles UUIDs correctly as values"""
     data = {
         "py_uuid": pyuuid.UUID("88475448-f091-42ef-b574-2452952931c1"),
-        "ry_uuid": ry.uuid.UUID("88475448-f091-42ef-b574-2452952931c1"),
+        "ry_uuid": ry.UUID("88475448-f091-42ef-b574-2452952931c1"),
     }
     json_bytes = ry.stringify(data)
     parsed = ry.parse_json(json_bytes)
@@ -246,7 +246,7 @@ def test_uuid_keys() -> None:
     data = {
         # as keys - different namespaces bc diff keys
         pyuuid.NAMESPACE_DNS: "py",
-        ry.uuid.NAMESPACE_URL: "ry",
+        ry.UUID.NAMESPACE_URL: "ry",
     }
     with pytest.raises(TypeError):
         _json_bytes = ry.stringify(data)
@@ -294,9 +294,9 @@ RYTYPES_JSON_SER = {
     # std-time
     "duration": ry.Duration(secs=1),
     # uuid ~ ryo3-uuid
-    "uuid": ry.uuid.UUID("88475448-f091-42ef-b574-2452952931c1"),
+    "uuid": ry.UUID("88475448-f091-42ef-b574-2452952931c1"),
     # ulid ~ ryo3-ulid
-    "ulid": ry.ulid.ULID("01H7Z5F8Y3V9G4J6K8D5E6F7G8"),
+    "ulid": ry.ULID("01H7Z5F8Y3V9G4J6K8D5E6F7G8"),
     # url ~ ryo3-url
     "url": ry.URL("https://example.com"),
     # http

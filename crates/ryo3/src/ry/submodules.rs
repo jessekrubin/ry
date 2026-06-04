@@ -2,20 +2,6 @@ use pyo3::intern;
 use pyo3::prelude::*;
 use pyo3::types::PyDict;
 
-#[cfg(feature = "dirs")]
-#[pymodule(gil_used = false, submodule, name = "dirs")]
-pub fn dirs_module(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    ryo3_dirs::pysubmod_add(m)?;
-    Ok(())
-}
-
-#[cfg(feature = "uuid")]
-#[pymodule(gil_used = false, name = "uuid")]
-pub fn uuid(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    ryo3_uuid::pysubmod_add(m)?;
-    Ok(())
-}
-
 #[cfg(feature = "twox-hash")]
 #[pymodule(gil_used = false, submodule, name = "xxhash")]
 pub fn twox_hash(m: &Bound<'_, PyModule>) -> PyResult<()> {
@@ -42,30 +28,13 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     let attr = m.getattr(intern!(py, "JSON"))?;
     attr.setattr(intern!(py, "__name__"), intern!(py, "ry.JSON"))?;
 
-    #[cfg(feature = "dirs")]
-    m.add_wrapped(pyo3::wrap_pymodule!(dirs_module))?;
-
-    #[cfg(feature = "uuid")]
-    m.add_wrapped(pyo3::wrap_pymodule!(uuid))?;
-
-    // #[cfg(feature = "xxhash")]
-    // m.add_wrapped(pyo3::wrap_pymodule!(xxhash))?;
     #[cfg(feature = "twox-hash")]
     m.add_wrapped(pyo3::wrap_pymodule!(twox_hash))?;
-
-    sys_modules.set_item(intern!(py, "ry.dirs"), m.getattr(intern!(py, "dirs"))?)?;
-    let attr = m.getattr(intern!(py, "dirs"))?;
-    attr.setattr(intern!(py, "__name__"), intern!(py, "ry.dirs"))?;
 
     // JSON
     sys_modules.set_item(intern!(py, "ry.JSON"), m.getattr(intern!(py, "JSON"))?)?;
     let attr = m.getattr(intern!(py, "JSON"))?;
     attr.setattr(intern!(py, "__name__"), intern!(py, "ry.JSON"))?;
-
-    // uuid
-    sys_modules.set_item(intern!(py, "ry.uuid"), m.getattr(intern!(py, "uuid"))?)?;
-    m.getattr(intern!(py, "uuid"))
-        .and_then(|attr| attr.setattr(intern!(py, "__name__"), intern!(py, "ry.uuid")))?;
 
     // xxhash
     sys_modules.set_item(intern!(py, "ry.xxhash"), m.getattr(intern!(py, "xxhash"))?)?;

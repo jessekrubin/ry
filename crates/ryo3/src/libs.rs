@@ -12,6 +12,8 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     ryo3_bytes::pymod_add(m)?;
     #[cfg(feature = "cookie")]
     ryo3_cookie::pymod_add(m)?;
+    #[cfg(feature = "dirs")]
+    ryo3_dirs::pymod_add(m)?;
     #[cfg(feature = "flate2")]
     ryo3_flate2::pymod_add(m)?;
     #[cfg(feature = "fnv")]
