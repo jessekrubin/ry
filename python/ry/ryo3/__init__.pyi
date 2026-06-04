@@ -130,6 +130,7 @@ from ry.ryo3._memchr import memchr3 as memchr3
 from ry.ryo3._memchr import memrchr as memrchr
 from ry.ryo3._memchr import memrchr2 as memrchr2
 from ry.ryo3._memchr import memrchr3 as memrchr3
+from ry.ryo3._orjson import orjson_default as orjson_default
 from ry.ryo3._quick_maths import quick_maths as quick_maths
 from ry.ryo3._regex import Regex as Regex
 from ry.ryo3._reqwest import BlockingClient as BlockingClient
@@ -299,4 +300,3 @@ from ry.ryo3._zstd import zstd_decode as zstd_decode
 from ry.ryo3._zstd import zstd_decompress as zstd_decompress
 from ry.ryo3._zstd import zstd_encode as zstd_encode
 from ry.ryo3.JSON import stringify as stringify
-from ry.ryo3.orjson import orjson_default as orjson_default

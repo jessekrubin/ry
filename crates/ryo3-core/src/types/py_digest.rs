@@ -109,6 +109,51 @@ fn encode_hex_ref<const N: usize, const S: usize>(bytes: &[u8; N]) -> [u8; S] {
     out
 }
 
+/// SUPA UNSAFE function to create a hex digest string from a digest byte array
+#[inline]
+fn pystring_hex_digest<'py, const N: usize>(
+    py: Python<'py>,
+    digest: &[u8; N],
+) -> Bound<'py, PyString> {
+    let hex_len = N * 2;
+    debug_assert!(
+        digest.len() == N,
+        "Digest length does not match expected size: {} != {}",
+        digest.len(),
+        N
+    );
+    #[cfg(not(any(PyPy, GraalPy, Py_LIMITED_API)))]
+    {
+        #[expect(unsafe_code, clippy::cast_possible_wrap)]
+        unsafe {
+            let ptr = pyo3::ffi::PyUnicode_New(hex_len as isize, 127);
+            debug_assert_eq!(
+                pyo3::ffi::PyUnicode_KIND(ptr),
+                pyo3::ffi::PyUnicode_1BYTE_KIND
+            );
+            let out = pyo3::ffi::PyUnicode_DATA(ptr).cast::<u8>();
+            for (i, &b) in digest.iter().enumerate() {
+                *out.add(i * 2) = HEX_CHARS_LOWER[(b >> 4) as usize];
+                *out.add(i * 2 + 1) = HEX_CHARS_LOWER[(b & 0x0f) as usize];
+            }
+            core::ptr::write(out.add(hex_len), 0);
+            Bound::from_owned_ptr(py, ptr).cast_into_unchecked()
+        }
+    }
+
+    #[cfg(any(PyPy, GraalPy, Py_LIMITED_API))]
+    {
+        let mut out = vec![0u8; hex_len];
+        for (i, &b) in digest.iter().enumerate() {
+            out[i * 2] = HEX_CHARS_LOWER[(b >> 4) as usize];
+            out[i * 2 + 1] = HEX_CHARS_LOWER[(b & 0x0f) as usize];
+        }
+        #[expect(unsafe_code)]
+        let s = unsafe { std::str::from_utf8_unchecked(&out) };
+        pystring_fast_new_ascii(py, s)
+    }
+}
+
 impl<'py> IntoPyObject<'py> for PyHexDigest<u32> {
     type Target = PyString;
     type Output = Bound<'py, Self::Target>;
@@ -170,6 +215,17 @@ macro_rules! impl_into_py_object_for_bytes_digest {
             }
         }
     };
+}
+
+impl<'py, const SIZE: usize> IntoPyObject<'py> for PyHexDigest<&[u8; SIZE]> {
+    type Target = PyString;
+    type Output = Bound<'py, Self::Target>;
+    type Error = std::convert::Infallible;
+
+    #[inline]
+    fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
+        Ok(pystring_hex_digest(py, self.0))
+    }
 }
 
 impl_into_py_object_for_bytes_digest!(bin_size = 20, hex_size = 40);

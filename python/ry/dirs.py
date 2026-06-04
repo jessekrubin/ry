@@ -1,4 +1,5 @@
 import sys
+import typing as t
 
 if sys.version_info >= (3, 13):
     from warnings import deprecated
@@ -31,64 +32,38 @@ deprecated(
     "`ry.dirs` is deprecated; use `ry.*_dir` functions instead [removal: 0.0.96]"
 )
 
-audio = deprecated(
-    "`ry.audio` is deprecated; use `ry.audio_dir` instead [removal: 0.0.96]"
-)(audio_dir)
-cache = deprecated(
-    "`ry.cache` is deprecated; use `ry.cache_dir` instead [removal: 0.0.96]"
-)(cache_dir)
-config = deprecated(
-    "`ry.config` is deprecated; use `ry.config_dir` instead [removal: 0.0.96]"
-)(config_dir)
-config_local = deprecated(
-    "`ry.config_local` is deprecated; use `ry.config_local_dir` instead [removal: 0.0.96]"
-)(config_local_dir)
-data = deprecated(
-    "`ry.data` is deprecated; use `ry.data_dir` instead [removal: 0.0.96]"
-)(data_dir)
-data_local = deprecated(
-    "`ry.data_local` is deprecated; use `ry.data_local_dir` instead [removal: 0.0.96]"
-)(data_local_dir)
-desktop = deprecated(
-    "`ry.desktop` is deprecated; use `ry.desktop_dir` instead [removal: 0.0.96]"
-)(desktop_dir)
-document = deprecated(
-    "`ry.document` is deprecated; use `ry.document_dir` instead [removal: 0.0.96]"
-)(document_dir)
-download = deprecated(
-    "`ry.download` is deprecated; use `ry.download_dir` instead [removal: 0.0.96]"
-)(download_dir)
-executable = deprecated(
-    "`ry.executable` is deprecated; use `ry.executable_dir` instead [removal: 0.0.96]"
-)(executable_dir)
-font = deprecated(
-    "`ry.font` is deprecated; use `ry.font_dir` instead [removal: 0.0.96]"
-)(font_dir)
-home = deprecated(
-    "`ry.home` is deprecated; use `ry.home_dir` instead [removal: 0.0.96]"
-)(home_dir)
-picture = deprecated(
-    "`ry.picture` is deprecated; use `ry.picture_dir` instead [removal: 0.0.96]"
-)(picture_dir)
-preference = deprecated(
-    "`ry.preference` is deprecated; use `ry.preference_dir` instead [removal: 0.0.96]"
-)(preference_dir)
-public = deprecated(
-    "`ry.public` is deprecated; use `ry.public_dir` instead [removal: 0.0.96]"
-)(public_dir)
-runtime = deprecated(
-    "`ry.runtime` is deprecated; use `ry.runtime_dir` instead [removal: 0.0.96]"
-)(runtime_dir)
-state = deprecated(
-    "`ry.state` is deprecated; use `ry.state_dir` instead [removal: 0.0.96]"
-)(state_dir)
-template = deprecated(
-    "`ry.template` is deprecated; use `ry.template_dir` instead [removal: 0.0.96]"
-)(template_dir)
-video = deprecated(
-    "`ry.video` is deprecated; use `ry.video_dir` instead [removal: 0.0.96]"
-)(video_dir)
 
+def _deprecated_dir_fn(
+    name: str, dir_fn: t.Callable[[], str | None]
+) -> t.Callable[[], str | None]:
+    # @
+    def _dir_fn() -> str | None:
+        return dir_fn()
+
+    return deprecated(
+        f"`ry.dirs.{name}` is deprecated; use `ry.{name}_dir` instead [removal: 0.0.96]"  # type: ignore
+    )(_dir_fn)
+
+
+audio = _deprecated_dir_fn("audio", audio_dir)
+cache = _deprecated_dir_fn("cache", cache_dir)
+config = _deprecated_dir_fn("config", config_dir)
+config_local = _deprecated_dir_fn("config_local", config_local_dir)
+data = _deprecated_dir_fn("data", data_dir)
+data_local = _deprecated_dir_fn("data_local", data_local_dir)
+desktop = _deprecated_dir_fn("desktop", desktop_dir)
+document = _deprecated_dir_fn("document", document_dir)
+download = _deprecated_dir_fn("download", download_dir)
+executable = _deprecated_dir_fn("executable", executable_dir)
+font = _deprecated_dir_fn("font", font_dir)
+home = _deprecated_dir_fn("home", home_dir)
+picture = _deprecated_dir_fn("picture", picture_dir)
+preference = _deprecated_dir_fn("preference", preference_dir)
+public = _deprecated_dir_fn("public", public_dir)
+runtime = _deprecated_dir_fn("runtime", runtime_dir)
+state = _deprecated_dir_fn("state", state_dir)
+template = _deprecated_dir_fn("template", template_dir)
+video = _deprecated_dir_fn("video", video_dir)
 __all__ = (
     "audio",
     "audio_dir",

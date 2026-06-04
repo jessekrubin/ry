@@ -63,5 +63,11 @@ def test_dirs_w_suffix_in_ry_root(fn: str) -> None:
 
 @pytest.mark.parametrize("fn", fns)
 def test_dirs_fn_is_str_or_none(fn: str) -> None:
-    res = getattr(dirs, fn)()
+    # supress warnings
+    if not fn.endswith("_dir"):
+        msg = rf"`ry.dirs.{fn}` is deprecated; use `ry.{fn}_dir` instead \[removal: 0\.0\.96\]"
+        with pytest.warns(DeprecationWarning, match=msg):
+            res = getattr(dirs, fn)()
+    else:
+        res = getattr(dirs, fn)()
     assert res is None or isinstance(res, str)
