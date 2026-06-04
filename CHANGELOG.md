@@ -20,6 +20,8 @@
     - `ry.xxh3_64.oneshot_hex(data, *, seed=0, secret=...) -> str`
     - `ry.xxh3_128.oneshot_int(data, *, seed=0, secret=...) -> int`
     - `ry.xxh3_128.oneshot_hex(data, *, seed=0, secret=...) -> str`
+- `ryo3-uuid`
+  - added `ry.UUID.NIL` and `ry.UUID.MAX` as the nil and max UUID values
 
 ---
 

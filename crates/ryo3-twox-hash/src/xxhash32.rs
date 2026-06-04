@@ -156,21 +156,18 @@ impl PyXxHash32 {
 // ====================================================================================
 // ONCE SHOT FUNCTIONS
 // ====================================================================================
-#[expect(clippy::needless_pass_by_value)]
 #[pyfunction]
 #[pyo3(signature = (data, *, seed = 0))]
 pub fn xxh32_digest(py: Python<'_>, data: ReadableBuffer, seed: u32) -> PyDigest<u32> {
     PyXxHash32::oneshot(py, data, seed)
 }
 
-#[expect(clippy::needless_pass_by_value)]
 #[pyfunction]
 #[pyo3(signature = (data, *, seed = 0))]
 pub fn xxh32_intdigest(py: Python<'_>, data: ReadableBuffer, seed: u32) -> u32 {
     PyXxHash32::oneshot_int(py, data, seed)
 }
 
-#[expect(clippy::needless_pass_by_value)]
 #[pyfunction]
 #[pyo3(signature = (data, *, seed = 0))]
 pub fn xxh32_hexdigest(py: Python<'_>, data: ReadableBuffer, seed: u32) -> PyHexDigest<u32> {

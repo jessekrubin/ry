@@ -153,21 +153,18 @@ impl PyXxHash64 {
     }
 }
 
-#[expect(clippy::needless_pass_by_value)]
 #[pyfunction]
 #[pyo3(signature = (data, *, seed = 0))]
 pub fn xxh64_digest(py: Python<'_>, data: ReadableBuffer, seed: u64) -> PyDigest<u64> {
     PyXxHash64::oneshot(py, data, seed)
 }
 
-#[expect(clippy::needless_pass_by_value)]
 #[pyfunction]
 #[pyo3(signature = (data, *, seed = 0))]
 pub fn xxh64_intdigest(py: Python<'_>, data: ReadableBuffer, seed: u64) -> u64 {
     PyXxHash64::oneshot_int(py, data, seed)
 }
 
-#[expect(clippy::needless_pass_by_value)]
 #[pyfunction]
 #[pyo3(signature = (data, *, seed = 0))]
 pub fn xxh64_hexdigest(py: Python<'_>, data: ReadableBuffer, seed: u64) -> PyHexDigest<u64> {

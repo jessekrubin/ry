@@ -144,8 +144,14 @@ pub fn pymod_register_no_suffix(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(video, m)?)?;
     Ok(())
 }
-pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
+
+pub fn pysubmod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     pymod_register_suffix(m)?;
     pymod_register_no_suffix(m)?;
+    Ok(())
+}
+
+pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
+    pymod_register_suffix(m)?;
     Ok(())
 }
