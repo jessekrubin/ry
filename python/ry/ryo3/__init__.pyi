@@ -1,7 +1,6 @@
 """ry api ~ type annotations"""
 
 from ry.ryo3 import JSON as JSON
-from ry.ryo3 import uuid as uuid
 from ry.ryo3 import xxhash as xxhash
 from ry.ryo3 import zstd as zstd
 from ry.ryo3.__about__ import __allocator__ as __allocator__

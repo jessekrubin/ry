@@ -226,6 +226,7 @@ impl PyUlid {
     }
 
     #[staticmethod]
+    #[pyo3(signature = (s, /))]
     fn from_string(s: &str) -> PyResult<Self> {
         Self::from_str(s)
     }

@@ -278,22 +278,30 @@ impl PyBytes {
     /// If the binary data starts with the prefix string, return bytes[len(prefix):]. Otherwise,
     /// return a copy of the original binary data:
     #[pyo3(signature = (prefix, /))]
-    fn removeprefix(&self, prefix: ReadableBuffer) -> Self {
-        if self.0.starts_with(prefix.as_ref()) {
-            self.0.slice(prefix.len()..).into()
+    fn removeprefix<'py>(
+        slf: PyRef<'py, Self>,
+        prefix: ReadableBuffer,
+    ) -> PyResult<Bound<'py, Self>> {
+        if slf.0.starts_with(prefix.as_ref()) {
+            Self::new(slf.0.slice(prefix.len()..)).into_pyobject(slf.py())
         } else {
-            self.0.clone().into()
+            let py = slf.py();
+            slf.into_pyobject_or_pyerr(py)
         }
     }
 
     /// If the binary data ends with the suffix string and that suffix is not empty, return
     /// `bytes[:-len(suffix)]`. Otherwise, return the original binary data.
     #[pyo3(signature = (suffix, /))]
-    fn removesuffix(&self, suffix: ReadableBuffer) -> Self {
-        if self.0.ends_with(suffix.as_ref()) {
-            self.0.slice(0..self.0.len() - suffix.len()).into()
+    fn removesuffix<'py>(
+        slf: PyRef<'py, Self>,
+        suffix: ReadableBuffer,
+    ) -> PyResult<Bound<'py, Self>> {
+        if slf.0.ends_with(suffix.as_ref()) {
+            Self::new(slf.0.slice(0..slf.0.len() - suffix.len())).into_pyobject(slf.py())
         } else {
-            self.0.clone().into()
+            let py = slf.py();
+            slf.into_pyobject_or_pyerr(py)
         }
     }
 
@@ -301,15 +309,18 @@ impl PyBytes {
         signature = (old, new, count = -1, /),
         text_signature = "(self, old, new, count=-1, /)"
     )]
-    fn replace(
-        slf: PyRef<'_, Self>,
+    fn replace<'py>(
+        slf: PyRef<'py, Self>,
         old: ReadableBuffer,
         new: ReadableBuffer,
         count: isize,
-    ) -> PyResult<Py<Self>> {
+    ) -> PyResult<Bound<'py, Self>> {
         match replace_bytes(slf.as_slice(), old.as_slice(), new.as_slice(), count) {
-            ReplaceBytes::Unchanged => Ok(slf.into()),
-            ReplaceBytes::Replaced(bytes) => Py::new(slf.py(), Self::from(bytes)),
+            ReplaceBytes::Unchanged => {
+                let py = slf.py();
+                slf.into_pyobject_or_pyerr(py)
+            }
+            ReplaceBytes::Replaced(bytes) => Self::from(bytes).into_pyobject(slf.py()),
         }
     }
 
@@ -557,13 +568,14 @@ impl PyBytes {
         signature = (chars = PythonBytesStrip::AsciiWhitespace, /),
         text_signature = "(self, chars=None, /)")
     ]
-    fn strip(slf: PyRef<'_, Self>, chars: PythonBytesStrip) -> PyResult<Py<Self>> {
+    fn strip(slf: PyRef<'_, Self>, chars: PythonBytesStrip) -> PyResult<Bound<'_, Self>> {
+        let py = slf.py();
         let bytes = &slf.0;
         let range = chars.strip_range(slf.as_slice());
         if range.start == 0 && range.end == bytes.len() {
-            Ok(slf.into())
+            slf.into_pyobject_or_pyerr(py)
         } else {
-            Py::new(slf.py(), Self::new(bytes.slice(range)))
+            Self::new(bytes.slice(range)).into_pyobject(py)
         }
     }
 
@@ -571,13 +583,14 @@ impl PyBytes {
         signature = (chars = PythonBytesStrip::AsciiWhitespace, /),
         text_signature = "(self, chars=None, /)"
     )]
-    fn lstrip(slf: PyRef<'_, Self>, chars: PythonBytesStrip) -> PyResult<Py<Self>> {
+    fn lstrip(slf: PyRef<'_, Self>, chars: PythonBytesStrip) -> PyResult<Bound<'_, Self>> {
         let bytes = &slf.0;
         let ix = chars.lstrip_range(slf.as_slice());
         if ix == 0 {
-            Ok(slf.into())
+            let py = slf.py();
+            slf.into_pyobject_or_pyerr(py)
         } else {
-            Py::new(slf.py(), Self::new(bytes.slice(ix..)))
+            Self::new(bytes.slice(ix..)).into_pyobject(slf.py())
         }
     }
 
@@ -585,13 +598,14 @@ impl PyBytes {
         signature = (chars = PythonBytesStrip::AsciiWhitespace, /),
         text_signature = "(self, chars=None, /)"
     )]
-    fn rstrip(slf: PyRef<'_, Self>, chars: PythonBytesStrip) -> PyResult<Py<Self>> {
+    fn rstrip(slf: PyRef<'_, Self>, chars: PythonBytesStrip) -> PyResult<Bound<'_, Self>> {
         let bytes = &slf.0;
         let ix = chars.rstrip_range(slf.as_slice());
         if ix == bytes.len() {
-            Ok(slf.into())
+            let py = slf.py();
+            slf.into_pyobject_or_pyerr(py)
         } else {
-            Py::new(slf.py(), Self::new(bytes.slice(0..ix)))
+            Self::new(bytes.slice(0..ix)).into_pyobject(slf.py())
         }
     }
 
@@ -633,7 +647,7 @@ impl<'py> FromPyObject<'_, 'py> for PyBytes {
             };
             Ok(Self(pb.get().0.clone())) // supa fast clone the inner bytes::Bytes
         } else {
-            let buffer = ob.extract::<PyBytesWrapper>()?;
+            let buffer = ob.extract::<RyBuffer>()?;
             let bytes = Bytes::from_owner(buffer);
             Ok(Self(bytes))
         }
@@ -645,9 +659,9 @@ impl<'py> FromPyObject<'_, 'py> for PyBytes {
 ///
 /// This also implements `AsRef`<[u8]> because that is required for `Bytes::from_owner`
 #[derive(Debug)]
-pub(crate) struct PyBytesWrapper(PyBuffer<u8>);
+pub(crate) struct RyBuffer<T = u8>(PyBuffer<T>);
 
-impl AsRef<[u8]> for PyBytesWrapper {
+impl AsRef<[u8]> for RyBuffer<u8> {
     #[allow(unsafe_code)]
     fn as_ref(&self) -> &[u8] {
         let len = self.0.item_count();
@@ -663,7 +677,7 @@ impl AsRef<[u8]> for PyBytesWrapper {
     }
 }
 
-impl From<PyBuffer<u8>> for PyBytesWrapper {
+impl From<PyBuffer<u8>> for RyBuffer<u8> {
     fn from(value: PyBuffer<u8>) -> Self {
         Self(value)
     }
@@ -684,7 +698,7 @@ fn validate_buffer(buf: &PyBuffer<u8>) -> PyResult<()> {
     Ok(())
 }
 
-impl<'py> FromPyObject<'_, 'py> for PyBytesWrapper {
+impl<'py> FromPyObject<'_, 'py> for RyBuffer {
     type Error = pyo3::PyErr;
     fn extract(ob: pyo3::Borrowed<'_, 'py, pyo3::PyAny>) -> PyResult<Self> {
         // TODO: maybe remove this if branch bc it is already caught above...?
