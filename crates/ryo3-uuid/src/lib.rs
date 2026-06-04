@@ -11,6 +11,8 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add("NAMESPACE_OID", PyUuid::NAMESPACE_OID())?;
     m.add("NAMESPACE_URL", PyUuid::NAMESPACE_URL())?;
     m.add("NAMESPACE_X500", PyUuid::NAMESPACE_X500())?;
+    m.add("NIL", PyUuid::NIL())?;
+    m.add("MAX", PyUuid::MAX())?;
     m.add("RESERVED_FUTURE", RESERVED_FUTURE)?;
     m.add("RESERVED_MICROSOFT", RESERVED_MICROSOFT)?;
     m.add("RESERVED_NCS", RESERVED_NCS)?;

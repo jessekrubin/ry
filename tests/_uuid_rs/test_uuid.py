@@ -62,7 +62,7 @@ def test_init_multiple_kwargs_invalid() -> None:
     )
     for init_kwargs in init_kwargs_combinations:
         with pytest.raises(TypeError):
-            ryuuid.UUID(**init_kwargs)  # type: ignore[arg-type]
+            ryuuid.UUID(**init_kwargs)  # type: ignore[call-overload]
 
 
 def test_create_uuid() -> None:
@@ -106,3 +106,11 @@ def test_equality() -> None:
     py_u = rs_u.to_py()
     assert rs_u == py_u
     assert py_u == rs_u
+
+
+def test_constants() -> None:
+    assert ryuuid.NIL == pyuuid.UUID(int=0)
+    assert ryuuid.NAMESPACE_DNS == pyuuid.NAMESPACE_DNS
+    assert ryuuid.NAMESPACE_URL == pyuuid.NAMESPACE_URL
+    assert ryuuid.NAMESPACE_OID == pyuuid.NAMESPACE_OID
+    assert ryuuid.NAMESPACE_X500 == pyuuid.NAMESPACE_X500
