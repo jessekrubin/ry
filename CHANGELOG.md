@@ -9,8 +9,17 @@
     the hash
   - added static-method
     `ry.fnv1a.oneshot_int(data: Buffer, *, seed: int | bytes = 0xCBF29CE484222325) -> int: ...`
-  - added static-method `ry.fnv1a.oneshot_int(data: Buffer, \*, seed: int |
-    bytes = 0xCBF29CE484222325) -> int: ...
+- `ryo3-twox-hash`
+  - added class-level one-shot helpers to xxhash hashers (`xxh32`, `xxh64`,
+    `xxh3_64`, `xxh3_128`):
+    - `ry.xxh32.oneshot_int(data, *, seed=0) -> int`
+    - `ry.xxh32.oneshot_hex(data, *, seed=0) -> str`
+    - `ry.xxh64.oneshot_int(data, *, seed=0) -> int`
+    - `ry.xxh64.oneshot_hex(data, *, seed=0) -> str`
+    - `ry.xxh3_64.oneshot_int(data, *, seed=0, secret=...) -> int`
+    - `ry.xxh3_64.oneshot_hex(data, *, seed=0, secret=...) -> str`
+    - `ry.xxh3_128.oneshot_int(data, *, seed=0, secret=...) -> int`
+    - `ry.xxh3_128.oneshot_hex(data, *, seed=0, secret=...) -> str`
 
 ---
 
