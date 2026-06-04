@@ -4,6 +4,13 @@
 
 - build
   - fix cicd git-hash embedding
+- `ryo3-fnv`
+  - renamed `key` to `seed` for `xxhash` parity and bc it is a better term for
+    the hash
+  - added static-method
+    `ry.fnv1a.oneshot_int(data: Buffer, *, seed: int | bytes = 0xCBF29CE484222325) -> int: ...`
+  - added static-method `ry.fnv1a.oneshot_int(data: Buffer, \*, seed: int |
+    bytes = 0xCBF29CE484222325) -> int: ...
 
 ---
 

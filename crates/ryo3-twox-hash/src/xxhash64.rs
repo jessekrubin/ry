@@ -73,7 +73,7 @@ impl PyXxHash64 {
 
     fn digest(&self) -> PyResult<PyDigest<u64>> {
         let digest = self.hasher.py_lock().map(|h| h.finish())?;
-        Ok(PyDigest(digest))
+        Ok(digest.into())
     }
 
     fn intdigest(&self) -> PyResult<u64> {
@@ -82,7 +82,7 @@ impl PyXxHash64 {
 
     fn hexdigest(&self) -> PyResult<PyHexDigest<u64>> {
         let digest = self.intdigest()?;
-        Ok(PyHexDigest(digest))
+        Ok(digest.into())
     }
 
     #[expect(clippy::needless_pass_by_value)]
@@ -127,42 +127,51 @@ impl PyXxHash64 {
             twox_hash::XxHash64::oneshot(seed, slice).into()
         }
     }
+
+    #[expect(clippy::needless_pass_by_value)]
+    #[staticmethod]
+    #[pyo3(signature = (data, *, seed = 0))]
+    fn oneshot_int(py: Python<'_>, data: ReadableBuffer, seed: u64) -> u64 {
+        let slice = data.as_ref();
+        if slice.len() > HASHLIB_GIL_MINSIZE {
+            py.detach(|| twox_hash::XxHash64::oneshot(seed, slice))
+        } else {
+            twox_hash::XxHash64::oneshot(seed, slice)
+        }
+    }
+
+    #[expect(clippy::needless_pass_by_value)]
+    #[staticmethod]
+    #[pyo3(signature = (data, *, seed = 0))]
+    fn oneshot_hex(py: Python<'_>, data: ReadableBuffer, seed: u64) -> PyHexDigest<u64> {
+        let slice = data.as_ref();
+        if slice.len() > HASHLIB_GIL_MINSIZE {
+            py.detach(|| twox_hash::XxHash64::oneshot(seed, slice).into())
+        } else {
+            twox_hash::XxHash64::oneshot(seed, slice).into()
+        }
+    }
 }
 
 #[expect(clippy::needless_pass_by_value)]
 #[pyfunction]
 #[pyo3(signature = (data, *, seed = 0))]
 pub fn xxh64_digest(py: Python<'_>, data: ReadableBuffer, seed: u64) -> PyDigest<u64> {
-    let slice = data.as_ref();
-    if slice.len() > HASHLIB_GIL_MINSIZE {
-        py.detach(|| PyDigest(twox_hash::XxHash64::oneshot(seed, slice)))
-    } else {
-        PyDigest(twox_hash::XxHash64::oneshot(seed, slice))
-    }
+    PyXxHash64::oneshot(py, data, seed)
 }
 
 #[expect(clippy::needless_pass_by_value)]
 #[pyfunction]
 #[pyo3(signature = (data, *, seed = 0))]
 pub fn xxh64_intdigest(py: Python<'_>, data: ReadableBuffer, seed: u64) -> u64 {
-    let slice = data.as_ref();
-    if slice.len() > HASHLIB_GIL_MINSIZE {
-        py.detach(|| twox_hash::XxHash64::oneshot(seed, slice))
-    } else {
-        twox_hash::XxHash64::oneshot(seed, slice)
-    }
+    PyXxHash64::oneshot_int(py, data, seed)
 }
 
 #[expect(clippy::needless_pass_by_value)]
 #[pyfunction]
 #[pyo3(signature = (data, *, seed = 0))]
 pub fn xxh64_hexdigest(py: Python<'_>, data: ReadableBuffer, seed: u64) -> PyHexDigest<u64> {
-    let slice = data.as_ref();
-    if slice.len() > HASHLIB_GIL_MINSIZE {
-        py.detach(|| twox_hash::XxHash64::oneshot(seed, slice).into())
-    } else {
-        twox_hash::XxHash64::oneshot(seed, slice).into()
-    }
+    PyXxHash64::oneshot_hex(py, data, seed)
 }
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {

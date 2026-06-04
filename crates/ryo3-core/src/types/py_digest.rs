@@ -6,9 +6,9 @@ use crate::py_str::pystring_fast_new_ascii;
 const HEX_CHARS_LOWER: &[u8; 16] = b"0123456789abcdef";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct PyDigest<T>(pub T);
+pub struct PyDigest<T>(T);
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct PyHexDigest<T>(pub T);
+pub struct PyHexDigest<T>(T);
 
 impl<T> PyDigest<T> {
     #[inline]

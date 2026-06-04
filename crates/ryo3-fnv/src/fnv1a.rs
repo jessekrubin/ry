@@ -31,10 +31,10 @@ impl Default for Fnv1aHasher {
 
 impl Fnv1aHasher {
     /// Create an FNV hasher starting with a state corresponding
-    /// to the hash `key`.
+    /// to the hash `seed`.
     #[inline]
-    pub fn with_key(key: u64) -> Self {
-        Self(key)
+    pub fn with_seed(seed: u64) -> Self {
+        Self(seed)
     }
 }
 
@@ -79,14 +79,14 @@ impl From<Fnv1aHasher> for PyFnv1a {
 }
 
 impl From<u64> for PyFnv1a {
-    fn from(key: u64) -> Self {
-        Self(RyMutex::new(Fnv1aHasher::with_key(key)))
+    fn from(seed: u64) -> Self {
+        Self(RyMutex::new(Fnv1aHasher::with_seed(seed)))
     }
 }
 
 #[inline]
-fn fnv1a_oneshot(bytes: &[u8], key: u64) -> u64 {
-    bytes.iter().fold(key, |hash, &byte| {
+fn fnv1a_oneshot(bytes: &[u8], seed: u64) -> u64 {
+    bytes.iter().fold(seed, |hash, &byte| {
         let hash = hash ^ u64::from(byte);
         hash.wrapping_mul(FNV1A_64_PRIME)
     })
@@ -96,19 +96,19 @@ fn fnv1a_oneshot(bytes: &[u8], key: u64) -> u64 {
 impl PyFnv1a {
     #[new]
     #[pyo3(
-        signature = (data = None, *, key = Fnv1aKey::default()),
-        text_signature = "(data=None, *, key=0xcbf29ce484222325)",
+        signature = (data = None, *, seed = Fnv1aSeed::default()),
+        text_signature = "(data=None, *, seed=0xcbf29ce484222325)",
     )]
-    fn py_new(py: Python<'_>, data: Option<ReadableBuffer>, key: Fnv1aKey) -> Self {
+    fn py_new(py: Python<'_>, data: Option<ReadableBuffer>, seed: Fnv1aSeed) -> Self {
         if let Some(b) = data {
             let b = b.as_ref();
             if b.len() > HASHLIB_GIL_MINSIZE {
-                py.detach(|| Self::from(fnv1a_oneshot(b, key.into())))
+                py.detach(|| Self::from(fnv1a_oneshot(b, seed.into())))
             } else {
-                Self::from(fnv1a_oneshot(b, key.into()))
+                Self::from(fnv1a_oneshot(b, seed.into()))
             }
         } else {
-            Self::from(Fnv1aHasher::from(key))
+            Self::from(Fnv1aHasher::from(seed))
         }
     }
 
@@ -124,21 +124,26 @@ impl PyFnv1a {
         1
     }
 
+    #[classattr]
+    fn name(py: Python<'_>) -> &Bound<'_, PyString> {
+        intern!(py, "fnv1a")
+    }
+
+    #[classattr]
+    fn default_seed() -> u64 {
+        Fnv1aSeed::default().into()
+    }
+
     fn __getnewargs_ex__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
         let args = PyTuple::new(py, [py.None().into_bound_py_any(py)?])?;
         let kw = pyo3::types::PyDict::new(py);
-        let key = self.finish()?;
-        kw.set_item(pyo3::intern!(py, "key"), key)?;
+        let seed = self.finish()?;
+        kw.set_item(pyo3::intern!(py, "seed"), seed)?;
         PyTuple::new(py, [args.into_bound_py_any(py)?, kw.into_bound_py_any(py)?])
     }
 
     fn __repr__(&self) -> PyAsciiString {
         format!("{self}").into()
-    }
-
-    #[classattr]
-    fn name(py: Python<'_>) -> &Bound<'_, PyString> {
-        intern!(py, "fnv1a")
     }
 
     fn intdigest(&self) -> PyResult<u64> {
@@ -175,54 +180,74 @@ impl PyFnv1a {
 
     #[expect(clippy::needless_pass_by_value)]
     #[pyo3(
-        signature = (data, *, key = Fnv1aKey::default()),
-        text_signature = "(data, *, key=0xcbf29ce484222325)",
+        signature = (data, *, seed = Fnv1aSeed::default()),
+        text_signature = "(data, *, seed=0xcbf29ce484222325)",
     )]
     #[staticmethod]
-    fn oneshot(data: ReadableBuffer, key: Fnv1aKey) -> PyDigest<u64> {
-        fnv1a_oneshot(data.as_ref(), key.into()).into()
+    fn oneshot(data: ReadableBuffer, seed: Fnv1aSeed) -> PyDigest<u64> {
+        fnv1a_oneshot(data.as_ref(), seed.into()).into()
+    }
+
+    #[expect(clippy::needless_pass_by_value)]
+    #[pyo3(
+        signature = (data, *, seed = Fnv1aSeed::default()),
+        text_signature = "(data, *, seed=0xcbf29ce484222325)",
+    )]
+    #[staticmethod]
+    fn oneshot_int(data: ReadableBuffer, seed: Fnv1aSeed) -> u64 {
+        fnv1a_oneshot(data.as_ref(), seed.into())
+    }
+
+    #[expect(clippy::needless_pass_by_value)]
+    #[pyo3(
+        signature = (data, *, seed = Fnv1aSeed::default()),
+        text_signature = "(data, *, seed=0xcbf29ce484222325)",
+    )]
+    #[staticmethod]
+    fn oneshot_hex(data: ReadableBuffer, seed: Fnv1aSeed) -> PyHexDigest<u64> {
+        fnv1a_oneshot(data.as_ref(), seed.into()).into()
     }
 }
 
 impl std::fmt::Display for PyFnv1a {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let key = self.finish().expect("no-way-jose");
-        write!(f, "fnv1a<{key:x}>")
+        let seed = self.finish().expect("no-way-jose");
+        write!(f, "fnv1a<{seed:x}>")
     }
 }
 
 #[derive(Debug, Clone, Copy)]
-pub struct Fnv1aKey(u64);
+pub struct Fnv1aSeed(u64);
 
-impl Default for Fnv1aKey {
+impl Default for Fnv1aSeed {
     fn default() -> Self {
         Self(FNV1A_64_OFFSET)
     }
 }
 
-impl<'a, 'py> FromPyObject<'a, 'py> for Fnv1aKey {
+impl<'a, 'py> FromPyObject<'a, 'py> for Fnv1aSeed {
     type Error = PyErr;
 
     fn extract(obj: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
         if let Ok(n) = obj.extract::<u64>() {
             Ok(Self(n))
         } else if let Ok(b) = obj.extract::<[u8; 8]>() {
-            let key = u64::from_be_bytes(b);
-            Ok(Self(key))
+            let seed = u64::from_be_bytes(b);
+            Ok(Self(seed))
         } else {
-            py_type_err!("Key must be an integer or 8-byte bytes-like object")
+            py_type_err!("Seed must be an integer or 8-byte bytes-like object")
         }
     }
 }
 
-impl From<Fnv1aKey> for u64 {
-    fn from(key: Fnv1aKey) -> Self {
-        key.0
+impl From<Fnv1aSeed> for u64 {
+    fn from(seed: Fnv1aSeed) -> Self {
+        seed.0
     }
 }
 
-impl From<Fnv1aKey> for Fnv1aHasher {
-    fn from(key: Fnv1aKey) -> Self {
-        Self::with_key(key.into())
+impl From<Fnv1aSeed> for Fnv1aHasher {
+    fn from(seed: Fnv1aSeed) -> Self {
+        Self::with_seed(seed.into())
     }
 }

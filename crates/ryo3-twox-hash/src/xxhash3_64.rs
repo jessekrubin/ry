@@ -84,16 +84,16 @@ impl PyXxHash3_64 {
 
     fn digest(&self) -> PyResult<PyDigest<u64>> {
         let digest = self.hasher.py_lock().map(|h| h.finish())?;
-        Ok(PyDigest(digest))
+        Ok(digest.into())
     }
 
     fn intdigest(&self) -> PyResult<u64> {
         self.hasher.py_lock().map(|h| h.finish())
     }
 
-    fn hexdigest(&self) -> PyResult<String> {
+    fn hexdigest(&self) -> PyResult<PyHexDigest<u64>> {
         let digest = self.intdigest()?;
-        Ok(format!("{digest:016x}"))
+        Ok(digest.into())
     }
 
     #[expect(clippy::needless_pass_by_value)]
@@ -143,6 +143,40 @@ impl PyXxHash3_64 {
             oneshot_impl(data, seed, secret).into()
         }
     }
+
+    #[expect(clippy::needless_pass_by_value)]
+    #[staticmethod]
+    #[pyo3(signature = (data, *, seed = 0, secret = None))]
+    fn oneshot_int(
+        py: Python<'_>,
+        data: ReadableBuffer,
+        seed: u64,
+        secret: Option<PyXxHash3Secret>,
+    ) -> u64 {
+        let data = data.as_slice();
+        if data.len() > HASHLIB_GIL_MINSIZE {
+            py.detach(|| oneshot_impl(data, seed, secret))
+        } else {
+            oneshot_impl(data, seed, secret)
+        }
+    }
+
+    #[expect(clippy::needless_pass_by_value)]
+    #[staticmethod]
+    #[pyo3(signature = (data, *, seed = 0, secret = None))]
+    fn oneshot_hex(
+        py: Python<'_>,
+        data: ReadableBuffer,
+        seed: u64,
+        secret: Option<PyXxHash3Secret>,
+    ) -> PyHexDigest<u64> {
+        let data = data.as_slice();
+        if data.len() > HASHLIB_GIL_MINSIZE {
+            py.detach(|| oneshot_impl(data, seed, secret).into())
+        } else {
+            oneshot_impl(data, seed, secret).into()
+        }
+    }
 }
 
 // ====================================================================================
@@ -168,7 +202,7 @@ pub fn xxh3_64_intdigest(
     seed: u64,
     secret: Option<PyXxHash3Secret>,
 ) -> u64 {
-    PyXxHash3_64::oneshot(py, data, seed, secret).0
+    PyXxHash3_64::oneshot_int(py, data, seed, secret)
 }
 
 #[pyfunction]
@@ -179,7 +213,7 @@ pub fn xxh3_64_hexdigest(
     seed: u64,
     secret: Option<PyXxHash3Secret>,
 ) -> PyHexDigest<u64> {
-    PyXxHash3_64::oneshot(py, data, seed, secret).0.into()
+    PyXxHash3_64::oneshot_hex(py, data, seed, secret)
 }
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {

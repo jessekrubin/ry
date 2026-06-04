@@ -30,8 +30,8 @@ def test_fnv1a_pickling() -> None:
     pickled = pickle.dumps(hasher)
     unpickled = pickle.loads(pickled)
     assert unpickled.intdigest() == hasher.intdigest()
-    assert ry.fnv1a(key=hasher.intdigest()).intdigest() == hasher.intdigest()
-    assert ry.fnv1a(b"", key=hasher.intdigest()).intdigest() == hasher.intdigest()
+    assert ry.fnv1a(seed=hasher.intdigest()).intdigest() == hasher.intdigest()
+    assert ry.fnv1a(b"", seed=hasher.intdigest()).intdigest() == hasher.intdigest()
     hasher.update(b"def")
     pickled2 = pickle.dumps(hasher)
     unpickled2 = pickle.loads(pickled2)
@@ -39,20 +39,20 @@ def test_fnv1a_pickling() -> None:
     assert unpickled2.intdigest() == ry.fnv1a(b"abcdef").intdigest()
 
 
-def test_fnv_key_parse() -> None:
-    key = 0x1234567890ABCDEF
-    hasher1 = ry.fnv1a(key=key)
-    hasher2 = ry.fnv1a(key=key.to_bytes(8, "big"))
+def test_fnv_seed_parse() -> None:
+    seed = 0x1234567890ABCDEF
+    hasher1 = ry.fnv1a(seed=seed)
+    hasher2 = ry.fnv1a(seed=seed.to_bytes(8, "big"))
     assert hasher1.intdigest() == hasher2.intdigest()
     hasher1.update(b"test")
     hasher2.update(b"test")
     assert hasher1.intdigest() == hasher2.intdigest()
 
 
-@pytest.mark.parametrize("bad_key", [b"short", b"way-2-damn-long", 3.14, "string"])
-def test_fnv_key_parse_err(bad_key: bytes | float | str) -> None:
+@pytest.mark.parametrize("bad_seed", [b"short", b"way-2-damn-long", 3.14, "string"])
+def test_fnv_seed_parse_err(bad_seed: bytes | float | str) -> None:
     with pytest.raises(TypeError):
-        ry.fnv1a(key=bad_key)  # type: ignore[arg-type]
+        ry.fnv1a(seed=bad_seed)  # type: ignore[arg-type]
 
 
 @pytest.mark.parametrize(("data", "expected"), FNV_TEST_DATA)

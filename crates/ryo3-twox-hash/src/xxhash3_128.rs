@@ -82,7 +82,7 @@ impl PyXxHash3_128 {
 
     fn digest(&self) -> PyResult<PyDigest<u128>> {
         let digest = self.hasher.py_lock().map(|h| h.finish_128())?;
-        Ok(PyDigest(digest))
+        Ok(digest.into())
     }
 
     fn intdigest(&self) -> PyResult<u128> {
@@ -91,7 +91,7 @@ impl PyXxHash3_128 {
 
     fn hexdigest(&self) -> PyResult<PyHexDigest<u128>> {
         let digest = self.intdigest()?;
-        Ok(PyHexDigest(digest))
+        Ok(digest.into())
     }
 
     #[expect(clippy::needless_pass_by_value)]
@@ -141,6 +141,40 @@ impl PyXxHash3_128 {
             oneshot_impl(slice, seed, secret).into()
         }
     }
+
+    #[expect(clippy::needless_pass_by_value)]
+    #[staticmethod]
+    #[pyo3(signature = (data, *, seed = 0, secret = None))]
+    fn oneshot_int(
+        py: Python<'_>,
+        data: ReadableBuffer,
+        seed: u64,
+        secret: Option<PyXxHash3Secret>,
+    ) -> u128 {
+        let slice = data.as_ref();
+        if slice.len() > HASHLIB_GIL_MINSIZE {
+            py.detach(|| oneshot_impl(slice, seed, secret))
+        } else {
+            oneshot_impl(slice, seed, secret)
+        }
+    }
+
+    #[expect(clippy::needless_pass_by_value)]
+    #[staticmethod]
+    #[pyo3(signature = (data, *, seed = 0, secret = None))]
+    fn oneshot_hex(
+        py: Python<'_>,
+        data: ReadableBuffer,
+        seed: u64,
+        secret: Option<PyXxHash3Secret>,
+    ) -> PyHexDigest<u128> {
+        let slice = data.as_ref();
+        if slice.len() > HASHLIB_GIL_MINSIZE {
+            py.detach(|| oneshot_impl(slice, seed, secret).into())
+        } else {
+            oneshot_impl(slice, seed, secret).into()
+        }
+    }
 }
 
 #[pyfunction]
@@ -162,7 +196,7 @@ pub fn xxh3_128_intdigest(
     seed: u64,
     secret: Option<PyXxHash3Secret>,
 ) -> u128 {
-    PyXxHash3_128::oneshot(py, data, seed, secret).0
+    PyXxHash3_128::oneshot_int(py, data, seed, secret)
 }
 
 #[pyfunction]
@@ -173,7 +207,7 @@ pub fn xxh3_128_hexdigest(
     seed: u64,
     secret: Option<PyXxHash3Secret>,
 ) -> PyHexDigest<u128> {
-    PyXxHash3_128::oneshot(py, data, seed, secret).0.into()
+    PyXxHash3_128::oneshot_hex(py, data, seed, secret)
 }
 
 #[pyfunction]

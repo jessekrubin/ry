@@ -73,8 +73,7 @@ impl PyXxHash32 {
 
     fn digest(&self) -> PyResult<PyDigest<u32>> {
         let digest = self.hasher.py_lock().map(|h| h.finish_32())?;
-
-        Ok(PyDigest(digest))
+        Ok(digest.into())
     }
 
     fn intdigest(&self) -> PyResult<u32> {
@@ -83,7 +82,7 @@ impl PyXxHash32 {
 
     fn hexdigest(&self) -> PyResult<PyHexDigest<u32>> {
         let digest = self.intdigest()?;
-        Ok(PyHexDigest(digest))
+        Ok(digest.into())
     }
 
     #[expect(clippy::needless_pass_by_value)]
@@ -128,6 +127,30 @@ impl PyXxHash32 {
             XxHash32::oneshot(seed, slice).into()
         }
     }
+
+    #[expect(clippy::needless_pass_by_value)]
+    #[staticmethod]
+    #[pyo3(signature = (data, *, seed = 0))]
+    fn oneshot_int(py: Python<'_>, data: ReadableBuffer, seed: u32) -> u32 {
+        let slice = data.as_ref();
+        if slice.len() > HASHLIB_GIL_MINSIZE {
+            py.detach(|| XxHash32::oneshot(seed, slice))
+        } else {
+            XxHash32::oneshot(seed, slice)
+        }
+    }
+
+    #[expect(clippy::needless_pass_by_value)]
+    #[staticmethod]
+    #[pyo3(signature = (data, *, seed = 0))]
+    fn oneshot_hex(py: Python<'_>, data: ReadableBuffer, seed: u32) -> PyHexDigest<u32> {
+        let slice = data.as_ref();
+        if slice.len() > HASHLIB_GIL_MINSIZE {
+            py.detach(|| XxHash32::oneshot(seed, slice).into())
+        } else {
+            XxHash32::oneshot(seed, slice).into()
+        }
+    }
 }
 
 // ====================================================================================
@@ -137,36 +160,21 @@ impl PyXxHash32 {
 #[pyfunction]
 #[pyo3(signature = (data, *, seed = 0))]
 pub fn xxh32_digest(py: Python<'_>, data: ReadableBuffer, seed: u32) -> PyDigest<u32> {
-    let slice = data.as_ref();
-    if slice.len() > HASHLIB_GIL_MINSIZE {
-        py.detach(|| XxHash32::oneshot(seed, slice).into())
-    } else {
-        XxHash32::oneshot(seed, slice).into()
-    }
+    PyXxHash32::oneshot(py, data, seed)
 }
 
 #[expect(clippy::needless_pass_by_value)]
 #[pyfunction]
 #[pyo3(signature = (data, *, seed = 0))]
 pub fn xxh32_intdigest(py: Python<'_>, data: ReadableBuffer, seed: u32) -> u32 {
-    let slice = data.as_ref();
-    if slice.len() > HASHLIB_GIL_MINSIZE {
-        py.detach(|| XxHash32::oneshot(seed, slice))
-    } else {
-        XxHash32::oneshot(seed, slice)
-    }
+    PyXxHash32::oneshot_int(py, data, seed)
 }
 
 #[expect(clippy::needless_pass_by_value)]
 #[pyfunction]
 #[pyo3(signature = (data, *, seed = 0))]
 pub fn xxh32_hexdigest(py: Python<'_>, data: ReadableBuffer, seed: u32) -> PyHexDigest<u32> {
-    let slice = data.as_ref();
-    if slice.len() > HASHLIB_GIL_MINSIZE {
-        py.detach(|| XxHash32::oneshot(seed, slice).into())
-    } else {
-        XxHash32::oneshot(seed, slice).into()
-    }
+    PyXxHash32::oneshot_hex(py, data, seed)
 }
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
