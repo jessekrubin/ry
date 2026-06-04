@@ -750,9 +750,7 @@ import typing as t
 from ry.protocols import FromStr, _Parse
 from ry.ryo3._std import Duration
 
-_SameSiteKw: t.TypeAlias = t.Literal[
-    "Lax", "lax", "Strict", "strict", "None", "none"
-]
+_SameSiteKw: t.TypeAlias = t.Literal["Lax", "lax", "Strict", "strict", "None", "none"]
 """same-site kwarg allows title-case and lower-case values"""
 
 
@@ -1269,17 +1267,11 @@ class fnv1a:  # noqa: N801
     def hexdigest(self) -> str: ...
     def copy(self) -> t.Self: ...
     @staticmethod
-    def oneshot(
-        data: Buffer, *, seed: int | bytes = 0xCBF29CE484222325
-    ) -> bytes: ...  # noqa: PYI054
+    def oneshot(data: Buffer, *, seed: int | bytes = 0xCBF29CE484222325) -> bytes: ...  # noqa: PYI054
     @staticmethod
-    def oneshot_int(
-        data: Buffer, *, seed: int | bytes = 0xCBF29CE484222325
-    ) -> int: ...  # noqa: PYI054
+    def oneshot_int(data: Buffer, *, seed: int | bytes = 0xCBF29CE484222325) -> int: ...  # noqa: PYI054
     @staticmethod
-    def oneshot_hex(
-        data: Buffer, *, seed: int | bytes = 0xCBF29CE484222325
-    ) -> str: ...  # noqa: PYI054
+    def oneshot_hex(data: Buffer, *, seed: int | bytes = 0xCBF29CE484222325) -> str: ...  # noqa: PYI054
 ```
 
 <h2 id="ry.ryo3._fspath"><code>ry.ryo3._fspath</code></h2>
@@ -1349,9 +1341,7 @@ class FsPath(ToPy[Path], ToString):
     def replace(self, new_path: PathLike[str] | str) -> FsPath: ...
     def resolve(self) -> FsPath: ...
     def rmdir(self, recursive: bool = False) -> None: ...
-    def unlink(
-        self, missing_ok: bool = False, recursive: bool = False
-    ) -> None: ...
+    def unlink(self, missing_ok: bool = False, recursive: bool = False) -> None: ...
     def with_name(self, name: str) -> t.Self: ...
     def with_suffix(self, suffix: str) -> t.Self: ...
 
@@ -1424,9 +1414,7 @@ class FsPath(ToPy[Path], ToString):
     @staticmethod
     def which_all(cmd: str, path: str | None = None) -> list[FsPath]: ...
     @staticmethod
-    def which_re(
-        regex: str | Regex, path: str | None = None
-    ) -> list[FsPath]: ...
+    def which_re(regex: str | Regex, path: str | None = None) -> list[FsPath]: ...
 
     # =========================================================================
     # DUNDERS
@@ -2907,9 +2895,7 @@ class SignedDuration(
     def __int__(self) -> int: ...
     def __bool__(self) -> bool: ...
     @t.overload
-    def __truediv__(
-        self, other: t.Self | Duration | pydt.timedelta
-    ) -> float: ...
+    def __truediv__(self, other: t.Self | Duration | pydt.timedelta) -> float: ...
     @t.overload
     def __truediv__(self, other: float) -> t.Self: ...
     def abs(self) -> t.Self: ...
@@ -3042,9 +3028,7 @@ TimeSpanArithmetic: t.TypeAlias = (
     TimeSpan
     | Duration
     | SignedDuration
-    | tuple[
-        TimeSpan | Duration | SignedDuration, ZonedDateTime | Date | DateTime
-    ]
+    | tuple[TimeSpan | Duration | SignedDuration, ZonedDateTime | Date | DateTime]
 )
 
 
@@ -3640,9 +3624,7 @@ class ZonedDateTime(
     @classmethod
     def parse_rfc2822(cls, s: str) -> t.Self: ...
     @classmethod
-    def from_parts(
-        cls, timestamp: Timestamp, time_zone: TimeZone
-    ) -> t.Self: ...
+    def from_parts(cls, timestamp: Timestamp, time_zone: TimeZone) -> t.Self: ...
 
     # =========================================================================
     # STRPTIME/STRFTIME
@@ -4998,9 +4980,7 @@ def parse_json(
     *,
     allow_inf_nan: bool = False,
     cache_mode: t.Literal[True, False, "all", "keys", "none"] = "all",
-    partial_mode: t.Literal[
-        True, False, "off", "on", "trailing-strings"
-    ] = False,
+    partial_mode: t.Literal[True, False, "off", "on", "trailing-strings"] = False,
     catch_duplicate_keys: bool = False,
 ) -> JsonValue: ...
 def parse_jsonl(
@@ -5008,9 +4988,7 @@ def parse_jsonl(
     *,
     allow_inf_nan: bool = False,
     cache_mode: t.Literal[True, False, "all", "keys", "none"] = "all",
-    partial_mode: t.Literal[
-        True, False, "off", "on", "trailing-strings"
-    ] = False,
+    partial_mode: t.Literal[True, False, "off", "on", "trailing-strings"] = False,
     catch_duplicate_keys: bool = False,
 ) -> list[JsonValue]: ...
 def read_json(
@@ -5018,9 +4996,7 @@ def read_json(
     *,
     allow_inf_nan: bool = False,
     cache_mode: t.Literal[True, False, "all", "keys", "none"] = "all",
-    partial_mode: t.Literal[
-        True, False, "off", "on", "trailing-strings"
-    ] = False,
+    partial_mode: t.Literal[True, False, "off", "on", "trailing-strings"] = False,
     catch_duplicate_keys: bool = False,
     lines: bool = False,
 ) -> JsonValue: ...
@@ -5240,12 +5216,8 @@ class ClientConfig(t.TypedDict):
     tls_crls_only: list[CertificateRevocationList] | None
     tls_info: bool
     tls_sni: bool
-    tls_version_max: (
-        t.Literal["1.0", "1.1", "1.2", "1.3"] | None
-    )  # default: None
-    tls_version_min: (
-        t.Literal["1.0", "1.1", "1.2", "1.3"] | None
-    )  # default: None
+    tls_version_max: t.Literal["1.0", "1.1", "1.2", "1.3"] | None  # default: None
+    tls_version_min: t.Literal["1.0", "1.1", "1.2", "1.3"] | None  # default: None
     tls_danger_accept_invalid_certs: bool  # default: False
     tls_danger_accept_invalid_hostnames: bool  # default: False
     # __ UNSTABLE __
@@ -5500,9 +5472,7 @@ class Response:
         *,
         allow_inf_nan: bool = False,
         cache_mode: t.Literal[True, False, "all", "keys", "none"] = "all",
-        partial_mode: t.Literal[
-            True, False, "off", "on", "trailing-strings"
-        ] = False,
+        partial_mode: t.Literal[True, False, "off", "on", "trailing-strings"] = False,
         catch_duplicate_keys: bool = False,
     ) -> t.Any: ...
     async def bytes(self) -> ry.Bytes: ...
@@ -5517,15 +5487,11 @@ class Response:
     @property
     def version(
         self,
-    ) -> t.Literal[
-        "HTTP/0.9", "HTTP/1.0", "HTTP/1.1", "HTTP/2.0", "HTTP/3.0"
-    ]: ...
+    ) -> t.Literal["HTTP/0.9", "HTTP/1.0", "HTTP/1.1", "HTTP/2.0", "HTTP/3.0"]: ...
     @property
     def http_version(
         self,
-    ) -> t.Literal[
-        "HTTP/0.9", "HTTP/1.0", "HTTP/1.1", "HTTP/2.0", "HTTP/3.0"
-    ]: ...
+    ) -> t.Literal["HTTP/0.9", "HTTP/1.0", "HTTP/1.1", "HTTP/2.0", "HTTP/3.0"]: ...
     @property
     def redirected(self) -> bool: ...
     @property
@@ -5568,30 +5534,22 @@ class BlockingResponse:
         *,
         allow_inf_nan: bool = False,
         cache_mode: t.Literal[True, False, "all", "keys", "none"] = "all",
-        partial_mode: t.Literal[
-            True, False, "off", "on", "trailing-strings"
-        ] = False,
+        partial_mode: t.Literal[True, False, "off", "on", "trailing-strings"] = False,
         catch_duplicate_keys: bool = False,
     ) -> t.Any: ...
     def bytes(self) -> ry.Bytes: ...
-    def bytes_stream(
-        self, min_read_size: int = 0, /
-    ) -> BlockingResponseStream: ...
+    def bytes_stream(self, min_read_size: int = 0, /) -> BlockingResponseStream: ...
     def stream(self, min_read_size: int = 0, /) -> BlockingResponseStream: ...
     @property
     def url(self) -> URL: ...
     @property
     def version(
         self,
-    ) -> t.Literal[
-        "HTTP/0.9", "HTTP/1.0", "HTTP/1.1", "HTTP/2.0", "HTTP/3.0"
-    ]: ...
+    ) -> t.Literal["HTTP/0.9", "HTTP/1.0", "HTTP/1.1", "HTTP/2.0", "HTTP/3.0"]: ...
     @property
     def http_version(
         self,
-    ) -> t.Literal[
-        "HTTP/0.9", "HTTP/1.0", "HTTP/1.1", "HTTP/2.0", "HTTP/3.0"
-    ]: ...
+    ) -> t.Literal["HTTP/0.9", "HTTP/1.0", "HTTP/1.1", "HTTP/2.0", "HTTP/3.0"]: ...
     @property
     def redirected(self) -> bool: ...
     @property
@@ -5631,9 +5589,7 @@ class ResponseStream:
     @t.overload
     async def collect(self, join: t.Literal[True]) -> ry.Bytes: ...
     @t.overload
-    async def collect(
-        self, join: t.Literal[False] = False
-    ) -> list[ry.Bytes]: ...
+    async def collect(self, join: t.Literal[False] = False) -> list[ry.Bytes]: ...
 
 
 @t.final
@@ -6096,15 +6052,11 @@ class SqlfmtQueryParams:
 
 
 def sqlfmt_params(
-    params: SqlfmtParamsLike[_TSqlfmtParamValue_co]
-    | SqlfmtQueryParams
-    | None = None,
+    params: SqlfmtParamsLike[_TSqlfmtParamValue_co] | SqlfmtQueryParams | None = None,
 ) -> SqlfmtQueryParams: ...
 def sqlfmt(
     sql: str,
-    params: SqlfmtParamsLike[_TSqlfmtParamValue_co]
-    | SqlfmtQueryParams
-    | None = None,
+    params: SqlfmtParamsLike[_TSqlfmtParamValue_co] | SqlfmtQueryParams | None = None,
     *,
     indent: int | t.Literal["tabs", "\t"] = 2,
     uppercase: bool | None = None,
@@ -7190,9 +7142,7 @@ async def asleep(secs: float) -> float:
 # =============================================================================
 @t.final
 class AsyncFile:
-    def __new__(
-        cls, path: FsPathLike, mode: OpenBinaryMode = "rb"
-    ) -> t.Self: ...
+    def __new__(cls, path: FsPathLike, mode: OpenBinaryMode = "rb") -> t.Self: ...
     async def close(self) -> None: ...
     async def flush(self) -> None: ...
     async def isatty(self) -> t.NoReturn: ...
@@ -7398,9 +7348,7 @@ class WsMessage(Buffer):
         """
 
     @staticmethod
-    def close(
-        code: int = 1_000, reason: str | Buffer | None = None
-    ) -> WsMessage:
+    def close(code: int = 1_000, reason: str | Buffer | None = None) -> WsMessage:
         """Construct a new close message with the given close-code and reason"""
 
     # -------------------------------------------------------------------------
@@ -7568,9 +7516,7 @@ class xxh32:  # noqa: N801
     digest_size: t.Literal[4]
     block_size: t.Literal[16]
 
-    def __new__(
-        cls, data: Buffer | None = None, *, seed: int = 0
-    ) -> t.Self: ...
+    def __new__(cls, data: Buffer | None = None, *, seed: int = 0) -> t.Self: ...
     def update(self, data: Buffer) -> None: ...
     def digest(self) -> bytes: ...
     def hexdigest(self) -> str: ...
@@ -7597,9 +7543,7 @@ class xxh64:  # noqa: N801
     digest_size: t.Literal[8]
     block_size: t.Literal[32]
 
-    def __new__(
-        cls, data: Buffer | None = None, *, seed: int = 0
-    ) -> t.Self: ...
+    def __new__(cls, data: Buffer | None = None, *, seed: int = 0) -> t.Self: ...
     def update(self, data: Buffer) -> None: ...
     def digest(self) -> bytes: ...
     def hexdigest(self) -> str: ...
@@ -7871,9 +7815,7 @@ class URL(FromStr, ToString, _Parse):
     @classmethod
     def from_str(cls, s: str, /) -> t.Self: ...
     @classmethod
-    def parse_with_params(
-        cls, url: str | bytes, params: dict[str, str]
-    ) -> t.Self: ...
+    def parse_with_params(cls, url: str | bytes, params: dict[str, str]) -> t.Self: ...
     @classmethod
     def from_directory_path(cls, path: FsPathLike) -> t.Self: ...
     @classmethod
@@ -7986,12 +7928,7 @@ class URL(FromStr, ToString, _Parse):
         *,
         fragment: str | None = None,
         host: str | None = None,
-        ip_host: IPv4Address
-        | IPv6Address
-        | Ipv4Addr
-        | Ipv6Addr
-        | IpAddr
-        | None = None,
+        ip_host: IPv4Address | IPv6Address | Ipv4Addr | Ipv6Addr | IpAddr | None = None,
         password: str | None = None,
         path: str | None = None,
         port: int | None = None,
@@ -8068,13 +8005,9 @@ class UUID(FromStr):
     @t.overload
     def __new__(cls, *, bytes: _Bytes, version: _V | None = None) -> t.Self: ...
     @t.overload
-    def __new__(
-        cls, *, bytes_le: _Bytes, version: _V | None = None
-    ) -> t.Self: ...
+    def __new__(cls, *, bytes_le: _Bytes, version: _V | None = None) -> t.Self: ...
     @t.overload
-    def __new__(
-        cls, *, fields: _UuidFields, version: _V | None = None
-    ) -> t.Self: ...
+    def __new__(cls, *, fields: _UuidFields, version: _V | None = None) -> t.Self: ...
     @t.overload
     def __new__(cls, *, int: _Int, version: _V | None = None) -> t.Self: ...
     @t.overload
@@ -8420,9 +8353,7 @@ def loads(
     *,
     allow_inf_nan: bool = False,
     cache_mode: t.Literal[True, False, "all", "keys", "none"] = "all",
-    partial_mode: t.Literal[
-        True, False, "off", "on", "trailing-strings"
-    ] = False,
+    partial_mode: t.Literal[True, False, "off", "on", "trailing-strings"] = False,
     catch_duplicate_keys: bool = False,
 ) -> JsonValue: ...
 def parse(
@@ -8430,9 +8361,7 @@ def parse(
     *,
     allow_inf_nan: bool = False,
     cache_mode: t.Literal[True, False, "all", "keys", "none"] = "all",
-    partial_mode: t.Literal[
-        True, False, "off", "on", "trailing-strings"
-    ] = False,
+    partial_mode: t.Literal[True, False, "off", "on", "trailing-strings"] = False,
     catch_duplicate_keys: bool = False,
 ) -> JsonValue: ...
 def cache_clear() -> None: ...
