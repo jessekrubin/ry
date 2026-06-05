@@ -120,14 +120,3 @@ def parse(
 ) -> JsonValue: ...
 def cache_clear() -> None: ...
 def cache_usage() -> int: ...
-
-# under construction
-def stringify_unsafe(
-    obj: t.Any,
-    *,
-    default: t.Callable[[t.Any], t.Any] | None = None,
-    fmt: bool = False,
-    sort_keys: bool = False,
-    append_newline: bool = False,
-    pybytes: bool = False,
-) -> t.NoReturn: ...

@@ -12,6 +12,8 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     ryo3_bytes::pymod_add(m)?;
     #[cfg(feature = "cookie")]
     ryo3_cookie::pymod_add(m)?;
+    #[cfg(feature = "dirs")]
+    ryo3_dirs::pymod_add(m)?;
     #[cfg(feature = "flate2")]
     ryo3_flate2::pymod_add(m)?;
     #[cfg(feature = "fnv")]
@@ -48,10 +50,14 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     ryo3_sqlformat::pymod_add(m)?;
     #[cfg(feature = "twox-hash")]
     ryo3_twox_hash::pymod_add(m)?;
+    #[cfg(feature = "ulid")]
+    ryo3_ulid::pymod_add(m)?;
     #[cfg(feature = "unindent")]
     ryo3_unindent::pymod_add(m)?;
     #[cfg(feature = "url")]
     ryo3_url::pymod_add(m)?;
+    #[cfg(feature = "uuid")]
+    ryo3_uuid::pymod_add(m)?;
     #[cfg(feature = "walkdir")]
     ryo3_walkdir::pymod_add(m)?;
     #[cfg(feature = "which")]

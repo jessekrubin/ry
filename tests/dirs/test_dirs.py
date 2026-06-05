@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import pytest
 
+import ry
 from ry import dirs
 
 fns = (
@@ -53,7 +54,20 @@ def test_dirs_fn_exists(fn: str) -> None:
     assert callable(fn)
 
 
+@pytest.mark.parametrize("fn", [e for e in fns if e.endswith("_dir")])
+def test_dirs_w_suffix_in_ry_root(fn: str) -> None:
+    assert hasattr(ry, fn)
+    fn = getattr(ry, fn)
+    assert callable(fn)
+
+
 @pytest.mark.parametrize("fn", fns)
 def test_dirs_fn_is_str_or_none(fn: str) -> None:
-    res = getattr(dirs, fn)()
+    # supress warnings
+    if not fn.endswith("_dir"):
+        msg = rf"`ry.dirs.{fn}` is deprecated; use `ry.{fn}_dir` instead \[removal: 0\.0\.96\]"
+        with pytest.warns(DeprecationWarning, match=msg):
+            res = getattr(dirs, fn)()
+    else:
+        res = getattr(dirs, fn)()
     assert res is None or isinstance(res, str)

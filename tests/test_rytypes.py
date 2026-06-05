@@ -63,7 +63,9 @@ _RY_TYPES: list[type] = [
     ry.Timestamp,
     ry.TimestampDifference,
     ry.TimestampRound,
+    ry.ULID,
     ry.URL,
+    ry.UUID,
     ry.WalkdirGen,
     ry.WebSocket,
     ry.WsMessage,
@@ -81,8 +83,6 @@ _RY_TYPES: list[type] = [
     ry.sha512,
     ry.sha512_256,
     # submodules
-    ry.ulid.ULID,
-    ry.uuid.UUID,
     ry.xxhash.xxh3_64,
     ry.xxhash.xxh3_128,
     ry.xxhash.xxh32,

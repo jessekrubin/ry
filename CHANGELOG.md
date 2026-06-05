@@ -1,9 +1,46 @@
 # CHANGELOG
 
-## v0.0.95 [unreleased]
+## v0.0.95 [2026-06-04]
+
+**NOTE:**
 
 - build
   - fix cicd git-hash embedding
+- `ryo3-fnv`
+  - renamed `key` to `seed` for `xxhash` parity and bc it is a better term for
+    the hash
+  - added clsattr `ry.fnv1a.default_seed`
+  - added static-method
+    `ry.fnv1a.oneshot_int(data: Buffer, *, seed: int | bytes = 0xCBF29CE484222325) -> int: ...`
+  - added static-method
+    `ry.fnv1a.oneshot_hex(data: Buffer, *, seed: int | bytes = 0xCBF29CE484222325) -> str: ...`
+- `ryo3-twox-hash`
+  - added class-level one-shot helpers to xxhash hashers (`xxh32`, `xxh64`,
+    `xxh3_64`, `xxh3_128`):
+    - `ry.xxh32.oneshot_int(data, *, seed=0) -> int`
+    - `ry.xxh32.oneshot_hex(data, *, seed=0) -> str`
+    - `ry.xxh64.oneshot_int(data, *, seed=0) -> int`
+    - `ry.xxh64.oneshot_hex(data, *, seed=0) -> str`
+    - `ry.xxh3_64.oneshot_int(data, *, seed=0, secret=...) -> int`
+    - `ry.xxh3_64.oneshot_hex(data, *, seed=0, secret=...) -> str`
+    - `ry.xxh3_128.oneshot_int(data, *, seed=0, secret=...) -> int`
+    - `ry.xxh3_128.oneshot_hex(data, *, seed=0, secret=...) -> str`
+- `ryo3-aws-lc`
+  - added static-methods to `ry.<AWS-HASHER>.oneshot_hex(data)`
+- `ryo3-dirs`
+  - moved `*_dir` to ry package rooot
+  - **DEPRECATED:** deprecated `ry.dirs.*` and all the non-suffixed methods
+- `ryo3-ulid`
+  - exposed `ry.ULID` at the `ry` root; `ry.ulid.ULID` remains as a deprecated
+    compatibility export until `0.0.96`
+- `ryo3-uuid`
+  - added `ry.UUID.NIL` and `ry.UUID.MAX` to match python3.14
+  - moved `UUID`, `uuid1`, `uuid3`, `uuid4`, `uuid5`, `uuid6`, `uuid7`, and
+    `uuid8` to the `ry` package root
+  - kept `ry.uuid` as a compatibility module that re-exports UUID helpers and
+    constants
+- types
+  - reshuffled type annotation files (was a nightmare)
 
 ---
 

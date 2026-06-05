@@ -16,7 +16,7 @@ pub(crate) const RESERVED_MICROSOFT: &str = "reserved for Microsoft compatibilit
 pub(crate) const RESERVED_FUTURE: &str = "reserved for future definition";
 
 #[pyclass(name = "UUID", frozen, immutable_type, skip_from_py_object, weakref)]
-#[cfg_attr(feature = "ry", pyo3(module = "ry.uuid"))]
+#[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize), serde(transparent))]
 pub struct PyUuid(uuid::Uuid);

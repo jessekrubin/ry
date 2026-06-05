@@ -2,7 +2,7 @@
 
 Demonstrates:
   - files are read via `ry.read_stream`/`ry.read_stream_async` in chunks
-  - xxhashing is done via `ry.xxhash.xxh64` hasher
+  - xxhashing is done via `ry.xxh64` hasher
   - files are found via `ry.glob`
   - timing is done via `ry.instant()` to compute `ry.Duration`
   - timing is friendly printed w/ `{duration:#}` (see `ry.Duration.__format__`)
@@ -12,7 +12,7 @@ Demonstrates:
 import asyncio
 
 import ry
-from ry.xxhash import xxh64
+from ry import xxh64
 
 _PWD = ry.FsPath(__file__).resolve().parent
 _FILES = ry.glob(str(_PWD / "**" / "*.py"), dtype=ry.FsPath).collect()

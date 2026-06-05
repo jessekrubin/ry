@@ -10,8 +10,9 @@
 - [`ry.ryo3._bzip2`](#ry.ryo3._bzip2)
 - [`ry.ryo3._cookie`](#ry.ryo3._cookie)
 - [`ry.ryo3._dev`](#ry.ryo3._dev)
+- [`ry.ryo3._dirs`](#ry.ryo3._dirs)
 - [`ry.ryo3._encoding_rs`](#ry.ryo3._encoding_rs)
-- [`ry.ryo3._exceptions`](#ry.ryo3._exceptions)
+- [`ry.ryo3._errors`](#ry.ryo3._errors)
 - [`ry.ryo3._flate2`](#ry.ryo3._flate2)
 - [`ry.ryo3._fnv`](#ry.ryo3._fnv)
 - [`ry.ryo3._fspath`](#ry.ryo3._fspath)
@@ -23,10 +24,12 @@
 - [`ry.ryo3._jiff_tz`](#ry.ryo3._jiff_tz)
 - [`ry.ryo3._jiter`](#ry.ryo3._jiter)
 - [`ry.ryo3._memchr`](#ry.ryo3._memchr)
+- [`ry.ryo3._orjson`](#ry.ryo3._orjson)
 - [`ry.ryo3._quick_maths`](#ry.ryo3._quick_maths)
 - [`ry.ryo3._regex`](#ry.ryo3._regex)
 - [`ry.ryo3._reqwest`](#ry.ryo3._reqwest)
 - [`ry.ryo3._same_file`](#ry.ryo3._same_file)
+- [`ry.ryo3._sh`](#ry.ryo3._sh)
 - [`ry.ryo3._shlex`](#ry.ryo3._shlex)
 - [`ry.ryo3._size`](#ry.ryo3._size)
 - [`ry.ryo3._sqlformat`](#ry.ryo3._sqlformat)
@@ -35,25 +38,20 @@
 - [`ry.ryo3._tokio`](#ry.ryo3._tokio)
 - [`ry.ryo3._tokio_websockets`](#ry.ryo3._tokio_websockets)
 - [`ry.ryo3._twox_hash`](#ry.ryo3._twox_hash)
+- [`ry.ryo3._ulid`](#ry.ryo3._ulid)
 - [`ry.ryo3._unindent`](#ry.ryo3._unindent)
 - [`ry.ryo3._url`](#ry.ryo3._url)
+- [`ry.ryo3._uuid`](#ry.ryo3._uuid)
 - [`ry.ryo3._walkdir`](#ry.ryo3._walkdir)
 - [`ry.ryo3._which`](#ry.ryo3._which)
 - [`ry.ryo3._zstd`](#ry.ryo3._zstd)
-- [`ry.ryo3.dirs`](#ry.ryo3.dirs)
 - [`ry.ryo3.JSON`](#ry.ryo3.JSON)
-- [`ry.ryo3.orjson`](#ry.ryo3.orjson)
-- [`ry.ryo3.sh`](#ry.ryo3.sh)
-- [`ry.ryo3.ulid`](#ry.ryo3.ulid)
-- [`ry.ryo3.uuid`](#ry.ryo3.uuid)
 - [`ry.ryo3.xxhash`](#ry.ryo3.xxhash)
 - [`ry.ryo3.zstd`](#ry.ryo3.zstd)
 - [`ry._types`](#ry._types)
 - [`ry.dirs`](#ry.dirs)
 - [`ry.JSON`](#ry.JSON)
 - [`ry.protocols`](#ry.protocols)
-- [`ry.ulid`](#ry.ulid)
-- [`ry.uuid`](#ry.uuid)
 - [`ry.xxhash`](#ry.xxhash)
 - [`ry.zstd`](#ry.zstd)
 <h2 id="ry.ryo3.__init__"><code>ry.ryo3.__init__</code></h2>
@@ -62,7 +60,6 @@
 """ry api ~ type annotations"""
 
 from ry.ryo3 import JSON as JSON
-from ry.ryo3 import ulid as ulid
 from ry.ryo3 import uuid as uuid
 from ry.ryo3 import xxhash as xxhash
 from ry.ryo3 import zstd as zstd
@@ -98,11 +95,30 @@ from ry.ryo3._bzip2 import bzip2 as bzip2
 from ry.ryo3._bzip2 import bzip2_decode as bzip2_decode
 from ry.ryo3._bzip2 import bzip2_encode as bzip2_encode
 from ry.ryo3._cookie import Cookie as Cookie
-from ry.ryo3._exceptions import FeatureNotEnabledError as FeatureNotEnabledError
-from ry.ryo3._exceptions import PanicError as PanicError
-from ry.ryo3._exceptions import UnreachableError as UnreachableError
-from ry.ryo3._exceptions import panic as panic
-from ry.ryo3._exceptions import unreachable as unreachable
+from ry.ryo3._dirs import audio_dir as audio_dir
+from ry.ryo3._dirs import cache_dir as cache_dir
+from ry.ryo3._dirs import config_dir as config_dir
+from ry.ryo3._dirs import config_local_dir as config_local_dir
+from ry.ryo3._dirs import data_dir as data_dir
+from ry.ryo3._dirs import data_local_dir as data_local_dir
+from ry.ryo3._dirs import desktop_dir as desktop_dir
+from ry.ryo3._dirs import document_dir as document_dir
+from ry.ryo3._dirs import download_dir as download_dir
+from ry.ryo3._dirs import executable_dir as executable_dir
+from ry.ryo3._dirs import font_dir as font_dir
+from ry.ryo3._dirs import home_dir as home_dir
+from ry.ryo3._dirs import picture_dir as picture_dir
+from ry.ryo3._dirs import preference_dir as preference_dir
+from ry.ryo3._dirs import public_dir as public_dir
+from ry.ryo3._dirs import runtime_dir as runtime_dir
+from ry.ryo3._dirs import state_dir as state_dir
+from ry.ryo3._dirs import template_dir as template_dir
+from ry.ryo3._dirs import video_dir as video_dir
+from ry.ryo3._errors import FeatureNotEnabledError as FeatureNotEnabledError
+from ry.ryo3._errors import PanicError as PanicError
+from ry.ryo3._errors import UnreachableError as UnreachableError
+from ry.ryo3._errors import panic as panic
+from ry.ryo3._errors import unreachable as unreachable
 from ry.ryo3._flate2 import gunzip as gunzip
 from ry.ryo3._flate2 import gzip as gzip
 from ry.ryo3._flate2 import gzip_decode as gzip_decode
@@ -175,6 +191,7 @@ from ry.ryo3._memchr import memchr3 as memchr3
 from ry.ryo3._memchr import memrchr as memrchr
 from ry.ryo3._memchr import memrchr2 as memrchr2
 from ry.ryo3._memchr import memrchr3 as memrchr3
+from ry.ryo3._orjson import orjson_default as orjson_default
 from ry.ryo3._quick_maths import quick_maths as quick_maths
 from ry.ryo3._regex import Regex as Regex
 from ry.ryo3._reqwest import BlockingClient as BlockingClient
@@ -195,6 +212,12 @@ from ry.ryo3._reqwest import ResponseStream as ResponseStream
 from ry.ryo3._reqwest import fetch as fetch
 from ry.ryo3._reqwest import fetch_sync as fetch_sync
 from ry.ryo3._same_file import is_same_file as is_same_file
+from ry.ryo3._sh import cd as cd
+from ry.ryo3._sh import home as home
+from ry.ryo3._sh import ls as ls
+from ry.ryo3._sh import mkdir as mkdir
+from ry.ryo3._sh import mkdirp as mkdirp
+from ry.ryo3._sh import pwd as pwd
 from ry.ryo3._shlex import shplit as shplit
 from ry.ryo3._size import Size as Size
 from ry.ryo3._size import SizeFormatter as SizeFormatter
@@ -316,9 +339,18 @@ from ry.ryo3._twox_hash import xxh3_64 as xxh3_64
 from ry.ryo3._twox_hash import xxh3_128 as xxh3_128
 from ry.ryo3._twox_hash import xxh32 as xxh32
 from ry.ryo3._twox_hash import xxh64 as xxh64
+from ry.ryo3._ulid import ULID as ULID
 from ry.ryo3._unindent import unindent as unindent
 from ry.ryo3._unindent import unindent_bytes as unindent_bytes
 from ry.ryo3._url import URL as URL
+from ry.ryo3._uuid import UUID as UUID
+from ry.ryo3._uuid import uuid1 as uuid1
+from ry.ryo3._uuid import uuid3 as uuid3
+from ry.ryo3._uuid import uuid4 as uuid4
+from ry.ryo3._uuid import uuid5 as uuid5
+from ry.ryo3._uuid import uuid6 as uuid6
+from ry.ryo3._uuid import uuid7 as uuid7
+from ry.ryo3._uuid import uuid8 as uuid8
 from ry.ryo3._walkdir import WalkDirEntry as WalkDirEntry
 from ry.ryo3._walkdir import WalkdirGen as WalkdirGen
 from ry.ryo3._walkdir import walkdir as walkdir
@@ -331,14 +363,6 @@ from ry.ryo3._zstd import zstd_decode as zstd_decode
 from ry.ryo3._zstd import zstd_decompress as zstd_decompress
 from ry.ryo3._zstd import zstd_encode as zstd_encode
 from ry.ryo3.JSON import stringify as stringify
-from ry.ryo3.JSON import stringify_unsafe as stringify_unsafe
-from ry.ryo3.orjson import orjson_default as orjson_default
-from ry.ryo3.sh import cd as cd
-from ry.ryo3.sh import home as home
-from ry.ryo3.sh import ls as ls
-from ry.ryo3.sh import mkdir as mkdir
-from ry.ryo3.sh import mkdirp as mkdirp
-from ry.ryo3.sh import pwd as pwd
 ```
 
 <h2 id="ry.ryo3.__about__"><code>ry.ryo3.__about__</code></h2>
@@ -412,6 +436,8 @@ class _Sha(t.Generic[_TName, _TBlockSize, _TDigestSize]):
     def update(self, obj: Buffer, /) -> None: ...
     @staticmethod
     def oneshot(data: Buffer) -> bytes: ...
+    @staticmethod
+    def oneshot_hex(data: Buffer) -> str: ...
 
 
 # fmt: off
@@ -848,6 +874,33 @@ def string_noop(s: str) -> str: ...
 def bytes_noop(s: bytes) -> bytes: ...
 ```
 
+<h2 id="ry.ryo3._dirs"><code>ry.ryo3._dirs</code></h2>
+
+```python
+"""ryo3-dirs types"""
+
+
+def audio_dir() -> str | None: ...
+def cache_dir() -> str | None: ...
+def config_dir() -> str | None: ...
+def config_local_dir() -> str | None: ...
+def data_dir() -> str | None: ...
+def data_local_dir() -> str | None: ...
+def desktop_dir() -> str | None: ...
+def document_dir() -> str | None: ...
+def download_dir() -> str | None: ...
+def executable_dir() -> str | None: ...
+def font_dir() -> str | None: ...
+def home_dir() -> str | None: ...
+def picture_dir() -> str | None: ...
+def preference_dir() -> str | None: ...
+def public_dir() -> str | None: ...
+def runtime_dir() -> str | None: ...
+def state_dir() -> str | None: ...
+def template_dir() -> str | None: ...
+def video_dir() -> str | None: ...
+```
+
 <h2 id="ry.ryo3._encoding_rs"><code>ry.ryo3._encoding_rs</code></h2>
 
 ```python
@@ -1125,7 +1178,7 @@ Encoding: t.TypeAlias = t.Literal[
 ]
 ```
 
-<h2 id="ry.ryo3._exceptions"><code>ry.ryo3._exceptions</code></h2>
+<h2 id="ry.ryo3._errors"><code>ry.ryo3._errors</code></h2>
 
 ```python
 import typing as t
@@ -1200,12 +1253,13 @@ class fnv1a:  # noqa: N801
     name: t.Literal["fnv1a"]
     digest_size: t.Literal[8]
     block_size: t.Literal[1]
+    default_seed: t.Literal[0xCBF29CE484222325]  # noqa: PYI054
 
     def __new__(
         cls,
         data: Buffer | None = None,
         *,
-        key: int | bytes = 0xCBF29CE484222325,  # noqa: PYI054
+        seed: int | bytes = 0xCBF29CE484222325,  # noqa: PYI054
     ) -> t.Self: ...
     def update(self, data: Buffer) -> None: ...
     def digest(self) -> bytes: ...
@@ -1213,7 +1267,11 @@ class fnv1a:  # noqa: N801
     def hexdigest(self) -> str: ...
     def copy(self) -> t.Self: ...
     @staticmethod
-    def oneshot(data: Buffer, *, key: int | bytes = 0xCBF29CE484222325) -> bytes: ...  # noqa: PYI054
+    def oneshot(data: Buffer, *, seed: int | bytes = 0xCBF29CE484222325) -> bytes: ...  # noqa: PYI054
+    @staticmethod
+    def oneshot_int(data: Buffer, *, seed: int | bytes = 0xCBF29CE484222325) -> int: ...  # noqa: PYI054
+    @staticmethod
+    def oneshot_hex(data: Buffer, *, seed: int | bytes = 0xCBF29CE484222325) -> str: ...  # noqa: PYI054
 ```
 
 <h2 id="ry.ryo3._fspath"><code>ry.ryo3._fspath</code></h2>
@@ -4970,6 +5028,32 @@ def memrchr3(
 ) -> int | None: ...
 ```
 
+<h2 id="ry.ryo3._orjson"><code>ry.ryo3._orjson</code></h2>
+
+```python
+"""orjson + ry types
+
+orjson-types: https://github.com/ijl/orjson/blob/master/pysrc/orjson/__init__.pyi
+"""
+
+import typing as t
+
+import orjson
+
+
+def orjson_default(obj: t.Any) -> orjson.Fragment:
+    """Fn to be used with `orjson.dumps` to serialize ry-compatible types
+
+    Example:
+        >>> import orjson
+        >>> from ry import orjson_default, Date
+        >>> data = {"key": "value", "date": Date(2023, 10, 1)}
+        >>> orjson.dumps(data, default=orjson_default)
+        b'{"key":"value","date":"2023-10-01"}'
+
+    """
+```
+
 <h2 id="ry.ryo3._quick_maths"><code>ry.ryo3._quick_maths</code></h2>
 
 ```python
@@ -5650,6 +5734,49 @@ from os import PathLike
 
 
 def is_same_file(left: PathLike[str], right: PathLike[str]) -> bool: ...
+```
+
+<h2 id="ry.ryo3._sh"><code>ry.ryo3._sh</code></h2>
+
+```python
+import typing as t
+from os import PathLike
+
+from ry.ryo3._fspath import FsPath
+
+
+def pwd() -> str: ...
+def home() -> str: ...
+def cd(path: str | PathLike[str]) -> None: ...
+@t.overload
+def ls(
+    path: str | PathLike[str] | None = None,  # defaults to '.' if None
+    *,
+    absolute: bool = False,
+    sort: bool = False,
+    objects: t.Literal[False] = False,
+) -> list[str]:
+    """List directory contents returning a list of strings"""
+
+
+@t.overload
+def ls(
+    path: str | PathLike[str] | None = None,  # defaults to '.' if None
+    *,
+    absolute: bool = False,
+    sort: bool = False,
+    objects: t.Literal[True],
+) -> list[FsPath]:
+    """List directory contents returning a list of `FsPath` objects"""
+
+
+def mkdir(
+    path: str | PathLike[str],
+    *,
+    exist_ok: bool = False,
+    recursive: bool = False,
+) -> None: ...
+def mkdirp(path: str | PathLike[str]) -> None: ...
 ```
 
 <h2 id="ry.ryo3._shlex"><code>ry.ryo3._shlex</code></h2>
@@ -7404,6 +7531,10 @@ class xxh32:  # noqa: N801
 
     @staticmethod
     def oneshot(data: Buffer, *, seed: int = 0) -> bytes: ...
+    @staticmethod
+    def oneshot_int(data: Buffer, *, seed: int = 0) -> int: ...
+    @staticmethod
+    def oneshot_hex(data: Buffer, *, seed: int = 0) -> str: ...
 
 
 @t.final
@@ -7427,6 +7558,10 @@ class xxh64:  # noqa: N801
 
     @staticmethod
     def oneshot(data: Buffer, *, seed: int = 0) -> bytes: ...
+    @staticmethod
+    def oneshot_int(data: Buffer, *, seed: int = 0) -> int: ...
+    @staticmethod
+    def oneshot_hex(data: Buffer, *, seed: int = 0) -> str: ...
 
 
 @t.final
@@ -7454,6 +7589,14 @@ class xxh3_64:  # noqa: N801
     def oneshot(
         data: Buffer, *, seed: int = 0, secret: Buffer | None = None
     ) -> bytes: ...
+    @staticmethod
+    def oneshot_int(
+        data: Buffer, *, seed: int = 0, secret: Buffer | None = None
+    ) -> int: ...
+    @staticmethod
+    def oneshot_hex(
+        data: Buffer, *, seed: int = 0, secret: Buffer | None = None
+    ) -> str: ...
 
 
 @t.final
@@ -7481,6 +7624,14 @@ class xxh3_128:  # noqa: N801
     def oneshot(
         data: Buffer, *, seed: int = 0, secret: Buffer | None = None
     ) -> bytes: ...
+    @staticmethod
+    def oneshot_int(
+        data: Buffer, *, seed: int = 0, secret: Buffer | None = None
+    ) -> int: ...
+    @staticmethod
+    def oneshot_hex(
+        data: Buffer, *, seed: int = 0, secret: Buffer | None = None
+    ) -> str: ...
 
 
 xxh128 = xxh3_128
@@ -7536,6 +7687,98 @@ def xxh128_hexdigest(
 def xxh128_intdigest(
     data: Buffer, *, seed: int = 0, secret: Buffer | None = None
 ) -> int: ...
+```
+
+<h2 id="ry.ryo3._ulid"><code>ry.ryo3._ulid</code></h2>
+
+```python
+import builtins
+import datetime as pydt
+import typing as t
+import uuid
+from collections.abc import Callable as Callable
+
+from pydantic import GetCoreSchemaHandler as GetCoreSchemaHandler
+from pydantic import (
+    ValidatorFunctionWrapHandler as ValidatorFunctionWrapHandler,
+)
+from pydantic_core import CoreSchema as CoreSchema
+
+from ry.protocols import FromStr
+
+
+@t.final
+class ULID(FromStr):
+    def __new__(cls, value: builtins.bytes | str | None = None) -> t.Self: ...
+
+    # ----------------
+    # INSTANCE METHODS
+    # ----------------
+    def to_bytes(self) -> builtins.bytes: ...
+    def to_uuid(self) -> uuid.UUID: ...
+    def to_uuid4(self) -> uuid.UUID: ...
+
+    # ----------
+    # PROPERTIES
+    # ----------
+    @property
+    def bytes(self) -> builtins.bytes: ...
+    @property
+    def milliseconds(self) -> int: ...
+    @property
+    def timestamp(self) -> float: ...
+    @property
+    def datetime(self) -> pydt.datetime: ...
+    @property
+    def hex(self) -> str: ...
+
+    # -------------
+    # CLASS METHODS
+    # -------------
+    @classmethod
+    def from_datetime(cls, value: pydt.datetime) -> ULID: ...
+    @classmethod
+    def from_timestamp(cls, value: float) -> ULID: ...
+    @classmethod
+    def from_timestamp_seconds(cls, value: float) -> ULID: ...
+    @classmethod
+    def from_timestamp_milliseconds(cls, value: int) -> ULID: ...
+    @classmethod
+    def from_uuid(cls, uu: uuid.UUID) -> ULID: ...
+    @classmethod
+    def from_bytes(cls, b: builtins.bytes) -> ULID: ...
+    @classmethod
+    def from_hex(cls, hexstr: str) -> ULID: ...
+    @classmethod
+    def from_str(cls, s: str, /) -> ULID: ...
+    @classmethod
+    def from_string(cls, s: str, /) -> ULID:
+        """Alias for `from_str` to match python-ulid lib"""
+
+    @classmethod
+    def from_int(cls, i: int) -> ULID: ...
+    @classmethod
+    def parse(cls, value: t.Any) -> ULID: ...
+
+    # -------
+    # DUNDERS
+    # -------
+    def __int__(self) -> int: ...
+    def __bytes__(self) -> builtins.bytes: ...
+    def __lt__(self, other: int | str | ULID | builtins.bytes) -> bool: ...
+    def __le__(self, other: int | str | ULID | builtins.bytes) -> bool: ...
+    def __eq__(self, other: object) -> bool: ...
+    def __gt__(self, other: int | str | ULID | builtins.bytes) -> bool: ...
+    def __ge__(self, other: int | str | ULID | builtins.bytes) -> bool: ...
+    def __hash__(self) -> int: ...
+
+    # --------
+    # PYDANTIC
+    # --------
+    @classmethod
+    def __get_pydantic_core_schema__(
+        cls, source: t.Any, handler: GetCoreSchemaHandler
+    ) -> CoreSchema: ...
 ```
 
 <h2 id="ry.ryo3._unindent"><code>ry.ryo3._unindent</code></h2>
@@ -7720,6 +7963,158 @@ class URL(FromStr, ToString, _Parse):
     def __hash__(self) -> int: ...
 ```
 
+<h2 id="ry.ryo3._uuid"><code>ry.ryo3._uuid</code></h2>
+
+```python
+"""ryo3-uuid types
+
+based on typeshed types for python's builtin uuid module
+
+REF: https://github.com/python/typeshed/blob/main/stdlib/uuid.pyi
+"""
+
+import builtins
+import typing as t
+import uuid as pyuuid
+
+from ry._types import Buffer
+from ry.protocols import FromStr
+
+# Type aliases (_Bytes/_Int aliases `builtins.bytes`/`builtins.int`)
+_Bytes: t.TypeAlias = builtins.bytes
+_Int: t.TypeAlias = builtins.int
+_V: t.TypeAlias = t.Literal[1, 2, 3, 4, 5, 6, 7, 8]
+_UuidFields: t.TypeAlias = tuple[int, int, int, int, int, int]
+
+
+@t.final
+class UUID(FromStr):
+    NAMESPACE_DNS: t.Final[UUID]
+    NAMESPACE_URL: t.Final[UUID]
+    NAMESPACE_OID: t.Final[UUID]
+    NAMESPACE_X500: t.Final[UUID]
+    NIL: t.Final[UUID]
+    MAX: t.Final[UUID]
+    RESERVED_NCS: t.Final = "reserved for NCS compatibility"
+    RFC_4122: t.Final = "specified in RFC 4122"
+    RESERVED_MICROSOFT: t.Final = "reserved for Microsoft compatibility"
+    RESERVED_FUTURE: t.Final = "reserved for future definition"
+
+    @t.overload
+    def __new__(cls, hex: str, *, version: _V | None = None) -> t.Self: ...
+    @t.overload
+    def __new__(cls, *, bytes: _Bytes, version: _V | None = None) -> t.Self: ...
+    @t.overload
+    def __new__(cls, *, bytes_le: _Bytes, version: _V | None = None) -> t.Self: ...
+    @t.overload
+    def __new__(cls, *, fields: _UuidFields, version: _V | None = None) -> t.Self: ...
+    @t.overload
+    def __new__(cls, *, int: _Int, version: _V | None = None) -> t.Self: ...
+    @t.overload
+    def __new__(
+        cls,
+        hex: None = None,
+        bytes: None = None,
+        bytes_le: None = None,
+        fields: None = None,
+        int: None = None,
+        version: _V | None = None,
+    ) -> t.NoReturn: ...
+    @staticmethod
+    def getnode() -> _Int: ...
+    @property
+    def is_nil(self) -> bool: ...
+    @property
+    def bytes(self) -> _Bytes: ...
+    @property
+    def bytes_le(self) -> _Bytes: ...
+    @property
+    def clock_seq(self) -> _Int: ...
+    @property
+    def clock_seq_hi_variant(self) -> _Int: ...
+    @property
+    def clock_seq_low(self) -> _Int: ...
+    @property
+    def fields(self) -> _UuidFields: ...
+    @property
+    def hex(self) -> str: ...
+    @property
+    def int(self) -> _Int: ...
+    @property
+    def node(self) -> _Int: ...
+    @property
+    def time(self) -> _Int: ...
+    @property
+    def time_hi_version(self) -> _Int: ...
+    @property
+    def time_low(self) -> _Int: ...
+    @property
+    def time_mid(self) -> _Int: ...
+    @property
+    def urn(self) -> str: ...
+    @property
+    def variant(self) -> str: ...
+    @property
+    def version(self) -> t.Literal[1, 2, 3, 4, 5, 6, 7, 8] | None: ...
+    def to_py(self) -> pyuuid.UUID: ...
+    def to_string(self) -> str: ...
+    # --- CLASSMETHODS --
+    @classmethod
+    def from_bytes(cls, b: _Bytes) -> t.Self: ...
+    @classmethod
+    def from_bytes_le(cls, b: _Bytes) -> t.Self: ...
+    @classmethod
+    def from_fields(cls, fields: _UuidFields) -> t.Self: ...
+    @classmethod
+    def from_hex(cls, hexstr: str) -> t.Self: ...
+    @classmethod
+    def from_int(cls, i: _Int) -> t.Self: ...
+    @classmethod
+    def from_pyuuid(cls, ob: pyuuid.UUID) -> t.Self: ...
+    @classmethod
+    def from_str(cls, s: str, /) -> t.Self: ...
+    # --- DUNDERS ---
+    def __bytes__(self) -> _Bytes: ...
+    def __lt__(self, other: UUID) -> bool: ...
+    def __le__(self, other: UUID) -> bool: ...
+    def __eq__(self, other: object) -> bool: ...
+    def __gt__(self, other: UUID) -> bool: ...
+    def __ge__(self, other: UUID) -> bool: ...
+    def __hash__(self) -> _Int: ...
+    def __int__(self) -> _Int: ...
+
+
+def getnode() -> _Int: ...
+def uuid1(node: _Int | None = None, clock_seq: _Int | None = None) -> UUID: ...
+def uuid3(namespace: UUID, name: str | _Bytes) -> UUID: ...
+def uuid4() -> UUID: ...
+def uuid5(namespace: UUID, name: str | _Bytes) -> UUID: ...
+def uuid6(node: _Int | None = None, clock_seq: _Int | None = None) -> UUID: ...
+def uuid7(timestamp: _Int | None = None) -> UUID: ...
+@t.overload
+def uuid8(*, buf: Buffer) -> UUID: ...  # 16 bytes buffer
+@t.overload
+def uuid8(
+    a: _Int | None = None,
+    b: _Int | None = None,
+    c: _Int | None = None,
+    *,
+    buf: None = None,
+) -> UUID: ...
+
+
+NAMESPACE_DNS: t.Final[UUID]
+NAMESPACE_URL: t.Final[UUID]
+NAMESPACE_OID: t.Final[UUID]
+NAMESPACE_X500: t.Final[UUID]
+NIL: t.Final[UUID]
+MAX: t.Final[UUID]
+RESERVED_NCS: t.Final = "reserved for NCS compatibility"
+RFC_4122: t.Final = "specified in RFC 4122"
+RESERVED_MICROSOFT: t.Final = "reserved for Microsoft compatibility"
+RESERVED_FUTURE: t.Final = "reserved for future definition"
+```
+
 <h2 id="ry.ryo3._walkdir"><code>ry.ryo3._walkdir</code></h2>
 
 ```python
@@ -7841,49 +8236,6 @@ __all__ = (
     "zstd_decompress",
     "zstd_encode",
 )
-```
-
-<h2 id="ry.ryo3.dirs"><code>ry.ryo3.dirs</code></h2>
-
-```python
-def audio() -> str | None: ...
-def audio_dir() -> str | None: ...
-def cache() -> str | None: ...
-def cache_dir() -> str | None: ...
-def config() -> str | None: ...
-def config_dir() -> str | None: ...
-def config_local() -> str | None: ...
-def config_local_dir() -> str | None: ...
-def data() -> str | None: ...
-def data_dir() -> str | None: ...
-def data_local() -> str | None: ...
-def data_local_dir() -> str | None: ...
-def desktop() -> str | None: ...
-def desktop_dir() -> str | None: ...
-def document() -> str | None: ...
-def document_dir() -> str | None: ...
-def download() -> str | None: ...
-def download_dir() -> str | None: ...
-def executable() -> str | None: ...
-def executable_dir() -> str | None: ...
-def font() -> str | None: ...
-def font_dir() -> str | None: ...
-def home() -> str | None: ...
-def home_dir() -> str | None: ...
-def picture() -> str | None: ...
-def picture_dir() -> str | None: ...
-def preference() -> str | None: ...
-def preference_dir() -> str | None: ...
-def public() -> str | None: ...
-def public_dir() -> str | None: ...
-def runtime() -> str | None: ...
-def runtime_dir() -> str | None: ...
-def state() -> str | None: ...
-def state_dir() -> str | None: ...
-def template() -> str | None: ...
-def template_dir() -> str | None: ...
-def video() -> str | None: ...
-def video_dir() -> str | None: ...
 ```
 
 <h2 id="ry.ryo3.JSON"><code>ry.ryo3.JSON</code></h2>
@@ -8014,307 +8366,6 @@ def parse(
 ) -> JsonValue: ...
 def cache_clear() -> None: ...
 def cache_usage() -> int: ...
-
-
-# under construction
-def stringify_unsafe(
-    obj: t.Any,
-    *,
-    default: t.Callable[[t.Any], t.Any] | None = None,
-    fmt: bool = False,
-    sort_keys: bool = False,
-    append_newline: bool = False,
-    pybytes: bool = False,
-) -> t.NoReturn: ...
-```
-
-<h2 id="ry.ryo3.orjson"><code>ry.ryo3.orjson</code></h2>
-
-```python
-"""orjson + ry types
-
-orjson-types: https://github.com/ijl/orjson/blob/master/pysrc/orjson/__init__.pyi
-"""
-
-import typing as t
-
-import orjson
-
-
-def orjson_default(obj: t.Any) -> orjson.Fragment:
-    """Fn to be used with `orjson.dumps` to serialize ry-compatible types
-
-    Example:
-        >>> import orjson
-        >>> from ry import orjson_default, Date
-        >>> data = {"key": "value", "date": Date(2023, 10, 1)}
-        >>> orjson.dumps(data, default=orjson_default)
-        b'{"key":"value","date":"2023-10-01"}'
-
-    """
-```
-
-<h2 id="ry.ryo3.sh"><code>ry.ryo3.sh</code></h2>
-
-```python
-import typing as t
-from os import PathLike
-
-from ry.ryo3._fspath import FsPath
-
-
-def pwd() -> str: ...
-def home() -> str: ...
-def cd(path: str | PathLike[str]) -> None: ...
-@t.overload
-def ls(
-    path: str | PathLike[str] | None = None,  # defaults to '.' if None
-    *,
-    absolute: bool = False,
-    sort: bool = False,
-    objects: t.Literal[False] = False,
-) -> list[str]:
-    """List directory contents returning a list of strings"""
-
-
-@t.overload
-def ls(
-    path: str | PathLike[str] | None = None,  # defaults to '.' if None
-    *,
-    absolute: bool = False,
-    sort: bool = False,
-    objects: t.Literal[True],
-) -> list[FsPath]:
-    """List directory contents returning a list of `FsPath` objects"""
-
-
-def mkdir(
-    path: str | PathLike[str],
-    *,
-    exist_ok: bool = False,
-    recursive: bool = False,
-) -> None: ...
-def mkdirp(path: str | PathLike[str]) -> None: ...
-```
-
-<h2 id="ry.ryo3.ulid"><code>ry.ryo3.ulid</code></h2>
-
-```python
-import builtins
-import datetime as pydt
-import typing as t
-import uuid
-from collections.abc import Callable as Callable
-
-from pydantic import GetCoreSchemaHandler as GetCoreSchemaHandler
-from pydantic import (
-    ValidatorFunctionWrapHandler as ValidatorFunctionWrapHandler,
-)
-from pydantic_core import CoreSchema as CoreSchema
-
-from ry.protocols import FromStr
-
-
-@t.final
-class ULID(FromStr):
-    def __new__(cls, value: builtins.bytes | str | None = None) -> t.Self: ...
-
-    # ----------------
-    # INSTANCE METHODS
-    # ----------------
-    def to_bytes(self) -> builtins.bytes: ...
-    def to_uuid(self) -> uuid.UUID: ...
-    def to_uuid4(self) -> uuid.UUID: ...
-
-    # ----------
-    # PROPERTIES
-    # ----------
-    @property
-    def bytes(self) -> builtins.bytes: ...
-    @property
-    def milliseconds(self) -> int: ...
-    @property
-    def timestamp(self) -> float: ...
-    @property
-    def datetime(self) -> pydt.datetime: ...
-    @property
-    def hex(self) -> str: ...
-
-    # -------------
-    # CLASS METHODS
-    # -------------
-    @classmethod
-    def from_datetime(cls, value: pydt.datetime) -> ULID: ...
-    @classmethod
-    def from_timestamp(cls, value: float) -> ULID: ...
-    @classmethod
-    def from_timestamp_seconds(cls, value: float) -> ULID: ...
-    @classmethod
-    def from_timestamp_milliseconds(cls, value: int) -> ULID: ...
-    @classmethod
-    def from_uuid(cls, uu: uuid.UUID) -> ULID: ...
-    @classmethod
-    def from_bytes(cls, b: builtins.bytes) -> ULID: ...
-    @classmethod
-    def from_hex(cls, hexstr: str) -> ULID: ...
-    @classmethod
-    def from_str(cls, s: str, /) -> ULID: ...
-    @classmethod
-    def from_string(cls, s: str, /) -> ULID:
-        """Alias for `from_str` to match python-ulid lib"""
-
-    @classmethod
-    def from_int(cls, i: int) -> ULID: ...
-    @classmethod
-    def parse(cls, value: t.Any) -> ULID: ...
-
-    # -------
-    # DUNDERS
-    # -------
-    def __int__(self) -> int: ...
-    def __bytes__(self) -> builtins.bytes: ...
-    def __lt__(self, other: int | str | ULID | builtins.bytes) -> bool: ...
-    def __le__(self, other: int | str | ULID | builtins.bytes) -> bool: ...
-    def __eq__(self, other: object) -> bool: ...
-    def __gt__(self, other: int | str | ULID | builtins.bytes) -> bool: ...
-    def __ge__(self, other: int | str | ULID | builtins.bytes) -> bool: ...
-    def __hash__(self) -> int: ...
-
-    # --------
-    # PYDANTIC
-    # --------
-    @classmethod
-    def __get_pydantic_core_schema__(
-        cls, source: t.Any, handler: GetCoreSchemaHandler
-    ) -> CoreSchema: ...
-```
-
-<h2 id="ry.ryo3.uuid"><code>ry.ryo3.uuid</code></h2>
-
-```python
-"""ryo3-uuid types
-
-based on typeshed types for python's builtin uuid module
-
-REF: https://github.com/python/typeshed/blob/main/stdlib/uuid.pyi
-"""
-
-import builtins
-import typing as t
-import uuid as pyuuid
-from enum import Enum
-
-from ry._types import Buffer
-from ry.protocols import FromStr
-
-_FieldsType: t.TypeAlias = tuple[int, int, int, int, int, int]
-
-
-@t.final
-class UUID(FromStr):
-    NAMESPACE_DNS: UUID
-    NAMESPACE_URL: UUID
-    NAMESPACE_OID: UUID
-    NAMESPACE_X500: UUID
-
-    def __new__(
-        cls,
-        hex: str | None = None,  # noqa: A002
-        bytes: builtins.bytes | None = None,  # noqa: A002
-        bytes_le: builtins.bytes | None = None,
-        fields: _FieldsType | None = None,
-        int: builtins.int | None = None,  # noqa: A002
-        version: builtins.int | None = None,
-    ) -> t.Self: ...
-    @property
-    def is_nil(self) -> bool: ...
-    @property
-    def bytes(self) -> builtins.bytes: ...
-    @property
-    def bytes_le(self) -> builtins.bytes: ...
-    @property
-    def clock_seq(self) -> builtins.int: ...
-    @property
-    def clock_seq_hi_variant(self) -> builtins.int: ...
-    @property
-    def clock_seq_low(self) -> builtins.int: ...
-    @property
-    def fields(self) -> _FieldsType: ...
-    @property
-    def hex(self) -> str: ...
-    @property
-    def int(self) -> builtins.int: ...
-    @property
-    def node(self) -> builtins.int: ...
-    @property
-    def time(self) -> builtins.int: ...
-    @property
-    def time_hi_version(self) -> builtins.int: ...
-    @property
-    def time_low(self) -> builtins.int: ...
-    @property
-    def time_mid(self) -> builtins.int: ...
-    @property
-    def urn(self) -> str: ...
-    @property
-    def variant(self) -> str: ...
-    @property
-    def version(self) -> builtins.int | None: ...
-    def to_py(self) -> pyuuid.UUID: ...
-    def to_string(self) -> str: ...
-    # --- CLASSMETHODS --
-    @classmethod
-    def from_bytes(cls, b: builtins.bytes) -> t.Self: ...
-    @classmethod
-    def from_bytes_le(cls, b: builtins.bytes) -> t.Self: ...
-    @classmethod
-    def from_fields(cls, fields: _FieldsType) -> t.Self: ...
-    @classmethod
-    def from_hex(cls, hexstr: str) -> t.Self: ...
-    @classmethod
-    def from_int(cls, i: builtins.int) -> t.Self: ...
-    @classmethod
-    def from_pyuuid(cls, ob: pyuuid.UUID) -> t.Self: ...
-    @classmethod
-    def from_str(cls, s: str, /) -> t.Self: ...
-    # --- DUNDERS ---
-    def __bytes__(self) -> builtins.bytes: ...
-    def __lt__(self, other: UUID) -> bool: ...
-    def __le__(self, other: UUID) -> bool: ...
-    def __eq__(self, other: object) -> bool: ...
-    def __gt__(self, other: UUID) -> bool: ...
-    def __ge__(self, other: UUID) -> bool: ...
-    def __hash__(self) -> builtins.int: ...
-    def __int__(self) -> builtins.int: ...
-
-
-def getnode() -> builtins.int: ...
-def uuid1(node: int | None = None, clock_seq: int | None = None) -> UUID: ...
-def uuid3(namespace: UUID, name: str | builtins.bytes) -> UUID: ...
-def uuid4() -> UUID: ...
-def uuid5(namespace: UUID, name: str | builtins.bytes) -> UUID: ...
-def uuid6(node: int | None = None, clock_seq: int | None = None) -> UUID: ...
-def uuid7(timestamp: int | None = None) -> UUID: ...
-@t.overload
-def uuid8(*, buf: Buffer) -> UUID: ...  # 16 bytes buffer
-@t.overload
-def uuid8(
-    a: int | None = None,
-    b: int | None = None,
-    c: int | None = None,
-    *,
-    buf: None = None,
-) -> UUID: ...
-
-
-NAMESPACE_DNS: UUID
-NAMESPACE_URL: UUID
-NAMESPACE_OID: UUID
-NAMESPACE_X500: UUID
-RESERVED_NCS: str
-RFC_4122: str
-RESERVED_MICROSOFT: str
-RESERVED_FUTURE: str
 ```
 
 <h2 id="ry.ryo3.xxhash"><code>ry.ryo3.xxhash</code></h2>
@@ -8769,44 +8820,45 @@ OpenMode: TypeAlias = Literal[
 <h2 id="ry.dirs"><code>ry.dirs</code></h2>
 
 ```python
-from ry.ryo3.dirs import audio as audio
-from ry.ryo3.dirs import audio_dir as audio_dir
-from ry.ryo3.dirs import cache as cache
-from ry.ryo3.dirs import cache_dir as cache_dir
-from ry.ryo3.dirs import config as config
-from ry.ryo3.dirs import config_dir as config_dir
-from ry.ryo3.dirs import config_local as config_local
-from ry.ryo3.dirs import config_local_dir as config_local_dir
-from ry.ryo3.dirs import data as data
-from ry.ryo3.dirs import data_dir as data_dir
-from ry.ryo3.dirs import data_local as data_local
-from ry.ryo3.dirs import data_local_dir as data_local_dir
-from ry.ryo3.dirs import desktop as desktop
-from ry.ryo3.dirs import desktop_dir as desktop_dir
-from ry.ryo3.dirs import document as document
-from ry.ryo3.dirs import document_dir as document_dir
-from ry.ryo3.dirs import download as download
-from ry.ryo3.dirs import download_dir as download_dir
-from ry.ryo3.dirs import executable as executable
-from ry.ryo3.dirs import executable_dir as executable_dir
-from ry.ryo3.dirs import font as font
-from ry.ryo3.dirs import font_dir as font_dir
-from ry.ryo3.dirs import home as home
-from ry.ryo3.dirs import home_dir as home_dir
-from ry.ryo3.dirs import picture as picture
-from ry.ryo3.dirs import picture_dir as picture_dir
-from ry.ryo3.dirs import preference as preference
-from ry.ryo3.dirs import preference_dir as preference_dir
-from ry.ryo3.dirs import public as public
-from ry.ryo3.dirs import public_dir as public_dir
-from ry.ryo3.dirs import runtime as runtime
-from ry.ryo3.dirs import runtime_dir as runtime_dir
-from ry.ryo3.dirs import state as state
-from ry.ryo3.dirs import state_dir as state_dir
-from ry.ryo3.dirs import template as template
-from ry.ryo3.dirs import template_dir as template_dir
-from ry.ryo3.dirs import video as video
-from ry.ryo3.dirs import video_dir as video_dir
+from ry.ryo3 import audio_dir as audio_dir
+from ry.ryo3 import cache_dir as cache_dir
+from ry.ryo3 import config_dir as config_dir
+from ry.ryo3 import config_local_dir as config_local_dir
+from ry.ryo3 import data_dir as data_dir
+from ry.ryo3 import data_local_dir as data_local_dir
+from ry.ryo3 import desktop_dir as desktop_dir
+from ry.ryo3 import document_dir as document_dir
+from ry.ryo3 import download_dir as download_dir
+from ry.ryo3 import executable_dir as executable_dir
+from ry.ryo3 import font_dir as font_dir
+from ry.ryo3 import home_dir as home_dir
+from ry.ryo3 import picture_dir as picture_dir
+from ry.ryo3 import preference_dir as preference_dir
+from ry.ryo3 import public_dir as public_dir
+from ry.ryo3 import runtime_dir as runtime_dir
+from ry.ryo3 import state_dir as state_dir
+from ry.ryo3 import template_dir as template_dir
+from ry.ryo3 import video_dir as video_dir
+
+audio = audio_dir
+cache = cache_dir
+config = config_dir
+config_local = config_local_dir
+data = data_dir
+data_local = data_local_dir
+desktop = desktop_dir
+document = document_dir
+download = download_dir
+executable = executable_dir
+font = font_dir
+home = home_dir
+picture = picture_dir
+preference = preference_dir
+public = public_dir
+runtime = runtime_dir
+state = state_dir
+template = template_dir
+video = video_dir
 
 __all__ = (
     "audio",
@@ -8992,58 +9044,6 @@ class ToPyTzInfo(t.Protocol):
     """Objects that can be converted to a Python `datetime.tzinfo`."""
 
     def to_pytzinfo(self) -> pydt.tzinfo: ...
-```
-
-<h2 id="ry.ulid"><code>ry.ulid</code></h2>
-
-```python
-from ry.ryo3.ulid import ULID
-
-__all__ = ("ULID",)
-```
-
-<h2 id="ry.uuid"><code>ry.uuid</code></h2>
-
-```python
-from ry.ryo3.uuid import (
-    NAMESPACE_DNS,
-    NAMESPACE_OID,
-    NAMESPACE_URL,
-    NAMESPACE_X500,
-    RESERVED_FUTURE,
-    RESERVED_MICROSOFT,
-    RESERVED_NCS,
-    RFC_4122,
-    UUID,
-    getnode,
-    uuid1,
-    uuid3,
-    uuid4,
-    uuid5,
-    uuid6,
-    uuid7,
-    uuid8,
-)
-
-__all__ = (
-    "NAMESPACE_DNS",
-    "NAMESPACE_OID",
-    "NAMESPACE_URL",
-    "NAMESPACE_X500",
-    "RESERVED_FUTURE",
-    "RESERVED_MICROSOFT",
-    "RESERVED_NCS",
-    "RFC_4122",
-    "UUID",
-    "getnode",
-    "uuid1",
-    "uuid3",
-    "uuid4",
-    "uuid5",
-    "uuid6",
-    "uuid7",
-    "uuid8",
-)
 ```
 
 <h2 id="ry.xxhash"><code>ry.xxhash</code></h2>

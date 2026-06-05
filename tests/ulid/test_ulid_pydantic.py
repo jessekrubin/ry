@@ -13,7 +13,7 @@ from typing import Annotated
 
 import pytest
 
-from ry.ulid import ULID
+from ry import ULID
 
 
 def _pydantic_installed() -> bool:

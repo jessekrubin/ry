@@ -151,7 +151,7 @@ impl PyProxy {
     #[new]
     #[pyo3(
         signature = (url, ptype = &PyProxyType::All, **kwds),
-        text_signature = "(url, \"all\", *,basic_auth=None, headers=None, no_proxy=None)"
+        text_signature = "(url, \"all\", *, basic_auth=None, headers=None, no_proxy=None)"
     )]
     fn py_new(url: UrlLike, ptype: &PyProxyType, kwds: Option<ProxyKwargs>) -> PyResult<Self> {
         match ptype {

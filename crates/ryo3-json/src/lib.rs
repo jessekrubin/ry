@@ -18,6 +18,7 @@ pub fn py_submod_register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(ryo3_jiter::cache_usage, m)?)?;
     Ok(())
 }
+
 #[pymodule(gil_used = false, name = "JSON", submodule)]
 pub fn json_py_module(m: &Bound<'_, PyModule>) -> PyResult<()> {
     py_submod_register(m)?;
@@ -25,9 +26,7 @@ pub fn json_py_module(m: &Bound<'_, PyModule>) -> PyResult<()> {
 }
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    // root level registration
     m.add_function(wrap_pyfunction!(orjson::orjson_default, m)?)?;
     m.add_function(wrap_pyfunction!(serialize::stringify, m)?)?;
-    // m.add_wrapped(wrap_pymodule!(orjson::oj))?;
     Ok(())
 }

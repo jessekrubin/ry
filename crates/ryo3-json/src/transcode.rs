@@ -3,7 +3,7 @@ use std::io;
 use pyo3::prelude::*;
 use pyo3::types::PyString;
 use ryo3_bytes::{ReadableBuffer, RyBytes};
-use ryo3_core::{py_type_err, py_value_error};
+use ryo3_core::{PyCastExactOpt, py_type_err, py_value_error};
 use serde_json::{Deserializer, Serializer};
 
 fn minify_json<W: io::Write>(input: &[u8], output: W) -> Result<(), serde_json::Error> {
@@ -18,7 +18,7 @@ fn py_minify_json<W: io::Write>(input: &[u8], output: W) -> PyResult<()> {
 
 #[pyfunction(signature = (buf, /))]
 pub(crate) fn minify<'py>(buf: &'py Bound<'py, PyAny>) -> PyResult<RyBytes> {
-    if let Ok(s) = buf.cast::<PyString>() {
+    if let Some(s) = buf.cast_exact_opt::<PyString>() {
         // py-string
         let json_str = s.to_string();
         let json_bytes = json_str.as_bytes();
@@ -47,7 +47,7 @@ fn py_indent2_json<W: io::Write>(input: &[u8], output: W) -> PyResult<()> {
 
 #[pyfunction(signature = (buf, /))]
 pub(crate) fn fmt<'py>(buf: &'py Bound<'py, PyAny>) -> PyResult<RyBytes> {
-    if let Ok(s) = buf.cast::<PyString>() {
+    if let Some(s) = buf.cast_exact_opt::<PyString>() {
         // py-string
         let json_str = s.to_string();
         let json_bytes = json_str.as_bytes();

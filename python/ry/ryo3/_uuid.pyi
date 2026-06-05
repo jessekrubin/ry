@@ -16,7 +16,7 @@ from ry.protocols import FromStr
 _Bytes: t.TypeAlias = builtins.bytes
 _Int: t.TypeAlias = builtins.int
 _V: t.TypeAlias = t.Literal[1, 2, 3, 4, 5, 6, 7, 8]
-_FieldsType: t.TypeAlias = tuple[int, int, int, int, int, int]
+_UuidFields: t.TypeAlias = tuple[int, int, int, int, int, int]
 
 @t.final
 class UUID(FromStr):
@@ -38,19 +38,19 @@ class UUID(FromStr):
     @t.overload
     def __new__(cls, *, bytes_le: _Bytes, version: _V | None = None) -> t.Self: ...
     @t.overload
-    def __new__(cls, *, fields: _FieldsType, version: _V | None = None) -> t.Self: ...
+    def __new__(cls, *, fields: _UuidFields, version: _V | None = None) -> t.Self: ...
     @t.overload
     def __new__(cls, *, int: _Int, version: _V | None = None) -> t.Self: ...
     @t.overload
     def __new__(
         cls,
-        hex: str | None = None,
-        bytes: _Bytes | None = None,
-        bytes_le: _Bytes | None = None,
-        fields: _FieldsType | None = None,
-        int: _Int | None = None,
+        hex: None = None,
+        bytes: None = None,
+        bytes_le: None = None,
+        fields: None = None,
+        int: None = None,
         version: _V | None = None,
-    ) -> t.Self: ...
+    ) -> t.NoReturn: ...
     @staticmethod
     def getnode() -> _Int: ...
     @property
@@ -66,7 +66,7 @@ class UUID(FromStr):
     @property
     def clock_seq_low(self) -> _Int: ...
     @property
-    def fields(self) -> _FieldsType: ...
+    def fields(self) -> _UuidFields: ...
     @property
     def hex(self) -> str: ...
     @property
@@ -95,7 +95,7 @@ class UUID(FromStr):
     @classmethod
     def from_bytes_le(cls, b: _Bytes) -> t.Self: ...
     @classmethod
-    def from_fields(cls, fields: _FieldsType) -> t.Self: ...
+    def from_fields(cls, fields: _UuidFields) -> t.Self: ...
     @classmethod
     def from_hex(cls, hexstr: str) -> t.Self: ...
     @classmethod

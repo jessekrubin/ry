@@ -267,10 +267,24 @@ pub struct PySha256(PyMutexContext<PySha256Algorithm>);
 //           edit the macro
 // ============================================================================
 impl PySha256 {
-    fn digest_bytes(&self) -> PyResult<[u8; SHA256_OUTPUT_LEN]> {
+    fn digest_inner(&self) -> PyResult<Digest> {
         let ctx = self.0.py_lock()?;
-        let digest = ctx.finish();
-        Ok(digest.as_ref().try_into().expect("sha256 digest size"))
+        Ok(ctx.finish())
+    }
+
+    fn oneshot_digest(py: Python<'_>, data: &ReadableBuffer) -> Digest {
+        if data.len() > HASHLIB_GIL_MINSIZE {
+            let slice = data.as_ref();
+            py.detach(|| {
+                let mut ctx = Context::new(PySha256Algorithm::algorithm());
+                ctx.update(slice);
+                ctx.finish()
+            })
+        } else {
+            let mut ctx = Context::new(PySha256Algorithm::algorithm());
+            ctx.update(data.as_ref());
+            ctx.finish()
+        }
     }
 }
 
@@ -317,14 +331,11 @@ impl PySha256 {
     }
 
     fn digest(&self) -> PyResult<PyAwsLcRsDigest<SHA256_OUTPUT_LEN>> {
-        let ctx = self.0.py_lock()?;
-        let digest = ctx.finish();
-        Ok(PyAwsLcRsDigest(digest))
+        self.digest_inner().map(PyAwsLcRsDigest::from)
     }
 
-    fn hexdigest(&self) -> PyResult<PyHexDigest<[u8; SHA256_OUTPUT_LEN]>> {
-        let bytes = self.digest_bytes()?;
-        Ok(PyHexDigest::from(bytes))
+    fn hexdigest(&self) -> PyResult<PyAwsLcRsHexDigest<SHA256_OUTPUT_LEN>> {
+        self.digest_inner().map(PyAwsLcRsHexDigest::from)
     }
 
     #[expect(clippy::needless_pass_by_value)]
@@ -365,6 +376,13 @@ impl PySha256 {
         }
     }
 
+    #[staticmethod]
+    #[expect(clippy::needless_pass_by_value)]
+    #[pyo3(signature = (data, /), text_signature = "(data, /)")]
+    fn oneshot_hex(py: Python<'_>, data: ReadableBuffer) -> PyAwsLcRsHexDigest<SHA256_OUTPUT_LEN> {
+        Self::oneshot_digest(py, &data).into()
+    }
+
     #[expect(clippy::needless_pass_by_value)]
     fn __repr__(slf: PyRef<'_, Self>) -> PyAsciiString {
         let p = slf.as_ptr();
@@ -386,13 +404,24 @@ macro_rules! define_py_hasher {
         pub struct $py_struct(PyMutexContext<$algorithm>);
 
         impl $py_struct {
-            fn digest_bytes(&self) -> PyResult<[u8; $output_len]> {
+            fn digest_inner(&self) -> PyResult<Digest> {
                 let ctx = self.0.py_lock()?;
-                let digest = ctx.finish();
-                Ok(digest
-                    .as_ref()
-                    .try_into()
-                    .expect(concat!($name, " digest size mismatch")))
+                Ok(ctx.finish())
+            }
+
+            fn oneshot_digest(py: Python<'_>, data: ReadableBuffer) -> Digest {
+                if data.len() > HASHLIB_GIL_MINSIZE {
+                    let bytes = data.as_ref();
+                    py.detach(|| {
+                        let mut ctx = Context::new(<$algorithm as PyAlgorithm>::algorithm());
+                        ctx.update(&bytes);
+                        ctx.finish()
+                    })
+                } else {
+                    let mut ctx = Context::new(<$algorithm as PyAlgorithm>::algorithm());
+                    ctx.update(data.as_ref());
+                    ctx.finish()
+                }
             }
         }
 
@@ -435,14 +464,11 @@ macro_rules! define_py_hasher {
             }
 
             fn digest(&self) -> PyResult<PyAwsLcRsDigest<$output_len>> {
-                let ctx = self.0.py_lock()?;
-                let digest = ctx.finish();
-                Ok(PyAwsLcRsDigest(digest))
+                Ok(PyAwsLcRsDigest(self.digest_inner()?))
             }
 
-            fn hexdigest(&self) -> PyResult<PyHexDigest<[u8; $output_len]>> {
-                let bytes = self.digest_bytes()?;
-                Ok(PyHexDigest::from(bytes))
+            fn hexdigest(&self) -> PyResult<PyAwsLcRsHexDigest<$output_len>> {
+                Ok(PyAwsLcRsDigest::<$output_len, true>(self.digest_inner()?))
             }
 
             #[pyo3(signature = (data, /), text_signature = "(data, /)")]
@@ -463,7 +489,6 @@ macro_rules! define_py_hasher {
             }
 
             #[staticmethod]
-            #[allow(clippy::needless_pass_by_value)]
             #[pyo3(signature = (data, /), text_signature = "(data, /)")]
             fn oneshot(
                 py: Python<'_>,
@@ -483,6 +508,17 @@ macro_rules! define_py_hasher {
                     let digest = ctx.finish();
                     Ok(PyAwsLcRsDigest(digest))
                 }
+            }
+
+            #[staticmethod]
+            #[pyo3(signature = (data, /), text_signature = "(data, /)")]
+            fn oneshot_hex(
+                py: Python<'_>,
+                data: ReadableBuffer,
+            ) -> PyResult<PyAwsLcRsHexDigest<$output_len>> {
+                Ok(PyAwsLcRsDigest::<$output_len, true>(Self::oneshot_digest(
+                    py, data,
+                )))
             }
         }
     };
@@ -573,9 +609,23 @@ define_py_hasher!(
 );
 
 // ============================================================================
-struct PyAwsLcRsDigest<const SIZE: usize>(Digest);
+struct PyAwsLcRsDigest<const SIZE: usize, const HEX: bool = false>(Digest);
 
-impl<'py, const SIZE: usize> pyo3::IntoPyObject<'py> for PyAwsLcRsDigest<SIZE> {
+impl<const SIZE: usize> From<Digest> for PyAwsLcRsDigest<SIZE, false> {
+    #[inline]
+    fn from(digest: Digest) -> Self {
+        Self(digest)
+    }
+}
+
+impl<const SIZE: usize> From<Digest> for PyAwsLcRsDigest<SIZE, true> {
+    #[inline]
+    fn from(digest: Digest) -> Self {
+        Self(digest)
+    }
+}
+
+impl<'py, const SIZE: usize> pyo3::IntoPyObject<'py> for PyAwsLcRsDigest<SIZE, false> {
     type Target = pyo3::types::PyBytes;
     type Output = Bound<'py, Self::Target>;
     type Error = PyErr;
@@ -588,6 +638,25 @@ impl<'py, const SIZE: usize> pyo3::IntoPyObject<'py> for PyAwsLcRsDigest<SIZE> {
         })
     }
 }
+
+type PyAwsLcRsHexDigest<const SIZE: usize> = PyAwsLcRsDigest<SIZE, true>;
+
+impl<'py, const SIZE: usize> pyo3::IntoPyObject<'py> for PyAwsLcRsHexDigest<SIZE> {
+    type Target = PyString;
+    type Output = Bound<'py, Self::Target>;
+    type Error = PyErr;
+
+    #[inline]
+    fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
+        let bytes: &[u8; SIZE] = self
+            .0
+            .as_ref()
+            .try_into()
+            .expect("wenodis: digest size mismatch");
+        Ok(PyHexDigest::from(bytes).into_pyobject(py)?)
+    }
+}
+
 // ============================================================================
 // REGISTER CLASSES
 // ============================================================================
