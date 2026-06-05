@@ -12,6 +12,7 @@ use ryo3_core::{PyAsciiString, map_py_overflow_err, map_py_value_err};
 use ryo3_macro_rules::{any_repr, py_type_err, py_type_error};
 
 use crate::difference::{DateTimeDifferenceArg, RyDateTimeDifference};
+use crate::py_temporal_like::{TemporalSubInput, TemporalSubOutput};
 use crate::ry_iso_week_date::RyISOWeekDate;
 use crate::ry_signed_duration::RySignedDuration;
 use crate::ry_span::RySpan;
@@ -202,21 +203,34 @@ impl RyDateTime {
             .map_err(map_py_overflow_err)
     }
 
-    fn __sub__<'py>(
-        &self,
-        py: Python<'py>,
-        other: &Bound<'py, PyAny>,
-    ) -> PyResult<Bound<'py, PyAny>> {
-        if let Ok(ob) = other.cast_exact::<Self>() {
-            let span = self.0.sub(ob.get().0);
-            let obj = RySpan::from(span).into_pyobject(py).map(Bound::into_any)?;
-            Ok(obj)
-        } else {
-            let spanish = other.extract::<Spanish>()?;
-            let z = self.0.checked_sub(spanish).map_err(map_py_overflow_err)?;
-            Self::from(z).into_bound_py_any(py)
+    fn __sub__<'py>(&self, other: TemporalSubInput<Self>) -> TemporalSubOutput<Self> {
+        match other {
+            TemporalSubInput::Temporal(ob) => {
+                let span = self.0.sub(ob.get().0);
+                TemporalSubOutput::Span(RySpan::from(span))
+            }
+            TemporalSubInput::Spanish(spanish) => {
+                self.0.checked_sub(spanish).map(Self::from).into()
+            }
         }
     }
+    // fn __sub__<'py>(
+    //     &self,
+    //     py: Python<'py>,
+    //     other: &Bound<'py, PyAny>,
+    // ) -> PyResult<
+    // TemporalSubOutput<Self>
+    // > {
+    //     if let Ok(ob) = other.cast_exact::<Self>() {
+    //         let span = self.0.sub(ob.get().0);
+    //         let obj = RySpan::from(span).into_pyobject(py).map(Bound::into_any)?;
+    //         Ok(obj)
+    //     } else {
+    //         let spanish = other.extract::<Spanish>()?;
+    //         let z = self.0.checked_sub(spanish).map_err(map_py_overflow_err)?;
+    //         Self::from(z).into_bound_py_any(py)
+    //     }
+    // }
 
     #[expect(clippy::too_many_arguments)]
     #[pyo3(
@@ -297,7 +311,7 @@ impl RyDateTime {
     fn sub<'py>(
         &self,
         py: Python<'py>,
-        other: Option<&Bound<'py, PyAny>>,
+        other: Option<TemporalSubInput<Self>>,
         years: i64,
         months: i64,
         weeks: i64,
@@ -322,7 +336,7 @@ impl RyDateTime {
             .nanoseconds(nanoseconds);
 
         match (other, !spkw.is_zero()) {
-            (Some(o), false) => self.__sub__(py, o),
+            (Some(o), false) => self.__sub__(o).into_bound_py_any(py),
             (None, true) => {
                 let span = spkw.build()?;
                 self.0

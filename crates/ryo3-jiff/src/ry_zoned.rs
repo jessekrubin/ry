@@ -1,5 +1,6 @@
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
+use std::ops::Sub;
 
 use jiff::civil::{Date, Time, Weekday};
 use jiff::tz::TimeZone;
@@ -12,6 +13,7 @@ use ryo3_core::{PyAsciiString, map_py_overflow_err, map_py_value_err};
 use ryo3_macro_rules::{any_repr, py_type_err};
 
 use crate::isoformat::PyIsoFormat;
+use crate::py_temporal_like::{TemporalSubInput, TemporalSubOutput};
 use crate::round::RyZonedDateTimeRound;
 use crate::ry_datetime::RyDateTime;
 use crate::ry_iso_week_date::RyISOWeekDate;
@@ -293,24 +295,35 @@ impl RyZoned {
         Self::from(self.0.with_time_zone(TimeZone::UTC))
     }
 
-    fn __sub__<'py>(
-        &self,
-        py: Python<'py>,
-        other: &Bound<'py, PyAny>,
-    ) -> PyResult<Bound<'py, PyAny>> {
-        #[expect(clippy::arithmetic_side_effects)]
-        if let Ok(zoned) = other.cast_exact::<Self>() {
-            // if other is a Zoned, return a Span
-            let span = &self.0 - &zoned.get().0;
-            let obj = RySpan::from(span).into_pyobject(py).map(Bound::into_any)?;
-            Ok(obj)
-        } else {
-            let spanish = other.extract::<Spanish>()?;
-            // Spanish2::try_from(other)?;
-            let z = self.0.checked_sub(spanish).map_err(map_py_overflow_err)?;
-            Self::from(z).into_bound_py_any(py)
+    fn __sub__<'py>(&self, other: TemporalSubInput<Self>) -> TemporalSubOutput<Self> {
+        match other {
+            TemporalSubInput::Temporal(ob) => {
+                let span = &self.0 - &ob.get().0;
+                TemporalSubOutput::Span(RySpan::from(span))
+            }
+            TemporalSubInput::Spanish(spanish) => {
+                self.0.checked_sub(spanish).map(Self::from).into()
+            }
         }
     }
+    // fn __sub__<'py>(
+    //     &self,
+    //     py: Python<'py>,
+    //     other: &Bound<'py, PyAny>,
+    // ) -> PyResult<Bound<'py, PyAny>> {
+    //     #[expect(clippy::arithmetic_side_effects)]
+    //     if let Ok(zoned) = other.cast_exact::<Self>() {
+    //         // if other is a Zoned, return a Span
+    //         let span = &self.0 - &zoned.get().0;
+    //         let obj = RySpan::from(span).into_pyobject(py).map(Bound::into_any)?;
+    //         Ok(obj)
+    //     } else {
+    //         let spanish = other.extract::<Spanish>()?;
+    //         // Spanish2::try_from(other)?;
+    //         let z = self.0.checked_sub(spanish).map_err(map_py_overflow_err)?;
+    //         Self::from(z).into_bound_py_any(py)
+    //     }
+    // }
 
     fn __add__(&self, other: Spanish) -> PyResult<Self> {
         self.0
@@ -398,7 +411,7 @@ impl RyZoned {
     fn sub<'py>(
         &self,
         py: Python<'py>,
-        other: Option<&Bound<'py, PyAny>>,
+        other: Option<TemporalSubInput<Self>>,
         years: i64,
         months: i64,
         weeks: i64,
@@ -423,7 +436,7 @@ impl RyZoned {
             .nanoseconds(nanoseconds);
 
         match (other, !spkw.is_zero()) {
-            (Some(o), false) => self.__sub__(py, o),
+            (Some(o), false) => self.__sub__(o).into_bound_py_any(py),
             (None, true) => {
                 let span = spkw.build()?;
                 self.0

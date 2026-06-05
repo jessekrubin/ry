@@ -2,17 +2,18 @@ use std::hash::{DefaultHasher, Hash, Hasher};
 use std::ops::Sub;
 
 use jiff::tz::TimeZone;
-use jiff::{Timestamp, TimestampRound, Zoned};
-use pyo3::BoundObject;
+use jiff::{Timestamp, TimestampArithmetic, TimestampRound, Zoned};
 use pyo3::basic::CompareOp;
 use pyo3::prelude::*;
 use pyo3::types::PyTuple;
+use pyo3::{BoundObject, IntoPyObjectExt};
 use ryo3_core::{
     PyAsciiString, map_py_overflow_err, map_py_value_err, py_overflow_err, py_value_err,
 };
 use ryo3_macro_rules::{any_repr, py_type_err};
 
 use crate::difference::{RyTimestampDifference, TimestampDifferenceArg};
+use crate::py_temporal_like::{TemporalSubInput, TemporalSubOutput};
 use crate::round::RyTimestampRound;
 use crate::series::RyTimestampSeries;
 use crate::spanish::Spanish;
@@ -31,6 +32,10 @@ pub struct RyTimestamp(pub(crate) Timestamp);
 impl RyTimestamp {
     pub fn new(second: i64, nanosecond: i32) -> Result<Self, jiff::Error> {
         Timestamp::new(second, nanosecond).map(Self)
+    }
+
+    fn checked_sub<T: Into<TimestampArithmetic>>(&self, other: T) -> Result<Self, jiff::Error> {
+        self.0.checked_sub(other).map(Self)
     }
 }
 
@@ -177,20 +182,11 @@ impl RyTimestamp {
 
     fn __sub__(&self, other: TimestampSubInput) -> TimestampSubOutput {
         match other {
-            TimestampSubInput::Timestamp(ob) => {
+            TimestampSubInput::Temporal(ob) => {
                 let span = self.0.sub(ob.get().0);
                 TimestampSubOutput::Span(RySpan::from(span))
             }
-            TimestampSubInput::Spanish(spanish) => match self.0.checked_sub(spanish) {
-                Ok(z) => TimestampSubOutput::Timestamp(Self::from(z)),
-                Err(err) => {
-                    if err.is_range() {
-                        TimestampSubOutput::Overflow(err)
-                    } else {
-                        TimestampSubOutput::ValueError(err)
-                    }
-                }
-            },
+            TimestampSubInput::Spanish(spanish) => self.checked_sub(spanish).into(),
         }
     }
 
@@ -283,9 +279,8 @@ impl RyTimestamp {
             (Some(o), false) => Ok(self.__sub__(o)),
             (None, true) => {
                 let span = spkw.build()?;
-
                 match self.0.checked_sub(span) {
-                    Ok(z) => Ok(TimestampSubOutput::Timestamp(Self::from(z))),
+                    Ok(z) => Ok(TimestampSubOutput::Temporal(Self::from(z))),
                     Err(err) => {
                         if err.is_range() {
                             Ok(TimestampSubOutput::Overflow(err))
@@ -298,7 +293,7 @@ impl RyTimestamp {
             (Some(_), true) => {
                 py_type_err!("sub accepts either a span-like object or keyword units, not both")
             }
-            (None, false) => Ok(TimestampSubOutput::Timestamp(*self)),
+            (None, false) => Ok(TimestampSubOutput::Temporal(*self)),
         }
     }
 
@@ -604,42 +599,46 @@ impl std::fmt::Display for RyTimestamp {
     }
 }
 
-enum TimestampSubInput<'a, 'py> {
-    Timestamp(Borrowed<'a, 'py, RyTimestamp>),
-    Spanish(Spanish<'a, 'py>),
-}
+// enum TimestampSubInput<'a, 'py> {
+//     Timestamp(Borrowed<'a, 'py, RyTimestamp>),
+//     Spanish(Spanish<'a, 'py>),
+// }
+type TimestampSubInput<'a, 'py> = TemporalSubInput<'a, 'py, RyTimestamp>;
 
-impl<'a, 'py> FromPyObject<'a, 'py> for TimestampSubInput<'a, 'py> {
-    type Error = PyErr;
+// impl<'a, 'py> FromPyObject<'a, 'py> for TimestampSubInput<'a, 'py> {
+//     type Error = PyErr;
 
-    fn extract(ob: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
-        if let Ok(ts) = ob.cast_exact::<RyTimestamp>() {
-            Ok(Self::Timestamp(ts))
-        } else if let Ok(spanish) = ob.extract::<Spanish>() {
-            Ok(Self::Spanish(spanish))
-        } else {
-            py_type_err!("Expected a Timestamp or span-like object")
-        }
-    }
-}
+//     fn extract(ob: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
+//         if let Ok(ts) = ob.cast_exact::<RyTimestamp>() {
+//             Ok(Self::Temporal(ts))
+//         } else if let Ok(spanish) = ob.extract::<Spanish>() {
+//             Ok(Self::Spanish(spanish))
+//         } else {
+//             py_type_err!("Expected a Timestamp or span-like object")
+//         }
+//     }
+// }
 
-enum TimestampSubOutput {
-    ValueError(jiff::Error),
-    Overflow(jiff::Error),
-    Timestamp(RyTimestamp),
-    Span(RySpan),
-}
+type TimestampSubOutput = TemporalSubOutput<RyTimestamp>;
+// enum TimestampSubOutput {
+//     ValueError(jiff::Error),
+//     Overflow(jiff::Error),
+//     Timestamp(RyTimestamp),
+//     Span(RySpan),
+// }
 
-impl<'py> IntoPyObject<'py> for TimestampSubOutput {
-    type Target = PyAny;
-    type Output = Bound<'py, Self::Target>;
-    type Error = PyErr;
-    fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
-        match self {
-            Self::Timestamp(ts) => ts.into_pyobject(py).map(Bound::into_any),
-            Self::Span(span) => span.into_pyobject(py).map(Bound::into_any),
-            Self::Overflow(err) => py_overflow_err!("{err}"),
-            Self::ValueError(err) => py_value_err!("{err}"),
-        }
-    }
-}
+// impl<'py> IntoPyObject<'py> for TimestampSubOutput {
+//     type Target = PyAny;
+//     type Output = Bound<'py, Self::Target>;
+//     type Error = PyErr;
+//     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
+//         match self {
+//             Self::Timestamp(ts) => {
+//                 let a = ts.into_pyobject(py);
+//                 },
+//             Self::Span(span) => span.into_pyobject(py).map(Bound::into_any),
+//             Self::Overflow(err) => py_overflow_err!("{err}"),
+//             Self::ValueError(err) => py_value_err!("{err}"),
+//         }
+//     }
+// }
