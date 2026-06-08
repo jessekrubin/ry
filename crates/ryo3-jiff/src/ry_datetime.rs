@@ -203,7 +203,7 @@ impl RyDateTime {
             .map_err(map_py_overflow_err)
     }
 
-    fn __sub__<'py>(&self, other: TemporalSubInput<Self>) -> TemporalSubOutput<Self> {
+    fn __sub__(&self, other: TemporalSubInput<Self>) -> TemporalSubOutput<Self> {
         match other {
             TemporalSubInput::Temporal(ob) => {
                 let span = self.0.sub(ob.get().0);

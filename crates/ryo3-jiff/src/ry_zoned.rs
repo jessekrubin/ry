@@ -295,10 +295,10 @@ impl RyZoned {
         Self::from(self.0.with_time_zone(TimeZone::UTC))
     }
 
-    fn __sub__<'py>(&self, other: TemporalSubInput<Self>) -> TemporalSubOutput<Self> {
+    fn __sub__(&self, other: TemporalSubInput<Self>) -> TemporalSubOutput<Self> {
         match other {
             TemporalSubInput::Temporal(ob) => {
-                let span = &self.0 - &ob.get().0;
+                let span = (&self.0).sub(&ob.get().0);
                 TemporalSubOutput::Span(RySpan::from(span))
             }
             TemporalSubInput::Spanish(spanish) => {

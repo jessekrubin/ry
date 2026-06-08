@@ -1,7 +1,9 @@
-use pyo3::{IntoPyObjectExt, PyTypeInfo, prelude::*};
+use pyo3::prelude::*;
+use pyo3::{IntoPyObjectExt, PyTypeInfo};
 use ryo3_core::{PyCastExactOpt, py_type_err, py_value_err};
 
-use crate::{RyDate, RyDateTime, RySpan, RyTime, RyTimestamp, RyZoned, spanish::Spanish};
+use crate::spanish::Spanish;
+use crate::{RyDate, RyDateTime, RySpan, RyTime, RyTimestamp, RyZoned};
 
 #[derive(Debug, Clone)]
 pub(crate) enum PyTemporalTypes<'a, 'py> {

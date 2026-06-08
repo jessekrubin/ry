@@ -3,13 +3,11 @@ use std::ops::Sub;
 
 use jiff::tz::TimeZone;
 use jiff::{Timestamp, TimestampArithmetic, TimestampRound, Zoned};
+use pyo3::BoundObject;
 use pyo3::basic::CompareOp;
 use pyo3::prelude::*;
 use pyo3::types::PyTuple;
-use pyo3::{BoundObject, IntoPyObjectExt};
-use ryo3_core::{
-    PyAsciiString, map_py_overflow_err, map_py_value_err, py_overflow_err, py_value_err,
-};
+use ryo3_core::{PyAsciiString, map_py_overflow_err, map_py_value_err};
 use ryo3_macro_rules::{any_repr, py_type_err};
 
 use crate::difference::{RyTimestampDifference, TimestampDifferenceArg};
@@ -34,7 +32,7 @@ impl RyTimestamp {
         Timestamp::new(second, nanosecond).map(Self)
     }
 
-    fn checked_sub<T: Into<TimestampArithmetic>>(&self, other: T) -> Result<Self, jiff::Error> {
+    fn checked_sub<T: Into<TimestampArithmetic>>(self, other: T) -> Result<Self, jiff::Error> {
         self.0.checked_sub(other).map(Self)
     }
 }

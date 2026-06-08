@@ -7,7 +7,7 @@ use jiff::civil::{Date, DateArithmetic, Weekday};
 use pyo3::prelude::*;
 use pyo3::pyclass::CompareOp;
 use pyo3::types::{PyDict, PyTuple};
-use pyo3::{BoundObject, IntoPyObject, IntoPyObjectExt};
+use pyo3::{BoundObject, IntoPyObject};
 use ryo3_core::{PyAsciiString, map_py_overflow_err, map_py_value_err};
 use ryo3_macro_rules::{any_repr, py_type_err, py_value_error};
 
@@ -32,7 +32,7 @@ use crate::{JiffEra, JiffEraYear, JiffRoundMode, JiffUnit, JiffWeekday, RyTimest
 pub struct RyDate(pub(crate) Date);
 
 impl RyDate {
-    fn checked_sub<T: Into<DateArithmetic>>(&self, other: T) -> Result<Self, jiff::Error> {
+    fn checked_sub<T: Into<DateArithmetic>>(self, other: T) -> Result<Self, jiff::Error> {
         self.0.checked_sub(other).map(Self)
     }
 }
@@ -154,7 +154,7 @@ impl RyDate {
         )
     }
 
-    fn __sub__<'py>(&self, other: TemporalSubInput<Self>) -> TemporalSubOutput<Self> {
+    fn __sub__(&self, other: TemporalSubInput<Self>) -> TemporalSubOutput<Self> {
         match other {
             TemporalSubInput::Temporal(ob) => {
                 let span = self.0.sub(ob.get().0);
@@ -249,9 +249,8 @@ impl RyDate {
             nanoseconds = 0
         )
     )]
-    fn sub<'py>(
+    fn sub(
         &self,
-        py: Python<'py>,
         other: Option<TemporalSubInput<Self>>,
         years: i64,
         months: i64,
