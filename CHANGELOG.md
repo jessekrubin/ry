@@ -1,6 +1,8 @@
 # CHANGELOG
 
-## v0.0.95 [unreleased]
+## v0.0.95 [2026-06-04]
+
+**NOTE:**
 
 - build
   - fix cicd git-hash embedding
