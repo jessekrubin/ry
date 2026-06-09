@@ -633,7 +633,7 @@ class TestBytesPartition:
     )
     def test_partition_matches_python(self, b: bytes, sep: bytes) -> None:
         ry_bytes = ry.Bytes(b)
-        assert ry_bytes.partition(sep) == b.partition(sep)
+        assert ry_bytes.partition(sep) == b.partition(sep)  # type: ignore[comparison-overlap]
 
     @given(
         b=st.binary(),
@@ -641,7 +641,7 @@ class TestBytesPartition:
     )
     def test_rpartition_matches_python(self, b: bytes, sep: bytes) -> None:
         ry_bytes = ry.Bytes(b)
-        assert ry_bytes.rpartition(sep) == b.rpartition(sep)
+        assert ry_bytes.rpartition(sep) == b.rpartition(sep)  # type: ignore[comparison-overlap]
 
     @pytest.mark.parametrize("fnname", ["partition", "rpartition"])
     def test_rejects_empty_separator(self, fnname: str) -> None:

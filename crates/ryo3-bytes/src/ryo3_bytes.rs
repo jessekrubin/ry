@@ -181,6 +181,11 @@ impl PyBytes {
         buf
     }
 
+    #[staticmethod]
+    fn copy_from(buf: ReadableBuffer) -> Self {
+        Self::from(::bytes::Bytes::copy_from_slice(buf.as_ref()))
+    }
+
     fn __getnewargs_ex__<'py>(&'py self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
         let py_bytes = self.to_bytes(py);
         let args = PyTuple::new(py, vec![py_bytes])?.into_bound_py_any(py)?;
@@ -706,6 +711,18 @@ impl PyBytes {
     }
 
     // </python-bytes-methods>
+
+    // <::bytes::Bytes methods>
+    /// Return true if the buffer has a length of zero, false otherwise.
+    fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+
+    /// Return true if this is the only reference to the underlying buffer, false otherwise.
+    fn is_unique(&self) -> bool {
+        self.0.is_unique()
+    }
+    // </::bytes::Bytes methods>
 }
 
 impl<'py> FromPyObject<'_, 'py> for PyBytes {

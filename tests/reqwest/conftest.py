@@ -345,6 +345,7 @@ def server() -> Iterator[ReqtestServer]:
         port=0,
         lifespan="off",
         loop="asyncio",
+        ws="none",
     )
     srv = ReqtestServer(config=cfg)
     with serve_in_thread(srv) as running:
