@@ -1,6 +1,5 @@
 #![doc = include_str!("../README.md")]
 #![warn(missing_docs)]
-// #![expect(clippy::cast_sign_loss)]
 #![expect(clippy::ptr_as_ptr)]
 #![expect(clippy::needless_pass_by_value)]
 use pyo3::prelude::*;
