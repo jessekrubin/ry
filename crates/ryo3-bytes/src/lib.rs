@@ -1,16 +1,11 @@
 #![doc = include_str!("../README.md")]
 #![warn(missing_docs)]
-#![expect(clippy::unused_self)]
 #![expect(clippy::cast_sign_loss)]
 #![expect(clippy::ptr_as_ptr)]
 #![expect(clippy::needless_pass_by_value)]
-#![expect(clippy::similar_names)]
 #![expect(clippy::cast_possible_wrap)]
-use pyo3::intern;
 use pyo3::prelude::*;
 pub mod bytes;
-#[cfg(feature = "multiple-pymethods")]
-mod pyo3_bytes;
 mod readable_buffer;
 mod replace;
 
@@ -27,12 +22,5 @@ pub use crate::bytes::PyBytes as RyBytes;
 /// ryo3-bytes python module registration
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyBytes>()?;
-
-    // if `ry` and `multiple-pymethods` features are enabled, set the
-    // __module__ attribute of PyBytes to "ry.ryo3" which is just for tests...
-    if cfg!(feature = "ry") && cfg!(feature = "multiple-pymethods") {
-        m.getattr(intern!(m.py(), "Bytes"))?
-            .setattr(intern!(m.py(), "__module__"), intern!(m.py(), "ry.ryo3"))?;
-    }
     Ok(())
 }

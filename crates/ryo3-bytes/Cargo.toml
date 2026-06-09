@@ -10,7 +10,7 @@ homepage.workspace = true
 keywords.workspace = true
 license.workspace = true
 repository.workspace = true
-description = "ryo3 + bytes (https://docs.rs/regex/latest/bytes/)"
+description = "ryo3 + bytes (https://docs.rs/bytes/latest/bytes/)"
 
 [dependencies]
 ahash = { workspace = true }
@@ -19,9 +19,8 @@ memchr = { workspace = true, optional = true }
 pyo3 = { workspace = true, features = [] }
 
 [features]
-default = []
+default = ["memchr"]
 ry = ["memchr"]
-multiple-pymethods = ["pyo3/multiple-pymethods"]
 memchr = ["dep:memchr"]
 
 [lints]

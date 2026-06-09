@@ -2,6 +2,7 @@ use pyo3::BoundObject;
 use pyo3::prelude::*;
 
 use crate::RyBytes;
+use crate::ryo3_bytes::RyBuffer;
 
 /// Custom zero-copy bytes-like for extracting `&[u8]`
 #[derive(Debug)]
@@ -11,7 +12,7 @@ pub enum ReadableBuffer<'a, 'py> {
     /// Reference to a `ryo3-bytes::RyBytes` object
     RyBytes(Borrowed<'a, 'py, crate::RyBytes>),
     /// Any object that supports the buffer protocol
-    Buffer(crate::RyBytes),
+    Buffer(::bytes::Bytes),
 }
 
 impl ReadableBuffer<'_, '_> {
@@ -45,10 +46,7 @@ impl ReadableBuffer<'_, '_> {
                 let rbb: &bytes::Bytes = rb.get().as_ref();
                 rbb.clone()
             }
-            ReadableBuffer::Buffer(b) => {
-                let rbb: &bytes::Bytes = b.as_ref();
-                rbb.clone()
-            }
+            ReadableBuffer::Buffer(b) => b.clone(),
         }
     }
 
@@ -65,7 +63,7 @@ impl AsRef<[u8]> for ReadableBuffer<'_, '_> {
         match self {
             ReadableBuffer::PyBytes(pybytes) => pybytes.as_bytes(),
             ReadableBuffer::RyBytes(rybytes) => rybytes.get().as_slice(),
-            ReadableBuffer::Buffer(buffer) => buffer.as_slice(),
+            ReadableBuffer::Buffer(buffer) => buffer.as_ref(),
         }
     }
 }
@@ -88,10 +86,8 @@ impl<'a, 'py> FromPyObject<'a, 'py> for ReadableBuffer<'a, 'py> {
                 ob.cast_unchecked::<RyBytes>()
             };
             Ok(Self::RyBytes(rybytes))
-        } else if let Ok(buffer) = ob.extract::<RyBytes>() {
-            // TODO: possibly short circuit here and dont extracct via thingy
-            // because it does redundant checks...
-            Ok(Self::Buffer(buffer))
+        } else if let Ok(buffer) = ob.extract::<RyBuffer>() {
+            Ok(Self::Buffer(::bytes::Bytes::from_owner(buffer)))
         } else {
             Err(pyo3::exceptions::PyTypeError::new_err(
                 "Expected bytes, bytearray, or buffer-protocol object",

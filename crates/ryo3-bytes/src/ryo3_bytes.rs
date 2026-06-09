@@ -89,6 +89,10 @@ impl PyBytes {
     ///     - If start > stop, the slice is empty
     ///
     /// This is NOT exposed to Python under the `#[pymethods]` impl
+    #[expect(
+        clippy::similar_names,
+        reason = "python idiomatic naming; start/stop/step"
+    )]
     fn slice(&self, slice: &Bound<'_, PySlice>) -> PyResult<Self> {
         let bytes_length = self.0.len() as isize;
         let (start, stop, step) = {
@@ -244,7 +248,7 @@ impl PyBytes {
 
     /// This is taken from opendal:
     /// <https://github.com/apache/opendal/blob/d001321b0f9834bc1e2e7d463bcfdc3683e968c9/bindings/python/src/utils.rs#L51-L72>
-    #[allow(unsafe_code)]
+    #[expect(unsafe_code)]
     unsafe fn __getbuffer__(
         slf: PyRef<Self>,
         view: *mut ffi::Py_buffer,
@@ -272,7 +276,8 @@ impl PyBytes {
     // > don't need to treat the allocation as owned separately. It should be good enough to keep
     // > the allocation owned by the object.
     // https://discord.com/channels/1209263839632424990/1324816949464666194/1328299411427557397
-    #[allow(unsafe_code)]
+    #[expect(unsafe_code)]
+    #[expect(clippy::unused_self, reason = "buffer protocol")]
     unsafe fn __releasebuffer__(&self, _view: *mut ffi::Py_buffer) {}
 
     /// If the binary data starts with the prefix string, return bytes[len(prefix):]. Otherwise,
@@ -730,7 +735,7 @@ impl<'py> FromPyObject<'_, 'py> for PyBytes {
 pub(crate) struct RyBuffer<T = u8>(PyBuffer<T>);
 
 impl AsRef<[u8]> for RyBuffer<u8> {
-    #[allow(unsafe_code)]
+    #[expect(unsafe_code)]
     fn as_ref(&self) -> &[u8] {
         let len = self.0.item_count();
 
@@ -746,8 +751,17 @@ impl AsRef<[u8]> for RyBuffer<u8> {
 }
 
 impl From<PyBuffer<u8>> for RyBuffer<u8> {
+    #[inline]
     fn from(value: PyBuffer<u8>) -> Self {
         Self(value)
+    }
+}
+
+impl From<RyBuffer<u8>> for PyBytes {
+    #[inline]
+    fn from(value: RyBuffer<u8>) -> Self {
+        let bytes = Bytes::from_owner(value);
+        Self(bytes)
     }
 }
 

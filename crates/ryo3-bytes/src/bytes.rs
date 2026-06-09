@@ -1,6 +1,5 @@
 //! bytes reexport
+//!
+//! This is a relic of when the `pyo3-bytes` copy was still being maintained side by side
 
-#[cfg(feature = "multiple-pymethods")]
-pub use crate::pyo3_bytes::PyBytes;
-#[cfg(not(feature = "multiple-pymethods"))]
 pub use crate::ryo3_bytes::PyBytes;
