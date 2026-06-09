@@ -94,14 +94,15 @@ impl PyBytes {
         reason = "python idiomatic naming; start/stop/step"
     )]
     fn slice(&self, slice: &Bound<'_, PySlice>) -> PyResult<Self> {
-        let bytes_length = self.0.len() as isize;
+        let bytes_length = isize::try_from(self.0.len())
+            .map_err(|_| pyo3::exceptions::PyOverflowError::new_err("bytes object too large"))?;
         let (start, stop, step) = {
             let slice_indices = slice.indices(bytes_length)?;
             (slice_indices.start, slice_indices.stop, slice_indices.step)
         };
 
         let new_capacity = if (step > 0 && stop > start) || (step < 0 && stop < start) {
-            (((stop - start).abs() + step.abs() - 1) / step.abs()) as usize
+            stop.abs_diff(start).div_ceil(step.unsigned_abs())
         } else {
             0
         };
@@ -118,7 +119,9 @@ impl PyBytes {
             }
 
             if start >= 0 && stop <= bytes_length && start < stop {
-                let out = self.0.slice(start as usize..stop as usize);
+                let start = usize::try_from(start).expect("wenodis: start is non-negative");
+                let stop = usize::try_from(stop).expect("wenodis: stop is non-negative");
+                let out = self.0.slice(start..stop);
                 let py_bytes = Self(out);
                 return Ok(py_bytes);
             }
@@ -127,21 +130,18 @@ impl PyBytes {
         if step > 0 {
             // forward
             let mut new_buf = BytesMut::with_capacity(new_capacity);
-            new_buf.extend(
-                (start..stop)
-                    .step_by(step as usize)
-                    .map(|i| self.0[i as usize]),
-            );
+            let start = usize::try_from(start).expect("wenodis: start is non-negative");
+            let stop = usize::try_from(stop).expect("wenodis: stop is non-negative");
+            let step = usize::try_from(step).expect("wenodis: step is positive");
+            new_buf.extend((start..stop).step_by(step).map(|i| self.0[i]));
             Ok(Self(new_buf.freeze()))
         } else {
             // backward
             let mut new_buf = BytesMut::with_capacity(new_capacity);
-            new_buf.extend(
-                (stop + 1..=start)
-                    .rev()
-                    .step_by((-step) as usize)
-                    .map(|i| self.0[i as usize]),
-            );
+            let start = usize::try_from(start).expect("wenodis: start is non-negative");
+            let stop = usize::try_from(stop).expect("wenodis: stop is non-negative");
+            let step = step.unsigned_abs();
+            new_buf.extend((stop + 1..=start).rev().step_by(step).map(|i| self.0[i]));
             Ok(Self(new_buf.freeze()))
         }
     }
@@ -217,15 +217,18 @@ impl PyBytes {
 
     fn __getitem__(&self, key: BytesGetItemKey<'_>) -> PyResult<BytesGetItemResult> {
         match key {
-            BytesGetItemKey::Int(mut index) => {
-                if index < 0 {
-                    index += self.0.len() as isize;
-                }
-                if index < 0 {
-                    return Err(PyIndexError::new_err("Index out of range"));
-                }
+            BytesGetItemKey::Int(signed_index) => {
+                let index = if signed_index < 0 {
+                    let offset = signed_index.unsigned_abs();
+                    self.0
+                        .len()
+                        .checked_sub(offset)
+                        .ok_or_else(|| PyIndexError::new_err("Index out of range"))?
+                } else {
+                    usize::try_from(signed_index).expect("wenodis: positive isize aint gonna fail")
+                };
                 self.0
-                    .get(index as usize)
+                    .get(index)
                     .map(|b| BytesGetItemResult::Byte(*b))
                     .ok_or_else(|| PyIndexError::new_err("Index out of range"))
             }

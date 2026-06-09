@@ -410,26 +410,23 @@ pub(crate) fn normalize_find_bounds(
     end: Option<isize>,
 ) -> Option<Range<usize>> {
     let raw_start = start.unwrap_or(0);
-    if raw_start > len as isize {
-        return None;
-    }
-    let start = {
-        if raw_start < 0 {
-            (raw_start + len as isize).max(0) as usize
-        } else {
-            (raw_start as usize).min(len)
+    let start = if raw_start < 0 {
+        len.saturating_sub(raw_start.unsigned_abs())
+    } else {
+        let start = usize::try_from(raw_start).ok()?;
+        if start > len {
+            return None;
         }
+        start
     };
-    let end = {
-        let raw_end = end.unwrap_or(len as isize);
-        if raw_end > len as isize {
-            len
-        } else if raw_end < 0 {
-            (raw_end + len as isize).max(0) as usize
-        } else {
-            raw_end as usize
-        }
+
+    let raw_end = end.unwrap_or(isize::MAX);
+    let end = if raw_end < 0 {
+        len.saturating_sub(raw_end.unsigned_abs())
+    } else {
+        usize::try_from(raw_end).unwrap_or(usize::MAX).min(len)
     };
+
     (start <= end).then_some(start..end)
 }
 

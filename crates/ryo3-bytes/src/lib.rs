@@ -1,9 +1,8 @@
 #![doc = include_str!("../README.md")]
 #![warn(missing_docs)]
-#![expect(clippy::cast_sign_loss)]
+// #![expect(clippy::cast_sign_loss)]
 #![expect(clippy::ptr_as_ptr)]
 #![expect(clippy::needless_pass_by_value)]
-#![expect(clippy::cast_possible_wrap)]
 use pyo3::prelude::*;
 pub mod bytes;
 mod readable_buffer;
