@@ -13,11 +13,11 @@ use pyo3::pybacked::PyBackedBytes;
 use pyo3::types::{PyDict, PySlice, PyString, PyTuple};
 use pyo3::{IntoPyObjectExt, ffi};
 
-use crate::ReadableBuffer;
 use crate::python_bytes_methods::{
     BufferOrByte, PyFindResult, PyHexSep, PyIndexResult, PythonBytesMethods, PythonBytesStrip,
 };
 use crate::replace::{ReplaceBytes, replace_bytes};
+use crate::{ReadableBuffer, search};
 
 /// A wrapper around a [`bytes::Bytes`][].
 ///
@@ -627,6 +627,74 @@ impl PyBytes {
     #[pyo3(signature = (sub, start = None, end = None, /))]
     fn rindex(&self, sub: BufferOrByte, start: Option<isize>, end: Option<isize>) -> PyIndexResult {
         self.py_rindex(sub, start, end)
+    }
+
+    #[pyo3(signature = (sep, /))]
+    fn partition<'py>(
+        slf: PyRef<'py, Self>,
+        py: Python<'py>,
+        sep: ReadableBuffer,
+    ) -> PyResult<Bound<'py, PyTuple>> {
+        let sep = sep.as_slice();
+        if sep.is_empty() {
+            return Err(PyValueError::new_err("empty separator"));
+        }
+
+        if let Some(ix) = search::find_subslice(slf.as_slice(), sep) {
+            let sep_end = ix + sep.len();
+            PyTuple::new(
+                py,
+                [
+                    Self::new(slf.0.slice(..ix)).into_bound_py_any(py)?,
+                    Self::new(slf.0.slice(ix..sep_end)).into_bound_py_any(py)?,
+                    Self::new(slf.0.slice(sep_end..)).into_bound_py_any(py)?,
+                ],
+            )
+        } else {
+            let empty = Self::new(Bytes::new()).into_bound_py_any(py)?;
+            PyTuple::new(
+                py,
+                [
+                    slf.into_pyobject_or_pyerr(py)?.into_any(),
+                    empty.clone(),
+                    empty,
+                ],
+            )
+        }
+    }
+
+    #[pyo3(signature = (sep, /))]
+    fn rpartition<'py>(
+        slf: PyRef<'py, Self>,
+        py: Python<'py>,
+        sep: ReadableBuffer,
+    ) -> PyResult<Bound<'py, PyTuple>> {
+        let sep = sep.as_slice();
+        if sep.is_empty() {
+            return Err(PyValueError::new_err("empty separator"));
+        }
+
+        if let Some(ix) = search::rfind_subslice(slf.as_slice(), sep) {
+            let sep_end = ix + sep.len();
+            PyTuple::new(
+                py,
+                [
+                    Self::new(slf.0.slice(..ix)).into_bound_py_any(py)?,
+                    Self::new(slf.0.slice(ix..sep_end)).into_bound_py_any(py)?,
+                    Self::new(slf.0.slice(sep_end..)).into_bound_py_any(py)?,
+                ],
+            )
+        } else {
+            let empty = Self::new(Bytes::new()).into_bound_py_any(py)?;
+            PyTuple::new(
+                py,
+                [
+                    empty.clone(),
+                    empty,
+                    slf.into_pyobject_or_pyerr(py)?.into_any(),
+                ],
+            )
+        }
     }
 
     // </python-bytes-methods>

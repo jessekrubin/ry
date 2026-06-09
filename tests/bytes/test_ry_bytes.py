@@ -626,6 +626,49 @@ class TestBytesFindAndIndex:
             getattr(ry.Bytes(b"abc"), fnname)(sub=b"a")
 
 
+class TestBytesPartition:
+    @given(
+        b=st.binary(),
+        sep=st.binary(min_size=1),
+    )
+    def test_partition_matches_python(self, b: bytes, sep: bytes) -> None:
+        ry_bytes = ry.Bytes(b)
+        assert ry_bytes.partition(sep) == b.partition(sep)
+
+    @given(
+        b=st.binary(),
+        sep=st.binary(min_size=1),
+    )
+    def test_rpartition_matches_python(self, b: bytes, sep: bytes) -> None:
+        ry_bytes = ry.Bytes(b)
+        assert ry_bytes.rpartition(sep) == b.rpartition(sep)
+
+    @pytest.mark.parametrize("fnname", ["partition", "rpartition"])
+    def test_rejects_empty_separator(self, fnname: str) -> None:
+        with pytest.raises(ValueError, match="empty separator"):
+            getattr(ry.Bytes(b"abc"), fnname)(b"")
+
+    @pytest.mark.parametrize("sep", [1, 1.2, "a", object()])
+    @pytest.mark.parametrize("fnname", ["partition", "rpartition"])
+    def test_err_on_bad_input(self, sep: object, fnname: str) -> None:
+        with pytest.raises(TypeError):
+            getattr(ry.Bytes(b"abc"), fnname)(sep)
+
+    def test_partition_not_found_reuses_instances(self) -> None:
+        ry_bytes = ry.Bytes(b"abc")
+        head, sep, tail = ry_bytes.partition(b"x")
+        assert head is ry_bytes
+        assert sep is tail
+        assert sep == b""
+
+    def test_rpartition_not_found_reuses_instances(self) -> None:
+        ry_bytes = ry.Bytes(b"abc")
+        head, sep, tail = ry_bytes.rpartition(b"x")
+        assert head is sep
+        assert head == b""
+        assert tail is ry_bytes
+
+
 @given(st.binary())
 def test_hex_and_fromhex(
     b: bytes,
@@ -712,9 +755,7 @@ def test_bytes_decode_default(
         "join",
         "ljust",
         "maketrans",
-        "partition",
         "rjust",
-        "rpartition",
         "rsplit",
         "split",
         "translate",
