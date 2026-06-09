@@ -1,7 +1,8 @@
 use std::time::Duration;
 
 use pyo3::prelude::*;
-use ryo3_core::{PyCastExactOpt, py_type_err, py_value_err};
+use ryo3_core::PyCastExactOpt;
+use ryo3_core::macros::{py_type_err, py_value_err};
 
 use super::PyDuration;
 

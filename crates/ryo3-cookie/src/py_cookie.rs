@@ -2,7 +2,7 @@ use std::borrow::Cow;
 
 use pyo3::BoundObject;
 use pyo3::prelude::*;
-use ryo3_core::{py_value_err, py_value_error, pytodo};
+use ryo3_core::macros::{py_value_err, py_value_error, pytodo};
 use ryo3_std::time::PyDuration;
 
 use crate::PyCookieSameSite;

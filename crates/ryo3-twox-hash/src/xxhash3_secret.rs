@@ -5,7 +5,7 @@
 //!    - use readable-buf to extract
 use pyo3::prelude::*;
 use ryo3_bytes::{ReadableBuffer, RyBytes};
-use ryo3_core::{py_type_err, py_value_err};
+use ryo3_core::macros::{py_type_err, py_value_err};
 
 const XXH3_SECRET_MIN_LEN: usize = 136;
 

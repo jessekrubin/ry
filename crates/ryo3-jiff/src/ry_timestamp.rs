@@ -178,16 +178,6 @@ impl RyTimestamp {
         hasher.finish()
     }
 
-    fn __sub__(&self, other: TimestampSubInput) -> TimestampSubOutput {
-        match other {
-            TimestampSubInput::Temporal(ob) => {
-                let span = self.0.sub(ob.get().0);
-                TimestampSubOutput::Span(RySpan::from(span))
-            }
-            TimestampSubInput::Spanish(spanish) => self.checked_sub(spanish).into(),
-        }
-    }
-
     fn __add__(&self, other: Spanish) -> PyResult<Self> {
         self.0
             .checked_add(other)
@@ -195,7 +185,7 @@ impl RyTimestamp {
             .map_err(map_py_overflow_err)
     }
 
-    #[expect(clippy::too_many_arguments)]
+    #[expect(clippy::too_many_arguments, reason = "python kwargs")]
     #[pyo3(
         signature = (
             other = None,
@@ -242,7 +232,14 @@ impl RyTimestamp {
         }
     }
 
-    #[expect(clippy::too_many_arguments)]
+    fn __sub__(&self, other: TemporalSubInput<Self>) -> TemporalSubOutput<Self> {
+        match other {
+            TemporalSubInput::Temporal(ob) => self.0.sub(ob.get().0).into(),
+            TemporalSubInput::Spanish(spanish) => self.checked_sub(spanish).into(),
+        }
+    }
+
+    #[expect(clippy::too_many_arguments, reason = "python kwargs")]
     #[pyo3(
         signature = (
             other = None,
@@ -257,14 +254,14 @@ impl RyTimestamp {
     )]
     fn sub(
         &self,
-        other: Option<TimestampSubInput>,
+        other: Option<TemporalSubInput<Self>>,
         hours: i64,
         minutes: i64,
         seconds: i64,
         milliseconds: i64,
         microseconds: i64,
         nanoseconds: i64,
-    ) -> PyResult<TimestampSubOutput> {
+    ) -> PyResult<TemporalSubOutput<Self>> {
         let spkw = SpanKwargs::new()
             .hours(hours)
             .minutes(minutes)
@@ -277,21 +274,12 @@ impl RyTimestamp {
             (Some(o), false) => Ok(self.__sub__(o)),
             (None, true) => {
                 let span = spkw.build()?;
-                match self.0.checked_sub(span) {
-                    Ok(z) => Ok(TimestampSubOutput::Temporal(Self::from(z))),
-                    Err(err) => {
-                        if err.is_range() {
-                            Ok(TimestampSubOutput::Overflow(err))
-                        } else {
-                            Ok(TimestampSubOutput::ValueError(err))
-                        }
-                    }
-                }
+                Ok(self.checked_sub(span).into())
             }
             (Some(_), true) => {
                 py_type_err!("sub accepts either a span-like object or keyword units, not both")
             }
-            (None, false) => Ok(TimestampSubOutput::Temporal(*self)),
+            (None, false) => Ok(TemporalSubOutput::Temporal(*self)),
         }
     }
 
@@ -596,47 +584,3 @@ impl std::fmt::Display for RyTimestamp {
         )
     }
 }
-
-// enum TimestampSubInput<'a, 'py> {
-//     Timestamp(Borrowed<'a, 'py, RyTimestamp>),
-//     Spanish(Spanish<'a, 'py>),
-// }
-type TimestampSubInput<'a, 'py> = TemporalSubInput<'a, 'py, RyTimestamp>;
-
-// impl<'a, 'py> FromPyObject<'a, 'py> for TimestampSubInput<'a, 'py> {
-//     type Error = PyErr;
-
-//     fn extract(ob: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
-//         if let Ok(ts) = ob.cast_exact::<RyTimestamp>() {
-//             Ok(Self::Temporal(ts))
-//         } else if let Ok(spanish) = ob.extract::<Spanish>() {
-//             Ok(Self::Spanish(spanish))
-//         } else {
-//             py_type_err!("Expected a Timestamp or span-like object")
-//         }
-//     }
-// }
-
-type TimestampSubOutput = TemporalSubOutput<RyTimestamp>;
-// enum TimestampSubOutput {
-//     ValueError(jiff::Error),
-//     Overflow(jiff::Error),
-//     Timestamp(RyTimestamp),
-//     Span(RySpan),
-// }
-
-// impl<'py> IntoPyObject<'py> for TimestampSubOutput {
-//     type Target = PyAny;
-//     type Output = Bound<'py, Self::Target>;
-//     type Error = PyErr;
-//     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
-//         match self {
-//             Self::Timestamp(ts) => {
-//                 let a = ts.into_pyobject(py);
-//                 },
-//             Self::Span(span) => span.into_pyobject(py).map(Bound::into_any),
-//             Self::Overflow(err) => py_overflow_err!("{err}"),
-//             Self::ValueError(err) => py_value_err!("{err}"),
-//         }
-//     }
-// }

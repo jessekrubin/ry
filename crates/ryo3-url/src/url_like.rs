@@ -1,5 +1,5 @@
 use pyo3::prelude::*;
-use ryo3_core::{py_type_err, py_value_error};
+use ryo3_core::macros::{py_type_err, py_value_error};
 
 use crate::PyUrl;
 pub struct UrlLike(pub url::Url);

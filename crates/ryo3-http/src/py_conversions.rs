@@ -6,7 +6,7 @@ use http::HeaderMap;
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyDict, PyList, PyString};
 use pyo3::{BoundObject, intern};
-use ryo3_core::{py_type_err, py_value_err, py_value_error};
+use ryo3_core::macros::{py_type_err, py_value_err, py_value_error};
 
 use crate::headers_like::HeaderValueOrValues;
 use crate::http_types::{

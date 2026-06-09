@@ -1,5 +1,5 @@
 use pyo3::prelude::*;
-use ryo3_core::{py_runtime_error, py_value_error};
+use ryo3_core::macros::{py_runtime_error, py_value_error};
 use tokio_websockets::Error as WsError;
 
 // TODO - CUSTOM WS ERROR

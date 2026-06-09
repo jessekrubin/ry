@@ -1,12 +1,13 @@
 use pyo3::prelude::*;
 use pyo3::{IntoPyObjectExt, PyTypeInfo};
-use ryo3_core::{PyCastExactOpt, py_type_err, py_value_err};
+use ryo3_core::PyCastExactOpt;
+use ryo3_macro_rules::{py_overflow_err, py_type_err, py_value_err};
 
 use crate::spanish::Spanish;
 use crate::{RyDate, RyDateTime, RySpan, RyTime, RyTimestamp, RyZoned};
 
 #[derive(Debug, Clone)]
-pub(crate) enum PyTemporalTypes<'a, 'py> {
+pub(crate) enum PyTemporalArg<'a, 'py> {
     Date(Borrowed<'a, 'py, RyDate>),
     DateTime(Borrowed<'a, 'py, RyDateTime>),
     Time(Borrowed<'a, 'py, RyTime>),
@@ -30,7 +31,7 @@ impl_py_temporal_type_name!(RyTime, "Time");
 impl_py_temporal_type_name!(RyZoned, "ZonedDateTime");
 impl_py_temporal_type_name!(RyTimestamp, "Timestamp");
 
-impl<'a, 'py> FromPyObject<'a, 'py> for PyTemporalTypes<'a, 'py> {
+impl<'a, 'py> FromPyObject<'a, 'py> for PyTemporalArg<'a, 'py> {
     type Error = PyErr;
 
     fn extract(obj: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
@@ -64,7 +65,7 @@ where
     type Error = PyErr;
 
     fn extract(ob: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
-        if let Ok(ts) = ob.cast_exact::<T>() {
+        if let Some(ts) = ob.cast_exact_opt::<T>() {
             Ok(Self::Temporal(ts))
         } else if let Ok(spanish) = ob.extract::<Spanish>() {
             Ok(Self::Spanish(spanish))
@@ -119,7 +120,7 @@ where
         match self {
             Self::Temporal(ts) => ts.into_bound_py_any(py),
             Self::Span(span) => span.into_pyobject(py).map(Bound::into_any),
-            Self::Overflow(err) => ryo3_core::py_overflow_err!("{err}"),
+            Self::Overflow(err) => py_overflow_err!("{err}"),
             Self::ValueError(err) => py_value_err!("{err}"),
         }
     }

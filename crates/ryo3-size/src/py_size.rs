@@ -4,7 +4,8 @@ use std::str::FromStr;
 use pyo3::prelude::*;
 use pyo3::pyclass::CompareOp;
 use pyo3::types::PyTuple;
-use ryo3_core::{PyAsciiString, py_overflow_err, py_overflow_error, py_type_err, py_type_error};
+use ryo3_core::PyAsciiString;
+use ryo3_core::macros::{py_overflow_err, py_overflow_error, py_type_err, py_type_error};
 
 use crate::types::{PyBase, PyStyle};
 

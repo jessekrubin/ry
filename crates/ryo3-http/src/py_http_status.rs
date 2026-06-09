@@ -7,7 +7,8 @@ use pyo3::prelude::*;
 use pyo3::pyclass::CompareOp;
 use pyo3::sync::PyOnceLock;
 use pyo3::types::{PyString, PyTuple};
-use ryo3_core::{PyAsciiStr, PyAsciiString, py_type_err, py_value_error};
+use ryo3_core::macros::{py_type_err, py_value_error};
+use ryo3_core::{PyAsciiStr, PyAsciiString};
 
 // typos:off
 // is the plural of status "stati" or "statuses"? who knows. literally nothing

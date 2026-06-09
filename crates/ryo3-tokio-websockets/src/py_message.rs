@@ -7,7 +7,8 @@ use pyo3::prelude::*;
 use pyo3::pybacked::PyBackedStr;
 use pyo3::types::{PyDict, PyTuple};
 use ryo3_bytes::{ReadableBuffer, RyBytes};
-use ryo3_core::{PyTryFrom, py_type_err, py_value_err, py_value_error};
+use ryo3_core::PyTryFrom;
+use ryo3_core::macros::{py_type_err, py_value_err, py_value_error};
 use tokio_websockets::Message;
 
 use crate::PyWebSocketMessageKind;

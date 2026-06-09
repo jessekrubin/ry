@@ -154,18 +154,6 @@ impl RyDate {
         )
     }
 
-    fn __sub__(&self, other: TemporalSubInput<Self>) -> TemporalSubOutput<Self> {
-        match other {
-            TemporalSubInput::Temporal(ob) => {
-                let span = self.0.sub(ob.get().0);
-                TemporalSubOutput::Span(RySpan::from(span))
-            }
-            TemporalSubInput::Spanish(spanish) => {
-                self.0.checked_sub(spanish).map(Self::from).into()
-            }
-        }
-    }
-
     fn __add__(&self, other: Spanish) -> PyResult<Self> {
         self.0
             .checked_add(other)
@@ -173,7 +161,7 @@ impl RyDate {
             .map_err(map_py_overflow_err)
     }
 
-    #[expect(clippy::too_many_arguments)]
+    #[expect(clippy::too_many_arguments, reason = "python kwargs")]
     #[pyo3(
         signature = (
             other = None,
@@ -232,7 +220,14 @@ impl RyDate {
         }
     }
 
-    #[expect(clippy::too_many_arguments)]
+    fn __sub__(&self, other: TemporalSubInput<Self>) -> TemporalSubOutput<Self> {
+        match other {
+            TemporalSubInput::Temporal(ob) => self.0.sub(ob.get().0).into(),
+            TemporalSubInput::Spanish(spanish) => self.checked_sub(spanish).into(),
+        }
+    }
+
+    #[expect(clippy::too_many_arguments, reason = "python kwargs")]
     #[pyo3(
         signature = (
             other = None,

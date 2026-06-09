@@ -70,7 +70,7 @@ impl PyRegex {
         swap_greed = false,
         unicode = true
     ))]
-    #[expect(clippy::too_many_arguments)]
+    #[expect(clippy::too_many_arguments, reason = "python kwargs")]
     #[expect(clippy::fn_params_excessive_bools)]
     fn py_new(
         pattern: &str,

@@ -3,15 +3,16 @@ use std::hash::{DefaultHasher, Hash, Hasher};
 use std::ops::Sub;
 
 use jiff::Zoned;
-use jiff::civil::{Time, TimeRound};
+use jiff::civil::{Time, TimeArithmetic, TimeRound};
+use pyo3::BoundObject;
 use pyo3::basic::CompareOp;
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyTuple};
-use pyo3::{BoundObject, IntoPyObjectExt};
 use ryo3_core::{PyAsciiString, map_py_overflow_err, map_py_value_err};
 use ryo3_macro_rules::{any_repr, py_type_err};
 
 use crate::difference::{RyTimeDifference, TimeDifferenceArg};
+use crate::py_temporal_like::{TemporalSubInput, TemporalSubOutput};
 use crate::series::RyTimeSeries;
 use crate::spanish::Spanish;
 use crate::util::SpanKwargs;
@@ -25,6 +26,12 @@ use crate::{
 #[pyclass(name = "Time", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyTime(pub(crate) Time);
+
+impl RyTime {
+    fn checked_sub<T: Into<TimeArithmetic>>(self, other: T) -> Result<Self, jiff::Error> {
+        self.0.checked_sub(other).map(Self)
+    }
+}
 
 #[pymethods]
 #[expect(clippy::trivially_copy_pass_by_ref)]
@@ -147,22 +154,6 @@ impl RyTime {
         hasher.finish()
     }
 
-    fn __sub__<'py>(
-        &self,
-        py: Python<'py>,
-        other: &Bound<'py, PyAny>,
-    ) -> PyResult<Bound<'py, PyAny>> {
-        if let Ok(ob) = other.cast_exact::<Self>() {
-            let span = self.0.sub(ob.get().0);
-            let obj = RySpan::from(span).into_pyobject(py).map(Bound::into_any)?;
-            Ok(obj)
-        } else {
-            let spanish = other.extract::<Spanish>()?;
-            let z = self.0.checked_sub(spanish).map_err(map_py_overflow_err)?;
-            Self::from(z).into_bound_py_any(py)
-        }
-    }
-
     fn __add__(&self, other: Spanish) -> PyResult<Self> {
         self.0
             .checked_add(other)
@@ -170,7 +161,7 @@ impl RyTime {
             .map_err(map_py_overflow_err)
     }
 
-    #[expect(clippy::too_many_arguments)]
+    #[expect(clippy::too_many_arguments, reason = "python kwargs")]
     #[pyo3(
         signature = (
             other = None,
@@ -223,7 +214,14 @@ impl RyTime {
         }
     }
 
-    #[expect(clippy::too_many_arguments)]
+    fn __sub__(&self, other: TemporalSubInput<Self>) -> TemporalSubOutput<Self> {
+        match other {
+            TemporalSubInput::Temporal(ob) => self.0.sub(ob.get().0).into(),
+            TemporalSubInput::Spanish(spanish) => self.checked_sub(spanish).into(),
+        }
+    }
+
+    #[expect(clippy::too_many_arguments, reason = "python kwargs")]
     #[pyo3(
         signature = (
             other = None,
@@ -236,17 +234,16 @@ impl RyTime {
             nanoseconds = 0
         )
     )]
-    fn sub<'py>(
+    fn sub(
         &self,
-        py: Python<'py>,
-        other: Option<&Bound<'py, PyAny>>,
+        other: Option<TemporalSubInput<Self>>,
         hours: i64,
         minutes: i64,
         seconds: i64,
         milliseconds: i64,
         microseconds: i64,
         nanoseconds: i64,
-    ) -> PyResult<Bound<'py, PyAny>> {
+    ) -> PyResult<TemporalSubOutput<Self>> {
         let spkw = SpanKwargs::new()
             .hours(hours)
             .minutes(minutes)
@@ -256,19 +253,15 @@ impl RyTime {
             .nanoseconds(nanoseconds);
 
         match (other, !spkw.is_zero()) {
-            (Some(o), false) => self.__sub__(py, o),
+            (Some(o), false) => Ok(self.__sub__(o)),
             (None, true) => {
                 let span = spkw.build()?;
-                self.0
-                    .checked_sub(span)
-                    .map(Self::from)
-                    .map_err(map_py_overflow_err)
-                    .and_then(|dt| dt.into_pyobject(py).map(Bound::into_any))
+                Ok(self.checked_sub(span).into())
             }
             (Some(_), true) => {
                 py_type_err!("sub accepts either a span-like object or keyword units, not both")
             }
-            (None, false) => Ok((*self).into_pyobject(py).map(Bound::into_any)?),
+            (None, false) => Ok(TemporalSubOutput::Temporal(*self)),
         }
     }
 
@@ -348,7 +341,7 @@ impl RyTime {
             subsec_nanosecond = None,
         )
     )]
-    #[expect(clippy::too_many_arguments)]
+    #[expect(clippy::too_many_arguments, reason = "python kwargs")]
     fn replace(
         &self,
         hour: Option<i8>,
