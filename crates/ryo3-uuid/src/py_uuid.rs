@@ -6,7 +6,8 @@ use pyo3::sync::PyOnceLock;
 use pyo3::types::PyTuple;
 use pyo3::{BoundObject, intern};
 use ryo3_bytes::ExactReadableBuffer;
-use ryo3_core::{PyAsciiString, any_repr, py_type_err, py_value_err, py_value_error, pytodo};
+use ryo3_core::PyAsciiString;
+use ryo3_core::macros::{any_repr, py_type_err, py_value_err, py_value_error, pytodo};
 
 static NODE_CACHE: OnceLock<u64> = OnceLock::new();
 
@@ -452,7 +453,7 @@ impl PyUuid {
     #[cfg(feature = "pydantic")]
     #[staticmethod]
     fn _pydantic_validate<'py>(value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, Self>> {
-        use ryo3_core::py_value_error;
+        use ryo3_core::macros::py_value_error;
         Self::from_any(value).map_err(|e| py_value_error!("UUID validation error: {e}"))
     }
 

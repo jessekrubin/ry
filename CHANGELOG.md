@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## v0.0.96 [unreleased]
+
+- `ryo3-jiff`
+  - refactored `__sub__`/`sub` implementations to be cleaner
+  - internal refactoring
+
+---
+
 ## v0.0.95 [2026-06-04]
 
 **NOTE:**

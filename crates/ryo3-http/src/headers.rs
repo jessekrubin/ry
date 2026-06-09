@@ -5,8 +5,8 @@ use std::sync::{Arc, RwLockReadGuard, RwLockWriteGuard};
 use http::header::HeaderMap;
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyList, PyTuple};
+use ryo3_core::macros::{py_runtime_error, py_value_error};
 use ryo3_core::sync::RyRwLock;
-use ryo3_core::{py_runtime_error, py_value_error};
 
 use crate::http_types::{
     PyHttpHeaderMapRef, PyHttpHeaderName, PyHttpHeaderNameRef, PyHttpHeaderValue,
@@ -341,7 +341,7 @@ impl PyHeaders {
     #[cfg(feature = "json")]
     #[pyo3(signature = (*, fmt = false))]
     fn stringify(&self, fmt: bool) -> PyResult<String> {
-        use ryo3_core::py_value_error;
+        use ryo3_core::macros::py_value_error;
         let inner = self.read();
         if fmt {
             serde_json::to_string_pretty(&crate::http_serde::HttpHeaderMapRef(&inner))
@@ -369,7 +369,7 @@ impl PyHeaders {
     #[cfg(feature = "json")]
     #[staticmethod]
     fn from_json(data: &str) -> PyResult<Self> {
-        use ryo3_core::py_value_error;
+        use ryo3_core::macros::py_value_error;
 
         serde_json::from_str::<crate::PyHttpHeaderMap>(data)
             .map(|e| Self::from(e.0))
@@ -391,7 +391,7 @@ impl PyHeaders {
     #[cfg(feature = "pydantic")]
     #[staticmethod]
     fn _pydantic_validate<'py>(value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, Self>> {
-        use ryo3_core::py_value_error;
+        use ryo3_core::macros::py_value_error;
         Self::from_any(value).map_err(|e| py_value_error!("Headers validation error: {e}"))
     }
 

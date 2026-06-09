@@ -3,15 +3,16 @@ use std::hash::{DefaultHasher, Hash, Hasher};
 use std::ops::Sub;
 
 use jiff::Zoned;
-use jiff::civil::{Date, DateTime, DateTimeRound, Time, Weekday};
+use jiff::civil::{Date, DateTime, DateTimeArithmetic, DateTimeRound, Time, Weekday};
 use pyo3::basic::CompareOp;
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyTuple};
 use pyo3::{BoundObject, IntoPyObjectExt};
-use ryo3_core::{PyAsciiString, map_py_overflow_err, map_py_value_err};
+use ryo3_core::{PyAsciiString, PyCastExactOpt, map_py_overflow_err, map_py_value_err};
 use ryo3_macro_rules::{any_repr, py_type_err, py_type_error};
 
 use crate::difference::{DateTimeDifferenceArg, RyDateTimeDifference};
+use crate::py_temporal_like::{TemporalSubInput, TemporalSubOutput};
 use crate::ry_iso_week_date::RyISOWeekDate;
 use crate::ry_signed_duration::RySignedDuration;
 use crate::ry_span::RySpan;
@@ -31,6 +32,12 @@ use crate::{
 #[pyclass(name = "DateTime", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyDateTime(pub(crate) DateTime);
+
+impl RyDateTime {
+    fn checked_sub<T: Into<DateTimeArithmetic>>(self, other: T) -> Result<Self, jiff::Error> {
+        self.0.checked_sub(other).map(Self)
+    }
+}
 
 #[expect(clippy::trivially_copy_pass_by_ref)]
 #[pymethods]
@@ -202,23 +209,7 @@ impl RyDateTime {
             .map_err(map_py_overflow_err)
     }
 
-    fn __sub__<'py>(
-        &self,
-        py: Python<'py>,
-        other: &Bound<'py, PyAny>,
-    ) -> PyResult<Bound<'py, PyAny>> {
-        if let Ok(ob) = other.cast_exact::<Self>() {
-            let span = self.0.sub(ob.get().0);
-            let obj = RySpan::from(span).into_pyobject(py).map(Bound::into_any)?;
-            Ok(obj)
-        } else {
-            let spanish = other.extract::<Spanish>()?;
-            let z = self.0.checked_sub(spanish).map_err(map_py_overflow_err)?;
-            Self::from(z).into_bound_py_any(py)
-        }
-    }
-
-    #[expect(clippy::too_many_arguments)]
+    #[expect(clippy::too_many_arguments, reason = "python kwargs")]
     #[pyo3(
         signature = (
             other = None,
@@ -277,7 +268,14 @@ impl RyDateTime {
         }
     }
 
-    #[expect(clippy::too_many_arguments)]
+    fn __sub__(&self, other: TemporalSubInput<Self>) -> TemporalSubOutput<Self> {
+        match other {
+            TemporalSubInput::Temporal(ob) => self.0.sub(ob.get().0).into(),
+            TemporalSubInput::Spanish(spanish) => self.checked_sub(spanish).into(),
+        }
+    }
+
+    #[expect(clippy::too_many_arguments, reason = "python kwargs")]
     #[pyo3(
         signature = (
             other = None,
@@ -294,10 +292,9 @@ impl RyDateTime {
             nanoseconds = 0
         )
     )]
-    fn sub<'py>(
+    fn sub(
         &self,
-        py: Python<'py>,
-        other: Option<&Bound<'py, PyAny>>,
+        other: Option<TemporalSubInput<Self>>,
         years: i64,
         months: i64,
         weeks: i64,
@@ -308,7 +305,7 @@ impl RyDateTime {
         milliseconds: i64,
         microseconds: i64,
         nanoseconds: i64,
-    ) -> PyResult<Bound<'py, PyAny>> {
+    ) -> PyResult<TemporalSubOutput<Self>> {
         let spkw = SpanKwargs::new()
             .years(years)
             .months(months)
@@ -322,19 +319,15 @@ impl RyDateTime {
             .nanoseconds(nanoseconds);
 
         match (other, !spkw.is_zero()) {
-            (Some(o), false) => self.__sub__(py, o),
+            (Some(o), false) => Ok(self.__sub__(o)),
             (None, true) => {
                 let span = spkw.build()?;
-                self.0
-                    .checked_sub(span)
-                    .map(Self::from)
-                    .map_err(map_py_overflow_err)
-                    .and_then(|dt| dt.into_pyobject(py).map(Bound::into_any))
+                Ok(self.checked_sub(span).into())
             }
             (Some(_), true) => {
                 py_type_err!("sub accepts either a span-like object or keyword units, not both")
             }
-            (None, false) => Ok((*self).into_pyobject(py).map(Bound::into_any)?),
+            (None, false) => Ok(TemporalSubOutput::Temporal(*self)),
         }
     }
 
@@ -445,7 +438,7 @@ impl RyDateTime {
             subsec_nanosecond = None,
         )
     )]
-    #[expect(clippy::too_many_arguments)]
+    #[expect(clippy::too_many_arguments, reason = "python kwargs")]
     fn replace(
         &self,
         obj: Option<Bound<'_, PyAny>>,
@@ -749,7 +742,7 @@ impl RyDateTime {
     #[staticmethod]
     fn from_any<'py>(value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, Self>> {
         let py = value.py();
-        if let Ok(val) = value.cast_exact::<Self>() {
+        if let Some(val) = value.cast_exact_opt::<Self>() {
             Ok(val.as_borrowed().into_bound())
         } else if let Ok(pystr) = value.cast::<pyo3::types::PyString>() {
             let s = pystr.extract::<&str>()?;
@@ -757,9 +750,9 @@ impl RyDateTime {
         } else if let Ok(pybytes) = value.cast::<pyo3::types::PyBytes>() {
             let s = String::from_utf8_lossy(pybytes.as_bytes());
             Self::from_str(&s).map(|dt| dt.into_pyobject(py))?
-        } else if let Ok(d) = value.cast_exact::<RyZoned>() {
+        } else if let Some(d) = value.cast_exact_opt::<RyZoned>() {
             Self::from(d.get()).into_pyobject(py)
-        } else if let Ok(ts) = value.cast_exact::<RyTimestamp>() {
+        } else if let Some(ts) = value.cast_exact_opt::<RyTimestamp>() {
             Self::from(ts.get()).into_pyobject(py)
         } else if let Ok(d) = value.extract::<JiffDateTime>() {
             Self::from(d.0).into_pyobject(py)

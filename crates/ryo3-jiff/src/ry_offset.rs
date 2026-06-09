@@ -281,7 +281,7 @@ impl RyOffset {
             .map_err(map_py_overflow_err)
     }
 
-    #[expect(clippy::too_many_arguments)]
+    #[expect(clippy::too_many_arguments, reason = "python kwargs")]
     #[pyo3(
         signature=(
             other = None,
@@ -328,7 +328,7 @@ impl RyOffset {
         }
     }
 
-    #[expect(clippy::too_many_arguments)]
+    #[expect(clippy::too_many_arguments, reason = "python kwargs")]
     #[pyo3(
         signature = (
             other = None,

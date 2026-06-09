@@ -112,8 +112,7 @@ mod arithmetic {
 
     use pyo3::IntoPyObjectExt;
     use pyo3::prelude::*;
-    use ryo3_core::py_type_err;
-    use ryo3_macro_rules::py_overflow_err;
+    use ryo3_macro_rules::{py_overflow_err, py_type_err};
 
     use crate::time::{PyDuration, PyInstant};
 

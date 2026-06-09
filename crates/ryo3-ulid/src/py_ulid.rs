@@ -5,8 +5,9 @@ use std::time::SystemTime;
 
 use pyo3::prelude::*;
 use pyo3::types::PyBytes;
-use ryo3_core::{
-    PyAsciiString, py_overflow_error, py_runtime_error, py_type_err, py_value_err, py_value_error,
+use ryo3_core::PyAsciiString;
+use ryo3_core::macros::{
+    py_overflow_error, py_runtime_error, py_type_err, py_value_err, py_value_error,
 };
 use ryo3_uuid::{CPythonUuid, PyUuid};
 use ulid::Ulid;

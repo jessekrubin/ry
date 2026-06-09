@@ -3,7 +3,8 @@ use std::io;
 use pyo3::prelude::*;
 use pyo3::types::PyString;
 use ryo3_bytes::{ReadableBuffer, RyBytes};
-use ryo3_core::{PyCastExactOpt, py_type_err, py_value_error};
+use ryo3_core::PyCastExactOpt;
+use ryo3_core::macros::{py_type_err, py_value_error};
 use serde_json::{Deserializer, Serializer};
 
 fn minify_json<W: io::Write>(input: &[u8], output: W) -> Result<(), serde_json::Error> {

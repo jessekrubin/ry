@@ -1,6 +1,6 @@
 use pyo3::prelude::*;
 use pyo3::types::PyString;
-use ryo3_core::{py_type_err, py_value_err};
+use ryo3_core::macros::{py_type_err, py_value_err};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) enum PyWebSocketMessageKind {

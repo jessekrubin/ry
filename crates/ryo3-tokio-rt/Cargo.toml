@@ -15,10 +15,10 @@ description = "shared tokio runtime helpers for ryo3 crates"
 [dependencies]
 pyo3 = { workspace = true, features = [] }
 pyo3-async-runtimes.workspace = true
-tokio.workspace = true
+tokio = { workspace = true, features = [] }
 
 [features]
-experimental-async = ["pyo3/experimental-async"]
+experimental-async = ["pyo3/experimental-async", "tokio/macros"]
 
 [lints]
 workspace = true

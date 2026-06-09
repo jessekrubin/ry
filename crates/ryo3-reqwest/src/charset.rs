@@ -2,7 +2,7 @@ use std::borrow::Cow;
 
 use pyo3::FromPyObject;
 use pyo3::prelude::*;
-use ryo3_core::py_value_err;
+use ryo3_core::macros::py_value_err;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub(crate) struct PyEncoding(&'static encoding_rs::Encoding);

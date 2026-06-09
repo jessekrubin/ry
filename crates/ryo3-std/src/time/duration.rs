@@ -935,7 +935,8 @@ mod arithmetic {
 
     use pyo3::IntoPyObjectExt;
     use pyo3::prelude::*;
-    use ryo3_core::{PyCastExactOpt, py_type_err};
+    use ryo3_core::PyCastExactOpt;
+    use ryo3_macro_rules::py_type_err;
 
     use crate::time::PyDuration;
 

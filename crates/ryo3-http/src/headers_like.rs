@@ -1,6 +1,6 @@
 use http::HeaderMap;
 use pyo3::prelude::*;
-use ryo3_core::py_type_err;
+use ryo3_core::macros::py_type_err;
 
 use crate::{PyHeaders, PyHttpHeaderMap, PyHttpHeaderValue};
 #[derive(Debug, FromPyObject)]

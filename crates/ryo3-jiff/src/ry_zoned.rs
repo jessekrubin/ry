@@ -1,9 +1,10 @@
 use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
+use std::ops::Sub;
 
 use jiff::civil::{Date, Time, Weekday};
 use jiff::tz::TimeZone;
-use jiff::{Zoned, ZonedDifference, ZonedRound};
+use jiff::{Zoned, ZonedArithmetic, ZonedDifference, ZonedRound};
 use pyo3::prelude::*;
 use pyo3::pyclass::CompareOp;
 use pyo3::types::{PyDict, PyTuple};
@@ -12,6 +13,7 @@ use ryo3_core::{PyAsciiString, map_py_overflow_err, map_py_value_err};
 use ryo3_macro_rules::{any_repr, py_type_err};
 
 use crate::isoformat::PyIsoFormat;
+use crate::py_temporal_like::{TemporalSubInput, TemporalSubOutput};
 use crate::round::RyZonedDateTimeRound;
 use crate::ry_datetime::RyDateTime;
 use crate::ry_iso_week_date::RyISOWeekDate;
@@ -35,6 +37,12 @@ use crate::{
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyZoned(pub(crate) Zoned);
 
+impl RyZoned {
+    fn checked_sub<T: Into<ZonedArithmetic>>(&self, other: T) -> Result<Self, jiff::Error> {
+        self.0.checked_sub(other).map(Self)
+    }
+}
+
 #[pymethods]
 impl RyZoned {
     #[new]
@@ -50,7 +58,7 @@ impl RyZoned {
             tz = None
         )
     )]
-    #[expect(clippy::too_many_arguments)]
+    #[expect(clippy::too_many_arguments, reason = "python kwargs")]
     fn py_new(
         year: i16,
         month: i8,
@@ -293,25 +301,6 @@ impl RyZoned {
         Self::from(self.0.with_time_zone(TimeZone::UTC))
     }
 
-    fn __sub__<'py>(
-        &self,
-        py: Python<'py>,
-        other: &Bound<'py, PyAny>,
-    ) -> PyResult<Bound<'py, PyAny>> {
-        #[expect(clippy::arithmetic_side_effects)]
-        if let Ok(zoned) = other.cast_exact::<Self>() {
-            // if other is a Zoned, return a Span
-            let span = &self.0 - &zoned.get().0;
-            let obj = RySpan::from(span).into_pyobject(py).map(Bound::into_any)?;
-            Ok(obj)
-        } else {
-            let spanish = other.extract::<Spanish>()?;
-            // Spanish2::try_from(other)?;
-            let z = self.0.checked_sub(spanish).map_err(map_py_overflow_err)?;
-            Self::from(z).into_bound_py_any(py)
-        }
-    }
-
     fn __add__(&self, other: Spanish) -> PyResult<Self> {
         self.0
             .checked_add(other)
@@ -319,7 +308,7 @@ impl RyZoned {
             .map_err(map_py_overflow_err)
     }
 
-    #[expect(clippy::too_many_arguments)]
+    #[expect(clippy::too_many_arguments, reason = "python kwargs")]
     #[pyo3(
         signature = (
             other = None,
@@ -378,7 +367,14 @@ impl RyZoned {
         }
     }
 
-    #[expect(clippy::too_many_arguments)]
+    fn __sub__(&self, other: TemporalSubInput<Self>) -> TemporalSubOutput<Self> {
+        match other {
+            TemporalSubInput::Temporal(ob) => (&self.0).sub(&ob.get().0).into(),
+            TemporalSubInput::Spanish(spanish) => self.checked_sub(spanish).into(),
+        }
+    }
+
+    #[expect(clippy::too_many_arguments, reason = "python kwargs")]
     #[pyo3(
         signature = (
             other = None,
@@ -395,10 +391,9 @@ impl RyZoned {
             nanoseconds = 0
         )
     )]
-    fn sub<'py>(
+    fn sub(
         &self,
-        py: Python<'py>,
-        other: Option<&Bound<'py, PyAny>>,
+        other: Option<TemporalSubInput<Self>>,
         years: i64,
         months: i64,
         weeks: i64,
@@ -409,7 +404,7 @@ impl RyZoned {
         milliseconds: i64,
         microseconds: i64,
         nanoseconds: i64,
-    ) -> PyResult<Bound<'py, PyAny>> {
+    ) -> PyResult<TemporalSubOutput<Self>> {
         let spkw = SpanKwargs::new()
             .years(years)
             .months(months)
@@ -423,19 +418,15 @@ impl RyZoned {
             .nanoseconds(nanoseconds);
 
         match (other, !spkw.is_zero()) {
-            (Some(o), false) => self.__sub__(py, o),
+            (Some(o), false) => Ok(self.__sub__(o)),
             (None, true) => {
                 let span = spkw.build()?;
-                self.0
-                    .checked_sub(span)
-                    .map(Self::from)
-                    .map_err(map_py_overflow_err)
-                    .and_then(|dt| dt.into_pyobject(py).map(Bound::into_any))
+                Ok(self.checked_sub(span).into())
             }
             (Some(_), true) => {
                 py_type_err!("sub accepts either a span-like object or keyword units, not both")
             }
-            (None, false) => Ok(self.clone().into_pyobject(py).map(Bound::into_any)?),
+            (None, false) => Ok(TemporalSubOutput::Temporal(self.clone())),
         }
     }
 
@@ -668,7 +659,7 @@ impl RyZoned {
             disambiguation = None,
         )
     )]
-    #[expect(clippy::too_many_arguments)]
+    #[expect(clippy::too_many_arguments, reason = "python kwargs")]
     fn replace(
         &self,
         obj: Option<Bound<'_, PyAny>>,
