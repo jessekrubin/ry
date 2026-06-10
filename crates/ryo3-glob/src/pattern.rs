@@ -113,7 +113,7 @@ impl PyGlobPattern {
     }
 
     fn __repr__(&self) -> PyAsciiString {
-        format!("{self:?}").into()
+        format!("{self}").into()
     }
 
     #[staticmethod]
@@ -219,7 +219,7 @@ impl PyGlobPattern {
     }
 }
 
-impl std::fmt::Debug for PyGlobPattern {
+impl std::fmt::Display for PyGlobPattern {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "GlobPattern(\"{}\"", self.pattern)?;
         if !self.options.case_sensitive {

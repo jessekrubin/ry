@@ -63,7 +63,7 @@ impl PyHttpStatus {
 
     #[must_use]
     fn __repr__(&self) -> PyAsciiString {
-        format!("{self:?}").into()
+        format!("{self}").into()
     }
 
     #[must_use]
@@ -755,7 +755,7 @@ pub fn status_code_pystring(py: Python<'_>, status_code: u16) -> Option<&Bound<'
     })
 }
 
-impl std::fmt::Debug for PyHttpStatus {
+impl std::fmt::Display for PyHttpStatus {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "HttpStatus({})", self.0.as_str())
     }

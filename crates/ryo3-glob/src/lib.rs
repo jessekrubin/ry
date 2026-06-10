@@ -273,7 +273,7 @@ fn extract_dtype(dtype: Option<Bound<'_, PyType>>) -> PyResult<GlobDType> {
         } else if dtype.is(ry_fspath_type(py)?) {
             Ok(GlobDType::FsPath)
         } else {
-            let repr = dtype.repr()?.to_string_lossy().into_owned();
+            let repr = dtype.repr()?.to_string();
             py_value_err!(
                 "Invalid dtype: {repr} (only `str`, `pathlib.Path` or `ry.ryo3.FsPath` are supported)"
             )

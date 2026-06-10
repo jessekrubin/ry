@@ -199,7 +199,7 @@ impl PyBytes {
     }
 
     fn __repr__(&self) -> String {
-        format!("{self:?}")
+        format!("{self}")
     }
 
     fn __add__(&self, other: Self) -> Self {
@@ -822,7 +822,7 @@ impl<'py> FromPyObject<'_, 'py> for RyBuffer {
 /// isn't exactly the same either, as the python repr will switch between `'` and `"` based on the
 /// presence of the other in the string, but it's close enough AND we don't have to do a full scan
 /// of the bytes to check for that.
-impl std::fmt::Debug for PyBytes {
+impl std::fmt::Display for PyBytes {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str("Bytes(b\"")?;
         for &byte in self.0.as_ref() {
@@ -840,6 +840,13 @@ impl std::fmt::Debug for PyBytes {
         }
         f.write_str("\")")?;
         Ok(())
+    }
+}
+
+// Forward to debug - possibly fix?
+impl std::fmt::Debug for PyBytes {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{self}")
     }
 }
 

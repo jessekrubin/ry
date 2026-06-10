@@ -8,7 +8,7 @@ use pyo3::basic::CompareOp;
 use pyo3::prelude::*;
 use pyo3::types::{PyAnyMethods, PyDict, PyDictMethods, PyTuple};
 use pyo3::{BoundObject, IntoPyObjectExt};
-use ryo3_core::PyFromStr;
+use ryo3_core::{PyAsciiString, PyFromStr};
 use ryo3_macro_rules::{
     py_key_err, py_overflow_err, py_overflow_error, py_type_err, py_value_err, py_zero_division_err,
 };
@@ -202,8 +202,8 @@ impl PyDuration {
         Self(Duration::from_nanos(1))
     }
 
-    fn __repr__(&self) -> String {
-        format!("{self:?}")
+    fn __repr__(&self) -> PyAsciiString {
+        format!("{self}").into()
     }
 
     fn __hash__(&self) -> u64 {
@@ -821,7 +821,7 @@ impl PyDuration {
     }
 }
 
-impl std::fmt::Debug for PyDuration {
+impl std::fmt::Display for PyDuration {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
@@ -829,6 +829,14 @@ impl std::fmt::Debug for PyDuration {
             self.0.as_secs(),
             self.0.subsec_nanos()
         )
+    }
+}
+
+// TODO: fix this as it is required by the repr of reqwest client config
+//       currently just forwards to display
+impl std::fmt::Debug for PyDuration {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{self}")
     }
 }
 

@@ -180,7 +180,7 @@ impl PyFileReadStream {
     }
 
     fn __repr__(&self) -> String {
-        format!("{self:?}")
+        format!("{self}")
     }
 
     fn __eq__(&self, other: &Self) -> bool {
@@ -269,7 +269,7 @@ impl PyFileReadStream {
     }
 }
 
-impl std::fmt::Debug for PyFileReadStream {
+impl std::fmt::Display for PyFileReadStream {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "FileReadStream(path='{}'", self.options.path.display())?;
         if self.options.read_size == DEFAULT_READ_SIZE {

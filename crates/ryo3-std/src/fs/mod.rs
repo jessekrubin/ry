@@ -188,9 +188,8 @@ impl From<std::fs::DirEntry> for PyDirEntry {
 impl PyDirEntry {
     fn __repr__(&self) -> String {
         let path = self.0.path();
-        let pathstr = path.to_string_lossy();
-        let s = format!("DirEntry('{pathstr}')");
-        s
+        let path_disp = path.display();
+        format!("DirEntry('{path_disp}')")
     }
 
     #[must_use]
@@ -267,9 +266,9 @@ fn write_impl<P: AsRef<Path>, C: AsRef<[u8]>>(fspath: P, b: C) -> PyResult<usize
     match write_res {
         Ok(()) => Ok(b.as_ref().len()),
         Err(e) => {
-            let fspath_str = fspath.as_ref().to_string_lossy();
+            let fspath_display = fspath.as_ref().display();
             Err(PyNotADirectoryError::new_err(format!(
-                "write_bytes - parent: {fspath_str} - {e}"
+                "write_bytes - parent: {fspath_display} - {e}"
             )))
         }
     }
@@ -482,7 +481,7 @@ pub struct PyReadDir {
 #[pymethods]
 impl PyReadDir {
     fn __repr__(&self) -> String {
-        format!("{self:?}")
+        format!("{self}")
     }
 
     fn __iter__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {
@@ -532,7 +531,7 @@ impl PyReadDir {
     }
 }
 
-impl std::fmt::Debug for PyReadDir {
+impl std::fmt::Display for PyReadDir {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let path = self.path.to_string_lossy();
         write!(f, "ReadDir(\"{path}\")")

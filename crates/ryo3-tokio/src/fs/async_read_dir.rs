@@ -156,7 +156,7 @@ impl From<tokio::fs::DirEntry> for PyAsyncDirEntry {
 #[pymethods]
 impl PyAsyncDirEntry {
     fn __repr__(&self) -> String {
-        format!("{self:?}")
+        format!("{self}")
     }
 
     #[must_use]
@@ -197,7 +197,7 @@ impl PyAsyncDirEntry {
 #[pymethods]
 impl PyAsyncDirEntry {
     fn __repr__(&self) -> String {
-        format!("{self:?}")
+        format!("{self}")
     }
 
     #[must_use]
@@ -234,8 +234,8 @@ impl PyAsyncDirEntry {
     }
 }
 
-impl std::fmt::Debug for PyAsyncDirEntry {
+impl std::fmt::Display for PyAsyncDirEntry {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "AsyncDirEntry<'{:?}'>", self.0.path())
+        write!(f, "AsyncDirEntry<'{:?}'>", self.0.path().display())
     }
 }
