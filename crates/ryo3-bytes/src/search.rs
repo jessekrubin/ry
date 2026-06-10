@@ -32,6 +32,9 @@ pub(crate) fn memchr_iter(needle: u8, haystack: &[u8]) -> impl Iterator<Item = u
 }
 
 pub(crate) fn find_subslice(buf: &[u8], needle: &[u8]) -> Option<usize> {
+    if needle.len() > buf.len() {
+        return None;
+    }
     match needle {
         [] => Some(0),
         [byte] => memchr(*byte, buf),
@@ -42,6 +45,9 @@ pub(crate) fn find_subslice(buf: &[u8], needle: &[u8]) -> Option<usize> {
 }
 
 pub(crate) fn rfind_subslice(buf: &[u8], needle: &[u8]) -> Option<usize> {
+    if needle.len() > buf.len() {
+        return None;
+    }
     match needle {
         [] => Some(buf.len()),
         [byte] => memrchr(*byte, buf),

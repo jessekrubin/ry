@@ -23,6 +23,18 @@ class Bytes(Buffer):
         This will be a zero-copy view on the Python byte slice.
         """
 
+    @staticmethod
+    def copy_from(buf: Buffer) -> Bytes:
+        """Construct a new Bytes object by copying the given buffer.
+
+        Examples
+        --------
+        >>> from ry import Bytes
+        >>> b = Bytes.copy_from(b"hello")
+        >>> b
+        Bytes(b"hello")
+
+        """
     def __add__(self, other: Buffer) -> Bytes: ...
     def __buffer__(self, flags: int) -> memoryview: ...
     def __contains__(self, other: Buffer) -> bool: ...
@@ -220,5 +232,58 @@ class Bytes(Buffer):
         /,
     ) -> int:
         """Return the highest index where `sub` is found or raise `ValueError`."""
+    def partition(self, sep: Buffer, /) -> tuple[Bytes, Bytes, Bytes]:
+        """Partition the bytes into three parts using the given separator.
+
+        This will search for the separator sep in the bytes. If the separator is found,
+        returns a 3-tuple containing the part before the separator, the separator
+        itself, and the part after it.
+
+        If the separator is not found, returns a 3-tuple containing the original bytes
+        object and two empty bytes objects.
+        """
+    def rpartition(self, sep: Buffer, /) -> tuple[Bytes, Bytes, Bytes]:
+        """Partition the bytes into three parts using the given separator.
+
+        This will search for the separator sep in the bytes, starting at the end. If
+        the separator is found, returns a 3-tuple containing the part before the
+        separator, the separator itself, and the part after it.
+
+        If the separator is not found, returns a 3-tuple containing two empty bytes
+        objects and the original bytes object.
+        """
+    def is_unique(self) -> bool:
+        """Return `True` if all bytes in the sequence are unique, `False` otherwise.
+
+        Notes
+        -----
+        This will usually return `False` for `Bytes` objects created from Python
+        byte slices, since they use `::bytes::Bytes::from_owner`.
+
+        Examples
+        --------
+        >>> from ry import Bytes
+        >>> b = Bytes.copy_from(b"unique-nu-yawk")
+        >>> b.is_unique()
+        True
+        >>> zero_copy = Bytes(b)
+        >>> zero_copy.is_unique()
+        False
+
+        """
+    def is_empty(self) -> bool:
+        """Return `True` if the sequence is empty, `False` otherwise.
+
+        Examples
+        --------
+        >>> from ry import Bytes
+        >>> b = Bytes(b"")
+        >>> b.is_empty()
+        True
+        >>> b = Bytes(b"abc")
+        >>> b.is_empty()
+        False
+
+        """
 
 ReadableBuffer: t.TypeAlias = Buffer | bytes | bytearray | memoryview | Bytes
