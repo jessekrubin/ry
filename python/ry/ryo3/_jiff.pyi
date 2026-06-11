@@ -1,7 +1,6 @@
 """ryo3-jiff types"""
 
 import datetime as pydt
-import sys
 import typing as t
 
 from ry._types import (

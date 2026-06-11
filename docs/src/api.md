@@ -456,12 +456,12 @@ sha512_256: type[_Sha[t.Literal["sha512_256"], SHA512_256_BLOCK_SIZE, SHA512_256
 ```python
 """ryo3-brotli types"""
 
-from typing import Literal, TypeAlias
+import typing as t
 
 from ry._types import Buffer
 from ry.ryo3._bytes import Bytes
 
-_Quality: TypeAlias = Literal[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+_Quality: t.TypeAlias = t.Literal[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
 
 
 def brotli_encode(
@@ -796,12 +796,12 @@ ReadableBuffer: t.TypeAlias = Buffer | bytes | bytearray | memoryview | Bytes
 ```python
 """ryo3-bzip2 types"""
 
-from typing import Literal, TypeAlias
+import typing as t
 
 from ry._types import Buffer
 from ry.ryo3._bytes import Bytes
 
-_Quality: TypeAlias = Literal[1, 2, 3, 4, 5, 6, 7, 8, 9, "best", "fast"]
+_Quality: t.TypeAlias = t.Literal[1, 2, 3, 4, 5, 6, 7, 8, 9, "best", "fast"]
 
 
 def bzip2_decode(data: Buffer) -> Bytes: ...
@@ -1285,17 +1285,17 @@ def panic(msg: str | None = None) -> t.NoReturn:
 ```python
 """ryo3-flate2 types"""
 
-from typing import Literal, TypeAlias
+import typing as t
 
 from ry import Bytes
 from ry._types import Buffer
 
-Quality: TypeAlias = Literal[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, "best", "fast"]
+_Quality: t.TypeAlias = t.Literal[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, "best", "fast"]
 
 
-def gzip_encode(data: Buffer, quality: Quality = 6) -> Bytes: ...
+def gzip_encode(data: Buffer, quality: _Quality = 6) -> Bytes: ...
 def gzip_decode(data: Buffer) -> Bytes: ...
-def gzip(data: Buffer, quality: Quality = 6) -> Bytes:
+def gzip(data: Buffer, quality: _Quality = 6) -> Bytes:
     """Alias for gzip_encode"""
 
 
@@ -1989,7 +1989,6 @@ class HttpStatus:
 """ryo3-jiff types"""
 
 import datetime as pydt
-import sys
 import typing as t
 
 from ry._types import (
@@ -4400,9 +4399,9 @@ class TimeZoneDatabase:
 <h2 id="ry.ryo3._jiff_tz"><code>ry.ryo3._jiff_tz</code></h2>
 
 ```python
-from typing import Literal, TypeAlias
+import typing as t
 
-TimezoneDbName: TypeAlias = Literal[
+TimezoneDbName: t.TypeAlias = t.Literal[
     "Africa/Abidjan",
     "Africa/Accra",
     "Africa/Addis_Ababa",
@@ -5010,7 +5009,7 @@ TimezoneDbName: TypeAlias = Literal[
 import typing as t
 from os import PathLike
 
-from ry._types import Buffer, Unpack
+from ry._types import Buffer
 
 # =============================================================================
 # JSON
@@ -5057,22 +5056,22 @@ def json_cache_usage() -> int: ...
 ```python
 """ryo3-memchr types"""
 
-from typing import TypeAlias
+import typing as t
 
 from ry._types import Buffer
 
-Byte: TypeAlias = int | bytes
+_Byte: t.TypeAlias = int | bytes
 
 
-def memchr(needle: Byte, haystack: Buffer) -> int | None: ...
-def memchr2(needle1: Byte, needle2: Byte, haystack: Buffer) -> int | None: ...
+def memchr(needle: _Byte, haystack: Buffer) -> int | None: ...
+def memchr2(needle1: _Byte, needle2: _Byte, haystack: Buffer) -> int | None: ...
 def memchr3(
-    needle1: Byte, needle2: Byte, needle3: Byte, haystack: Buffer
+    needle1: _Byte, needle2: _Byte, needle3: _Byte, haystack: Buffer
 ) -> int | None: ...
-def memrchr(needle: Byte, haystack: Buffer) -> int | None: ...
-def memrchr2(needle1: Byte, needle2: Byte, haystack: Buffer) -> int | None: ...
+def memrchr(needle: _Byte, haystack: Buffer) -> int | None: ...
+def memrchr2(needle1: _Byte, needle2: _Byte, haystack: Buffer) -> int | None: ...
 def memrchr3(
-    needle1: Byte, needle2: Byte, needle3: Byte, haystack: Buffer
+    needle1: _Byte, needle2: _Byte, needle3: _Byte, haystack: Buffer
 ) -> int | None: ...
 ```
 
@@ -7056,64 +7055,64 @@ class SocketAddr(
 <h2 id="ry.ryo3._std_constants"><code>ry.ryo3._std_constants</code></h2>
 
 ```python
-from typing import Literal
+import typing as t
 
 # ruff: noqa: PYI054
 # u8
-U8_BITS: Literal[8]
-U8_MAX: Literal[255]
-U8_MIN: Literal[0]
+U8_BITS: t.Literal[8]
+U8_MAX: t.Literal[255]
+U8_MIN: t.Literal[0]
 # i8
-I8_BITS: Literal[8]
-I8_MAX: Literal[127]
-I8_MIN: Literal[-128]
+I8_BITS: t.Literal[8]
+I8_MAX: t.Literal[127]
+I8_MIN: t.Literal[-128]
 # i16
-I16_BITS: Literal[16]
-I16_MAX: Literal[32_767]
-I16_MIN: Literal[-32_768]
+I16_BITS: t.Literal[16]
+I16_MAX: t.Literal[32_767]
+I16_MIN: t.Literal[-32_768]
 # u16
-U16_BITS: Literal[16]
-U16_MAX: Literal[65_535]
-U16_MIN: Literal[0]
+U16_BITS: t.Literal[16]
+U16_MAX: t.Literal[65_535]
+U16_MIN: t.Literal[0]
 
 # u32
-U32_BITS: Literal[32]
-U32_MAX: Literal[4_294_967_295]
-U32_MIN: Literal[0]
+U32_BITS: t.Literal[32]
+U32_MAX: t.Literal[4_294_967_295]
+U32_MIN: t.Literal[0]
 
 # i32
-I32_BITS: Literal[32]
-I32_MAX: Literal[2_147_483_647]
-I32_MIN: Literal[-2_147_483_648]
+I32_BITS: t.Literal[32]
+I32_MAX: t.Literal[2_147_483_647]
+I32_MIN: t.Literal[-2_147_483_648]
 
 # u64
-U64_BITS: Literal[64]
-U64_MAX: Literal[18_446_744_073_709_551_615]
-U64_MIN: Literal[0]
+U64_BITS: t.Literal[64]
+U64_MAX: t.Literal[18_446_744_073_709_551_615]
+U64_MIN: t.Literal[0]
 
 # i64
-I64_BITS: Literal[64]
-I64_MAX: Literal[9_223_372_036_854_775_807]
-I64_MIN: Literal[-9_223_372_036_854_775_808]
+I64_BITS: t.Literal[64]
+I64_MAX: t.Literal[9_223_372_036_854_775_807]
+I64_MIN: t.Literal[-9_223_372_036_854_775_808]
 
 # u128
-U128_BITS: Literal[128]
-U128_MAX: Literal[340_282_366_920_938_463_463_374_607_431_768_211_455]
-U128_MIN: Literal[0]
+U128_BITS: t.Literal[128]
+U128_MAX: t.Literal[340_282_366_920_938_463_463_374_607_431_768_211_455]
+U128_MIN: t.Literal[0]
 
 # i128
-I128_BITS: Literal[128]
-I128_MAX: Literal[170_141_183_460_469_231_731_687_303_715_884_105_727]
-I128_MIN: Literal[-170_141_183_460_469_231_731_687_303_715_884_105_728]
+I128_BITS: t.Literal[128]
+I128_MAX: t.Literal[170_141_183_460_469_231_731_687_303_715_884_105_727]
+I128_MIN: t.Literal[-170_141_183_460_469_231_731_687_303_715_884_105_728]
 
 # usize
-USIZE_BITS: Literal[32, 64]
-USIZE_MAX: Literal[4_294_967_295, 18_446_744_073_709_551_615]
-USIZE_MIN: Literal[0]
+USIZE_BITS: t.Literal[32, 64]
+USIZE_MAX: t.Literal[4_294_967_295, 18_446_744_073_709_551_615]
+USIZE_MIN: t.Literal[0]
 # isize
-ISIZE_BITS: Literal[32, 64]
-ISIZE_MAX: Literal[2_147_483_647, 9_223_372_036_854_775_807]
-ISIZE_MIN: Literal[-2_147_483_648, -9_223_372_036_854_775_808]
+ISIZE_BITS: t.Literal[32, 64]
+ISIZE_MAX: t.Literal[2_147_483_647, 9_223_372_036_854_775_807]
+ISIZE_MIN: t.Literal[-2_147_483_648, -9_223_372_036_854_775_808]
 ```
 
 <h2 id="ry.ryo3._tokio"><code>ry.ryo3._tokio</code></h2>
@@ -8429,7 +8428,7 @@ from ry.ryo3._twox_hash import xxh128_intdigest as xxh128_intdigest
 ```python
 """ryo3-zstd types"""
 
-from typing import Literal, TypeAlias
+import typing as t
 
 from ry import Bytes
 from ry._types import Buffer
@@ -8449,7 +8448,7 @@ VERSION_MINOR: int
 VERSION_NUMBER: int
 VERSION_RELEASE: int
 
-_Quality: TypeAlias = Literal[
+_Quality: t.TypeAlias = t.Literal[
     1,
     2,
     3,

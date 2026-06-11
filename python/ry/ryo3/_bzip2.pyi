@@ -1,11 +1,11 @@
 """ryo3-bzip2 types"""
 
-from typing import Literal, TypeAlias
+import typing as t
 
 from ry._types import Buffer
 from ry.ryo3._bytes import Bytes
 
-_Quality: TypeAlias = Literal[1, 2, 3, 4, 5, 6, 7, 8, 9, "best", "fast"]
+_Quality: t.TypeAlias = t.Literal[1, 2, 3, 4, 5, 6, 7, 8, 9, "best", "fast"]
 
 def bzip2_decode(data: Buffer) -> Bytes: ...
 def bzip2_encode(data: Buffer, quality: _Quality = 6) -> Bytes: ...

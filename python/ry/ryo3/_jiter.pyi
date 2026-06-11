@@ -1,7 +1,7 @@
 import typing as t
 from os import PathLike
 
-from ry._types import Buffer, Unpack
+from ry._types import Buffer
 
 # =============================================================================
 # JSON
