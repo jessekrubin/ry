@@ -20,7 +20,9 @@ def test_deprecation_msg() -> None:
 
 class TestDeprecationWarningEg:
     def _deprecated_fn(self) -> None:
-        msg = _deprecation_message("ry.deprecated_fn", "ry.new_fn", "v0.1.0")
+        msg = _deprecation_message(
+            "ry.deprecated_fn", "ry.new_fn", "v0.1.0", escape=False
+        )
         warnings.warn(msg, DeprecationWarning, stacklevel=1)
 
     def test_deprecated_fn_warning(self) -> None:
@@ -29,4 +31,3 @@ class TestDeprecationWarningEg:
             match=_deprecation_message("ry.deprecated_fn", "ry.new_fn", "v0.1.0"),
         ):
             self._deprecated_fn()
-        self._deprecated_fn()

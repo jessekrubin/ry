@@ -23,7 +23,8 @@
   - **BREAKING:** `ry.WalkdirGen` renamed to `ry.WalkDirIter`
 - misc
   - all `__repr__` impls now use `std::fmt::Display`
-- `ry.ulid` module removed
+- `ry.ulid` submodule removed; use `ry.ULID`
+- `ry.dirs` submodule removed; use `ry.XYZ_dir()` instead (eg `ry.home_dir()`)
 
 ---
 
