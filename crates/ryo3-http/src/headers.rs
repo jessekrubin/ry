@@ -44,6 +44,22 @@ impl PyHeaders {
         self.0.py_write()
     }
 
+    #[must_use]
+    pub fn clone_header_map(&self) -> HeaderMap {
+        self.read().clone()
+    }
+
+    #[must_use]
+    pub fn into_header_map(self) -> HeaderMap {
+        match Arc::try_unwrap(self.0) {
+            Ok(lock) => lock
+                .0
+                .into_inner()
+                .unwrap_or_else(std::sync::PoisonError::into_inner),
+            Err(shared) => shared.py_read().clone(),
+        }
+    }
+
     fn py_dict<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
         PyHttpHeaderMapRef(&self.read()).into_pyobject(py)
     }
@@ -92,6 +108,12 @@ impl From<PyHttpHeaderMap> for PyHeaders {
     }
 }
 
+impl From<PyHeaders> for HeaderMap {
+    fn from(h: PyHeaders) -> Self {
+        h.into_header_map()
+    }
+}
+
 impl From<Arc<RyRwLock<HeaderMap, false>>> for PyHeaders {
     fn from(hm: Arc<RyRwLock<HeaderMap, false>>) -> Self {
         Self(hm)
@@ -105,16 +127,16 @@ impl PyHeaders {
     fn py_new(headers: Option<PyHeadersLike>, kwargs: Option<PyHeadersLike>) -> Self {
         match (headers, kwargs) {
             (Some(headers), Some(kwargs)) => {
-                let mut headers_map = HeaderMap::from(headers);
-                headers_map.extend(HeaderMap::from(kwargs));
+                let mut headers_map = headers.into_header_map();
+                headers_map.extend(kwargs.into_header_map());
                 Self::from(headers_map)
             }
             (Some(headers), None) => {
-                let headers_map = HeaderMap::from(headers);
+                let headers_map = headers.into_header_map();
                 Self::from(headers_map)
             }
             (None, Some(kwargs)) => {
-                let kw_headers = HeaderMap::from(kwargs);
+                let kw_headers = kwargs.into_header_map();
                 Self::from(kw_headers)
             }
             (None, None) => Self::from(HeaderMap::new()),
@@ -302,7 +324,7 @@ impl PyHeaders {
                 }
             }
             PyHeadersLike::Map(other) => {
-                let hm = HeaderMap::from(other);
+                let hm = other.into();
                 let mut inner = self.write();
                 if append {
                     update_headers_append(&hm, &mut inner)
@@ -322,7 +344,7 @@ impl PyHeaders {
                 update_headers_insert(&other_inner, &mut new_map)
             }
             PyHeadersLike::Map(other) => {
-                let hm = HeaderMap::from(other);
+                let hm = other.into();
                 update_headers_insert(&hm, &mut new_map)
             }
         }

@@ -129,6 +129,7 @@ impl_from_jiff_for_ry!(Span, RySpan);
 impl_from_jiff_for_ry!(Time, RyTime);
 impl_from_jiff_for_ry!(Timestamp, RyTimestamp);
 impl_from_jiff_for_ry!(Zoned, RyZoned);
+
 impl From<JiffTime> for RyTime {
     fn from(value: JiffTime) -> Self {
         Self(value.0)
@@ -153,18 +154,13 @@ impl From<TimeZone> for RyTimeZone {
     }
 }
 
-impl From<&TimeZone> for RyTimeZone {
-    fn from(value: &TimeZone) -> Self {
-        Self::from(value.clone())
-    }
-}
-
 impl From<RyTimeZone> for TimeZone {
     fn from(value: RyTimeZone) -> Self {
         value.0
     }
 }
 
+// TODO: Consider nuking this (hidden clone)
 impl From<&RyTimeZone> for TimeZone {
     fn from(value: &RyTimeZone) -> Self {
         value.0.clone()

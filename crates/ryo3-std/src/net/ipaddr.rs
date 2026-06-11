@@ -15,19 +15,19 @@ use crate::net::{PySocketAddrV4, PySocketAddrV6};
 #[pyclass(name = "Ipv4Addr", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, PartialOrd, Ord)]
-pub struct PyIpv4Addr(pub Ipv4Addr);
+pub struct PyIpv4Addr(pub(crate) Ipv4Addr);
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize), serde(transparent))]
 #[pyclass(name = "Ipv6Addr", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, PartialOrd, Ord)]
-pub struct PyIpv6Addr(pub Ipv6Addr);
+pub struct PyIpv6Addr(pub(crate) Ipv6Addr);
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize), serde(transparent))]
 #[pyclass(name = "IpAddr", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, PartialOrd, Ord)]
-pub struct PyIpAddr(pub IpAddr);
+pub struct PyIpAddr(pub(crate) IpAddr);
 
 #[expect(clippy::trivially_copy_pass_by_ref)]
 #[pymethods]
@@ -291,6 +291,42 @@ impl PyIpv4Addr {
     ) -> PyResult<Bound<'py, PyAny>> {
         use ryo3_pydantic::GetPydanticJsonSchemaCls;
         Self::get_pydantic_json_schema(cls, source, handler)
+    }
+}
+
+impl PyIpv4Addr {
+    #[must_use]
+    pub fn inner(&self) -> &Ipv4Addr {
+        &self.0
+    }
+
+    #[must_use]
+    pub fn into_inner(self) -> Ipv4Addr {
+        self.0
+    }
+}
+
+impl PyIpv6Addr {
+    #[must_use]
+    pub fn inner(&self) -> &Ipv6Addr {
+        &self.0
+    }
+
+    #[must_use]
+    pub fn into_inner(self) -> Ipv6Addr {
+        self.0
+    }
+}
+
+impl PyIpAddr {
+    #[must_use]
+    pub fn inner(&self) -> &IpAddr {
+        &self.0
+    }
+
+    #[must_use]
+    pub fn into_inner(self) -> IpAddr {
+        self.0
     }
 }
 

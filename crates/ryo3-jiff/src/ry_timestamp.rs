@@ -109,7 +109,7 @@ impl RyTimestamp {
 
     #[expect(clippy::wrong_self_convention)]
     fn to_zoned(&self, time_zone: &RyTimeZone) -> RyZoned {
-        RyZoned::from(Zoned::new(self.0, time_zone.into()))
+        Zoned::new(self.0, time_zone.into()).into()
     }
 
     #[expect(clippy::wrong_self_convention)]
@@ -122,9 +122,8 @@ impl RyTimestamp {
     }
 
     #[staticmethod]
-    fn from_pydatetime(datetime: &Bound<'_, PyAny>) -> PyResult<Self> {
-        let ts = datetime.extract::<Timestamp>()?;
-        Ok(Self(ts))
+    fn from_pydatetime(datetime: Timestamp) -> Self {
+        Self(datetime)
     }
 
     #[expect(clippy::wrong_self_convention)]

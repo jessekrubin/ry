@@ -42,7 +42,7 @@ impl PyUrl {
         if let Some(params) = params {
             url.py_with_params(params).map(Self::from)
         } else {
-            Ok(Self::from(url.0))
+            Ok(Self::new(url.into()))
         }
     }
 
@@ -566,11 +566,11 @@ impl ryo3_pydantic::GetPydanticCoreSchemaCls for PyUrl {
 fn extract_ip_host(address: &Bound<'_, PyAny>) -> PyResult<IpAddr> {
     use ryo3_std::net::{PyIpAddr, PyIpv4Addr, PyIpv6Addr};
     if let Ok(pyipv4) = address.cast_exact::<PyIpv4Addr>() {
-        Ok(pyipv4.get().0.into())
+        Ok((*pyipv4.get()).into())
     } else if let Ok(pyipv6) = address.cast_exact::<PyIpv6Addr>() {
-        Ok(pyipv6.get().0.into())
+        Ok((*pyipv6.get()).into())
     } else if let Ok(pyipaddr) = address.cast_exact::<PyIpAddr>() {
-        Ok(pyipaddr.get().0)
+        Ok(pyipaddr.get().into())
     } else if let Ok(ip) = address.extract::<std::net::IpAddr>() {
         Ok(ip)
     } else {

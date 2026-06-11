@@ -164,8 +164,7 @@ impl<'py, const BLOCKING: bool> FromPyObject<'_, 'py> for ReqwestKwargs<BLOCKING
             .get_item(intern!(py, "headers"))?
             .map(|h| h.extract::<PyHeadersLike>())
             .transpose()?
-            .map(HeaderMap::try_from)
-            .transpose()?;
+            .map(PyHeadersLike::into_header_map);
         let bearer_auth: Option<PyBackedStr> = dict
             .get_item(intern!(py, "bearer_auth"))?
             .map(|b| b.extract())

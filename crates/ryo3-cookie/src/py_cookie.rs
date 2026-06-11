@@ -74,8 +74,7 @@ impl PyCookie {
         }
 
         if let Some(max_age) = max_age {
-            let ma = max_age
-                .0
+            let ma = (*max_age.inner())
                 .try_into()
                 .map_err(|e| py_value_error!("invalid max_age duration: {e}"))?;
 

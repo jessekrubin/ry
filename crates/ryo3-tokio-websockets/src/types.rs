@@ -29,7 +29,7 @@ impl<'py> FromPyObject<'_, 'py> for UriLike {
     type Error = PyErr;
     fn extract(obj: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
         let url = obj.extract::<UrlLike>()?;
-        url.0
+        url.into_inner()
             .as_str()
             .parse::<http::Uri>()
             .map(Self)

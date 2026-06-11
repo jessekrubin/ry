@@ -66,7 +66,7 @@ impl RyClient {
         //    - query in kwargs is Some -- and the url has NO query so we can just set
         //      the string I think
         // url is empty and the kwargs do not contain a
-        let url = url.0;
+        let url = url.into_inner();
         if let Some(kwargs) = kwargs {
             kwargs.apply(self.client.request(method, url))
         } else {
@@ -81,7 +81,7 @@ impl RyClient {
         method: Method,
         kwargs: Option<BlockingReqwestKwargs>,
     ) -> PyResult<RequestBuilder> {
-        let url = url.0;
+        let url = url.into_inner();
         if let Some(kwargs) = kwargs {
             kwargs.apply(self.client.request(method, url))
         } else {
@@ -167,7 +167,7 @@ impl RyBlockingClient {
         method: Method,
         kwargs: Option<BlockingReqwestKwargs>,
     ) -> PyResult<RequestBuilder> {
-        let url = url.0;
+        let url = url.into_inner();
         if let Some(kwargs) = kwargs {
             kwargs.apply(self.client.request(method, url))
         } else {

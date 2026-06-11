@@ -2,7 +2,7 @@ use pyo3::prelude::*;
 use zstd::zstd_safe::CompressionLevel;
 
 #[derive(Copy, Clone, Debug)]
-pub struct PyCompressionLevel(pub CompressionLevel);
+pub struct PyCompressionLevel(CompressionLevel);
 
 impl Default for PyCompressionLevel {
     fn default() -> Self {
@@ -21,7 +21,7 @@ impl TryFrom<i32> for PyCompressionLevel {
     }
 }
 
-impl From<PyCompressionLevel> for i32 {
+impl From<PyCompressionLevel> for CompressionLevel {
     fn from(val: PyCompressionLevel) -> Self {
         val.0
     }

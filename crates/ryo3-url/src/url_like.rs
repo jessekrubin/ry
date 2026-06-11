@@ -2,7 +2,21 @@ use pyo3::prelude::*;
 use ryo3_core::macros::{py_type_err, py_value_error};
 
 use crate::PyUrl;
-pub struct UrlLike(pub url::Url);
+pub struct UrlLike(url::Url);
+
+impl UrlLike {
+    #[inline]
+    #[must_use]
+    pub fn new(url: url::Url) -> Self {
+        Self(url)
+    }
+
+    #[inline]
+    #[must_use]
+    pub fn into_inner(self) -> url::Url {
+        self.0
+    }
+}
 
 impl From<UrlLike> for url::Url {
     fn from(ul: UrlLike) -> Self {
@@ -39,7 +53,7 @@ impl<'py> FromPyObject<'_, 'py> for UrlLike {
 
     fn extract(obj: Borrowed<'_, 'py, PyAny>) -> Result<Self, Self::Error> {
         if let Ok(url) = obj.cast_exact::<PyUrl>() {
-            let url = url.borrow();
+            let url = url.get();
             Ok(Self(url.0.clone()))
         } else if let Ok(s) = obj.extract::<&str>() {
             url::Url::parse(s)

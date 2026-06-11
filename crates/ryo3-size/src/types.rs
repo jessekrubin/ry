@@ -77,7 +77,13 @@ impl<'py> IntoPyObject<'py> for &PyBase {
 }
 
 #[derive(Clone, Copy)]
-pub struct PyStyle(pub size::fmt::Style);
+pub struct PyStyle(size::fmt::Style);
+
+impl From<PyStyle> for size::fmt::Style {
+    fn from(style: PyStyle) -> Self {
+        style.0
+    }
+}
 
 impl PyStyle {
     const DEFAULT: Self = Self(size::fmt::Style::Default);
