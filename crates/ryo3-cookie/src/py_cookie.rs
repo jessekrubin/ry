@@ -74,8 +74,7 @@ impl PyCookie {
         }
 
         if let Some(max_age) = max_age {
-            let ma = max_age
-                .0
+            let ma = (*max_age.inner())
                 .try_into()
                 .map_err(|e| py_value_error!("invalid max_age duration: {e}"))?;
 
@@ -159,7 +158,7 @@ impl PyCookie {
     }
 
     fn __repr__(&self) -> String {
-        format!("{self:?}")
+        format!("{self}")
     }
 
     fn encoded(&self) -> String {
@@ -310,7 +309,7 @@ impl PyCookie {
     }
 }
 
-impl std::fmt::Debug for PyCookie {
+impl std::fmt::Display for PyCookie {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "Cookie(\"{}\", \"{}\"", self.0.name(), self.0.value())?;
         // this is the kw ordering...
@@ -340,7 +339,7 @@ impl std::fmt::Debug for PyCookie {
         }
 
         if let Some(max_age) = self.max_age() {
-            write!(f, ", max_age={max_age:?}")?;
+            write!(f, ", max_age={max_age}")?;
         }
 
         if let Some(partitioned) = self.0.partitioned() {

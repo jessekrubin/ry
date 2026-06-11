@@ -90,7 +90,7 @@ impl PySize {
         self.0
             .format()
             .with_base(base.into())
-            .with_style(style.0)
+            .with_style(style.into())
             .to_string()
             .into()
     }

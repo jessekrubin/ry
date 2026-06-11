@@ -17,7 +17,7 @@ impl PySizeFormatter {
     fn new(base: PyBase, style: PyStyle) -> Self {
         let formatter = size::fmt::SizeFormatter::new()
             .with_base(base.into())
-            .with_style(style.0);
+            .with_style(style.into());
         Self {
             formatter,
             base,

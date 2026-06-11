@@ -6,6 +6,9 @@
   - refactored `__sub__`/`sub` implementations to be cleaner
   - internal refactoring
 
+- misc
+  - all `__repr__` impls now use `std::fmt::Display`
+
 ---
 
 ## v0.0.95 [2026-06-04]

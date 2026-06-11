@@ -770,12 +770,12 @@ impl RyZoned {
     // -----------------------------------------------------------------------
     #[getter]
     fn timezone(&self) -> RyTimeZone {
-        RyTimeZone::from(self.0.time_zone())
+        RyTimeZone::from(self.0.time_zone().clone())
     }
 
     #[getter]
     fn tz(&self) -> RyTimeZone {
-        RyTimeZone::from(self.0.time_zone())
+        RyTimeZone::from(self.0.time_zone().clone())
     }
 
     #[getter]

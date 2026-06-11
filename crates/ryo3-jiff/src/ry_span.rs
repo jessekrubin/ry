@@ -1039,7 +1039,9 @@ impl<'a, 'py> From<&'a IntoSpanArithmetic<'a, 'py>> for SpanArithmetic<'a> {
         match value {
             IntoSpanArithmetic::Uno(s) => match s {
                 Spanish::Span(sp) => SpanArithmetic::from(sp.get().0).days_are_24_hours(),
-                Spanish::Duration(dur) => SpanArithmetic::from(dur.get().0).days_are_24_hours(),
+                Spanish::Duration(dur) => {
+                    SpanArithmetic::from(*(dur.get().inner())).days_are_24_hours()
+                }
                 Spanish::SignedDuration(dur) => {
                     SpanArithmetic::from(dur.get().0).days_are_24_hours()
                 }
@@ -1055,10 +1057,14 @@ impl<'a, 'py> From<&'a IntoSpanArithmetic<'a, 'py>> for SpanArithmetic<'a> {
                     }
                 },
                 Spanish::Duration(dur) => match r {
-                    RySpanRelativeTo::Zoned(z) => SpanArithmetic::from((dur.get().0, &z.get().0)),
-                    RySpanRelativeTo::Date(d) => SpanArithmetic::from((dur.get().0, d.get().0)),
+                    RySpanRelativeTo::Zoned(z) => {
+                        SpanArithmetic::from((*(dur.get().inner()), &z.get().0))
+                    }
+                    RySpanRelativeTo::Date(d) => {
+                        SpanArithmetic::from((*(dur.get().inner()), d.get().0))
+                    }
                     RySpanRelativeTo::DateTime(dt) => {
-                        SpanArithmetic::from((dur.get().0, dt.get().0))
+                        SpanArithmetic::from((*(dur.get().inner()), dt.get().0))
                     }
                 },
                 Spanish::SignedDuration(dur) => match r {

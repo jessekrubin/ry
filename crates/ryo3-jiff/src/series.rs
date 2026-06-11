@@ -29,7 +29,7 @@ impl TryFrom<(&RyDate, &RySpan)> for RyDateSeries {
     }
 }
 
-impl std::fmt::Debug for RyDateSeries {
+impl std::fmt::Display for RyDateSeries {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
@@ -64,7 +64,7 @@ impl TryFrom<(&RyDateTime, &RySpan)> for RyDateTimeSeries {
     }
 }
 
-impl std::fmt::Debug for RyDateTimeSeries {
+impl std::fmt::Display for RyDateTimeSeries {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
@@ -100,7 +100,7 @@ impl TryFrom<(&RyTime, &RySpan)> for RyTimeSeries {
     }
 }
 
-impl std::fmt::Debug for RyTimeSeries {
+impl std::fmt::Display for RyTimeSeries {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
@@ -136,7 +136,7 @@ impl TryFrom<(&RyTimestamp, &RySpan)> for RyTimestampSeries {
     }
 }
 
-impl std::fmt::Debug for RyTimestampSeries {
+impl std::fmt::Display for RyTimestampSeries {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
@@ -182,7 +182,7 @@ macro_rules! impl_py_series_pymethods(
             }
 
             fn __repr__(&self) -> String {
-                format!("{self:?}")
+                format!("{self}")
             }
 
             fn __iter__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {
@@ -272,7 +272,7 @@ impl_py_series_pymethods!(
     jiff::civil::Date
 );
 
-impl std::fmt::Debug for RyZonedSeries {
+impl std::fmt::Display for RyZonedSeries {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,

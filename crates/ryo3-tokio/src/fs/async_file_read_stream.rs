@@ -281,7 +281,7 @@ impl PyAsyncFileReadStream {
     }
 
     fn __repr__(&self) -> String {
-        format!("{self:?}")
+        format!("{self}")
     }
 }
 
@@ -423,11 +423,11 @@ impl PyAsyncFileReadStream {
     }
 
     fn __repr__(&self) -> String {
-        format!("{self:?}")
+        format!("{self}")
     }
 }
 
-impl std::fmt::Debug for PyAsyncFileReadStream {
+impl std::fmt::Display for PyAsyncFileReadStream {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "AsyncFileReadStream(")?;
         write!(f, "path='{}'", self.options.path.display())?;

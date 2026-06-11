@@ -467,7 +467,7 @@ impl PyWebSocket {
         recv_timeout: Option<PyTimeout>,
     ) -> Self {
         let uri = uri.into();
-        let headers = headers.map(http::HeaderMap::from);
+        let headers = headers.map(PyHeadersLike::into_header_map);
         let cfg = WebSocketConfig {
             uri,
             headers,
@@ -646,7 +646,7 @@ impl PyWebSocket {
         recv_timeout: Option<PyTimeout>,
     ) -> Self {
         let uri = uri.into();
-        let headers = headers.map(http::HeaderMap::from);
+        let headers = headers.map(PyHeadersLike::into_header_map);
         let cfg = WebSocketConfig {
             uri,
             headers,

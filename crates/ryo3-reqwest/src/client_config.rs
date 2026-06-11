@@ -360,10 +360,12 @@ impl ClientConfig {
             client_builder = client_builder.http2_max_header_list_size(http2_max_header_list_size);
         }
         if let Some(http2_keep_alive_interval) = &self.http2_keep_alive_interval {
-            client_builder = client_builder.http2_keep_alive_interval(http2_keep_alive_interval.0);
+            client_builder =
+                client_builder.http2_keep_alive_interval(*http2_keep_alive_interval.inner());
         }
         if let Some(http2_keep_alive_timeout) = &self.http2_keep_alive_timeout {
-            client_builder = client_builder.http2_keep_alive_timeout(http2_keep_alive_timeout.0);
+            client_builder =
+                client_builder.http2_keep_alive_timeout(*http2_keep_alive_timeout.inner());
         }
         if self.http2_keep_alive_while_idle {
             client_builder = client_builder.http2_keep_alive_while_idle(true);
@@ -434,10 +436,10 @@ impl ClientConfig {
             .http1_ignore_invalid_headers_in_responses(
                 self.http1_ignore_invalid_headers_in_responses,
             )
-            .pool_idle_timeout(self.pool_idle_timeout.map(|d| d.0))
+            .pool_idle_timeout(self.pool_idle_timeout.map(|d| *d.inner()))
             .pool_max_idle_per_host(self.pool_max_idle_per_host)
-            .tcp_keepalive(self.tcp_keepalive.map(|d| d.0))
-            .tcp_keepalive_interval(self.tcp_keepalive_interval.map(|d| d.0))
+            .tcp_keepalive(self.tcp_keepalive.map(|d| *d.inner()))
+            .tcp_keepalive_interval(self.tcp_keepalive_interval.map(|d| *d.inner()))
             .tcp_keepalive_retries(self.tcp_keepalive_retries)
             .tcp_nodelay(self.tcp_nodelay)
             .tls_sni(self.tls_sni)

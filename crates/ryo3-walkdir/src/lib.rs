@@ -33,7 +33,7 @@ impl PyWalkdirGen {
                 // if objects is true, we return a DirEntry object
                 PyWalkDirEntry::from(entry).into_bound_py_any(py)
             } else {
-                let path_str = entry.path().to_string_lossy().to_string();
+                let path_str = entry.path().as_os_str();
                 path_str.into_bound_py_any(py)
             }?;
             Ok(Some(bound_py_any))
@@ -61,7 +61,7 @@ impl PyWalkdirGen {
                     .py_lock()
                     .by_ref()
                     .take(n)
-                    .map(|entry| entry.path().to_string_lossy().to_string())
+                    .map(|entry| entry.path().as_os_str().to_owned())
                     .collect::<Vec<_>>()
             });
             entries.into_bound_py_any(py)
@@ -86,7 +86,7 @@ impl PyWalkdirGen {
                 self.iter
                     .py_lock()
                     .by_ref()
-                    .map(|entry| entry.path().to_string_lossy().to_string())
+                    .map(|entry| entry.path().as_os_str().to_owned())
                     .collect::<Vec<_>>()
             });
             entries.into_bound_py_any(py)

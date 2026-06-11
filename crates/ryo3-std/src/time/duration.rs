@@ -8,7 +8,7 @@ use pyo3::basic::CompareOp;
 use pyo3::prelude::*;
 use pyo3::types::{PyAnyMethods, PyDict, PyDictMethods, PyTuple};
 use pyo3::{BoundObject, IntoPyObjectExt};
-use ryo3_core::PyFromStr;
+use ryo3_core::{PyAsciiString, PyFromStr};
 use ryo3_macro_rules::{
     py_key_err, py_overflow_err, py_overflow_error, py_type_err, py_value_err, py_zero_division_err,
 };
@@ -57,7 +57,7 @@ const FRIENDLY_SPAN_PRINTER: jiff::fmt::friendly::SpanPrinter =
 #[derive(Copy, Clone, PartialEq, Eq)]
 #[pyclass(name = "Duration", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
-pub struct PyDuration(pub Duration);
+pub struct PyDuration(pub(crate) Duration);
 
 impl PyDuration {
     #[inline]
@@ -65,9 +65,12 @@ impl PyDuration {
     pub const fn from_secs(secs: u64) -> Self {
         Self(Duration::from_secs(secs))
     }
-}
 
-impl PyDuration {
+    #[must_use]
+    pub fn inner(&self) -> &Duration {
+        &self.0
+    }
+
     fn new(secs: u64, nanos: u32) -> PyResult<Self> {
         if nanos < NANOS_PER_SEC {
             Ok(Self(Duration::new(secs, nanos)))
@@ -82,12 +85,7 @@ impl PyDuration {
         }
     }
 
-    #[must_use]
-    pub fn inner(&self) -> &Duration {
-        &self.0
-    }
-
-    fn try_from_secs_f32(secs: f32) -> PyResult<Self> {
+    pub(crate) fn try_from_secs_f32(secs: f32) -> PyResult<Self> {
         if secs.is_nan() {
             py_value_err!("invalid value: nan")
         } else if secs.is_infinite() {
@@ -105,7 +103,7 @@ impl PyDuration {
         }
     }
 
-    fn try_from_secs_f64(secs: f64) -> PyResult<Self> {
+    pub(crate) fn try_from_secs_f64(secs: f64) -> PyResult<Self> {
         if secs.is_nan() {
             py_value_err!("invalid value: nan")
         } else if secs.is_infinite() {
@@ -202,8 +200,8 @@ impl PyDuration {
         Self(Duration::from_nanos(1))
     }
 
-    fn __repr__(&self) -> String {
-        format!("{self:?}")
+    fn __repr__(&self) -> PyAsciiString {
+        format!("{self}").into()
     }
 
     fn __hash__(&self) -> u64 {
@@ -821,7 +819,7 @@ impl PyDuration {
     }
 }
 
-impl std::fmt::Debug for PyDuration {
+impl std::fmt::Display for PyDuration {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
@@ -829,6 +827,14 @@ impl std::fmt::Debug for PyDuration {
             self.0.as_secs(),
             self.0.subsec_nanos()
         )
+    }
+}
+
+// TODO: fix this as it is required by the repr of reqwest client config
+//       currently just forwards to display
+impl std::fmt::Debug for PyDuration {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{self}")
     }
 }
 

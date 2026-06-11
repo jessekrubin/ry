@@ -47,7 +47,7 @@ impl<'py> FromPyObject<'_, 'py> for JiffDate {
 
         #[cfg(Py_LIMITED_API)]
         {
-            let py = date.py();
+            let py = py_date.py();
 
             Date::new(
                 py_date.getattr(intern!(py, "year"))?.extract()?,
