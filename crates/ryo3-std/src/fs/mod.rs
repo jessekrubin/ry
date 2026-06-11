@@ -23,22 +23,27 @@ use crate::fs::file_read_stream::PyFileReadStream;
 pub struct PyMetadata(std::fs::Metadata);
 
 impl From<std::fs::Metadata> for PyMetadata {
+    #[inline]
+    #[must_use]
     fn from(m: std::fs::Metadata) -> Self {
-        Self(m)
+        Self::new(m)
     }
 }
 
 impl PyMetadata {
+    #[inline]
     #[must_use]
     pub fn new(m: std::fs::Metadata) -> Self {
         Self(m)
     }
 
+    #[inline]
     #[must_use]
     pub fn inner(&self) -> &std::fs::Metadata {
         &self.0
     }
 
+    #[inline]
     #[must_use]
     pub fn into_inner(self) -> std::fs::Metadata {
         self.0
