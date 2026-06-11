@@ -2,7 +2,8 @@
 
 uv run maturin develop
 
-uv run python -m mypy.stubtest \
+uv run --with mypy==1.19.1 python -m mypy.stubtest --version
+uv run --with mypy==1.19.1 python -m mypy.stubtest \
   --mypy-config-file pyproject.toml \
   --whitelist scripts/stubtest-allowlist.txt \
   --ignore-disjoint-bases \

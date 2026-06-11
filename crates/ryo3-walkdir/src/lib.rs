@@ -62,11 +62,13 @@ impl PyWalkDirIter {
         })
     }
 
-    fn skip(&self, py: Python<'_>, n: usize) {
-        py.detach(|| {
-            self.0.py_lock().by_ref().take(n).for_each(drop);
-        });
-    }
+    // possible future thang:
+    // fn skip(slf: PyRef<'_, Self>, py: Python<'_>, n: usize) -> PyRef<'_, Self> {
+    //     py.detach(|| {
+    //         slf.0.py_lock().by_ref().take(n).for_each(drop);
+    //     });
+    //     slf
+    // }
 }
 
 impl From<::walkdir::WalkDir> for PyWalkDirIter {
