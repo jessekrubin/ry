@@ -43,11 +43,6 @@ from ry.protocols import (
 from ry.ryo3 import Duration
 from ry.ryo3._jiff_tz import TimezoneDbName
 
-if sys.version_info >= (3, 13):
-    from warnings import deprecated
-else:
-    from typing_extensions import deprecated
-
 _T = t.TypeVar("_T")
 _Temporal = t.TypeVar(
     "_Temporal", bound=ZonedDateTime | DateTime | Timestamp | Date | Time
@@ -965,11 +960,6 @@ class SignedDuration(
     def isoformat(self) -> str: ...
     @classmethod
     def fromisoformat(cls, s: str) -> t.Self: ...
-    @deprecated(
-        "`SignedDuration.from_isoformat` is deprecated; use `SignedDuration.fromisoformat` instead [removal: v0.0.96]"
-    )
-    @classmethod
-    def from_isoformat(cls, s: str) -> t.Self: ...
     def to_string(self, *, friendly: bool = False) -> str: ...
     def friendly(self) -> str: ...
 
@@ -1112,13 +1102,6 @@ class TimeSpan(
     # STRING
     # =========================================================================
     def isoformat(self) -> str: ...
-    @classmethod
-    def fromisoformat(cls, s: str) -> t.Self: ...
-    @deprecated(
-        "`TimeSpan.from_isoformat` is deprecated; use `TimeSpan.fromisoformat` instead [removal: v0.0.96]"
-    )
-    @classmethod
-    def from_isoformat(cls, s: str) -> t.Self: ...
     def to_string(self, *, friendly: bool = False) -> str: ...
     def friendly(self) -> str: ...
     def repr_full(self) -> str: ...
@@ -1132,17 +1115,14 @@ class TimeSpan(
     def to_py(self) -> pydt.timedelta: ...
 
     # =========================================================================
-    # CLASS METHODS
+    # PARSING
     # =========================================================================
     @classmethod
     def from_str(cls, s: str, /) -> t.Self: ...
     @classmethod
     def parse(cls, value: str | bytes, /) -> t.Self: ...
-    @deprecated(
-        "`TimeSpan.parse_common_iso` is deprecated; use `TimeSpan.fromisoformat` instead [removal: v0.0.96]"
-    )
     @classmethod
-    def parse_common_iso(cls, s: str) -> t.Self: ...
+    def fromisoformat(cls, s: str) -> t.Self: ...
 
     # =========================================================================
     # PROPERTIES
