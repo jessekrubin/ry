@@ -351,7 +351,7 @@ from ry.ryo3._uuid import uuid6 as uuid6
 from ry.ryo3._uuid import uuid7 as uuid7
 from ry.ryo3._uuid import uuid8 as uuid8
 from ry.ryo3._walkdir import WalkDirEntry as WalkDirEntry
-from ry.ryo3._walkdir import WalkdirGen as WalkdirGen
+from ry.ryo3._walkdir import WalkDirIter as WalkDirIter
 from ry.ryo3._walkdir import walkdir as walkdir
 from ry.ryo3._which import which as which
 from ry.ryo3._which import which_all as which_all
@@ -8217,26 +8217,23 @@ class WalkDirEntry:
     def is_symlink(self) -> bool: ...
     @property
     def len(self) -> int: ...
-
-
-_T_walkdir = t.TypeVar(
-    "_T_walkdir",
-    bound=WalkDirEntry | str,
-)
+    def __hash__(self) -> int: ...
+    def __richcmp__(self, other: t.Self, op: int) -> bool: ...
 
 
 @t.final
-class WalkdirGen(RyIterator[_T_walkdir]):
+class WalkDirIter(RyIterator[WalkDirEntry]):
     """walkdir::Walkdir iterable wrapper"""
 
     def __new__(cls) -> t.NoReturn: ...
     def __iter__(self) -> t.Self: ...
-    def __next__(self) -> _T_walkdir: ...
-    def collect(self) -> list[_T_walkdir]: ...
-    def take(self, n: int = 1) -> list[_T_walkdir]: ...
+    def __next__(self) -> WalkDirEntry: ...
+    def collect(self) -> list[WalkDirEntry]: ...
+    def take(self, n: int = 1) -> list[WalkDirEntry]: ...
+    def count(self) -> int: ...
+    def next(self) -> WalkDirEntry: ...
 
 
-@t.overload
 def walkdir(
     path: str | PathLike[str] | None = None,
     /,
@@ -8251,25 +8248,7 @@ def walkdir(
     same_file_system: bool = False,
     sort_by_file_name: bool = False,
     glob: Glob | GlobSet | Globster | t.Sequence[str] | str | None = None,
-    objects: t.Literal[True],
-) -> WalkdirGen[WalkDirEntry]: ...
-@t.overload
-def walkdir(
-    path: str | PathLike[str] | None = None,
-    /,
-    *,
-    objects: t.Literal[False] = False,
-    files: bool = True,
-    dirs: bool = True,
-    contents_first: bool = False,
-    min_depth: int = 0,
-    max_depth: int | None = None,
-    follow_links: bool = False,
-    follow_root_links: bool = True,
-    same_file_system: bool = False,
-    sort_by_file_name: bool = False,
-    glob: Glob | GlobSet | Globster | t.Sequence[str] | str | None = None,
-) -> WalkdirGen[str]: ...
+) -> WalkDirIter: ...
 ```
 
 <h2 id="ry.ryo3._which"><code>ry.ryo3._which</code></h2>

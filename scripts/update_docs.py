@@ -170,7 +170,10 @@ def update_docs_examples(*, check: bool = False) -> None:
     examples_root = REPO_ROOT / "examples"
     assert examples_root.exists(), f"examples_root does not exist: {examples_root}"
     files = sorted(
-        ry.walkdir(examples_root, glob="**/*.py", files=True, dirs=False).collect()
+        map(
+            str,
+            ry.walkdir(examples_root, glob="**/*.py", files=True, dirs=False).collect(),
+        )
     )
     assert files, f"No files found in {examples_root}"
 

@@ -1,112 +1,84 @@
 #![doc = include_str!("../README.md")]
 
-mod walkdir_entry;
+mod py_walkdir_entry;
 use std::path::Path;
 
-use pyo3::IntoPyObjectExt;
 use pyo3::prelude::*;
 use ryo3_core::sync::RyMutex;
 use ryo3_core::types::PathLike;
 use ryo3_globset::{GlobsterLike, PyGlobster};
 
-pub use crate::walkdir_entry::PyWalkDirEntry;
+pub use crate::py_walkdir_entry::PyWalkDirEntry;
 
-#[pyclass(name = "WalkdirGen", frozen, immutable_type, skip_from_py_object)]
+#[pyclass(name = "WalkDirIter", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
-pub struct PyWalkdirGen {
-    objects: bool,
-    iter: RyMutex<Box<dyn Iterator<Item = ::walkdir::DirEntry> + Send + Sync>, false>,
+pub struct PyWalkDirIter(
+    RyMutex<Box<dyn Iterator<Item = ::walkdir::DirEntry> + Send + Sync>, false>,
+);
+
+impl PyWalkDirIter {
+    fn next_entry(&self, py: Python<'_>) -> Option<PyWalkDirEntry> {
+        py.detach(|| self.0.py_lock().next()).map(Into::into)
+    }
 }
 
 #[pymethods]
-impl PyWalkdirGen {
+impl PyWalkDirIter {
     /// __iter__ just returns self
     fn __iter__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {
         slf
     }
 
     /// __next__ just pulls one item from the underlying iterator
-    fn __next__<'py>(&self, py: Python<'py>) -> PyResult<Option<Bound<'py, PyAny>>> {
-        let value = py.detach(|| self.iter.py_lock().next());
-        if let Some(entry) = value {
-            let bound_py_any = if self.objects {
-                // if objects is true, we return a DirEntry object
-                PyWalkDirEntry::from(entry).into_bound_py_any(py)
-            } else {
-                let path_str = entry.path().as_os_str();
-                path_str.into_bound_py_any(py)
-            }?;
-            Ok(Some(bound_py_any))
-        } else {
-            Ok(None)
-        }
+    fn __next__(&self, py: Python<'_>) -> Option<PyWalkDirEntry> {
+        self.next_entry(py)
+    }
+
+    fn next(&self, py: Python<'_>) -> Option<PyWalkDirEntry> {
+        self.next_entry(py)
     }
 
     /// Take n entries from the iterator
     #[pyo3(signature = (n = 1))]
-    fn take<'py>(&self, py: Python<'py>, n: usize) -> PyResult<Bound<'py, PyAny>> {
-        if self.objects {
-            let entries = py.detach(|| {
-                self.iter
-                    .py_lock()
-                    .by_ref()
-                    .take(n)
-                    .map(PyWalkDirEntry::from)
-                    .collect::<Vec<_>>()
-            });
-            entries.into_bound_py_any(py)
-        } else {
-            let entries = py.detach(|| {
-                self.iter
-                    .py_lock()
-                    .by_ref()
-                    .take(n)
-                    .map(|entry| entry.path().as_os_str().to_owned())
-                    .collect::<Vec<_>>()
-            });
-            entries.into_bound_py_any(py)
-        }
+    fn take(&self, py: Python<'_>, n: usize) -> Vec<PyWalkDirEntry> {
+        py.detach(|| {
+            self.0
+                .py_lock()
+                .by_ref()
+                .take(n)
+                .map(Into::into)
+                .collect::<Vec<_>>()
+        })
     }
 
     /// Collect all the entries into a Vec<Bound<PyAny>>
-    fn collect<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
-        // if objects is true, we return a DirEntry object
-        // if objects is false, we return a string
-        if self.objects {
-            let entries = py.detach(|| {
-                self.iter
-                    .py_lock()
-                    .by_ref()
-                    .map(PyWalkDirEntry::from)
-                    .collect::<Vec<_>>()
-            });
-            entries.into_bound_py_any(py)
-        } else {
-            let entries = py.detach(|| {
-                self.iter
-                    .py_lock()
-                    .by_ref()
-                    .map(|entry| entry.path().as_os_str().to_owned())
-                    .collect::<Vec<_>>()
-            });
-            entries.into_bound_py_any(py)
-        }
+    fn collect(&self, py: Python<'_>) -> Vec<PyWalkDirEntry> {
+        py.detach(|| {
+            self.0
+                .py_lock()
+                .by_ref()
+                .map(Into::into)
+                .collect::<Vec<_>>()
+        })
+    }
+
+    fn skip(&self, py: Python<'_>, n: usize) {
+        py.detach(|| {
+            self.0.py_lock().by_ref().take(n).for_each(drop);
+        });
     }
 }
 
-impl From<::walkdir::WalkDir> for PyWalkdirGen {
+impl From<::walkdir::WalkDir> for PyWalkDirIter {
     fn from(wd: ::walkdir::WalkDir) -> Self {
-        let wdit = wd.into_iter();
-
-        Self {
-            objects: false,
-            iter: RyMutex::new(Box::new(wdit.filter_map(Result::ok))),
-        }
+        Self(RyMutex::new(Box::new(
+            wd.into_iter().filter_map(Result::ok),
+        )))
     }
 }
 
 #[expect(clippy::struct_excessive_bools)]
-struct WalkdirOptions {
+struct WalkDirOptions {
     files: bool,
     dirs: bool,
     contents_first: bool,
@@ -118,7 +90,7 @@ struct WalkdirOptions {
     sort_by_file_name: bool,
 }
 
-impl Default for WalkdirOptions {
+impl Default for WalkDirOptions {
     fn default() -> Self {
         Self {
             files: true,
@@ -134,7 +106,7 @@ impl Default for WalkdirOptions {
     }
 }
 
-impl WalkdirOptions {
+impl WalkDirOptions {
     fn build_walkdir<T: AsRef<Path>>(&self, path: T) -> ::walkdir::WalkDir {
         let mut wd = ::walkdir::WalkDir::new(path)
             .contents_first(self.contents_first)
@@ -187,7 +159,6 @@ impl WalkdirOptions {
         same_file_system = false,
         sort_by_file_name = false,
         glob = None,
-        objects = false
     )
 )]
 pub fn walkdir(
@@ -202,13 +173,12 @@ pub fn walkdir(
     same_file_system: bool,     // default false
     sort_by_file_name: bool,    // default false
     glob: Option<GlobsterLike>, // default None
-    objects: bool,              // default false
-) -> PyResult<PyWalkdirGen> {
+) -> PyResult<PyWalkDirIter> {
     let walk_globster = match glob {
         Some(g) => Some(PyGlobster::try_from(&g)?),
         None => None,
     };
-    let opts = WalkdirOptions {
+    let opts = WalkDirOptions {
         files,
         dirs,
         contents_first,
@@ -226,14 +196,12 @@ pub fn walkdir(
     } else {
         Box::new(wd_iter) as Box<dyn Iterator<Item = ::walkdir::DirEntry> + Send + Sync>
     };
-    Ok(PyWalkdirGen {
-        objects,
-        iter: RyMutex::new(final_iter),
-    })
+    Ok(PyWalkDirIter(RyMutex::new(final_iter)))
 }
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    m.add_class::<PyWalkdirGen>()?;
+    m.add_class::<PyWalkDirIter>()?;
+    m.add_class::<PyWalkDirEntry>()?;
     m.add_function(wrap_pyfunction!(self::walkdir, m)?)?;
     Ok(())
 }

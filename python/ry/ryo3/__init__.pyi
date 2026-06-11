@@ -288,7 +288,7 @@ from ry.ryo3._uuid import uuid6 as uuid6
 from ry.ryo3._uuid import uuid7 as uuid7
 from ry.ryo3._uuid import uuid8 as uuid8
 from ry.ryo3._walkdir import WalkDirEntry as WalkDirEntry
-from ry.ryo3._walkdir import WalkdirGen as WalkdirGen
+from ry.ryo3._walkdir import WalkDirIter as WalkDirIter
 from ry.ryo3._walkdir import walkdir as walkdir
 from ry.ryo3._which import which as which
 from ry.ryo3._which import which_all as which_all

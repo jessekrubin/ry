@@ -5,7 +5,10 @@
 - `ryo3-jiff`
   - refactored `__sub__`/`sub` implementations to be cleaner
   - internal refactoring
-
+- `ryo3-walkdir`
+  - **BREAKING:** removed support for `objects=False` so iterators always yield
+    `ry.WalkDirEntry`
+  - **BREAKING:** `ry.WalkdirGen` renamed to `ry.WalkDirIter`
 - misc
   - all `__repr__` impls now use `std::fmt::Display`
 

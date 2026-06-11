@@ -38,7 +38,7 @@ def examples_scripts() -> list[ExampleScript]:
         for f in ry.walkdir(
             EXAMPLES_ROOT,
         )
-        if f.endswith(".py")
+        if str(f).endswith(".py")
     ]
 
 
