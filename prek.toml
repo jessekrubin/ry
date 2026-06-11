@@ -63,3 +63,12 @@ language = "system"
 types = ["rust"]
 pass_filenames = false
 priority = 0
+
+[[repos.hooks]]
+id = "cargo-check"
+name = "cargo check"
+entry = "cargo check --all --"
+language = "system"
+types = ["rust"]
+pass_filenames = false
+priority = 0

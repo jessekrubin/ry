@@ -24,7 +24,6 @@ pub struct PyMetadata(std::fs::Metadata);
 
 impl From<std::fs::Metadata> for PyMetadata {
     #[inline]
-    #[must_use]
     fn from(m: std::fs::Metadata) -> Self {
         Self::new(m)
     }
