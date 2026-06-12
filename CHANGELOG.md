@@ -7,8 +7,9 @@
 
 ---
 
-## v0.0.96 [unreleased]
+## v0.0.96 [2026-06-12]
 
+- pyo3-v0.29
 - `ryo3-jiff`
   - **BREAKING:** removed deprecated fns slated for removal:
     - `ry.SignedDuration.from_isoformat` (use `ry.SignedDuration.fromisoformat`

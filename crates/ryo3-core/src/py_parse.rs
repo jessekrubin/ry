@@ -1,3 +1,4 @@
+use pyo3::exceptions::PyUnicodeDecodeError;
 use pyo3::prelude::*;
 
 use crate::{PyCastExactOpt, map_py_value_err, pystr_read_fast};
@@ -38,7 +39,9 @@ where
             let s = pystr_read_fast(s)?;
             T::py_from_str(s).map_err(map_py_value_err)
         } else if let Some(b) = ob.cast_exact_opt::<pyo3::types::PyBytes>() {
-            let s = std::str::from_utf8(b.as_bytes())?;
+            let bytes = b.as_bytes();
+            let s = std::str::from_utf8(bytes)
+                .map_err(|e| PyUnicodeDecodeError::new_err_from_utf8(ob.py(), bytes, e))?;
             T::py_from_str(s).map_err(map_py_value_err)
         } else {
             Err(pyo3::exceptions::PyTypeError::new_err(
