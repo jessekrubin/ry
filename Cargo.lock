@@ -1129,7 +1129,7 @@ dependencies = [
 [[package]]
 name = "jiter"
 version = "0.15.0"
-source = "git+https://github.com/pydantic/jiter.git?branch=dh%2Fpyo3-0.29#56641b9e97a7d502e943979b5b52e57aa6940222"
+source = "git+https://github.com/jessekrubin/jiter.git?branch=jkr%2Fpyo3-0.29#d5c7e2a58e7b97399d3a1020f0b58b4af14a0f1f"
 dependencies = [
  "ahash",
  "bitvec",
