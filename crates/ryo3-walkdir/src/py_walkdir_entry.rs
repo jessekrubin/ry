@@ -1,6 +1,7 @@
 //! python wrapper for `walkdir::DirEntry`
 use std::ffi::OsStr;
 
+use pyo3::basic::CompareOp;
 use pyo3::prelude::*;
 
 #[pyclass(name = "WalkDirEntry", frozen, immutable_type, skip_from_py_object)]
@@ -10,26 +11,25 @@ pub struct PyWalkDirEntry(walkdir::DirEntry);
 
 #[pymethods]
 impl PyWalkDirEntry {
+    #[new]
+    fn py_new() -> PyResult<Self> {
+        Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
+            "WalkDirEntry cannot be instantiated directly",
+        ))
+    }
+
     fn __fspath__(&self) -> &OsStr {
         self.0.path().as_os_str()
     }
 
     #[getter]
-    fn path(&self) -> PyResult<String> {
-        self.0
-            .path()
-            .to_str()
-            .map(ToString::to_string)
-            .ok_or_else(|| {
-                PyErr::new::<pyo3::exceptions::PyUnicodeDecodeError, _>(
-                    "Path contains invalid unicode characters",
-                )
-            })
+    fn path(&self) -> &OsStr {
+        self.0.path().as_os_str()
     }
 
     #[getter]
-    fn file_name(&self) -> String {
-        self.0.file_name().to_string_lossy().to_string()
+    fn file_name(&self) -> &OsStr {
+        self.0.file_name()
     }
 
     #[getter]
@@ -38,21 +38,34 @@ impl PyWalkDirEntry {
     }
 
     #[pyo3(name = "to_string")]
-    fn py_to_string(&self) -> PyResult<String> {
-        self.0
-            .path()
-            .to_str()
-            .map(ToString::to_string)
-            .ok_or_else(|| {
-                PyErr::new::<pyo3::exceptions::PyUnicodeDecodeError, _>(
-                    "Path contains invalid unicode characters",
-                )
-            })
+    fn py_to_string(&self) -> &OsStr {
+        self.0.path().as_os_str()
+    }
+
+    fn __str__(&self) -> &OsStr {
+        self.py_to_string()
+    }
+
+    fn __hash__(&self) -> u64 {
+        use std::hash::{Hash, Hasher};
+        let mut hasher = std::collections::hash_map::DefaultHasher::new();
+        self.0.path().hash(&mut hasher);
+        hasher.finish()
     }
 
     fn __repr__(&self) -> String {
-        let s = self.py_to_string().unwrap_or_else(|_| String::from("???"));
-        format!("WalkDirEntry<'{s}'>")
+        format!("{self}")
+    }
+
+    fn __richcmp__(&self, other: &Self, op: CompareOp) -> bool {
+        match op {
+            CompareOp::Eq => self.0.path() == other.0.path(),
+            CompareOp::Ne => self.0.path() != other.0.path(),
+            CompareOp::Lt => self.0.path() < other.0.path(),
+            CompareOp::Le => self.0.path() <= other.0.path(),
+            CompareOp::Gt => self.0.path() > other.0.path(),
+            CompareOp::Ge => self.0.path() >= other.0.path(),
+        }
     }
 
     #[getter]
@@ -101,5 +114,11 @@ impl PyWalkDirEntry {
 impl From<walkdir::DirEntry> for PyWalkDirEntry {
     fn from(de: walkdir::DirEntry) -> Self {
         Self(de)
+    }
+}
+
+impl std::fmt::Display for PyWalkDirEntry {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "WalkDirEntry<'{}'>", self.0.path().display())
     }
 }

@@ -187,6 +187,7 @@ lint: ruff clippy
 
 # run mypy type checker
 mypy:
+    uv run mypy --version
     uv run mypy python/ry tests/ examples/ scripts/
 
 # run pyright

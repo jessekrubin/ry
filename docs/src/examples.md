@@ -514,25 +514,22 @@ def main() -> None:
 
     _print_br("Walking the directory tree")
     # Walking the directory tree
-    for filepath in ry.walkdir(dir2walk):
-        print(filepath)
-
-    _print_br("Walking the directory tree with entries")
-    # Walking the directory tree
-    for direntry in ry.walkdir(dir2walk, objects=True):
+    for direntry in ry.walkdir(dir2walk):
         print(direntry, type(direntry))
 
-    _print_br("Walking the directory tree with depth 1")
+    _print_br("Only files")
     # walking only files
     for filepath in ry.walkdir(dir2walk, dirs=False):
         print(filepath)
         assert ry.FsPath(filepath).is_file()
 
+    _print_br("Only directories")
     # walking only directories
     for filepath in ry.walkdir(dir2walk, files=False):
         print(filepath)
         assert ry.FsPath(filepath).is_dir()
 
+    _print_br("Glob pattern")
     # globset/globster
     for filepath in ry.walkdir(
         dir2walk,
@@ -540,7 +537,7 @@ def main() -> None:
             "*.py",
         ]),
     ):
-        assert filepath.endswith(".py")
+        assert str(filepath).endswith(".py")
 
 
 if __name__ == "__main__":

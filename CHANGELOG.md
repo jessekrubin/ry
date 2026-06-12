@@ -1,13 +1,30 @@
 # CHANGELOG
 
+> All notable changes to this project will be documented in this file.
+>
+> pre-`0.1.0` releases may contain breaking changes, but imma do my best to tell
+> ya; hit me up if you find a bug/breaking-change
+
+---
+
 ## v0.0.96 [unreleased]
 
 - `ryo3-jiff`
+  - **BREAKING:** removed deprecated fns slated for removal:
+    - `ry.SignedDuration.from_isoformat` (use `ry.SignedDuration.fromisoformat`
+      instead)
+    - `ry.TimeSpan.parse_common_iso` (use `ry.TimeSpan.fromisoformat` instead)
+    - `ry.TimeSpan.from_isoformat` (use `ry.TimeSpan.fromisoformat` instead)
   - refactored `__sub__`/`sub` implementations to be cleaner
   - internal refactoring
-
+- `ryo3-walkdir`
+  - **BREAKING:** removed support for `objects=False` so iterators always yield
+    `ry.WalkDirEntry`
+  - **BREAKING:** `ry.WalkdirGen` renamed to `ry.WalkDirIter`
 - misc
   - all `__repr__` impls now use `std::fmt::Display`
+- `ry.ulid` submodule removed; use `ry.ULID`
+- `ry.dirs` submodule removed; use `ry.XYZ_dir()` instead (eg `ry.home_dir()`)
 
 ---
 

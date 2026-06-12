@@ -3,14 +3,16 @@
 import typing as t
 from os import PathLike
 
-from ry import FileType, FsPath, Glob, GlobSet, Globster
 from ry.protocols import RyIterator
+from ry.ryo3._globset import Glob, GlobSet, Globster
+from ry.ryo3._std import FileType, Metadata
 
 @t.final
 class WalkDirEntry:
+    def to_string(self) -> str: ...
     def __fspath__(self) -> str: ...
     @property
-    def path(self) -> FsPath: ...
+    def path(self) -> str: ...
     @property
     def file_name(self) -> str: ...
     @property
@@ -27,22 +29,20 @@ class WalkDirEntry:
     def is_symlink(self) -> bool: ...
     @property
     def len(self) -> int: ...
-
-_T_walkdir = t.TypeVar(
-    "_T_walkdir",
-    bound=WalkDirEntry | str,
-)
+    def __hash__(self) -> int: ...
+    def __richcmp__(self, other: t.Self, op: int) -> bool: ...
+    def metadata(self) -> Metadata: ...
 
 @t.final
-class WalkdirGen(RyIterator[_T_walkdir]):
+class WalkDirIter(RyIterator[WalkDirEntry]):
     """walkdir::Walkdir iterable wrapper"""
     def __new__(cls) -> t.NoReturn: ...
     def __iter__(self) -> t.Self: ...
-    def __next__(self) -> _T_walkdir: ...
-    def collect(self) -> list[_T_walkdir]: ...
-    def take(self, n: int = 1) -> list[_T_walkdir]: ...
+    def __next__(self) -> WalkDirEntry: ...
+    def collect(self) -> list[WalkDirEntry]: ...
+    def take(self, n: int = 1) -> list[WalkDirEntry]: ...
+    def next(self) -> WalkDirEntry: ...
 
-@t.overload
 def walkdir(
     path: str | PathLike[str] | None = None,
     /,
@@ -57,22 +57,4 @@ def walkdir(
     same_file_system: bool = False,
     sort_by_file_name: bool = False,
     glob: Glob | GlobSet | Globster | t.Sequence[str] | str | None = None,
-    objects: t.Literal[True],
-) -> WalkdirGen[WalkDirEntry]: ...
-@t.overload
-def walkdir(
-    path: str | PathLike[str] | None = None,
-    /,
-    *,
-    objects: t.Literal[False] = False,
-    files: bool = True,
-    dirs: bool = True,
-    contents_first: bool = False,
-    min_depth: int = 0,
-    max_depth: int | None = None,
-    follow_links: bool = False,
-    follow_root_links: bool = True,
-    same_file_system: bool = False,
-    sort_by_file_name: bool = False,
-    glob: Glob | GlobSet | Globster | t.Sequence[str] | str | None = None,
-) -> WalkdirGen[str]: ...
+) -> WalkDirIter: ...

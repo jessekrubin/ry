@@ -49,7 +49,6 @@
 - [`ry.ryo3.xxhash`](#ry.ryo3.xxhash)
 - [`ry.ryo3.zstd`](#ry.ryo3.zstd)
 - [`ry._types`](#ry._types)
-- [`ry.dirs`](#ry.dirs)
 - [`ry.JSON`](#ry.JSON)
 - [`ry.protocols`](#ry.protocols)
 - [`ry.xxhash`](#ry.xxhash)
@@ -351,7 +350,7 @@ from ry.ryo3._uuid import uuid6 as uuid6
 from ry.ryo3._uuid import uuid7 as uuid7
 from ry.ryo3._uuid import uuid8 as uuid8
 from ry.ryo3._walkdir import WalkDirEntry as WalkDirEntry
-from ry.ryo3._walkdir import WalkdirGen as WalkdirGen
+from ry.ryo3._walkdir import WalkDirIter as WalkDirIter
 from ry.ryo3._walkdir import walkdir as walkdir
 from ry.ryo3._which import which as which
 from ry.ryo3._which import which_all as which_all
@@ -457,12 +456,12 @@ sha512_256: type[_Sha[t.Literal["sha512_256"], SHA512_256_BLOCK_SIZE, SHA512_256
 ```python
 """ryo3-brotli types"""
 
-from typing import Literal, TypeAlias
+import typing as t
 
 from ry._types import Buffer
 from ry.ryo3._bytes import Bytes
 
-_Quality: TypeAlias = Literal[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+_Quality: t.TypeAlias = t.Literal[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
 
 
 def brotli_encode(
@@ -797,12 +796,12 @@ ReadableBuffer: t.TypeAlias = Buffer | bytes | bytearray | memoryview | Bytes
 ```python
 """ryo3-bzip2 types"""
 
-from typing import Literal, TypeAlias
+import typing as t
 
 from ry._types import Buffer
 from ry.ryo3._bytes import Bytes
 
-_Quality: TypeAlias = Literal[1, 2, 3, 4, 5, 6, 7, 8, 9, "best", "fast"]
+_Quality: t.TypeAlias = t.Literal[1, 2, 3, 4, 5, 6, 7, 8, 9, "best", "fast"]
 
 
 def bzip2_decode(data: Buffer) -> Bytes: ...
@@ -1286,17 +1285,17 @@ def panic(msg: str | None = None) -> t.NoReturn:
 ```python
 """ryo3-flate2 types"""
 
-from typing import Literal, TypeAlias
+import typing as t
 
 from ry import Bytes
 from ry._types import Buffer
 
-Quality: TypeAlias = Literal[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, "best", "fast"]
+_Quality: t.TypeAlias = t.Literal[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, "best", "fast"]
 
 
-def gzip_encode(data: Buffer, quality: Quality = 6) -> Bytes: ...
+def gzip_encode(data: Buffer, quality: _Quality = 6) -> Bytes: ...
 def gzip_decode(data: Buffer) -> Bytes: ...
-def gzip(data: Buffer, quality: Quality = 6) -> Bytes:
+def gzip(data: Buffer, quality: _Quality = 6) -> Bytes:
     """Alias for gzip_encode"""
 
 
@@ -1990,7 +1989,6 @@ class HttpStatus:
 """ryo3-jiff types"""
 
 import datetime as pydt
-import sys
 import typing as t
 
 from ry._types import (
@@ -2031,11 +2029,6 @@ from ry.protocols import (
 )
 from ry.ryo3 import Duration
 from ry.ryo3._jiff_tz import TimezoneDbName
-
-if sys.version_info >= (3, 13):
-    from warnings import deprecated
-else:
-    from typing_extensions import deprecated
 
 _T = t.TypeVar("_T")
 _Temporal = t.TypeVar(
@@ -2980,11 +2973,6 @@ class SignedDuration(
     def isoformat(self) -> str: ...
     @classmethod
     def fromisoformat(cls, s: str) -> t.Self: ...
-    @deprecated(
-        "`SignedDuration.from_isoformat` is deprecated; use `SignedDuration.fromisoformat` instead [removal: v0.0.96]"
-    )
-    @classmethod
-    def from_isoformat(cls, s: str) -> t.Self: ...
     def to_string(self, *, friendly: bool = False) -> str: ...
     def friendly(self) -> str: ...
 
@@ -3131,13 +3119,6 @@ class TimeSpan(
     # STRING
     # =========================================================================
     def isoformat(self) -> str: ...
-    @classmethod
-    def fromisoformat(cls, s: str) -> t.Self: ...
-    @deprecated(
-        "`TimeSpan.from_isoformat` is deprecated; use `TimeSpan.fromisoformat` instead [removal: v0.0.96]"
-    )
-    @classmethod
-    def from_isoformat(cls, s: str) -> t.Self: ...
     def to_string(self, *, friendly: bool = False) -> str: ...
     def friendly(self) -> str: ...
     def repr_full(self) -> str: ...
@@ -3151,17 +3132,14 @@ class TimeSpan(
     def to_py(self) -> pydt.timedelta: ...
 
     # =========================================================================
-    # CLASS METHODS
+    # PARSING
     # =========================================================================
     @classmethod
     def from_str(cls, s: str, /) -> t.Self: ...
     @classmethod
     def parse(cls, value: str | bytes, /) -> t.Self: ...
-    @deprecated(
-        "`TimeSpan.parse_common_iso` is deprecated; use `TimeSpan.fromisoformat` instead [removal: v0.0.96]"
-    )
     @classmethod
-    def parse_common_iso(cls, s: str) -> t.Self: ...
+    def fromisoformat(cls, s: str) -> t.Self: ...
 
     # =========================================================================
     # PROPERTIES
@@ -4421,9 +4399,9 @@ class TimeZoneDatabase:
 <h2 id="ry.ryo3._jiff_tz"><code>ry.ryo3._jiff_tz</code></h2>
 
 ```python
-from typing import Literal, TypeAlias
+import typing as t
 
-TimezoneDbName: TypeAlias = Literal[
+TimezoneDbName: t.TypeAlias = t.Literal[
     "Africa/Abidjan",
     "Africa/Accra",
     "Africa/Addis_Ababa",
@@ -5031,7 +5009,7 @@ TimezoneDbName: TypeAlias = Literal[
 import typing as t
 from os import PathLike
 
-from ry._types import Buffer, Unpack
+from ry._types import Buffer
 
 # =============================================================================
 # JSON
@@ -5078,22 +5056,22 @@ def json_cache_usage() -> int: ...
 ```python
 """ryo3-memchr types"""
 
-from typing import TypeAlias
+import typing as t
 
 from ry._types import Buffer
 
-Byte: TypeAlias = int | bytes
+_Byte: t.TypeAlias = int | bytes
 
 
-def memchr(needle: Byte, haystack: Buffer) -> int | None: ...
-def memchr2(needle1: Byte, needle2: Byte, haystack: Buffer) -> int | None: ...
+def memchr(needle: _Byte, haystack: Buffer) -> int | None: ...
+def memchr2(needle1: _Byte, needle2: _Byte, haystack: Buffer) -> int | None: ...
 def memchr3(
-    needle1: Byte, needle2: Byte, needle3: Byte, haystack: Buffer
+    needle1: _Byte, needle2: _Byte, needle3: _Byte, haystack: Buffer
 ) -> int | None: ...
-def memrchr(needle: Byte, haystack: Buffer) -> int | None: ...
-def memrchr2(needle1: Byte, needle2: Byte, haystack: Buffer) -> int | None: ...
+def memrchr(needle: _Byte, haystack: Buffer) -> int | None: ...
+def memrchr2(needle1: _Byte, needle2: _Byte, haystack: Buffer) -> int | None: ...
 def memrchr3(
-    needle1: Byte, needle2: Byte, needle3: Byte, haystack: Buffer
+    needle1: _Byte, needle2: _Byte, needle3: _Byte, haystack: Buffer
 ) -> int | None: ...
 ```
 
@@ -7077,64 +7055,64 @@ class SocketAddr(
 <h2 id="ry.ryo3._std_constants"><code>ry.ryo3._std_constants</code></h2>
 
 ```python
-from typing import Literal
+import typing as t
 
 # ruff: noqa: PYI054
 # u8
-U8_BITS: Literal[8]
-U8_MAX: Literal[255]
-U8_MIN: Literal[0]
+U8_BITS: t.Literal[8]
+U8_MAX: t.Literal[255]
+U8_MIN: t.Literal[0]
 # i8
-I8_BITS: Literal[8]
-I8_MAX: Literal[127]
-I8_MIN: Literal[-128]
+I8_BITS: t.Literal[8]
+I8_MAX: t.Literal[127]
+I8_MIN: t.Literal[-128]
 # i16
-I16_BITS: Literal[16]
-I16_MAX: Literal[32_767]
-I16_MIN: Literal[-32_768]
+I16_BITS: t.Literal[16]
+I16_MAX: t.Literal[32_767]
+I16_MIN: t.Literal[-32_768]
 # u16
-U16_BITS: Literal[16]
-U16_MAX: Literal[65_535]
-U16_MIN: Literal[0]
+U16_BITS: t.Literal[16]
+U16_MAX: t.Literal[65_535]
+U16_MIN: t.Literal[0]
 
 # u32
-U32_BITS: Literal[32]
-U32_MAX: Literal[4_294_967_295]
-U32_MIN: Literal[0]
+U32_BITS: t.Literal[32]
+U32_MAX: t.Literal[4_294_967_295]
+U32_MIN: t.Literal[0]
 
 # i32
-I32_BITS: Literal[32]
-I32_MAX: Literal[2_147_483_647]
-I32_MIN: Literal[-2_147_483_648]
+I32_BITS: t.Literal[32]
+I32_MAX: t.Literal[2_147_483_647]
+I32_MIN: t.Literal[-2_147_483_648]
 
 # u64
-U64_BITS: Literal[64]
-U64_MAX: Literal[18_446_744_073_709_551_615]
-U64_MIN: Literal[0]
+U64_BITS: t.Literal[64]
+U64_MAX: t.Literal[18_446_744_073_709_551_615]
+U64_MIN: t.Literal[0]
 
 # i64
-I64_BITS: Literal[64]
-I64_MAX: Literal[9_223_372_036_854_775_807]
-I64_MIN: Literal[-9_223_372_036_854_775_808]
+I64_BITS: t.Literal[64]
+I64_MAX: t.Literal[9_223_372_036_854_775_807]
+I64_MIN: t.Literal[-9_223_372_036_854_775_808]
 
 # u128
-U128_BITS: Literal[128]
-U128_MAX: Literal[340_282_366_920_938_463_463_374_607_431_768_211_455]
-U128_MIN: Literal[0]
+U128_BITS: t.Literal[128]
+U128_MAX: t.Literal[340_282_366_920_938_463_463_374_607_431_768_211_455]
+U128_MIN: t.Literal[0]
 
 # i128
-I128_BITS: Literal[128]
-I128_MAX: Literal[170_141_183_460_469_231_731_687_303_715_884_105_727]
-I128_MIN: Literal[-170_141_183_460_469_231_731_687_303_715_884_105_728]
+I128_BITS: t.Literal[128]
+I128_MAX: t.Literal[170_141_183_460_469_231_731_687_303_715_884_105_727]
+I128_MIN: t.Literal[-170_141_183_460_469_231_731_687_303_715_884_105_728]
 
 # usize
-USIZE_BITS: Literal[32, 64]
-USIZE_MAX: Literal[4_294_967_295, 18_446_744_073_709_551_615]
-USIZE_MIN: Literal[0]
+USIZE_BITS: t.Literal[32, 64]
+USIZE_MAX: t.Literal[4_294_967_295, 18_446_744_073_709_551_615]
+USIZE_MIN: t.Literal[0]
 # isize
-ISIZE_BITS: Literal[32, 64]
-ISIZE_MAX: Literal[2_147_483_647, 9_223_372_036_854_775_807]
-ISIZE_MIN: Literal[-2_147_483_648, -9_223_372_036_854_775_808]
+ISIZE_BITS: t.Literal[32, 64]
+ISIZE_MAX: t.Literal[2_147_483_647, 9_223_372_036_854_775_807]
+ISIZE_MIN: t.Literal[-2_147_483_648, -9_223_372_036_854_775_808]
 ```
 
 <h2 id="ry.ryo3._tokio"><code>ry.ryo3._tokio</code></h2>
@@ -8192,15 +8170,17 @@ RESERVED_FUTURE: t.Final = "reserved for future definition"
 import typing as t
 from os import PathLike
 
-from ry import FileType, FsPath, Glob, GlobSet, Globster
 from ry.protocols import RyIterator
+from ry.ryo3._globset import Glob, GlobSet, Globster
+from ry.ryo3._std import FileType, Metadata
 
 
 @t.final
 class WalkDirEntry:
+    def to_string(self) -> str: ...
     def __fspath__(self) -> str: ...
     @property
-    def path(self) -> FsPath: ...
+    def path(self) -> str: ...
     @property
     def file_name(self) -> str: ...
     @property
@@ -8217,26 +8197,23 @@ class WalkDirEntry:
     def is_symlink(self) -> bool: ...
     @property
     def len(self) -> int: ...
-
-
-_T_walkdir = t.TypeVar(
-    "_T_walkdir",
-    bound=WalkDirEntry | str,
-)
+    def __hash__(self) -> int: ...
+    def __richcmp__(self, other: t.Self, op: int) -> bool: ...
+    def metadata(self) -> Metadata: ...
 
 
 @t.final
-class WalkdirGen(RyIterator[_T_walkdir]):
+class WalkDirIter(RyIterator[WalkDirEntry]):
     """walkdir::Walkdir iterable wrapper"""
 
     def __new__(cls) -> t.NoReturn: ...
     def __iter__(self) -> t.Self: ...
-    def __next__(self) -> _T_walkdir: ...
-    def collect(self) -> list[_T_walkdir]: ...
-    def take(self, n: int = 1) -> list[_T_walkdir]: ...
+    def __next__(self) -> WalkDirEntry: ...
+    def collect(self) -> list[WalkDirEntry]: ...
+    def take(self, n: int = 1) -> list[WalkDirEntry]: ...
+    def next(self) -> WalkDirEntry: ...
 
 
-@t.overload
 def walkdir(
     path: str | PathLike[str] | None = None,
     /,
@@ -8251,25 +8228,7 @@ def walkdir(
     same_file_system: bool = False,
     sort_by_file_name: bool = False,
     glob: Glob | GlobSet | Globster | t.Sequence[str] | str | None = None,
-    objects: t.Literal[True],
-) -> WalkdirGen[WalkDirEntry]: ...
-@t.overload
-def walkdir(
-    path: str | PathLike[str] | None = None,
-    /,
-    *,
-    objects: t.Literal[False] = False,
-    files: bool = True,
-    dirs: bool = True,
-    contents_first: bool = False,
-    min_depth: int = 0,
-    max_depth: int | None = None,
-    follow_links: bool = False,
-    follow_root_links: bool = True,
-    same_file_system: bool = False,
-    sort_by_file_name: bool = False,
-    glob: Glob | GlobSet | Globster | t.Sequence[str] | str | None = None,
-) -> WalkdirGen[str]: ...
+) -> WalkDirIter: ...
 ```
 
 <h2 id="ry.ryo3._which"><code>ry.ryo3._which</code></h2>
@@ -8469,7 +8428,7 @@ from ry.ryo3._twox_hash import xxh128_intdigest as xxh128_intdigest
 ```python
 """ryo3-zstd types"""
 
-from typing import Literal, TypeAlias
+import typing as t
 
 from ry import Bytes
 from ry._types import Buffer
@@ -8489,7 +8448,7 @@ VERSION_MINOR: int
 VERSION_NUMBER: int
 VERSION_RELEASE: int
 
-_Quality: TypeAlias = Literal[
+_Quality: t.TypeAlias = t.Literal[
     1,
     2,
     3,
@@ -8884,91 +8843,6 @@ OpenMode: TypeAlias = Literal[
     "x", "x+", "xb", "xb+", "xt", "xt+",
 ]
 # fmt: on
-```
-
-<h2 id="ry.dirs"><code>ry.dirs</code></h2>
-
-```python
-from ry.ryo3 import audio_dir as audio_dir
-from ry.ryo3 import cache_dir as cache_dir
-from ry.ryo3 import config_dir as config_dir
-from ry.ryo3 import config_local_dir as config_local_dir
-from ry.ryo3 import data_dir as data_dir
-from ry.ryo3 import data_local_dir as data_local_dir
-from ry.ryo3 import desktop_dir as desktop_dir
-from ry.ryo3 import document_dir as document_dir
-from ry.ryo3 import download_dir as download_dir
-from ry.ryo3 import executable_dir as executable_dir
-from ry.ryo3 import font_dir as font_dir
-from ry.ryo3 import home_dir as home_dir
-from ry.ryo3 import picture_dir as picture_dir
-from ry.ryo3 import preference_dir as preference_dir
-from ry.ryo3 import public_dir as public_dir
-from ry.ryo3 import runtime_dir as runtime_dir
-from ry.ryo3 import state_dir as state_dir
-from ry.ryo3 import template_dir as template_dir
-from ry.ryo3 import video_dir as video_dir
-
-audio = audio_dir
-cache = cache_dir
-config = config_dir
-config_local = config_local_dir
-data = data_dir
-data_local = data_local_dir
-desktop = desktop_dir
-document = document_dir
-download = download_dir
-executable = executable_dir
-font = font_dir
-home = home_dir
-picture = picture_dir
-preference = preference_dir
-public = public_dir
-runtime = runtime_dir
-state = state_dir
-template = template_dir
-video = video_dir
-
-__all__ = (
-    "audio",
-    "audio_dir",
-    "cache",
-    "cache_dir",
-    "config",
-    "config_dir",
-    "config_local",
-    "config_local_dir",
-    "data",
-    "data_dir",
-    "data_local",
-    "data_local_dir",
-    "desktop",
-    "desktop_dir",
-    "document",
-    "document_dir",
-    "download",
-    "download_dir",
-    "executable",
-    "executable_dir",
-    "font",
-    "font_dir",
-    "home",
-    "home_dir",
-    "picture",
-    "picture_dir",
-    "preference",
-    "preference_dir",
-    "public",
-    "public_dir",
-    "runtime",
-    "runtime_dir",
-    "state",
-    "state_dir",
-    "template",
-    "template_dir",
-    "video",
-    "video_dir",
-)
 ```
 
 <h2 id="ry.JSON"><code>ry.JSON</code></h2>

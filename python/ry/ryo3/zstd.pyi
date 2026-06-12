@@ -1,6 +1,6 @@
 """ryo3-zstd types"""
 
-from typing import Literal, TypeAlias
+import typing as t
 
 from ry import Bytes
 from ry._types import Buffer
@@ -20,7 +20,7 @@ VERSION_MINOR: int
 VERSION_NUMBER: int
 VERSION_RELEASE: int
 
-_Quality: TypeAlias = Literal[
+_Quality: t.TypeAlias = t.Literal[
     1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22
 ]
 

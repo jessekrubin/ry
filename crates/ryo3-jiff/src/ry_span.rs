@@ -134,17 +134,6 @@ impl RySpan {
             .map_err(map_py_value_err)
     }
 
-    #[pyo3(
-        warn(
-            message = "`TimeSpan.from_isoformat` is deprecated; use `TimeSpan.fromisoformat` instead [removal: v0.0.96]",
-            category = pyo3::exceptions::PyDeprecationWarning
-        )
-    )]
-    #[staticmethod]
-    fn from_isoformat(s: &str) -> PyResult<Self> {
-        Self::fromisoformat(s)
-    }
-
     fn __str__(&self) -> PyAsciiString {
         self.0.to_string().into()
     }
@@ -309,17 +298,6 @@ impl RySpan {
     fn to_pytimedelta<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDelta>> {
         let jiff_span = JiffSpan(self.0);
         jiff_span.into_pyobject(py)
-    }
-
-    #[pyo3(
-        warn(
-            message = "`TimeSpan.parse_common_iso` is deprecated; use `TimeSpan.fromisoformat` instead [removal: v0.0.96]",
-            category = pyo3::exceptions::PyDeprecationWarning
-        )
-    )]
-    #[staticmethod]
-    fn parse_common_iso(s: &str) -> PyResult<Self> {
-        Self::fromisoformat(s)
     }
 
     // <UNIFORM>

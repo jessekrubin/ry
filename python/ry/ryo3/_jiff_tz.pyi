@@ -1,6 +1,6 @@
-from typing import Literal, TypeAlias
+import typing as t
 
-TimezoneDbName: TypeAlias = Literal[
+TimezoneDbName: t.TypeAlias = t.Literal[
     "Africa/Abidjan",
     "Africa/Accra",
     "Africa/Addis_Ababa",
