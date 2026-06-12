@@ -1610,7 +1610,7 @@ dependencies = [
 [[package]]
 name = "pyo3-async-runtimes"
 version = "0.28.0"
-source = "git+https://github.com/cimandef/pyo3-async-runtimes?branch=angel%2Fbump_pyo3_version#349f931d1327144bcdc78bff9b1ad3040185fce2"
+source = "git+https://github.com/PyO3/pyo3-async-runtimes#ec437b0e94c3b0363a8bd4973c5c0eca91c2b1ac"
 dependencies = [
  "async-channel",
  "futures-channel",
