@@ -60,23 +60,23 @@ jobs:
             features: "mimalloc"
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
       - uses: ./.github/actions/ry-git-sha
       - name: install-uv
-        uses: astral-sh/setup-uv@v7
+        uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7
         with:
           enable-cache: true
       - name: install-python
         run: uv python install 3.11 3.12 3.13 3.14 3.14t pypy3.11
       - name: Build wheels
-        uses: PyO3/maturin-action@v1
+        uses: PyO3/maturin-action@e83996d129638aa358a18fbd1dfb82f0b0fb5d3b # v1
         with:
           target: ${{ matrix.platform.target }}
           args: --out dist --interpreter 3.11 3.12 3.13 3.14 3.14t pypy3.11 --profile ${{ env.CARGO_PROFILE }} --features ${{ matrix.platform.features }}
           sccache: ${{ !startsWith(github.ref, 'refs/tags/') }}
           manylinux: ${{ matrix.platform.manylinux }} # SUPER WEIRD BUT ARRRRRRM IS A PITA
       - name: Upload wheels
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: wheels-linux-${{ matrix.platform.target }}
           path: dist
@@ -95,7 +95,7 @@ jobs:
 
       - name: pytest
         if: ${{ !startsWith(matrix.platform.target, 'x86') && matrix.platform.target != 'ppc64' }}
-        uses: uraimo/run-on-arch-action@v3
+        uses: uraimo/run-on-arch-action@fd7aa8593480287702b446a273a68f788a9bad3a # v3
         with:
           arch: ${{ matrix.platform.target }}
           distro: ubuntu22.04
@@ -136,30 +136,30 @@ jobs:
           - runner: ubuntu-latest
             target: armv7
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
       - uses: ./.github/actions/ry-git-sha
       - name: install-uv
-        uses: astral-sh/setup-uv@v7
+        uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7
         with:
           enable-cache: true
       - name: install-python
         run: uv python install 3.11 3.12 3.13 3.14 3.14t pypy3.11
       - name: Build wheels
-        uses: PyO3/maturin-action@v1
+        uses: PyO3/maturin-action@e83996d129638aa358a18fbd1dfb82f0b0fb5d3b # v1
         with:
           target: ${{ matrix.platform.target }}
           args: --out dist --interpreter 3.11 3.12 3.13 3.14 3.14t pypy3.11 --profile ${{ env.CARGO_PROFILE }}
           sccache: ${{ !startsWith(github.ref, 'refs/tags/') }}
           manylinux: musllinux_1_2
       - name: Upload wheels
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: wheels-musllinux-${{ matrix.platform.target }}
           path: dist
 
       - name: pytest
         if: ${{ startsWith(matrix.platform.target, 'x86_64') }}
-        uses: maus007/docker-run-action-fork@v1
+        uses: maus007/docker-run-action-fork@5ddaad0f7eedd03f64e412b1931852bd3031b273 # v1
         with:
           image: alpine:latest
           options: -v ${{ github.workspace }}:/io -w /io -e TZ=America/Los_Angeles
@@ -175,7 +175,7 @@ jobs:
 
       - name: pytest
         if: ${{ !startsWith(matrix.platform.target, 'x86') }}
-        uses: uraimo/run-on-arch-action@v3
+        uses: uraimo/run-on-arch-action@fd7aa8593480287702b446a273a68f788a9bad3a # v3
         with:
           arch: ${{ matrix.platform.target }}
           distro: alpine_latest
@@ -207,9 +207,9 @@ jobs:
             target: aarch64
             architecture: arm64
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
       - uses: ./.github/actions/ry-git-sha
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
         with:
           # python-version: 3.x
           # TODO: enable pypy3.11, 3.13t, 3.14t?
@@ -221,13 +221,13 @@ jobs:
           # Need to include architecture: https://github.com/PyO3/maturin-action/issues/375
           architecture: ${{ matrix.platform.architecture }}
       - name: Build wheels
-        uses: PyO3/maturin-action@v1
+        uses: PyO3/maturin-action@e83996d129638aa358a18fbd1dfb82f0b0fb5d3b # v1
         with:
           target: ${{ matrix.platform.target }}
           args: --out dist --profile ${{ env.CARGO_PROFILE }} --interpreter 3.11 3.12 3.13 3.14 --features "mimalloc"
           sccache: ${{ !startsWith(github.ref, 'refs/tags/') }}
       - name: Upload wheels
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: wheels-windows-${{ matrix.platform.target }}
           path: dist
@@ -254,22 +254,22 @@ jobs:
           # - runner: macos-15-intel # maybe enable?
           #   target: x86_64
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
       - uses: ./.github/actions/ry-git-sha
       - name: install-uv
-        uses: astral-sh/setup-uv@v7
+        uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7
         with:
           enable-cache: true
       - name: install-python
         run: uv python install 3.11 3.12 3.13 3.14 3.14t pypy3.11
       - name: Build wheels
-        uses: PyO3/maturin-action@v1
+        uses: PyO3/maturin-action@e83996d129638aa358a18fbd1dfb82f0b0fb5d3b # v1
         with:
           target: ${{ matrix.platform.target }}
           args: --out dist --interpreter 3.11 3.12 3.13 3.14 3.14t pypy3.11 --profile ${{ env.CARGO_PROFILE }} --features "mimalloc"
           sccache: ${{ !startsWith(github.ref, 'refs/tags/') }}
       - name: Upload wheels
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: wheels-macos-${{ matrix.platform.target }}
           path: dist
@@ -284,15 +284,15 @@ jobs:
   sdist:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
       - uses: ./.github/actions/ry-git-sha
       - name: Build sdist
-        uses: PyO3/maturin-action@v1
+        uses: PyO3/maturin-action@e83996d129638aa358a18fbd1dfb82f0b0fb5d3b # v1
         with:
           command: sdist
           args: --out dist
       - name: Upload sdist
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: wheels-sdist
           path: dist
@@ -303,7 +303,7 @@ jobs:
   #   needs: [linux, musllinux, windows, macos, sdist]
   #   steps:
   #     - name: Download all artifacts
-  #       uses: actions/download-artifact@v8
+  #       uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
   #     - name: List all files
   #       run: find . -name "wheels-*/*" -o
   #     - name: Inspect wheel files
@@ -335,21 +335,21 @@ jobs:
       # Used to generate artifact attestation
       attestations: write
     steps:
-      - uses: actions/download-artifact@v8
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
       - name: install-uv
         if: ${{ startsWith(github.ref, 'refs/tags/v') }}
-        uses: astral-sh/setup-uv@v7
+        uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7
       - name: List files
         run: find . -name "wheels-*/*"
       - name: Generate artifact attestation
         if: ${{ startsWith(github.ref, 'refs/tags/v') }}
-        uses: actions/attest-build-provenance@v4
+        uses: actions/attest-build-provenance@a2bbfa25375fe432b6a289bc6b6cd05ecd0c4c32 # v4
         with:
           subject-path: "wheels-*/*"
 
       # - name: Publish 2 PyPI
       #   if: ${{ startsWith(github.ref, 'refs/tags/v') }}
-      #   uses: PyO3/maturin-action@v1
+      #   uses: PyO3/maturin-action@e83996d129638aa358a18fbd1dfb82f0b0fb5d3b # v1
       #   env:
       #     MATURIN_PYPI_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
       #   with:
@@ -368,7 +368,7 @@ jobs:
           UV_PUBLISH_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
 
       - name: gh-release
-        uses: softprops/action-gh-release@v3
+        uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # v3
         if: ${{ startsWith(github.ref, 'refs/tags/v') }}
         with:
           generate_release_notes: true
