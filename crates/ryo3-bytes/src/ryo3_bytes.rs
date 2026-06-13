@@ -1,6 +1,7 @@
 //! Support for Python buffer protocol
 
 use std::fmt::Write;
+use std::num::NonZeroUsize;
 use std::ops::Range;
 use std::os::raw::c_int;
 use std::ptr::NonNull;
@@ -429,8 +430,18 @@ impl PyBytes {
         self.py_hash()
     }
 
-    fn __iter__(&self) -> PyBytesIterator {
+    fn __iter__(&self) -> PyBytesIter {
         self.into()
+    }
+
+    /// Iterate over overlapping byte slices of length `size`.
+    #[pyo3(signature = (size, /, *, reverse = false))]
+    fn windows(&self, size: std::num::NonZeroUsize, reverse: bool) -> PyBytesSliceIter {
+        if reverse {
+            PyBytesSliceIter::windows_rev(self.0.clone(), size)
+        } else {
+            PyBytesSliceIter::windows_fwd(self.0.clone(), size)
+        }
     }
 
     /// Decode the bytes using the codec registered for encoding.
@@ -880,24 +891,24 @@ impl<'py> IntoPyObject<'py> for BytesGetItemResult {
 }
 
 /// optimized bytes-iterator...
-#[pyclass(name = "BytesIterator", immutable_type)]
+#[pyclass(name = "ByteIter", immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
-pub(crate) struct PyBytesIterator(::bytes::buf::IntoIter<Bytes>);
+pub(crate) struct PyBytesIter(::bytes::buf::IntoIter<Bytes>);
 
-impl From<Bytes> for PyBytesIterator {
+impl From<Bytes> for PyBytesIter {
     fn from(value: Bytes) -> Self {
         Self(value.into_iter())
     }
 }
 
-impl From<&PyBytes> for PyBytesIterator {
+impl From<&PyBytes> for PyBytesIter {
     fn from(value: &PyBytes) -> Self {
         value.0.clone().into()
     }
 }
 
 #[pymethods]
-impl PyBytesIterator {
+impl PyBytesIter {
     fn __iter__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {
         slf
     }
@@ -908,5 +919,238 @@ impl PyBytesIterator {
 
     fn __len__(&self) -> usize {
         self.0.len()
+    }
+}
+
+// ============================================================================
+// SLICE ITERATORS
+// ============================================================================
+
+/// Iterator over overlapping byte slices.
+#[pyclass(name = "BytesSliceIter", immutable_type)]
+#[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
+pub struct PyBytesSliceIter {
+    bytes: Bytes,
+    ranges: BytesSliceIterRanges,
+}
+
+impl PyBytesSliceIter {
+    /// Create a new windows iterator (forward)
+    pub(crate) fn windows_fwd(bytes: Bytes, size: NonZeroUsize) -> Self {
+        let ranges =
+            BytesSliceIterRanges::WindowsForward(BytesWindowRanges::new(bytes.len(), size.get()));
+        Self { bytes, ranges }
+    }
+
+    /// Create a new windows iterator (reverse)
+    pub(crate) fn windows_rev(bytes: Bytes, size: NonZeroUsize) -> Self {
+        let ranges =
+            BytesSliceIterRanges::WindowsReverse(BytesWindowRanges::new(bytes.len(), size.get()));
+        Self { bytes, ranges }
+    }
+
+    fn remaining(&self) -> usize {
+        self.ranges.len()
+    }
+}
+
+/// PYIMPL
+#[pymethods]
+impl PyBytesSliceIter {
+    fn __iter__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {
+        slf
+    }
+
+    fn __next__(&mut self) -> Option<PyBytes> {
+        self.ranges
+            .next()
+            .map(|range| PyBytes::from(self.bytes.slice(range)))
+    }
+
+    fn __len__(&self) -> usize {
+        self.remaining()
+    }
+
+    fn next(&mut self) -> Option<PyBytes> {
+        self.__next__()
+    }
+
+    #[pyo3(signature = (n = 1, /) )]
+    fn take(&mut self, n: usize) -> Vec<PyBytes> {
+        self.ranges
+            .by_ref()
+            .take(n)
+            .map(|range| PyBytes::from(self.bytes.slice(range)))
+            .collect()
+    }
+
+    fn collect(&mut self) -> Vec<PyBytes> {
+        self.ranges
+            .by_ref()
+            .map(|range| PyBytes::from(self.bytes.slice(range)))
+            .collect()
+    }
+
+    #[pyo3(signature = (n , /) )]
+    fn nth(&mut self, n: usize) -> Option<PyBytes> {
+        self.ranges
+            .by_ref()
+            .nth(n)
+            .map(|range| PyBytes::from(self.bytes.slice(range)))
+    }
+
+    fn last(&mut self) -> Option<PyBytes> {
+        self.ranges
+            .by_ref()
+            .last()
+            .map(|range| PyBytes::from(self.bytes.slice(range)))
+    }
+
+    fn count(&mut self) -> usize {
+        self.ranges.by_ref().count()
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        self.ranges.size_hint()
+    }
+
+    fn __repr__(&self) -> String {
+        format!("{self}")
+    }
+
+    #[getter]
+    fn kind(&self) -> BytesSliceIterRangesKind {
+        self.ranges.kind()
+    }
+}
+
+impl std::fmt::Display for PyBytesSliceIter {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let name = self.ranges.kind().name();
+        write!(
+            f,
+            "BytesSlicesIter<{}; len={}; remaining={}>",
+            name,
+            self.bytes.len(),
+            self.remaining()
+        )
+    }
+}
+
+/// Interal iterator of the window ranges either fwd or reverse
+#[derive(Clone, Debug)]
+enum BytesSliceIterRanges {
+    WindowsForward(BytesWindowRanges<false>),
+    WindowsReverse(BytesWindowRanges<true>),
+}
+
+enum BytesSliceIterRangesKind {
+    WindowsForward,
+    WindowsReverse,
+}
+
+impl BytesSliceIterRangesKind {
+    const fn name(&self) -> &'static str {
+        match self {
+            Self::WindowsForward => "windows",
+            Self::WindowsReverse => "windows-reverse",
+        }
+    }
+}
+
+impl<'py> IntoPyObject<'py> for BytesSliceIterRangesKind {
+    type Target = PyString;
+    type Output = Borrowed<'py, 'py, Self::Target>;
+    type Error = PyErr;
+
+    fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
+        Ok(match self {
+            Self::WindowsForward => pyo3::intern!(py, "windows"),
+            Self::WindowsReverse => pyo3::intern!(py, "windows-reverse"),
+        }
+        .as_borrowed())
+    }
+}
+
+impl BytesSliceIterRanges {
+    const fn kind(&self) -> BytesSliceIterRangesKind {
+        match self {
+            Self::WindowsForward(_) => BytesSliceIterRangesKind::WindowsForward,
+            Self::WindowsReverse(_) => BytesSliceIterRangesKind::WindowsReverse,
+        }
+    }
+}
+
+impl Iterator for BytesSliceIterRanges {
+    type Item = Range<usize>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        match self {
+            Self::WindowsForward(ranges) => ranges.next(),
+            Self::WindowsReverse(ranges) => ranges.next(),
+        }
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        match self {
+            Self::WindowsForward(ranges) => ranges.size_hint(),
+            Self::WindowsReverse(ranges) => ranges.size_hint(),
+        }
+    }
+}
+
+impl ExactSizeIterator for BytesSliceIterRanges {
+    fn len(&self) -> usize {
+        match self {
+            Self::WindowsForward(ranges) => ranges.len(),
+            Self::WindowsReverse(ranges) => ranges.len(),
+        }
+    }
+}
+
+/// Iterator of bytes ranges to slice with [`PyBytesSliceIter`].
+#[derive(Clone, Debug)]
+struct BytesWindowRanges<const REVERSE: bool> {
+    len: usize,
+    size: usize,
+    pos: usize,
+}
+
+impl<const REVERSE: bool> BytesWindowRanges<REVERSE> {
+    fn new(len: usize, size: usize) -> Self {
+        Self { len, size, pos: 0 }
+    }
+}
+
+impl<const REVERSE: bool> Iterator for BytesWindowRanges<REVERSE> {
+    type Item = Range<usize>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let remaining = self.len();
+        if remaining == 0 {
+            return None;
+        }
+        let start = if REVERSE {
+            self.len - self.size - self.pos
+        } else {
+            self.pos
+        };
+        self.pos += 1;
+        Some(start..start + self.size)
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        let len = self.len();
+        (len, Some(len))
+    }
+}
+
+impl<const REVERSE: bool> ExactSizeIterator for BytesWindowRanges<REVERSE> {
+    fn len(&self) -> usize {
+        if self.size > self.len {
+            0
+        } else {
+            (self.len - self.size + 1).saturating_sub(self.pos)
+        }
     }
 }

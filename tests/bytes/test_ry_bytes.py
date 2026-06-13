@@ -157,6 +157,55 @@ class TestBytesOperators:
         assert rs_res == py_res, f"py: {py_res!r}, rs: {rs_res!r} ~ {a!r} + {b!r}"
 
 
+class TestBytesWindows:
+    def test_bytes_windows_iterates_slices(self) -> None:
+        ry_bytes = ry.Bytes(b"abcdef")
+        windows = ry_bytes.windows(3)
+
+        assert len(windows) == 4
+        assert list(windows) == [
+            ry.Bytes(b"abc"),
+            ry.Bytes(b"bcd"),
+            ry.Bytes(b"cde"),
+            ry.Bytes(b"def"),
+        ]
+        assert len(windows) == 0
+
+    def test_bytes_windows_iterates_slices_in_reverse(self) -> None:
+        ry_bytes = ry.Bytes(b"abcdef")
+        windows = ry_bytes.windows(3, reverse=True)
+
+        assert len(windows) == 4
+        assert list(windows) == [
+            ry.Bytes(b"def"),
+            ry.Bytes(b"cde"),
+            ry.Bytes(b"bcd"),
+            ry.Bytes(b"abc"),
+        ]
+        assert len(windows) == 0
+
+    def test_bytes_windows_does_not_replace_int_iteration(self) -> None:
+        ry_bytes = ry.Bytes(b"abc")
+
+        assert list(ry_bytes) == [97, 98, 99]
+        assert list(ry_bytes.windows(1)) == [
+            ry.Bytes(b"a"),
+            ry.Bytes(b"b"),
+            ry.Bytes(b"c"),
+        ]
+
+    @pytest.mark.parametrize("size", [4, 5])
+    def test_bytes_windows_larger_than_buffer(self, size: int) -> None:
+        windows = ry.Bytes(b"abc").windows(size)
+
+        assert len(windows) == 0
+        assert list(windows) == []
+
+    def test_bytes_windows_zero_size(self) -> None:
+        with pytest.raises(ValueError, match="invalid zero value"):
+            ry.Bytes(b"abc").windows(0)
+
+
 @given(st.binary())
 def test_bytes_strip_no_arg(
     b: bytes,
