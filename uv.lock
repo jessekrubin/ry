@@ -993,7 +993,7 @@ dev = [
     { name = "coverage", extras = ["toml"], specifier = ">=7.10.7" },
     { name = "hypothesis", specifier = ">=6.124.2" },
     { name = "ipython", specifier = ">=9.5.0" },
-    { name = "maturin", specifier = ">=1.8.6" },
+    { name = "maturin", specifier = ">=1.13.3" },
     { name = "mypy" },
     { name = "orjson", marker = "implementation_name == 'cpython'", specifier = "==3.11.4" },
     { name = "prek", specifier = ">=0.2.2" },
