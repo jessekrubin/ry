@@ -1608,8 +1608,8 @@ dependencies = [
 
 [[package]]
 name = "pyo3-async-runtimes"
-version = "0.28.0"
-source = "git+https://github.com/PyO3/pyo3-async-runtimes#ec437b0e94c3b0363a8bd4973c5c0eca91c2b1ac"
+version = "0.29.0"
+source = "git+https://github.com/PyO3/pyo3-async-runtimes#58d42b7a3eb239719175c5587b2b7debd9ee134b"
 dependencies = [
  "async-channel",
  "futures-channel",
@@ -1917,7 +1917,7 @@ dependencies = [
  "security-framework",
  "security-framework-sys",
  "webpki-root-certs",
- "windows-sys 0.61.2",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]
@@ -3346,7 +3346,7 @@ version = "0.1.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c2a7b1c03c876122aa43f3020e6c3c3ee5c05081c9a00739faf7503aeba10d22"
 dependencies = [
- "windows-sys 0.61.2",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]
