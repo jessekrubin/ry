@@ -54,7 +54,7 @@ jobs:
         with:
           prefix-key: "v0-rust-test-python-${{ matrix.python-version }}"
       - name: install uv
-        uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7
+        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
         with:
           python-version: ${{ matrix.python-version }}
       - name: install deps
@@ -90,7 +90,7 @@ jobs:
           components: llvm-tools-preview
       - uses: taiki-e/install-action@91534edaf9fd796a162759d80d49cdff574bff2c # cargo-llvm-cov
       - name: install uv
-        uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7
+        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
         with:
           python-version: ${{ matrix.python-version }}
       - name: install deps
