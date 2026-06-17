@@ -46,15 +46,6 @@ use crate::{ReadableBuffer, search};
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct PyBytes(Bytes);
 
-#[cfg(feature = "ry")]
-#[pyfunction(name = "b")]
-pub(crate) fn py_b<'py>(
-    py: Python<'py>,
-    buf: ReadableBuffer<'py, 'py>,
-) -> PyResult<Bound<'py, PyBytes>> {
-    PyBytes::py_new(py, buf)
-}
-
 impl PythonBytesMethods for PyBytes {}
 
 impl AsRef<Bytes> for PyBytes {

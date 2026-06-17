@@ -1,6 +1,5 @@
 use pyo3::BoundObject;
 use pyo3::prelude::*;
-use pyo3::sync::PyOnceLock;
 
 use crate::RyBytes;
 use crate::ryo3_bytes::RyBuffer;
@@ -69,81 +68,18 @@ impl AsRef<[u8]> for ReadableBuffer<'_, '_> {
     }
 }
 
-static PY_TYPE_LOOKUP: PyOnceLock<PyBytesTypeCache> = PyOnceLock::new();
-
-#[derive(Copy, Clone)]
-#[cfg_attr(debug_assertions, derive(Debug))]
-pub(crate) struct PyBytesTypeCache {
-    py_bytes: usize,
-    ry_bytes: usize,
-}
-
-impl PyBytesTypeCache {
-    fn new(py: Python) -> Self {
-        Self {
-            py_bytes: py.get_type::<pyo3::types::PyBytes>().as_ptr() as usize,
-            ry_bytes: py.get_type::<RyBytes>().as_ptr() as usize,
-        }
-    }
-
-    #[inline]
-    pub(crate) fn cached(py: Python<'_>) -> &Self {
-        PY_TYPE_LOOKUP.get_or_init(py, || Self::new(py))
-    }
-
-    fn ptr_is_pybytes(&self, ptr: usize) -> bool {
-        ptr == self.py_bytes
-    }
-
-    fn ptr_is_rybytes(&self, ptr: usize) -> bool {
-        ptr == self.ry_bytes
-    }
-}
-
-// impl<'a, 'py> FromPyObject<'a, 'py> for ReadableBuffer<'a, 'py> {
-//     type Error = PyErr;
-
-//     fn extract(ob: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
-//         let lut = PyBytesTypeCache::cached(ob.py());
-
-//         if ob.is_exact_instance_of::<pyo3::types::PyBytes>() {
-//             #[expect(unsafe_code)]
-//             let pybytes = unsafe {
-//                 // SAFETY: wenodis (see line above)
-//                 ob.cast_unchecked::<pyo3::types::PyBytes>()
-//             };
-//             Ok(Self::PyBytes(pybytes))
-//         } else if ob.is_exact_instance_of::<RyBytes>() {
-//             #[expect(unsafe_code)]
-//             let rybytes = unsafe {
-//                 // SAFETY: wenodis (see line above)
-//                 ob.cast_unchecked::<RyBytes>()
-//             };
-//             Ok(Self::RyBytes(rybytes))
-//         } else if let Ok(buffer) = ob.extract::<RyBuffer>() {
-//             Ok(Self::Buffer(::bytes::Bytes::from_owner(buffer)))
-//         } else {
-//             Err(pyo3::exceptions::PyTypeError::new_err(
-//                 "Expected bytes, bytearray, or buffer-protocol object",
-//             ))
-//         }
-//     }
-// }
 impl<'a, 'py> FromPyObject<'a, 'py> for ReadableBuffer<'a, 'py> {
     type Error = PyErr;
 
     fn extract(ob: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
-        let lut = PyBytesTypeCache::cached(ob.py());
-
-        let ob_type_ptr = ob.get_type_ptr() as usize;
-        if lut.ptr_is_pybytes(ob_type_ptr) {
+        if ob.is_exact_instance_of::<pyo3::types::PyBytes>() {
             #[expect(unsafe_code)]
             let pybytes = unsafe {
                 // SAFETY: wenodis (see line above)
                 ob.cast_unchecked::<pyo3::types::PyBytes>()
             };
             Ok(Self::PyBytes(pybytes))
-        } else if lut.ptr_is_rybytes(ob_type_ptr) {
+        } else if ob.is_exact_instance_of::<RyBytes>() {
             #[expect(unsafe_code)]
             let rybytes = unsafe {
                 // SAFETY: wenodis (see line above)

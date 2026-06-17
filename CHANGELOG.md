@@ -7,6 +7,14 @@
 
 ---
 
+## v0.0.97 [unreleased]
+
+- `ryo3-bytes`
+  - constructor returns same instance if input is already `ry.Bytes`
+  - added `ry.b` short hand function
+
+---
+
 ## v0.0.96 [2026-06-12]
 
 - pyo3-v0.29
