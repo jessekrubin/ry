@@ -200,13 +200,6 @@ impl PyBytes {
             ReadableBuffer::Buffer(b) => Self::new(b).into_pyobject(py),
         }
     }
-    // fn py_new(py: Python, buf: ReadableBuffer) -> PyResult<Py<Self>> {
-    //     match buf {
-    //         ReadableBuffer::PyBytes(_) => Py::new(py, buf.to_rybytes()),
-    //         ReadableBuffer::RyBytes(rb) => Ok(rb.to_owned().unbind()),
-    //         ReadableBuffer::Buffer(b) => Py::new(py, b),
-    //     }
-    // }
 
     #[staticmethod]
     fn copy_from(buf: ReadableBuffer) -> Self {
