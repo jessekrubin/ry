@@ -1,12 +1,13 @@
 use std::sync::Arc;
 
+#[cfg(feature = "experimental-async")]
+use pyo3::coroutine::CancelHandle;
 use pyo3::exceptions::PyRuntimeError;
 use pyo3::prelude::*;
-use ryo3_core::py_value_err;
+use ryo3_core::macros::py_value_err;
 use ryo3_tokio_rt::future_into_py;
 use tokio::sync::{AcquireError, Semaphore};
 
-//   #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd)]
 #[derive(Clone)]
 #[pyclass(name = "Semaphore", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
@@ -61,15 +62,17 @@ impl PySemaphore {
     }
 
     #[cfg(feature = "experimental-async")]
-    async fn acquire(&self) -> PyResult<()> {
-        let permit = self
-            .0
-            .clone()
-            .acquire_owned()
-            .await
-            .map_err(PyAcquireError)?;
-        permit.forget();
-        Ok(())
+    async fn acquire(&self, #[pyo3(cancel_handle)] cancel: CancelHandle) -> PyResult<()> {
+        use ryo3_tokio_rt::on_tokio_py_cancel;
+        let sem = self.0.clone();
+        on_tokio_py_cancel(
+            async move {
+                sem.acquire_owned().await.map_err(PyAcquireError)?;
+                Ok(())
+            },
+            cancel,
+        )
+        .await
     }
 
     #[pyo3(signature = (n = 1))]
@@ -123,6 +126,10 @@ impl PySemaphore {
 
     fn available_permits(&self) -> usize {
         self.0.available_permits()
+    }
+
+    fn __int__(&self) -> usize {
+        self.available_permits()
     }
 }
 
