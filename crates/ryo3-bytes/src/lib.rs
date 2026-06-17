@@ -20,5 +20,7 @@ pub use crate::bytes::PyBytes as RyBytes;
 /// ryo3-bytes python module registration
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyBytes>()?;
+    #[cfg(feature = "ry")]
+    m.add_function(wrap_pyfunction!(crate::ryo3_bytes::py_b, m)?)?;
     Ok(())
 }
