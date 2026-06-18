@@ -29,6 +29,28 @@ _BYTES_TYPES = (
 )
 
 
+class TestBytesConstructor:
+    def test_constructor_default_is_empty(self) -> None:
+        assert ry.Bytes() == b""
+
+    @pytest.mark.parametrize(
+        "value",
+        [
+            b"abc",
+            bytearray(b"abc"),
+            memoryview(b"abc"),
+        ],
+    )
+    def test_constructor_accepts_bytes_like(
+        self, value: bytes | bytearray | memoryview
+    ) -> None:
+        assert ry.Bytes(value) == b"abc"
+
+    def test_constructor_reuses_exact_bytes_instance(self) -> None:
+        value = ry.Bytes(b"abc")
+        assert ry.Bytes(value) is value
+
+
 def test_bytes_pickling() -> None:
     b = ry.Bytes(b"asdf")
     import pickle

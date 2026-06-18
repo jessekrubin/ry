@@ -50,7 +50,7 @@ impl PythonBytesMethods for PyBytes {}
 
 impl AsRef<Bytes> for PyBytes {
     fn as_ref(&self) -> &Bytes {
-        &self.0
+        self.inner()
     }
 }
 
@@ -67,11 +67,19 @@ impl PyBytes {
     }
 
     /// Consume and return the [Bytes]
+    #[inline]
     pub fn into_inner(self) -> Bytes {
         self.0
     }
 
+    /// Return a reference to the inner [Bytes]
+    #[inline]
+    pub fn inner(&self) -> &Bytes {
+        &self.0
+    }
+
     /// Access the underlying buffer as a byte slice
+    #[inline]
     pub fn as_slice(&self) -> &[u8] {
         self.as_ref()
     }
@@ -149,24 +157,28 @@ impl PyBytes {
 }
 
 impl From<PyBytes> for Bytes {
+    #[inline]
     fn from(value: PyBytes) -> Self {
         value.0
     }
 }
 
 impl From<Vec<u8>> for PyBytes {
+    #[inline]
     fn from(value: Vec<u8>) -> Self {
         Self(value.into())
     }
 }
 
 impl From<Bytes> for PyBytes {
+    #[inline]
     fn from(value: Bytes) -> Self {
         Self(value)
     }
 }
 
 impl From<BytesMut> for PyBytes {
+    #[inline]
     fn from(value: BytesMut) -> Self {
         Self(value.into())
     }
@@ -177,9 +189,16 @@ impl PyBytes {
     // By setting the argument to PyBytes, this means that any buffer-protocol object is supported
     // here, since it will use the FromPyObject impl.
     #[new]
-    #[pyo3(signature = (buf = PyBytes(Bytes::new())), text_signature = "(buf = b'')")]
-    fn py_new(buf: Self) -> Self {
-        buf
+    #[pyo3(
+        signature = (buf = ReadableBuffer::Buffer(Bytes::new())),
+        text_signature = "(buf = b'')"
+    )]
+    fn py_new<'py>(py: Python<'py>, buf: ReadableBuffer<'py, 'py>) -> PyResult<Bound<'py, Self>> {
+        match buf {
+            ReadableBuffer::PyBytes(_) => buf.to_rybytes().into_pyobject(py),
+            ReadableBuffer::RyBytes(rb) => rb.to_owned().unbind().into_pyobject_or_pyerr(py),
+            ReadableBuffer::Buffer(b) => Self::new(b).into_pyobject(py),
+        }
     }
 
     #[staticmethod]
