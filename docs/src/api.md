@@ -755,12 +755,12 @@ class Bytes(Buffer):
         """
 
     def is_unique(self) -> bool:
-        """Return `True` if all bytes in the sequence are unique, `False` otherwise.
+        """Return `True` if this is the only reference to the underlying buffer.
 
         Notes
         -----
         This will usually return `False` for `Bytes` objects created from Python
-        byte slices, since they use `::bytes::Bytes::from_owner`.
+        buffer objects, since they use `::bytes::Bytes::from_owner`.
 
         Examples
         --------
@@ -768,8 +768,8 @@ class Bytes(Buffer):
         >>> b = Bytes.copy_from(b"unique-nu-yawk")
         >>> b.is_unique()
         True
-        >>> zero_copy = Bytes(b)
-        >>> zero_copy.is_unique()
+        >>> shared = b[:]
+        >>> b.is_unique()
         False
 
         """

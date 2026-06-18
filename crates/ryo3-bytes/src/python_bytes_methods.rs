@@ -4,6 +4,7 @@ use std::hash::Hash;
 use std::num::NonZeroUsize;
 use std::ops::Range;
 
+use bytes::Bytes;
 use pyo3::exceptions::{PyTypeError, PyValueError};
 use pyo3::prelude::*;
 use pyo3::types::PyString;
@@ -11,7 +12,9 @@ use pyo3::{IntoPyObjectExt, PyClass};
 
 use crate::{ReadableBuffer, search};
 
-pub(crate) trait PythonBytesMethods: AsRef<[u8]> + From<Vec<u8>> + Sized + PyClass {
+pub(crate) trait PythonBytesMethods:
+    AsRef<[u8]> + From<Vec<u8>> + From<Bytes> + Sized + PyClass
+{
     /// Hash bytes
     fn py_hash(&self) -> u64 {
         // STD-HASHER VERSION
@@ -401,6 +404,18 @@ pub(crate) trait PythonBytesMethods: AsRef<[u8]> + From<Vec<u8>> + Sized + PyCla
         end: Option<isize>,
     ) -> PyIndexResult {
         self.py_rsearch::<true>(needle, start, end)
+    }
+
+    fn py_split(&self, _sep: Option<ReadableBuffer>, _maxsplit: usize) -> PyResult<Vec<Self>> {
+        Err(pyo3::exceptions::PyNotImplementedError::new_err(
+            "split not implemented yet",
+        ))
+    }
+
+    fn py_rsplit(&self, _sep: Option<ReadableBuffer>, _maxsplit: usize) -> PyResult<Vec<Self>> {
+        Err(pyo3::exceptions::PyNotImplementedError::new_err(
+            "rsplit not implemented yet",
+        ))
     }
 }
 
