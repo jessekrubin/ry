@@ -280,18 +280,18 @@ impl Serialize for PyDictSerializer<'_, '_> {
         }
 
         let mut m = serializer.serialize_map(None)?;
-        let mut prev_ob_type_ptr = 0;
-        let mut prev_ob_type = PyObType::Unknown;
+        let mut prev_val_ob_type_ptr = 0;
+        let mut prev_val_ob_type = PyObType::Unknown;
 
         #[cfg(not(Py_GIL_DISABLED))]
         for (map_key, map_val) in ryo3_core::py_dict::BorrowedDictIter::new(self.obj) {
             let type_ptr = map_val.get_type_ptr() as usize;
-            let ob_type = if type_ptr == prev_ob_type_ptr {
-                prev_ob_type
+            let ob_type = if type_ptr == prev_val_ob_type_ptr {
+                prev_val_ob_type
             } else {
                 let t = self.ctx.typeref.ptr2type(type_ptr);
-                prev_ob_type_ptr = type_ptr;
-                prev_ob_type = t;
+                prev_val_ob_type_ptr = type_ptr;
+                prev_val_ob_type = t;
                 t
             };
             let sk = PyMappingKeySerializer::new(self.ctx, map_key);
@@ -306,12 +306,12 @@ impl Serialize for PyDictSerializer<'_, '_> {
             let map_key = map_key.as_borrowed();
             let map_val = map_val.as_borrowed();
             let type_ptr = map_val.get_type_ptr() as usize;
-            let ob_type = if type_ptr == prev_ob_type_ptr {
-                prev_ob_type
+            let ob_type = if type_ptr == prev_val_ob_type_ptr {
+                prev_val_ob_type
             } else {
                 let t = self.ctx.typeref.ptr2type(type_ptr);
-                prev_ob_type_ptr = type_ptr;
-                prev_ob_type = t;
+                prev_val_ob_type_ptr = type_ptr;
+                prev_val_ob_type = t;
                 t
             };
             let sk = PyMappingKeySerializer::new(self.ctx, map_key);

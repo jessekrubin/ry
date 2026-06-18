@@ -29,6 +29,7 @@ impl Serialize for PyEnumSerializer<'_, '_> {
     where
         S: Serializer,
     {
+        // TODO: use `getattr_opt` ?
         let value = self
             .obj
             .getattr(intern!(self.obj.py(), "value"))
