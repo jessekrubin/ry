@@ -201,11 +201,8 @@ impl PyFsPath {
     fn drive(&self) -> Option<OsString> {
         let drive = self.path().components().next();
         match drive {
-            Some(drive_component) => {
-                let drive_str = drive_component.to_os_string();
-                Some(drive_str)
-            }
-            None => None,
+            Some(Component::Prefix(pref)) => Some(pref.as_os_str().to_os_string()),
+            _ => None,
         }
     }
 
@@ -220,9 +217,9 @@ impl PyFsPath {
         let anchor = self.path().components().next();
         match anchor {
             Some(anchor) => {
-                let a = anchor.as_os_str().to_string_lossy().to_string();
+                let anchor_disp = anchor.as_os_str().display();
                 // ensure that the anchor ends with a separator
-                format!("{a}{MAIN_SEPARATOR}")
+                format!("{anchor_disp}{MAIN_SEPARATOR}")
             }
             None => String::new(),
         }
@@ -247,15 +244,8 @@ impl PyFsPath {
     }
 
     #[getter]
-    fn parents<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
-        let parent = self.path().parent();
-        if let Some(par) = parent {
-            let parents: Vec<Self> = par.ancestors().map(Self::from).collect();
-            PyTuple::new(py, parents)
-        } else {
-            // no parents
-            PyTuple::new(py, Vec::<Self>::new())
-        }
+    fn parents(&self) -> PyFsPathAncestors {
+        PyFsPathAncestors::parents(self.path())
     }
 
     #[getter]
@@ -281,11 +271,10 @@ impl PyFsPath {
         let e = self.path().extension();
         match e {
             Some(e) => {
-                let e = e.to_os_string();
-                if e.to_string_lossy().starts_with('.') {
+                if e.as_encoded_bytes().starts_with(b".") {
                     e.to_string_lossy().to_string()
                 } else {
-                    format!(".{}", e.to_string_lossy()) // python pathlib.path does this
+                    format!(".{}", e.display()) // python pathlib.path does this
                 }
             }
             None => String::new(),
@@ -299,8 +288,7 @@ impl PyFsPath {
         } else {
             suffix.as_ref()
         };
-        let p = self.path().with_extension(suffix);
-        Self::from(p)
+        self.path().with_extension(suffix).into()
     }
 
     #[getter]
@@ -954,6 +942,21 @@ struct PyFsPathAncestors {
 }
 
 impl PyFsPathAncestors {
+    fn empty() -> Self {
+        Self {
+            path: PathBuf::new(),
+            current: RyMutex::new(None),
+        }
+    }
+
+    fn parents(p: &Path) -> Self {
+        if let Some(p) = p.parent() {
+            Self::new(p)
+        } else {
+            Self::empty()
+        }
+    }
+
     fn new<P: AsRef<Path>>(p: P) -> Self {
         let buf = to_native_pathbuf(p);
         Self {
@@ -987,23 +990,37 @@ impl PyFsPathAncestors {
         Some(out)
     }
 
+    fn __len__(&self) -> usize {
+        self.path.ancestors().count()
+    }
+
     fn collect(&self) -> Vec<PyFsPath> {
+        let mut current = self.current.py_lock();
+
         let mut paths = vec![];
-        while let Some(path) = self.__next__() {
-            paths.push(path);
+        while let Some(cur) = current.take() {
+            *current = match cur.parent() {
+                None => None,
+                Some(p) if p.as_os_str().is_empty() => None,
+                Some(p) => Some(p.to_path_buf()),
+            };
+            paths.push(PyFsPath::new(&cur));
         }
         paths
     }
 
     #[pyo3(signature = (n = 1))]
     fn take(&self, n: usize) -> Vec<PyFsPath> {
+        let mut current = self.current.py_lock();
         let mut paths = vec![];
         for _ in 0..n {
-            if let Some(path) = self.__next__() {
-                paths.push(path);
-            } else {
-                break;
-            }
+            let Some(cur) = current.take() else { break };
+            *current = match cur.parent() {
+                None => None,
+                Some(p) if p.as_os_str().is_empty() => None,
+                Some(p) => Some(p.to_path_buf()),
+            };
+            paths.push(PyFsPath::new(&cur));
         }
         paths
     }

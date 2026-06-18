@@ -177,6 +177,44 @@ macro_rules! py_overflow_err {
 }
 
 #[macro_export]
+macro_rules! py_permission_error {
+    () => {
+        ::pyo3::exceptions::PyPermissionError::new_err("permission error")
+    };
+    ($msg:ident $(,)?) => {
+        ::pyo3::exceptions::PyPermissionError::new_err($msg)
+    };
+    ($($arg:tt)+) => {
+        {
+            let args = ::std::format_args!($($arg)+);
+            match args.as_str() {
+                Some(s) => ::pyo3::exceptions::PyPermissionError::new_err(s),
+                None => ::pyo3::exceptions::PyPermissionError::new_err(args.to_string()),
+            }
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! py_permission_err {
+    () => {
+        ::std::result::Result::Err(::pyo3::exceptions::PyPermissionError::new_err("permission error"))
+    };
+    ($msg:ident $(,)?) => {
+        ::std::result::Result::Err(::pyo3::exceptions::PyPermissionError::new_err($msg))
+    };
+    ($($arg:tt)+) => {
+        {
+            let args = ::std::format_args!($($arg)+);
+            ::std::result::Result::Err(match args.as_str() {
+                Some(s) => ::pyo3::exceptions::PyPermissionError::new_err(s),
+                None => ::pyo3::exceptions::PyPermissionError::new_err(args.to_string()),
+            })
+        }
+    };
+}
+
+#[macro_export]
 macro_rules! py_runtime_error {
     () => {
         ::pyo3::exceptions::PyRuntimeError::new_err("runtime error")
