@@ -110,11 +110,11 @@ impl PyGlob {
         })
     }
 
-    pub(crate) fn globster(&self) -> PyResult<PyGlobster> {
-        Ok(PyGlobster(
-            Globster::from_positive_glob(self.pattern.clone(), self.glob.clone()),
+    pub(crate) fn globster(&self) -> PyGlobster {
+        PyGlobster(
+            Globster::from_positive_glob(self.pattern.clone(), &self.glob),
             vec![self.clone()],
-        ))
+        )
     }
 
     pub(crate) fn __eq__(&self, other: &Self) -> bool {

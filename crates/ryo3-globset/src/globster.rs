@@ -11,7 +11,7 @@ pub(crate) enum GlobsterStrategy {
     SingleNegative(GlobMatcher),
     MultiPositive(GlobSet),
     MultiNegative(GlobSet),
-    Ordered(Vec<GlobsterStrategy>),
+    Ordered(Vec<Self>),
 }
 
 #[derive(Clone, Debug)]
@@ -35,7 +35,7 @@ impl Globster {
         }
     }
 
-    pub(crate) fn from_positive_glob(pattern: String, glob: Glob) -> Self {
+    pub(crate) fn from_positive_glob(pattern: String, glob: &Glob) -> Self {
         Self {
             strategy: GlobsterStrategy::SinglePositive(glob.compile_matcher()),
             patterns: vec![pattern],

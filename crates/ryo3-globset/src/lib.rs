@@ -30,7 +30,7 @@ impl TryFrom<&GlobsterLike> for PyGlobster {
 
     fn try_from(globster_like: &GlobsterLike) -> PyResult<Self> {
         match globster_like {
-            GlobsterLike::Glob(glob) => glob.globster(),
+            GlobsterLike::Glob(glob) => Ok(glob.globster()),
             GlobsterLike::GlobSet(globset) => Ok(globset.globster()),
             GlobsterLike::Globster(globster) => Ok(globster.clone()),
             GlobsterLike::Strings(patterns) => Self::try_from(patterns.clone()),

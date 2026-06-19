@@ -177,10 +177,10 @@ impl<'py> FromPyObject<'_, 'py> for GlobSetPatterns {
             let arg = args.get_item(idx)?;
             match GlobSetPatternArg::extract(arg.as_borrowed())? {
                 GlobSetPatternArg::Glob(glob) => {
-                    elements.push(GlobSetPatternElement::Glob(glob.get().clone()))
+                    elements.push(GlobSetPatternElement::Glob(glob.get().clone()));
                 }
                 GlobSetPatternArg::Pattern(pattern) => {
-                    elements.push(GlobSetPatternElement::Pattern(pattern))
+                    elements.push(GlobSetPatternElement::Pattern(pattern));
                 }
                 GlobSetPatternArg::Patterns(patterns) => {
                     elements.extend(patterns.into_iter().map(GlobSetPatternElement::Pattern));
