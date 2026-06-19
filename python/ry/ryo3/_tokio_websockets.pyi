@@ -131,7 +131,13 @@ class WsMessage(Buffer):
     # -------------------------------------------------------------------------
     # INSTANCE METHODS
     # -------------------------------------------------------------------------
-    def json(self) -> t.Any:
+    def json(
+        self,
+        allow_inf_nan: bool = False,
+        cache_mode: t.Literal[True, False, "all", "keys", "none"] = "all",
+        partial_mode: t.Literal[True, False, "off", "on", "trailing-strings"] = False,
+        catch_duplicate_keys: bool = False,
+    ) -> t.Any:
         """Parse the message payload as JSON"""
     def __bytes__(self) -> bytes:
         """Return message payload as `builtins.bytes`"""

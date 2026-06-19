@@ -6,7 +6,7 @@
 //! of [2024-05-29])
 use std::path::PathBuf;
 
-use ::jiter::{FloatMode, PartialMode, PythonParse, StringCacheMode, map_json_error};
+pub use ::jiter::{FloatMode, PartialMode, PythonParse, StringCacheMode, map_json_error};
 use pyo3::IntoPyObjectExt;
 use pyo3::prelude::*;
 use pyo3::types::PyList;
@@ -20,14 +20,45 @@ pub struct JiterParseOptions {
     pub catch_duplicate_keys: bool,
 }
 
-impl Default for JiterParseOptions {
-    fn default() -> Self {
+impl JiterParseOptions {
+    #[must_use]
+    pub fn new() -> Self {
         Self {
             allow_inf_nan: false,
             cache_mode: StringCacheMode::All,
             partial_mode: PartialMode::Off,
             catch_duplicate_keys: false,
         }
+    }
+
+    #[must_use]
+    pub fn with_allow_inf_nan(mut self, allow_inf_nan: bool) -> Self {
+        self.allow_inf_nan = allow_inf_nan;
+        self
+    }
+
+    #[must_use]
+    pub fn with_cache_mode(mut self, cache_mode: StringCacheMode) -> Self {
+        self.cache_mode = cache_mode;
+        self
+    }
+
+    #[must_use]
+    pub fn with_partial_mode(mut self, partial_mode: PartialMode) -> Self {
+        self.partial_mode = partial_mode;
+        self
+    }
+
+    #[must_use]
+    pub fn with_catch_duplicate_keys(mut self, catch_duplicate_keys: bool) -> Self {
+        self.catch_duplicate_keys = catch_duplicate_keys;
+        self
+    }
+}
+
+impl Default for JiterParseOptions {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -91,12 +122,11 @@ pub fn parse_json<'py>(
     partial_mode: PartialMode,
     catch_duplicate_keys: bool,
 ) -> PyResult<Bound<'py, PyAny>> {
-    let options = JiterParseOptions {
-        allow_inf_nan,
-        cache_mode,
-        partial_mode,
-        catch_duplicate_keys,
-    };
+    let options = JiterParseOptions::new()
+        .with_allow_inf_nan(allow_inf_nan)
+        .with_cache_mode(cache_mode)
+        .with_partial_mode(partial_mode)
+        .with_catch_duplicate_keys(catch_duplicate_keys);
     if let Ok(bytes) = data.extract::<&[u8]>() {
         options.parse(py, bytes)
     } else if let Ok(s) = data.extract::<&str>() {
@@ -136,12 +166,11 @@ pub fn parse_jsonl<'py>(
     partial_mode: PartialMode,
     catch_duplicate_keys: bool,
 ) -> PyResult<Bound<'py, PyAny>> {
-    let options = JiterParseOptions {
-        allow_inf_nan,
-        cache_mode,
-        partial_mode,
-        catch_duplicate_keys,
-    };
+    let options = JiterParseOptions::new()
+        .with_allow_inf_nan(allow_inf_nan)
+        .with_cache_mode(cache_mode)
+        .with_partial_mode(partial_mode)
+        .with_catch_duplicate_keys(catch_duplicate_keys);
     if let Ok(bytes) = data.extract::<&[u8]>() {
         options.parse_lines(py, bytes)
     } else if let Ok(custom) = data.cast_exact::<RyBytes>() {
@@ -213,12 +242,11 @@ pub fn read_json(
     lines: bool,
 ) -> PyResult<Bound<'_, PyAny>> {
     let fbytes = std::fs::read(p)?;
-    let options = JiterParseOptions {
-        allow_inf_nan,
-        cache_mode,
-        partial_mode,
-        catch_duplicate_keys,
-    };
+    let options = JiterParseOptions::new()
+        .with_allow_inf_nan(allow_inf_nan)
+        .with_cache_mode(cache_mode)
+        .with_partial_mode(partial_mode)
+        .with_catch_duplicate_keys(catch_duplicate_keys);
     if lines {
         options.parse_lines(py, &fbytes)
     } else {

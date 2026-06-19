@@ -1,178 +1,150 @@
 use std::path::Path;
-use std::str::FromStr;
 
-use globset::{GlobBuilder, GlobSetBuilder};
+use globset::{Glob, GlobMatcher, GlobSet, GlobSetBuilder};
+use pyo3::PyResult;
 use pyo3::exceptions::PyValueError;
-use pyo3::types::PyTuple;
-use pyo3::{Bound, PyErr, PyResult, Python, pyclass, pymethods};
-use ryo3_core::types::PathLike;
 
-use crate::{DEFAULT_BACKSLASH_ESCAPE, PyGlobPatternsString};
+#[derive(Clone, Debug)]
+pub(crate) enum GlobsterStrategy {
+    Empty,
+    SinglePositive(GlobMatcher),
+    SingleNegative(GlobMatcher),
+    MultiPositive(GlobSet),
+    MultiNegative(GlobSet),
+    Ordered(Vec<GlobsterStrategy>),
+}
 
 #[derive(Clone, Debug)]
 pub struct Globster {
-    pub globset: Option<globset::GlobSet>,
-    pub nglobset: Option<globset::GlobSet>,
+    pub(crate) strategy: GlobsterStrategy,
     pub patterns: Vec<String>,
     pub length: usize,
 }
 
-#[pyclass(name = "Globster", frozen, immutable_type, from_py_object)]
-#[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
-#[derive(Clone, Debug)]
-pub struct PyGlobster(pub Globster);
-
-impl FromStr for PyGlobster {
-    type Err = PyErr;
-
-    fn from_str(pattern: &str) -> PyResult<Self> {
-        let patterns = vec![pattern.to_string()];
-        Self::py_new(patterns, false, false, DEFAULT_BACKSLASH_ESCAPE)
-    }
-}
-
-impl TryFrom<Vec<String>> for PyGlobster {
-    type Error = PyErr;
-
-    fn try_from(patterns: Vec<String>) -> PyResult<Self> {
-        Self::py_new(patterns, false, false, DEFAULT_BACKSLASH_ESCAPE)
-    }
-}
-
-impl PyGlobster {
-    pub fn is_match<P: AsRef<Path>>(&self, path: P) -> bool {
-        let path = path.as_ref();
-        match (&self.0.globset, &self.0.nglobset) {
-            (Some(gs), Some(ngs)) => gs.is_match(path) && !ngs.is_match(path),
-            (Some(gs), None) => gs.is_match(path),
-            (None, Some(ngs)) => !ngs.is_match(path),
-            _ => false,
-        }
-    }
-}
-
-#[pymethods]
-impl PyGlobster {
-    #[new]
-    #[pyo3(
-        signature = (
-            patterns,
-            /, *,
-            case_insensitive = false,
-            literal_separator = false,
-            backslash_escape = DEFAULT_BACKSLASH_ESCAPE
-        )
-    )]
-    pub(crate) fn py_new(
-        patterns: Vec<String>,
-        case_insensitive: bool,
-        literal_separator: bool,
-        backslash_escape: bool,
-    ) -> PyResult<Self> {
-        let mut globset_builder = GlobSetBuilder::new();
-        let mut nglobset_builder = GlobSetBuilder::new();
-        let mut positive_patterns: Vec<String> = vec![];
-        let mut negative_patterns: Vec<String> = vec![];
-
-        for pattern in &patterns {
-            if pattern.is_empty() {
-                return Err(PyValueError::new_err("Empty pattern"));
-            }
-            if pattern.starts_with("!!") {
-                return Err(PyValueError::new_err("Double negation is not allowed"));
-            }
-            if pattern.starts_with('!') {
-                negative_patterns.push(pattern.clone());
+impl Globster {
+    pub(crate) fn from_globset(patterns: Vec<String>, globset: GlobSet) -> Self {
+        let length = patterns.len();
+        Self {
+            strategy: if length == 0 {
+                GlobsterStrategy::Empty
             } else {
-                positive_patterns.push(pattern.clone());
-            }
-        }
-
-        {
-            for pattern in &positive_patterns {
-                let g = GlobBuilder::new(pattern)
-                    .case_insensitive(case_insensitive)
-                    .literal_separator(literal_separator)
-                    .backslash_escape(backslash_escape)
-                    .build()
-                    .map_err(|e| PyValueError::new_err(e.to_string()))?;
-                globset_builder.add(g);
-            }
-        }
-        {
-            for pattern in &negative_patterns {
-                let g = GlobBuilder::new(pattern)
-                    .case_insensitive(case_insensitive)
-                    .literal_separator(literal_separator)
-                    .backslash_escape(backslash_escape)
-                    .build()
-                    .map_err(|e| PyValueError::new_err(e.to_string()))?;
-                nglobset_builder.add(g);
-            }
-        }
-        let gs = globset_builder
-            .build()
-            .map_err(|e| PyValueError::new_err(format!("Error building globset: {e}")))?;
-        let ngs = nglobset_builder
-            .build()
-            .map_err(|e| PyValueError::new_err(format!("Error building globset: {e}")))?;
-        let globster = Globster {
+                GlobsterStrategy::MultiPositive(globset)
+            },
             patterns,
-            globset: Option::from(gs),
-            nglobset: Option::from(ngs),
-            length: positive_patterns.len() + negative_patterns.len(),
-        };
-        Ok(Self(globster))
-    }
-
-    fn __repr__(&self) -> String {
-        format!("{self}")
-    }
-
-    fn __len__(&self) -> usize {
-        self.0.length
-    }
-
-    fn is_empty(&self) -> bool {
-        self.0.length == 0
-    }
-
-    #[must_use]
-    fn is_match_str(&self, path: &str) -> bool {
-        match (&self.0.globset, &self.0.nglobset) {
-            (Some(gs), Some(ngs)) => gs.is_match(path) && !ngs.is_match(path),
-            (Some(gs), None) => gs.is_match(path),
-            (None, Some(ngs)) => !ngs.is_match(path),
-            _ => false,
+            length,
         }
     }
 
-    #[expect(clippy::needless_pass_by_value)]
-    #[pyo3(name = "is_match")]
-    #[must_use]
-    fn py_is_match(&self, path: PathLike) -> bool {
-        match (&self.0.globset, &self.0.nglobset) {
-            (Some(gs), Some(ngs)) => gs.is_match(&path) && !ngs.is_match(&path),
-            (Some(gs), None) => gs.is_match(&path),
-            (None, Some(ngs)) => !ngs.is_match(&path),
-            _ => false,
+    pub(crate) fn from_positive_glob(pattern: String, glob: Glob) -> Self {
+        Self {
+            strategy: GlobsterStrategy::SinglePositive(glob.compile_matcher()),
+            patterns: vec![pattern],
+            length: 1,
         }
     }
 
-    fn __call__(&self, path: PathLike) -> bool {
-        self.is_match(path)
+    pub(crate) fn is_match_path(&self, path: &Path) -> bool {
+        self.strategy.is_match_path(path)
     }
 
-    #[getter]
-    fn patterns<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
-        let patterns = self.0.patterns.clone();
-        PyTuple::new(py, patterns)
+    pub(crate) fn is_match_str(&self, path: &str) -> bool {
+        self.strategy.is_match_str(path)
     }
 }
 
-impl std::fmt::Display for PyGlobster {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let tuple_str = self.patterns_string();
-        write!(f, "Globster({tuple_str})")
+impl GlobsterStrategy {
+    pub(crate) fn from_globs(negative: bool, mut globs: Vec<Glob>) -> PyResult<Self> {
+        if globs.is_empty() {
+            return Ok(Self::Empty);
+        }
+        if globs.len() == 1 {
+            let matcher = globs.remove(0).compile_matcher();
+            return Ok(if negative {
+                Self::SingleNegative(matcher)
+            } else {
+                Self::SinglePositive(matcher)
+            });
+        }
+
+        let mut globset_builder = GlobSetBuilder::new();
+        for glob in globs {
+            globset_builder.add(glob);
+        }
+        let globset = globset_builder
+            .build()
+            .map_err(|e| PyValueError::new_err(format!("Error building globset: {e}")))?;
+
+        Ok(if negative {
+            Self::MultiNegative(globset)
+        } else {
+            Self::MultiPositive(globset)
+        })
     }
+
+    fn is_match_path(&self, path: &Path) -> bool {
+        match self {
+            Self::Empty => false,
+            Self::SinglePositive(matcher) => matcher.is_match(path),
+            Self::SingleNegative(matcher) => !matcher.is_match(path),
+            Self::MultiPositive(globset) => globset.is_match(path),
+            Self::MultiNegative(globset) => !globset.is_match(path),
+            Self::Ordered(strategies) => ordered_is_match_path(strategies, path),
+        }
+    }
+
+    fn is_match_str(&self, path: &str) -> bool {
+        match self {
+            Self::Empty => false,
+            Self::SinglePositive(matcher) => matcher.is_match(path),
+            Self::SingleNegative(matcher) => !matcher.is_match(path),
+            Self::MultiPositive(globset) => globset.is_match(path),
+            Self::MultiNegative(globset) => !globset.is_match(path),
+            Self::Ordered(strategies) => ordered_is_match_str(strategies, path),
+        }
+    }
+
+    fn raw_match_path(&self, path: &Path) -> bool {
+        match self {
+            Self::Empty => false,
+            Self::SinglePositive(matcher) | Self::SingleNegative(matcher) => matcher.is_match(path),
+            Self::MultiPositive(globset) | Self::MultiNegative(globset) => globset.is_match(path),
+            Self::Ordered(strategies) => ordered_is_match_path(strategies, path),
+        }
+    }
+
+    fn raw_match_str(&self, path: &str) -> bool {
+        match self {
+            Self::Empty => false,
+            Self::SinglePositive(matcher) | Self::SingleNegative(matcher) => matcher.is_match(path),
+            Self::MultiPositive(globset) | Self::MultiNegative(globset) => globset.is_match(path),
+            Self::Ordered(strategies) => ordered_is_match_str(strategies, path),
+        }
+    }
+
+    fn is_positive(&self) -> bool {
+        matches!(
+            self,
+            Self::SinglePositive(_) | Self::MultiPositive(_) | Self::Ordered(_)
+        )
+    }
+}
+
+fn ordered_is_match_path(strategies: &[GlobsterStrategy], path: &Path) -> bool {
+    let mut matched = false;
+    for strategy in strategies {
+        if strategy.raw_match_path(path) {
+            matched = strategy.is_positive();
+        }
+    }
+    matched
+}
+
+fn ordered_is_match_str(strategies: &[GlobsterStrategy], path: &str) -> bool {
+    let mut matched = false;
+    for strategy in strategies {
+        if strategy.raw_match_str(path) {
+            matched = strategy.is_positive();
+        }
+    }
+    matched
 }

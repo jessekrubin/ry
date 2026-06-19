@@ -16,11 +16,13 @@ impl Pyo3JsonBytes {
         }
     }
 }
+
 impl From<(Bytes, JiterParseOptions)> for Pyo3JsonBytes {
     fn from(value: (Bytes, JiterParseOptions)) -> Self {
         Self::new(value.0, value.1)
     }
 }
+
 impl From<Bytes> for Pyo3JsonBytes {
     fn from(value: Bytes) -> Self {
         Self::new(value, JiterParseOptions::default())

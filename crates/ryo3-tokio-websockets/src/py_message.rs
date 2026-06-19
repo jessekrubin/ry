@@ -238,8 +238,30 @@ impl PyWsMessage {
     // TODO: possibly add the other kwargs to this that jiter provides
     /// Parse the message payload as JSON
     #[cfg(feature = "json")]
-    fn json<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
-        ryo3_jiter::JiterParseOptions::default().parse(py, self.0.as_payload())
+    #[pyo3(
+        signature = (
+            *,
+            allow_inf_nan = false,
+            cache_mode = ryo3_jiter::StringCacheMode::All,
+            partial_mode = ryo3_jiter::PartialMode::Off,
+            catch_duplicate_keys = false,
+        ),
+        text_signature = "(self, *, allow_inf_nan=False, cache_mode=\"all\", partial_mode=False, catch_duplicate_keys=False)"
+    )]
+    fn json<'py>(
+        &self,
+        py: Python<'py>,
+        allow_inf_nan: bool,
+        cache_mode: ryo3_jiter::StringCacheMode,
+        partial_mode: ryo3_jiter::PartialMode,
+        catch_duplicate_keys: bool,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        let options = ryo3_jiter::JiterParseOptions::new()
+            .with_allow_inf_nan(allow_inf_nan)
+            .with_cache_mode(cache_mode)
+            .with_partial_mode(partial_mode)
+            .with_catch_duplicate_keys(catch_duplicate_keys);
+        options.parse(py, self.0.as_payload())
     }
 
     fn __bytes__<'py>(&'py self, py: Python<'py>) -> Bound<'py, pyo3::types::PyBytes> {
