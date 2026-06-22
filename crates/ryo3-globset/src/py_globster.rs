@@ -2,117 +2,17 @@ use std::path::Path;
 use std::str::FromStr;
 
 use pyo3::exceptions::PyValueError;
+use pyo3::prelude::*;
 use pyo3::types::{PyTuple, PyTupleMethods};
-use pyo3::{Borrowed, Bound, FromPyObject, PyAny, PyErr, PyResult, Python, pyclass, pymethods};
 use ryo3_core::PyCastExactOpt;
 use ryo3_core::types::PathLike;
 
-use crate::globster::{Globster, GlobsterStrategy};
+use crate::globster::{Globster, GlobsterStrategy, GlobsterStrategyElement};
+use crate::options::{DEFAULT_BACKSLASH_ESCAPE, GlobOptions};
 use crate::traits::{PyGlobPatterns, PyGlobPatternsString};
-use crate::{DEFAULT_BACKSLASH_ESCAPE, PyGlob, PyGlobSet};
+use crate::{PyGlob, PyGlobSet, options};
 
-enum GlobsterPatternArg<'a, 'py> {
-    Glob(Borrowed<'a, 'py, PyGlob>),
-    GlobSet(Borrowed<'a, 'py, PyGlobSet>),
-    Globster(Borrowed<'a, 'py, PyGlobster>),
-    Pattern(String),
-    Patterns(Vec<String>),
-}
-
-impl<'a, 'py> FromPyObject<'a, 'py> for GlobsterPatternArg<'a, 'py> {
-    type Error = PyErr;
-
-    fn extract(obj: Borrowed<'a, 'py, PyAny>) -> PyResult<Self> {
-        if let Some(glob) = obj.cast_exact_opt::<PyGlob>() {
-            return Ok(Self::Glob(glob));
-        }
-        if let Some(globset) = obj.cast_exact_opt::<PyGlobSet>() {
-            return Ok(Self::GlobSet(globset));
-        }
-        if let Some(globster) = obj.cast_exact_opt::<PyGlobster>() {
-            return Ok(Self::Globster(globster));
-        }
-        if let Ok(glob) = obj.extract::<String>() {
-            return Ok(Self::Pattern(glob));
-        }
-        if let Ok(patterns) = obj.extract::<Vec<String>>() {
-            return Ok(Self::Patterns(patterns));
-        }
-        Err(PyValueError::new_err(format!(
-            "Invalid pattern argument: expected str, Glob, GlobSet, Globster, or list of str, got {obj:?}"
-        )))
-    }
-}
-enum GlobsterPatternElement {
-    Pattern(String),
-    Strategy {
-        patterns: Vec<String>,
-        globs: Vec<PyGlob>,
-        strategy: GlobsterStrategy,
-    },
-}
-
-pub(crate) struct GlobsterPatterns(Vec<GlobsterPatternElement>);
-
-impl GlobsterPatterns {
-    fn into_elements(self) -> Vec<GlobsterPatternElement> {
-        self.0
-    }
-}
-
-impl<'py> FromPyObject<'_, 'py> for GlobsterPatterns {
-    type Error = PyErr;
-
-    fn extract(obj: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
-        let args = obj.cast_exact::<PyTuple>()?;
-        let mut elements = Vec::new();
-
-        for idx in 0..args.len() {
-            let arg = args.get_item(idx)?;
-            match GlobsterPatternArg::extract(arg.as_borrowed())? {
-                GlobsterPatternArg::Glob(glob) => {
-                    let glob = glob.get();
-                    let strategy = if glob.negative {
-                        GlobsterStrategy::SingleNegative(glob.matcher.clone())
-                    } else {
-                        GlobsterStrategy::SinglePositive(glob.matcher.clone())
-                    };
-                    elements.push(GlobsterPatternElement::Strategy {
-                        patterns: vec![glob.pattern.clone()],
-                        globs: vec![glob.clone()],
-                        strategy,
-                    });
-                }
-                GlobsterPatternArg::GlobSet(globset) => {
-                    let globset = globset.get();
-                    elements.push(GlobsterPatternElement::Strategy {
-                        patterns: globset.patterns.clone(),
-                        globs: globset.globs.clone(),
-                        strategy: GlobsterStrategy::MultiPositive(globset.globset.clone()),
-                    });
-                }
-                GlobsterPatternArg::Globster(globster) => {
-                    let globster = globster.get();
-                    elements.push(GlobsterPatternElement::Strategy {
-                        patterns: globster.0.patterns.clone(),
-                        globs: globster.1.clone(),
-                        strategy: globster.0.strategy.clone(),
-                    });
-                }
-                GlobsterPatternArg::Pattern(pattern) => {
-                    elements.push(GlobsterPatternElement::Pattern(pattern));
-                }
-                GlobsterPatternArg::Patterns(patterns) => {
-                    elements.extend(patterns.into_iter().map(GlobsterPatternElement::Pattern));
-                }
-            }
-        }
-
-        Ok(Self(elements))
-    }
-}
-
-#[pyclass(name = "Globster", frozen, immutable_type, from_py_object)]
+#[pyclass(name = "Globster", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Clone, Debug)]
 pub struct PyGlobster(pub Globster, pub(crate) Vec<PyGlob>);
@@ -124,7 +24,7 @@ impl FromStr for PyGlobster {
 
     fn from_str(pattern: &str) -> PyResult<Self> {
         let patterns = vec![pattern.to_string()];
-        Self::from_patterns(patterns, false, false, DEFAULT_BACKSLASH_ESCAPE)
+        Self::from_patterns(patterns, GlobOptions::new())
     }
 }
 
@@ -132,7 +32,7 @@ impl TryFrom<Vec<String>> for PyGlobster {
     type Error = PyErr;
 
     fn try_from(patterns: Vec<String>) -> PyResult<Self> {
-        Self::from_patterns(patterns, false, false, DEFAULT_BACKSLASH_ESCAPE)
+        Self::from_patterns(patterns, GlobOptions::new())
     }
 }
 
@@ -140,6 +40,31 @@ impl PyGlobster {
     pub fn is_match<P: AsRef<Path>>(&self, path: P) -> bool {
         self.0.is_match_path(path.as_ref())
     }
+}
+
+#[pyfunction]
+#[pyo3(
+    name = "globster",
+    signature = (
+        *patterns,
+        case_insensitive = false,
+        literal_separator = false,
+        backslash_escape = DEFAULT_BACKSLASH_ESCAPE
+    )
+)]
+pub(crate) fn py_globster_fn(
+    patterns: GlobsterPatterns<'_, '_>,
+    case_insensitive: bool,
+    literal_separator: bool,
+    backslash_escape: bool,
+) -> PyResult<PyGlobster> {
+    PyGlobster::from_pattern_args(
+        patterns,
+        options::GlobOptions::new()
+            .case_insensitive(case_insensitive)
+            .literal_separator(literal_separator)
+            .backslash_escape(backslash_escape),
+    )
 }
 
 #[pymethods]
@@ -154,17 +79,16 @@ impl PyGlobster {
         )
     )]
     pub(crate) fn py_new(
-        patterns: GlobsterPatterns,
+        patterns: GlobsterPatterns<'_, '_>,
         case_insensitive: bool,
         literal_separator: bool,
         backslash_escape: bool,
     ) -> PyResult<Self> {
-        Self::from_pattern_elements(
-            patterns.into_elements(),
-            case_insensitive,
-            literal_separator,
-            backslash_escape,
-        )
+        let options = options::GlobOptions::new()
+            .case_insensitive(case_insensitive)
+            .literal_separator(literal_separator)
+            .backslash_escape(backslash_escape);
+        Self::from_pattern_args(patterns, options)
     }
 
     fn __repr__(&self) -> String {
@@ -182,7 +106,6 @@ impl PyGlobster {
     fn is_empty(&self) -> bool {
         self.0.length == 0
     }
-
     #[must_use]
     fn is_match_str(&self, path: &str) -> bool {
         self.0.is_match_str(path)
@@ -208,108 +131,44 @@ impl PyGlobster {
 
 impl PyGlobster {
     pub(crate) fn from_pattern_args(
-        patterns: GlobsterPatterns,
-        case_insensitive: bool,
-        literal_separator: bool,
-        backslash_escape: bool,
+        patterns: GlobsterPatterns<'_, '_>,
+        options: GlobOptions,
     ) -> PyResult<Self> {
-        Self::from_pattern_elements(
-            patterns.into_elements(),
-            case_insensitive,
-            literal_separator,
-            backslash_escape,
-        )
-    }
+        let args = patterns.into_inner().to_owned();
+        let mut builder = GlobsterBuilder::new();
 
-    pub(crate) fn from_patterns(
-        patterns: Vec<String>,
-        case_insensitive: bool,
-        literal_separator: bool,
-        backslash_escape: bool,
-    ) -> PyResult<Self> {
-        let elements = patterns
-            .into_iter()
-            .map(GlobsterPatternElement::Pattern)
-            .collect();
-        Self::from_pattern_elements(
-            elements,
-            case_insensitive,
-            literal_separator,
-            backslash_escape,
-        )
-    }
-
-    fn from_pattern_elements(
-        elements: Vec<GlobsterPatternElement>,
-        case_insensitive: bool,
-        literal_separator: bool,
-        backslash_escape: bool,
-    ) -> PyResult<Self> {
-        let mut strategies = Vec::new();
-        let mut current_group: Option<PendingGlobsterGroup> = None;
-        let mut patterns = Vec::new();
-        let mut globs = Vec::new();
-
-        for element in elements {
-            let pyglob = match element {
-                GlobsterPatternElement::Pattern(pattern) => pattern,
-                GlobsterPatternElement::Strategy {
-                    patterns: matcher_patterns,
-                    globs: matcher_globs,
-                    strategy,
-                } => {
-                    if let Some(group) = current_group.take() {
-                        strategies.push(group.into_strategy()?);
-                    }
-                    patterns.extend(matcher_patterns);
-                    globs.extend(matcher_globs);
-                    strategies.push(strategy);
-                    continue;
+        for idx in 0..args.len() {
+            let arg = args.get_borrowed_item(idx)?;
+            if let Some(glob) = arg.cast_exact_opt::<PyGlob>() {
+                builder.push_pyglob(glob.get().clone())?;
+            } else if let Some(globset) = arg.cast_exact_opt::<PyGlobSet>() {
+                builder.push_globset(globset.get())?;
+            } else if let Some(globster) = arg.cast_exact_opt::<Self>() {
+                builder.push_globster(globster.get())?;
+            } else if let Ok(pattern) = arg.extract::<String>() {
+                builder.push_pattern(pattern, options)?;
+            } else if let Ok(patterns) = arg.extract::<Vec<String>>() {
+                for pattern in patterns {
+                    builder.push_pattern(pattern, options)?;
                 }
-            };
-            let pyglob = PyGlob::from_pattern(
-                pyglob,
-                case_insensitive,
-                literal_separator,
-                backslash_escape,
-            )?;
-            let negative = pyglob.negative;
-
-            match &mut current_group {
-                Some(group) if group.negative == negative => {
-                    group.globs.push(pyglob.clone());
-                }
-                _ => {
-                    if let Some(group) = current_group.take() {
-                        strategies.push(group.into_strategy()?);
-                    }
-                    let mut group = PendingGlobsterGroup::new(negative);
-                    group.globs.push(pyglob.clone());
-                    current_group = Some(group);
-                }
+            } else {
+                return Err(PyValueError::new_err(format!(
+                    "Invalid pattern argument: expected str, Glob, GlobSet, Globster, or list of str, got {arg:?}"
+                )));
             }
-            patterns.push(pyglob.pattern.clone());
-            globs.push(pyglob);
         }
 
-        if let Some(group) = current_group {
-            strategies.push(group.into_strategy()?);
+        builder.finish()
+    }
+
+    pub(crate) fn from_patterns(patterns: Vec<String>, options: GlobOptions) -> PyResult<Self> {
+        let mut builder = GlobsterBuilder::new();
+
+        for pattern in patterns {
+            builder.push_pattern(pattern, options)?;
         }
 
-        let strategy = match strategies.len() {
-            0 => GlobsterStrategy::Empty,
-            1 => strategies.remove(0),
-            _ => GlobsterStrategy::Ordered(strategies),
-        };
-
-        Ok(Self(
-            Globster {
-                length: patterns.len(),
-                patterns,
-                strategy,
-            },
-            globs,
-        ))
+        builder.finish()
     }
 }
 
@@ -326,21 +185,105 @@ impl PyGlobPatterns for PyGlobster {
     }
 }
 
-struct PendingGlobsterGroup {
-    negative: bool,
+struct GlobsterBuilder {
+    strategies: Vec<GlobsterStrategyElement>,
+    current_negative: Option<bool>,
+    current_globs: Vec<globset::Glob>,
+    patterns: Vec<String>,
     globs: Vec<PyGlob>,
 }
 
-impl PendingGlobsterGroup {
-    fn new(negative: bool) -> Self {
+impl GlobsterBuilder {
+    fn new() -> Self {
         Self {
-            negative,
+            strategies: Vec::new(),
+            current_negative: None,
+            current_globs: Vec::new(),
+            patterns: Vec::new(),
             globs: Vec::new(),
         }
     }
 
-    fn into_strategy(self) -> PyResult<GlobsterStrategy> {
-        let globs: Vec<globset::Glob> = self.globs.into_iter().map(|glob| glob.glob).collect();
-        GlobsterStrategy::from_globs(self.negative, globs)
+    fn push_pattern(&mut self, pattern: String, options: GlobOptions) -> PyResult<()> {
+        self.push_pyglob(PyGlob::from_pattern(pattern, options)?)
+    }
+
+    fn push_pyglob(&mut self, pyglob: PyGlob) -> PyResult<()> {
+        let negative = pyglob.negative;
+
+        if self.current_negative != Some(negative) {
+            self.flush_group()?;
+            self.current_negative = Some(negative);
+        }
+
+        self.current_globs.push(pyglob.glob.clone());
+        self.patterns.push(pyglob.pattern.clone());
+        self.globs.push(pyglob);
+        Ok(())
+    }
+
+    fn push_globset(&mut self, globset: &PyGlobSet) -> PyResult<()> {
+        self.flush_group()?;
+        self.patterns.extend(globset.patterns.clone());
+        self.globs.extend(globset.globs.clone());
+        self.strategies
+            .push(GlobsterStrategyElement::Set(globset.globset.clone()));
+        Ok(())
+    }
+
+    fn push_globster(&mut self, globster: &PyGlobster) -> PyResult<()> {
+        self.flush_group()?;
+        self.patterns.extend(globster.0.patterns.clone());
+        self.globs.extend(globster.1.clone());
+        match &globster.0.strategy {
+            GlobsterStrategy::Empty => {}
+            GlobsterStrategy::One(strategy) => self.strategies.push(strategy.clone()),
+            GlobsterStrategy::Ignore(strategies) => self.strategies.extend(strategies.clone()),
+        }
+        Ok(())
+    }
+
+    fn flush_group(&mut self) -> PyResult<()> {
+        if let Some(negative) = self.current_negative.take() {
+            let globs = std::mem::take(&mut self.current_globs);
+            self.strategies
+                .push(GlobsterStrategyElement::from_globs(negative, globs)?);
+        }
+        Ok(())
+    }
+
+    fn finish(mut self) -> PyResult<PyGlobster> {
+        self.flush_group()?;
+
+        let strategy = match self.strategies.len() {
+            0 => GlobsterStrategy::Empty,
+            1 => GlobsterStrategy::One(self.strategies.remove(0)),
+            _ => GlobsterStrategy::Ignore(self.strategies),
+        };
+
+        Ok(PyGlobster(
+            Globster {
+                length: self.patterns.len(),
+                patterns: self.patterns,
+                strategy,
+            },
+            self.globs,
+        ))
+    }
+}
+
+pub(crate) struct GlobsterPatterns<'a, 'py>(Borrowed<'a, 'py, PyTuple>);
+
+impl<'a, 'py> GlobsterPatterns<'a, 'py> {
+    fn into_inner(self) -> Borrowed<'a, 'py, PyTuple> {
+        self.0
+    }
+}
+
+impl<'a, 'py> FromPyObject<'a, 'py> for GlobsterPatterns<'a, 'py> {
+    type Error = PyErr;
+
+    fn extract(obj: Borrowed<'a, 'py, PyAny>) -> PyResult<Self> {
+        Ok(Self(obj.cast_exact()?))
     }
 }

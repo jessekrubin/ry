@@ -1,4 +1,4 @@
-use ::globset::{Glob, GlobBuilder, GlobSetBuilder};
+use ::globset::{Glob, GlobSetBuilder};
 use pyo3::IntoPyObjectExt;
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
@@ -6,10 +6,10 @@ use pyo3::types::{PyDict, PyString, PyTuple};
 use ryo3_core::types::PathLike;
 
 use crate::globster::Globster;
-use crate::options::GlobOptions;
-use crate::{DEFAULT_BACKSLASH_ESCAPE, PyGlobSet, PyGlobster};
+use crate::options::{DEFAULT_BACKSLASH_ESCAPE, GlobOptions};
+use crate::{PyGlobSet, PyGlobster};
 
-#[pyclass(name = "Glob", frozen, immutable_type, from_py_object)]
+#[pyclass(name = "Glob", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Clone, Debug)]
 pub struct PyGlob {
@@ -38,12 +38,11 @@ impl PyGlob {
         literal_separator: bool,
         backslash_escape: bool,
     ) -> PyResult<Self> {
-        Self::from_pattern(
-            pattern,
-            case_insensitive,
-            literal_separator,
-            backslash_escape,
-        )
+        let options = GlobOptions::new()
+            .case_insensitive(case_insensitive)
+            .literal_separator(literal_separator)
+            .backslash_escape(backslash_escape);
+        Self::from_pattern(pattern, options)
     }
 
     fn __invert__(&self) -> Self {
@@ -129,12 +128,7 @@ impl PyGlob {
 }
 
 impl PyGlob {
-    pub(crate) fn from_pattern(
-        pattern: String,
-        case_insensitive: bool,
-        literal_separator: bool,
-        backslash_escape: bool,
-    ) -> PyResult<Self> {
+    pub(crate) fn from_pattern(pattern: String, options: GlobOptions) -> PyResult<Self> {
         if pattern.starts_with("!!") {
             return Err(PyValueError::new_err("Double negation is not allowed"));
         }
@@ -145,16 +139,7 @@ impl PyGlob {
         if glob_pattern.is_empty() {
             return Err(PyValueError::new_err("Empty pattern"));
         }
-        let mut glob_builder = GlobBuilder::new(glob_pattern);
-        glob_builder
-            .backslash_escape(backslash_escape)
-            .literal_separator(literal_separator)
-            .case_insensitive(case_insensitive);
-        let options = GlobOptions::new()
-            .backslash_escape(backslash_escape)
-            .literal_separator(literal_separator)
-            .case_insensitive(case_insensitive);
-        let glob = glob_builder.build();
+        let glob = options.build(glob_pattern);
         match glob {
             Ok(glob) => {
                 let matcher = glob.compile_matcher();

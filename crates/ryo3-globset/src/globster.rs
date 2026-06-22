@@ -1,17 +1,20 @@
 use std::path::Path;
 
-use globset::{Glob, GlobMatcher, GlobSet, GlobSetBuilder};
+use globset::{Candidate, Glob, GlobSet, GlobSetBuilder};
 use pyo3::PyResult;
 use pyo3::exceptions::PyValueError;
 
 #[derive(Clone, Debug)]
+pub(crate) enum GlobsterStrategyElement {
+    Set(GlobSet),
+    SetNeg(GlobSet),
+}
+
+#[derive(Clone, Debug)]
 pub(crate) enum GlobsterStrategy {
     Empty,
-    SinglePositive(GlobMatcher),
-    SingleNegative(GlobMatcher),
-    MultiPositive(GlobSet),
-    MultiNegative(GlobSet),
-    Ordered(Vec<Self>),
+    One(GlobsterStrategyElement),
+    Ignore(Vec<GlobsterStrategyElement>),
 }
 
 #[derive(Clone, Debug)]
@@ -28,7 +31,7 @@ impl Globster {
             strategy: if length == 0 {
                 GlobsterStrategy::Empty
             } else {
-                GlobsterStrategy::MultiPositive(globset)
+                GlobsterStrategy::One(GlobsterStrategyElement::Set(globset))
             },
             patterns,
             length,
@@ -36,34 +39,58 @@ impl Globster {
     }
 
     pub(crate) fn from_positive_glob(pattern: String, glob: &Glob) -> Self {
+        let strategy = GlobsterStrategy::from_globs(false, vec![glob.clone()])
+            .expect("wenodis: globset from a valid glob dont fail");
         Self {
-            strategy: GlobsterStrategy::SinglePositive(glob.compile_matcher()),
+            strategy,
             patterns: vec![pattern],
             length: 1,
         }
     }
 
+    pub fn is_match_candidate(&self, path: &Candidate<'_>) -> bool {
+        self.strategy.is_match_candidate(path)
+    }
+
     pub(crate) fn is_match_path(&self, path: &Path) -> bool {
-        self.strategy.is_match_path(path)
+        self.strategy.is_match(path)
     }
 
     pub(crate) fn is_match_str(&self, path: &str) -> bool {
-        self.strategy.is_match_str(path)
+        self.strategy.is_match(path)
     }
 }
 
 impl GlobsterStrategy {
-    pub(crate) fn from_globs(negative: bool, mut globs: Vec<Glob>) -> PyResult<Self> {
+    pub(crate) fn from_globs(negative: bool, globs: Vec<Glob>) -> PyResult<Self> {
         if globs.is_empty() {
             return Ok(Self::Empty);
         }
-        if globs.len() == 1 {
-            let matcher = globs.remove(0).compile_matcher();
-            return Ok(if negative {
-                Self::SingleNegative(matcher)
-            } else {
-                Self::SinglePositive(matcher)
-            });
+        GlobsterStrategyElement::from_globs(negative, globs).map(Self::One)
+    }
+
+    fn is_match_candidate(&self, path: &Candidate<'_>) -> bool {
+        match self {
+            Self::Empty => false,
+            Self::One(strategy) => strategy.is_match_candidate(path),
+            Self::Ignore(strategies) => strategies.iter().fold(false, |matched, strategy| {
+                strategy.match_effect_candidate(path).unwrap_or(matched)
+            }),
+        }
+    }
+
+    fn is_match<P: AsRef<Path>>(&self, path: P) -> bool {
+        let c = Candidate::new(path.as_ref());
+        self.is_match_candidate(&c)
+    }
+}
+
+impl GlobsterStrategyElement {
+    pub(crate) fn from_globs(negative: bool, globs: Vec<Glob>) -> PyResult<Self> {
+        if globs.is_empty() {
+            return Err(PyValueError::new_err(
+                "Cannot build globster strategy from empty globs",
+            ));
         }
 
         let mut globset_builder = GlobSetBuilder::new();
@@ -75,76 +102,23 @@ impl GlobsterStrategy {
             .map_err(|e| PyValueError::new_err(format!("Error building globset: {e}")))?;
 
         Ok(if negative {
-            Self::MultiNegative(globset)
+            Self::SetNeg(globset)
         } else {
-            Self::MultiPositive(globset)
+            Self::Set(globset)
         })
     }
 
-    fn is_match_path(&self, path: &Path) -> bool {
+    fn is_match_candidate(&self, path: &Candidate<'_>) -> bool {
         match self {
-            Self::Empty => false,
-            Self::SinglePositive(matcher) => matcher.is_match(path),
-            Self::SingleNegative(matcher) => !matcher.is_match(path),
-            Self::MultiPositive(globset) => globset.is_match(path),
-            Self::MultiNegative(globset) => !globset.is_match(path),
-            Self::Ordered(strategies) => ordered_is_match_path(strategies, path),
+            Self::Set(globset) => globset.is_match_candidate(path),
+            Self::SetNeg(globset) => !globset.is_match_candidate(path),
         }
     }
 
-    fn is_match_str(&self, path: &str) -> bool {
+    fn match_effect_candidate(&self, path: &Candidate<'_>) -> Option<bool> {
         match self {
-            Self::Empty => false,
-            Self::SinglePositive(matcher) => matcher.is_match(path),
-            Self::SingleNegative(matcher) => !matcher.is_match(path),
-            Self::MultiPositive(globset) => globset.is_match(path),
-            Self::MultiNegative(globset) => !globset.is_match(path),
-            Self::Ordered(strategies) => ordered_is_match_str(strategies, path),
+            Self::Set(globset) => globset.is_match_candidate(path).then_some(true),
+            Self::SetNeg(globset) => globset.is_match_candidate(path).then_some(false),
         }
     }
-
-    fn raw_match_path(&self, path: &Path) -> bool {
-        match self {
-            Self::Empty => false,
-            Self::SinglePositive(matcher) | Self::SingleNegative(matcher) => matcher.is_match(path),
-            Self::MultiPositive(globset) | Self::MultiNegative(globset) => globset.is_match(path),
-            Self::Ordered(strategies) => ordered_is_match_path(strategies, path),
-        }
-    }
-
-    fn raw_match_str(&self, path: &str) -> bool {
-        match self {
-            Self::Empty => false,
-            Self::SinglePositive(matcher) | Self::SingleNegative(matcher) => matcher.is_match(path),
-            Self::MultiPositive(globset) | Self::MultiNegative(globset) => globset.is_match(path),
-            Self::Ordered(strategies) => ordered_is_match_str(strategies, path),
-        }
-    }
-
-    fn is_positive(&self) -> bool {
-        matches!(
-            self,
-            Self::SinglePositive(_) | Self::MultiPositive(_) | Self::Ordered(_)
-        )
-    }
-}
-
-fn ordered_is_match_path(strategies: &[GlobsterStrategy], path: &Path) -> bool {
-    let mut matched = false;
-    for strategy in strategies {
-        if strategy.raw_match_path(path) {
-            matched = strategy.is_positive();
-        }
-    }
-    matched
-}
-
-fn ordered_is_match_str(strategies: &[GlobsterStrategy], path: &str) -> bool {
-    let mut matched = false;
-    for strategy in strategies {
-        if strategy.raw_match_str(path) {
-            matched = strategy.is_positive();
-        }
-    }
-    matched
 }

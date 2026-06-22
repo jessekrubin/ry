@@ -7,10 +7,11 @@ use ryo3_core::PyCastExactOpt;
 use ryo3_core::types::PathLike;
 
 use crate::globster::Globster;
+use crate::options::{DEFAULT_BACKSLASH_ESCAPE, GlobOptions};
 use crate::traits::{PyGlobPatterns, PyGlobPatternsString};
-use crate::{DEFAULT_BACKSLASH_ESCAPE, PyGlob, PyGlobster};
+use crate::{PyGlob, PyGlobster};
 
-#[pyclass(name = "GlobSet", frozen, immutable_type, from_py_object)]
+#[pyclass(name = "GlobSet", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Clone, Debug)]
 pub struct PyGlobSet {
@@ -39,29 +40,44 @@ impl PyGlobSet {
         )
     )]
     fn py_new(
-        patterns: GlobSetPatterns,
+        patterns: GlobSetPatterns<'_, '_>,
         case_insensitive: bool,
         literal_separator: bool,
         backslash_escape: bool,
     ) -> PyResult<Self> {
-        let mut globset_builder = GlobSetBuilder::new();
-        let elements = patterns.into_elements();
-        let mut patterns = Vec::new();
-        let mut globs = Vec::new();
+        let options = GlobOptions::new()
+            .case_insensitive(case_insensitive)
+            .literal_separator(literal_separator)
+            .backslash_escape(backslash_escape);
 
-        for element in elements {
-            let glob = match element {
-                GlobSetPatternElement::Glob(glob) => glob,
-                GlobSetPatternElement::Pattern(pattern) => PyGlob::from_pattern(
-                    pattern,
-                    case_insensitive,
-                    literal_separator,
-                    backslash_escape,
-                )?,
-            };
-            patterns.push(glob.pattern.clone());
-            globset_builder.add(glob.glob.clone());
-            globs.push(glob);
+        let args = patterns.into_inner();
+        let mut globset_builder = GlobSetBuilder::new();
+        let mut patterns = Vec::new();
+        let mut globs: Vec<PyGlob> = Vec::new();
+
+        for arg in args.iter_borrowed() {
+            if let Some(glob) = arg.cast_exact_opt::<PyGlob>() {
+                let glob = glob.get().clone();
+                patterns.push(glob.pattern.clone());
+                globset_builder.add(glob.glob.clone());
+                globs.push(glob);
+            } else if let Ok(pattern) = arg.extract::<String>() {
+                let glob = PyGlob::from_pattern(pattern, options)?;
+                patterns.push(glob.pattern.clone());
+                globset_builder.add(glob.glob.clone());
+                globs.push(glob);
+            } else if let Ok(arg_patterns) = arg.extract::<Vec<String>>() {
+                for pattern in arg_patterns {
+                    let glob = PyGlob::from_pattern(pattern, options)?;
+                    patterns.push(glob.pattern.clone());
+                    globset_builder.add(glob.glob.clone());
+                    globs.push(glob);
+                }
+            } else {
+                return Err(PyValueError::new_err(format!(
+                    "Invalid pattern argument: expected str, Glob, or list of str, got {arg:?}"
+                )));
+            }
         }
         let gs = globset_builder
             .build()
@@ -128,66 +144,18 @@ impl std::fmt::Display for PyGlobSet {
     }
 }
 
-enum GlobSetPatternArg<'a, 'py> {
-    Glob(Borrowed<'a, 'py, PyGlob>),
-    Pattern(String),
-    Patterns(Vec<String>),
-}
+struct GlobSetPatterns<'a, 'py>(Borrowed<'a, 'py, PyTuple>);
 
-impl<'a, 'py> FromPyObject<'a, 'py> for GlobSetPatternArg<'a, 'py> {
-    type Error = PyErr;
-
-    fn extract(obj: Borrowed<'a, 'py, PyAny>) -> PyResult<Self> {
-        if let Some(glob) = obj.cast_exact_opt::<PyGlob>() {
-            return Ok(Self::Glob(glob));
-        }
-        if let Ok(pattern) = obj.extract::<String>() {
-            return Ok(Self::Pattern(pattern));
-        }
-        if let Ok(patterns) = obj.extract::<Vec<String>>() {
-            return Ok(Self::Patterns(patterns));
-        }
-        Err(PyValueError::new_err(format!(
-            "Invalid pattern argument: expected str, Glob, or list of str, got {obj:?}"
-        )))
-    }
-}
-
-enum GlobSetPatternElement {
-    Glob(PyGlob),
-    Pattern(String),
-}
-
-struct GlobSetPatterns(Vec<GlobSetPatternElement>);
-
-impl GlobSetPatterns {
-    fn into_elements(self) -> Vec<GlobSetPatternElement> {
+impl<'a, 'py> GlobSetPatterns<'a, 'py> {
+    fn into_inner(self) -> Borrowed<'a, 'py, PyTuple> {
         self.0
     }
 }
 
-impl<'py> FromPyObject<'_, 'py> for GlobSetPatterns {
+impl<'a, 'py> FromPyObject<'a, 'py> for GlobSetPatterns<'a, 'py> {
     type Error = PyErr;
 
-    fn extract(obj: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
-        let args = obj.cast_exact::<PyTuple>()?;
-        let mut elements = Vec::new();
-
-        for idx in 0..args.len() {
-            let arg = args.get_item(idx)?;
-            match GlobSetPatternArg::extract(arg.as_borrowed())? {
-                GlobSetPatternArg::Glob(glob) => {
-                    elements.push(GlobSetPatternElement::Glob(glob.get().clone()));
-                }
-                GlobSetPatternArg::Pattern(pattern) => {
-                    elements.push(GlobSetPatternElement::Pattern(pattern));
-                }
-                GlobSetPatternArg::Patterns(patterns) => {
-                    elements.extend(patterns.into_iter().map(GlobSetPatternElement::Pattern));
-                }
-            }
-        }
-
-        Ok(Self(elements))
+    fn extract(obj: Borrowed<'a, 'py, PyAny>) -> PyResult<Self> {
+        Ok(Self(obj.cast_exact()?))
     }
 }
