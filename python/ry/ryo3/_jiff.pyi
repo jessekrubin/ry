@@ -1587,6 +1587,8 @@ class ZonedDateTime(
         "second",
         "subsec_nanosecond",
     )
+    UNIX_EPOCH: t.Final[ZonedDateTime]
+
     def __new__(
         cls,
         year: int,

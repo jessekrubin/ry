@@ -11,7 +11,9 @@
 
 - `ryo3-bytes`
   - constructor returns same instance if input is already `ry.Bytes`
-  - added `ry.b` short hand function
+- `ryo3-jiff`
+  - update jiff to 0.2.29
+  - add `ry.ZonedDateTime.UNIX_EPOCH`
 
 ---
 

@@ -108,6 +108,12 @@ impl RyZoned {
         )
     }
 
+    #[classattr]
+    #[expect(non_snake_case, reason = "python classattr")]
+    fn UNIX_EPOCH() -> Self {
+        Self::from(Zoned::UNIX_EPOCH)
+    }
+
     fn __getnewargs__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
         PyTuple::new(
             py,
