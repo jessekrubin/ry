@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import pickle
+import re
 
 import pytest
 
@@ -30,7 +31,10 @@ class TestReprs:
 class TestGlob:
     def test_negative_glob_strips_bang_for_matcher(self) -> None:
         with pytest.raises(
-            ValueError, match="negation is not allowed; use Globster for negation"
+            ValueError,
+            match=re.escape(
+                "negation is not allowed; use `Globster` for negative pattern(s)"
+            ),
         ):
             ry.Glob("!*.txt")
 
@@ -53,6 +57,8 @@ class TestGlobSet:
 
     def test_globset_pickle_roundtrip_preserves_globs(self) -> None:
         globset = ry.GlobSet(ry.Glob("*.PY", case_insensitive=True), "*.txt")
+        s = repr(globset)
+        assert s == 'GlobSet(Glob("*.PY", case_insensitive=True), "*.txt")'
         loaded = pickle.loads(pickle.dumps(globset))
 
         assert loaded.patterns == ("*.PY", "*.txt")
