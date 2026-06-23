@@ -518,6 +518,23 @@ class Bytes(Buffer):
 
         """
 
+    def clone(self) -> Bytes:
+        """Return a new `Bytes` object that shares the same underlying buffer.
+
+        Examples
+        --------
+        >>> from ry import Bytes
+        >>> b = Bytes.copy_from(b"hello")
+        >>> b.is_unique()
+        True
+        >>> c = b.clone()
+        >>> b.is_unique()
+        False
+        >>> c.is_unique()
+        False
+
+        """
+
     def __add__(self, other: Buffer) -> Bytes: ...
     def __buffer__(self, flags: int) -> memoryview: ...
     def __contains__(self, other: Buffer) -> bool: ...
@@ -731,6 +748,12 @@ class Bytes(Buffer):
         /,
     ) -> int:
         """Return the highest index where `sub` is found or raise `ValueError`."""
+
+    def split(self, sep: Buffer | None = None, maxsplit: int = -1) -> list[Bytes]:
+        """Return a list of the words in the bytes, using `sep` as the delimiter."""
+
+    def rsplit(self, sep: Buffer | None = None, maxsplit: int = -1) -> list[Bytes]:
+        """Return a list of the words in the bytes, using `sep` as the delimiter."""
 
     def partition(self, sep: Buffer, /) -> tuple[Bytes, Bytes, Bytes]:
         """Partition the bytes into three parts using the given separator.
@@ -1679,9 +1702,7 @@ class GlobSet:
 
     def __new__(
         cls,
-        patterns: list[str],
-        /,
-        *,
+        *patterns: str | Glob | t.Sequence[str | Glob],
         case_insensitive: bool = False,
         literal_separator: bool = False,
         backslash_escape: bool = ...,  # True on windows, False otherwise
@@ -1707,9 +1728,7 @@ class Globster:
 
     def __new__(
         cls,
-        patterns: list[str],
-        /,
-        *,
+        *patterns: str | Glob | GlobSet | Globster | t.Sequence[str],
         case_insensitive: bool = False,
         literal_separator: bool = False,
         backslash_escape: bool = ...,  # True on windows, False otherwise
@@ -1723,9 +1742,7 @@ class Globster:
 
 
 def globster(
-    patterns: list[str] | tuple[str, ...],
-    /,
-    *,
+    *patterns: str | Glob | GlobSet | Globster | t.Sequence[str],
     case_insensitive: bool = False,
     literal_separator: bool = False,
     backslash_escape: bool = ...,  # True on windows, False otherwise
@@ -7483,7 +7500,13 @@ class WsMessage(Buffer):
     # -------------------------------------------------------------------------
     # INSTANCE METHODS
     # -------------------------------------------------------------------------
-    def json(self) -> t.Any:
+    def json(
+        self,
+        allow_inf_nan: bool = False,
+        cache_mode: t.Literal[True, False, "all", "keys", "none"] = "all",
+        partial_mode: t.Literal[True, False, "off", "on", "trailing-strings"] = False,
+        catch_duplicate_keys: bool = False,
+    ) -> t.Any:
         """Parse the message payload as JSON"""
 
     def __bytes__(self) -> bytes:
