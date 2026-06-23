@@ -300,12 +300,11 @@ impl RyResponse {
         catch_duplicate_keys: bool,
     ) -> PyResult<Bound<'py, PyAny>> {
         let body = self.take_body()?;
-        let options = ryo3_jiter::JiterParseOptions {
-            allow_inf_nan,
-            cache_mode,
-            partial_mode,
-            catch_duplicate_keys,
-        };
+        let options = ryo3_jiter::JiterParseOptions::new()
+            .with_allow_inf_nan(allow_inf_nan)
+            .with_cache_mode(cache_mode)
+            .with_partial_mode(partial_mode)
+            .with_catch_duplicate_keys(catch_duplicate_keys);
         future_into_py(py, async move {
             read_body_bytes(body)
                 .await
@@ -503,12 +502,12 @@ impl RyResponse {
         #[pyo3(cancel_handle)] cancel: CancelHandle,
     ) -> PyResult<Pyo3JsonBytes> {
         let body = self.take_body()?;
-        let options = ryo3_jiter::JiterParseOptions {
-            allow_inf_nan,
-            cache_mode,
-            partial_mode,
-            catch_duplicate_keys,
-        };
+        let options = ryo3_jiter::JiterParseOptions::new()
+            .with_allow_inf_nan(allow_inf_nan)
+            .with_cache_mode(cache_mode)
+            .with_partial_mode(partial_mode)
+            .with_catch_duplicate_keys(catch_duplicate_keys);
+
         on_tokio_py(async move {
             read_body_bytes_with_cancel(body, cancel)
                 .await
@@ -703,12 +702,11 @@ impl RyBlockingResponse {
         catch_duplicate_keys: bool,
     ) -> PyResult<Pyo3JsonBytes> {
         let body = self.take_body()?;
-        let options = ryo3_jiter::JiterParseOptions {
-            allow_inf_nan,
-            cache_mode,
-            partial_mode,
-            catch_duplicate_keys,
-        };
+        let options = ryo3_jiter::JiterParseOptions::new()
+            .with_allow_inf_nan(allow_inf_nan)
+            .with_cache_mode(cache_mode)
+            .with_partial_mode(partial_mode)
+            .with_catch_duplicate_keys(catch_duplicate_keys);
 
         py.detach(|| {
             get_tokio_runtime().block_on(async {

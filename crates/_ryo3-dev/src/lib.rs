@@ -8,17 +8,16 @@
 #![deny(clippy::style)]
 #![deny(clippy::unwrap_used)]
 #![expect(clippy::missing_errors_doc)]
-#![expect(clippy::missing_panics_doc)]
-#![expect(clippy::module_name_repetitions)]
-#![expect(clippy::unnecessary_wraps)]
-#![expect(clippy::unwrap_used)]
 #![expect(unused_crate_dependencies)]
 use pyo3::prelude::*;
 
-pub mod anystr;
-pub mod sp;
+#[pyfunction]
+#[must_use]
+pub fn devfn() -> &'static str {
+    "_ryo3-dev"
+}
+
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    anystr::pymod_add(m)?;
-    sp::pymod_add(m)?;
+    m.add_function(wrap_pyfunction!(devfn, m)?)?;
     Ok(())
 }

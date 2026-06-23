@@ -1,6 +1,11 @@
 //! `FsPath` struct python module
-use std::ffi::OsStr;
+use std::ffi::{OsStr, OsString};
+use std::fmt;
+#[cfg(target_os = "windows")]
+use std::fmt::Write as _;
 use std::hash::{Hash, Hasher};
+#[cfg(target_os = "windows")]
+use std::path::Component;
 use std::path::{Path, PathBuf};
 
 use pyo3::basic::CompareOp;
@@ -102,8 +107,9 @@ impl PyFsPath {
     }
 
     fn __repr__(&self) -> String {
-        let posix_str = self.as_posix();
-        format!("FsPath(\'{posix_str}\')")
+        let path = self.path();
+        let posix_path = path.posix_display();
+        format!("FsPath(\'{posix_path}\')")
     }
 
     fn to_pathlib(&self) -> &Path {
@@ -192,14 +198,11 @@ impl PyFsPath {
 
     #[cfg(target_os = "windows")]
     #[getter]
-    fn drive(&self) -> Option<String> {
+    fn drive(&self) -> Option<OsString> {
         let drive = self.path().components().next();
         match drive {
-            Some(drive_component) => {
-                let drive_str = drive_component.as_os_str().to_string_lossy().to_string();
-                Some(drive_str)
-            }
-            None => None,
+            Some(Component::Prefix(pref)) => Some(pref.as_os_str().to_os_string()),
+            _ => None,
         }
     }
 
@@ -214,9 +217,9 @@ impl PyFsPath {
         let anchor = self.path().components().next();
         match anchor {
             Some(anchor) => {
-                let a = anchor.as_os_str().to_string_lossy().to_string();
+                let anchor_disp = anchor.as_os_str().display();
                 // ensure that the anchor ends with a separator
-                format!("{a}{MAIN_SEPARATOR}")
+                format!("{anchor_disp}{MAIN_SEPARATOR}")
             }
             None => String::new(),
         }
@@ -241,32 +244,20 @@ impl PyFsPath {
     }
 
     #[getter]
-    fn parents<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
-        let parent = self.path().parent();
-        if let Some(par) = parent {
-            let parents: Vec<Self> = par.ancestors().map(Self::from).collect();
-            PyTuple::new(py, parents)
-        } else {
-            // no parents
-            PyTuple::new(py, Vec::<Self>::new())
-        }
+    fn parents(&self) -> PyFsPathAncestors {
+        PyFsPathAncestors::parents(self.path())
     }
 
     #[getter]
     fn parts<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
-        let parts = self
-            .path()
-            .components()
-            .map(|c| c.as_os_str().to_string_lossy().to_string())
-            .collect::<Vec<String>>();
-        PyTuple::new(py, parts)
+        self.components(py)
     }
 
     #[getter]
-    fn name(&self) -> String {
+    fn name(&self) -> OsString {
         match self.path().file_name() {
-            Some(name) => name.to_string_lossy().to_string(),
-            None => String::new(),
+            Some(name) => name.to_os_string(),
+            None => OsString::new(),
         }
     }
 
@@ -280,11 +271,10 @@ impl PyFsPath {
         let e = self.path().extension();
         match e {
             Some(e) => {
-                let e = e.to_string_lossy().to_string();
-                if e.starts_with('.') {
-                    e
+                if e.as_encoded_bytes().starts_with(b".") {
+                    e.to_string_lossy().to_string()
                 } else {
-                    format!(".{e}") // python pathlib.path does this
+                    format!(".{}", e.display()) // python pathlib.path does this
                 }
             }
             None => String::new(),
@@ -298,8 +288,7 @@ impl PyFsPath {
         } else {
             suffix.as_ref()
         };
-        let p = self.path().with_extension(suffix);
-        Self::from(p)
+        self.path().with_extension(suffix).into()
     }
 
     #[getter]
@@ -350,7 +339,7 @@ impl PyFsPath {
             let segment: PathBuf = arg.extract()?;
             path = path.join(segment);
         }
-        Ok(Self::from(path))
+        Ok(path.into())
     }
 
     fn read(&self, py: Python<'_>) -> PyResult<RyBytes> {
@@ -659,12 +648,13 @@ impl PyFsPath {
     }
 
     fn components<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
-        let parts = self
-            .path()
-            .components()
-            .map(|c| c.as_os_str().to_string_lossy().to_string())
-            .collect::<Vec<String>>();
-        PyTuple::new(py, parts)
+        PyTuple::new(
+            py,
+            self.path()
+                .components()
+                .map(std::path::Component::as_os_str)
+                .collect::<Vec<_>>(),
+        )
     }
 
     fn display(&self) -> String {
@@ -681,28 +671,20 @@ impl PyFsPath {
             .map_err(|e| PyFileNotFoundError::new_err(format!("try_exists: {e}")))
     }
 
-    fn extension(&self) -> Option<String> {
-        self.path()
-            .extension()
-            .map(|e| e.to_string_lossy().to_string())
+    fn extension(&self) -> Option<OsString> {
+        self.path().extension().map(OsStr::to_os_string)
     }
 
-    fn file_name(&self) -> Option<String> {
-        self.path()
-            .file_name()
-            .map(|s| s.to_string_lossy().to_string())
+    fn file_name(&self) -> Option<OsString> {
+        self.path().file_name().map(OsStr::to_os_string)
     }
 
-    fn file_prefix(&self) -> Option<String> {
-        self.path()
-            .file_stem()
-            .map(|s| s.to_string_lossy().to_string())
+    fn file_prefix(&self) -> Option<OsString> {
+        self.path().file_stem().map(OsStr::to_os_string)
     }
 
-    fn file_stem(&self) -> Option<String> {
-        self.path()
-            .file_stem()
-            .map(|s| s.to_string_lossy().to_string())
+    fn file_stem(&self) -> Option<OsString> {
+        self.path().file_stem().map(OsStr::to_os_string)
     }
 
     fn has_root(&self) -> bool {
@@ -901,9 +883,7 @@ where
 
 #[pyclass(name = "FsPathReadDir", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
-struct PyFsPathReadDir {
-    iter: RyMutex<std::fs::ReadDir, false>,
-}
+struct PyFsPathReadDir(RyMutex<std::fs::ReadDir, false>);
 
 #[pymethods]
 impl PyFsPathReadDir {
@@ -912,7 +892,7 @@ impl PyFsPathReadDir {
     }
 
     fn __next__(&self, py: Python<'_>) -> Option<PyFsPath> {
-        let value = py.detach(|| self.iter.py_lock().next());
+        let value = py.detach(|| self.0.py_lock().next());
         match value {
             Some(Ok(entry)) => Some(PyFsPath::from(entry.path())),
             _ => None,
@@ -922,7 +902,7 @@ impl PyFsPathReadDir {
     fn collect(&self, py: Python<'_>) -> Vec<PyFsPath> {
         py.detach(|| {
             let mut paths = vec![];
-            for entry in self.iter.py_lock().by_ref() {
+            for entry in self.0.py_lock().by_ref() {
                 match entry {
                     Ok(entry) => paths.push(PyFsPath::from(entry.path())),
                     Err(_e) => break, // TODO: handle error
@@ -935,7 +915,7 @@ impl PyFsPathReadDir {
     #[pyo3(signature = (n = 1))]
     fn take(&self, py: Python<'_>, n: usize) -> Vec<PyFsPath> {
         py.detach(|| {
-            self.iter
+            self.0
                 .py_lock()
                 .by_ref()
                 .take(n)
@@ -950,7 +930,7 @@ impl PyFsPathReadDir {
 
 impl From<std::fs::ReadDir> for PyFsPathReadDir {
     fn from(iter: std::fs::ReadDir) -> Self {
-        Self { iter: iter.into() }
+        Self(iter.into())
     }
 }
 
@@ -962,6 +942,21 @@ struct PyFsPathAncestors {
 }
 
 impl PyFsPathAncestors {
+    fn empty() -> Self {
+        Self {
+            path: PathBuf::new(),
+            current: RyMutex::new(None),
+        }
+    }
+
+    fn parents(p: &Path) -> Self {
+        if let Some(p) = p.parent() {
+            Self::new(p)
+        } else {
+            Self::empty()
+        }
+    }
+
     fn new<P: AsRef<Path>>(p: P) -> Self {
         let buf = to_native_pathbuf(p);
         Self {
@@ -995,50 +990,113 @@ impl PyFsPathAncestors {
         Some(out)
     }
 
+    fn __len__(&self) -> usize {
+        self.path.ancestors().count()
+    }
+
     fn collect(&self) -> Vec<PyFsPath> {
+        let mut current = self.current.py_lock();
+
         let mut paths = vec![];
-        while let Some(path) = self.__next__() {
-            paths.push(path);
+        while let Some(cur) = current.take() {
+            *current = match cur.parent() {
+                None => None,
+                Some(p) if p.as_os_str().is_empty() => None,
+                Some(p) => Some(p.to_path_buf()),
+            };
+            paths.push(PyFsPath::new(&cur));
         }
         paths
     }
 
     #[pyo3(signature = (n = 1))]
     fn take(&self, n: usize) -> Vec<PyFsPath> {
+        let mut current = self.current.py_lock();
         let mut paths = vec![];
         for _ in 0..n {
-            if let Some(path) = self.__next__() {
-                paths.push(path);
-            } else {
-                break;
-            }
+            let Some(cur) = current.take() else { break };
+            *current = match cur.parent() {
+                None => None,
+                Some(p) if p.as_os_str().is_empty() => None,
+                Some(p) => Some(p.to_path_buf()),
+            };
+            paths.push(PyFsPath::new(&cur));
         }
         paths
     }
 }
 
-impl std::fmt::Display for PyFsPathAncestors {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "FsPathAncestors<{}>", self.path.as_posix_str())
+impl fmt::Display for PyFsPathAncestors {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "FsPathAncestors<{}>", self.path.posix_display())
     }
 }
 
-trait AsPosixStr {
-    fn as_posix_str(&self) -> String;
-}
+struct PosixPathDisplay<'a>(&'a Path);
 
-impl<T> AsPosixStr for T
-where
-    T: AsRef<Path>,
-{
-    fn as_posix_str(&self) -> String {
+impl fmt::Display for PosixPathDisplay<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         #[cfg(target_os = "windows")]
         {
-            self.as_ref().to_string_lossy().replace('\\', "/")
+            let mut write_sep = false;
+
+            for component in self.0.components() {
+                match component {
+                    Component::Prefix(prefix) => {
+                        write_posix_os_str(prefix.as_os_str(), f)?;
+                        write_sep = true;
+                    }
+                    Component::RootDir => {
+                        if write_sep {
+                            f.write_char('/')?;
+                        } else {
+                            write_posix_os_str(component.as_os_str(), f)?;
+                        }
+                        write_sep = false;
+                    }
+                    Component::CurDir | Component::ParentDir | Component::Normal(_) => {
+                        if write_sep {
+                            f.write_char('/')?;
+                        }
+                        write_posix_os_str(component.as_os_str(), f)?;
+                        write_sep = true;
+                    }
+                }
+            }
+            Ok(())
         }
         #[cfg(not(target_os = "windows"))]
         {
-            self.as_ref().to_string_lossy().to_string()
+            self.0.display().fmt(f)
         }
+    }
+}
+
+#[cfg(target_os = "windows")]
+fn write_posix_os_str(s: &OsStr, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    for ch in s.to_string_lossy().chars() {
+        if ch == '\\' {
+            f.write_char('/')?;
+        } else {
+            f.write_char(ch)?;
+        }
+    }
+    Ok(())
+}
+
+trait AsPosixPath {
+    fn posix_display(&self) -> PosixPathDisplay<'_>;
+
+    fn as_posix_str(&self) -> String {
+        self.posix_display().to_string()
+    }
+}
+
+impl<T> AsPosixPath for T
+where
+    T: AsRef<Path>,
+{
+    fn posix_display(&self) -> PosixPathDisplay<'_> {
+        PosixPathDisplay(self.as_ref())
     }
 }

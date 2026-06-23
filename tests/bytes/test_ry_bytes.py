@@ -816,6 +816,57 @@ def test_bytes_decode_default(
     assert rust_bytes.decode("utf-8", "ignore") == s
 
 
+@pytest.mark.skip(reason="not impl")
+class TestBytesSplit:
+    @given(st.binary())
+    def test_bytes_split_matches_python(
+        self,
+        b: bytes,
+    ) -> None:
+        ry_bytes = ry.Bytes(b)
+        py_res = b.split()
+        rs_res = ry_bytes.split()
+        assert rs_res == py_res, f"py: {py_res!r}, rs: {rs_res!r} ~ {b!r}.split()"
+
+    @given(st.binary())
+    def test_bytes_rsplit_matches_python(
+        self,
+        b: bytes,
+    ) -> None:
+        ry_bytes = ry.Bytes(b)
+        py_res = b.rsplit()
+        rs_res = ry_bytes.rsplit()
+        assert rs_res == py_res, f"py: {py_res!r}, rs: {rs_res!r} ~ {b!r}.rsplit()"
+
+    @pytest.mark.parametrize(
+        ("b", "sep", "maxsplit"),
+        [
+            (b"  a  b  ", None, -1),
+            (b"  a  b  ", None, 0),
+            (b"  a  b  c  ", None, 1),
+            (b"a,,b,", b",", -1),
+            (b"a,,b,", b",", 1),
+            (b"abcXXdefXX", b"XX", -1),
+            (b"abcXXdefXX", b"XX", 1),
+        ],
+    )
+    def test_bytes_split_fns(
+        self,
+        b: bytes,
+        sep: bytes | None,
+        maxsplit: int,
+    ) -> None:
+        ry_bytes = ry.Bytes(b)
+        assert ry_bytes.split(sep, maxsplit) == b.split(sep, maxsplit)
+        assert ry_bytes.rsplit(sep, maxsplit) == b.rsplit(sep, maxsplit)
+
+    def test_bytes_split_rejects_empty_separator(self) -> None:
+        with pytest.raises(ValueError, match="empty separator"):
+            ry.Bytes(b"abc").split(b"")
+        with pytest.raises(ValueError, match="empty separator"):
+            ry.Bytes(b"abc").rsplit(b"")
+
+
 @pytest.mark.parametrize(
     "fn_name",
     [
@@ -827,8 +878,6 @@ def test_bytes_decode_default(
         "ljust",
         "maketrans",
         "rjust",
-        "rsplit",
-        "split",
         "translate",
         "zfill",
     ],

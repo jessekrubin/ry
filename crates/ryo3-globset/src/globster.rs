@@ -1,178 +1,108 @@
 use std::path::Path;
-use std::str::FromStr;
 
-use globset::{GlobBuilder, GlobSetBuilder};
-use pyo3::exceptions::PyValueError;
-use pyo3::types::PyTuple;
-use pyo3::{Bound, PyErr, PyResult, Python, pyclass, pymethods};
-use ryo3_core::types::PathLike;
+use globset::{Candidate, GlobSet, GlobSetBuilder};
 
-use crate::{DEFAULT_BACKSLASH_ESCAPE, PyGlobPatternsString};
+#[derive(Clone, Debug)]
+pub(crate) struct Rule {
+    pub(crate) negative: bool,
+    pub(crate) globset: GlobSet,
+}
+
+impl From<GlobSet> for Rule {
+    fn from(globset: GlobSet) -> Self {
+        Self {
+            negative: false,
+            globset,
+        }
+    }
+}
+
+impl Rule {
+    pub(crate) fn from_globs(
+        negative: bool,
+        globs: Vec<globset::Glob>,
+    ) -> Result<Self, globset::Error> {
+        let mut builder = GlobSetBuilder::new();
+        for glob in globs {
+            builder.add(glob);
+        }
+        Ok(Self {
+            negative,
+            globset: builder.build()?,
+        })
+    }
+
+    fn is_match_candidate(&self, c: &Candidate<'_>) -> Option<bool> {
+        self.globset.is_match_candidate(c).then_some(!self.negative)
+    }
+}
+
+#[derive(Clone, Debug)]
+pub(crate) enum GlobsterMatcher {
+    Empty,
+    Set(GlobSet),
+    Rules(Vec<Rule>),
+}
+
+impl GlobsterMatcher {
+    fn is_match_candidate(&self, c: &Candidate<'_>) -> bool {
+        match self {
+            Self::Empty => false,
+            Self::Set(gs) => gs.is_match_candidate(c),
+            Self::Rules(rules) => rules.iter().fold(false, |matched, rule| {
+                rule.is_match_candidate(c).unwrap_or(matched)
+            }),
+        }
+    }
+
+    fn is_match<P: AsRef<Path>>(&self, path: P) -> bool {
+        self.is_match_candidate(&Candidate::new(path.as_ref()))
+    }
+}
 
 #[derive(Clone, Debug)]
 pub struct Globster {
-    pub globset: Option<globset::GlobSet>,
-    pub nglobset: Option<globset::GlobSet>,
+    pub(crate) matcher: GlobsterMatcher,
     pub patterns: Vec<String>,
-    pub length: usize,
 }
 
-#[pyclass(name = "Globster", frozen, immutable_type, from_py_object)]
-#[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
-#[derive(Clone, Debug)]
-pub struct PyGlobster(pub Globster);
-
-impl FromStr for PyGlobster {
-    type Err = PyErr;
-
-    fn from_str(pattern: &str) -> PyResult<Self> {
-        let patterns = vec![pattern.to_string()];
-        Self::py_new(patterns, false, false, DEFAULT_BACKSLASH_ESCAPE)
+impl Globster {
+    pub fn is_match_candidate(&self, c: &Candidate<'_>) -> bool {
+        self.matcher.is_match_candidate(c)
     }
-}
 
-impl TryFrom<Vec<String>> for PyGlobster {
-    type Error = PyErr;
-
-    fn try_from(patterns: Vec<String>) -> PyResult<Self> {
-        Self::py_new(patterns, false, false, DEFAULT_BACKSLASH_ESCAPE)
+    pub fn is_match_path(&self, path: &Path) -> bool {
+        self.matcher.is_match(path)
     }
-}
 
-impl PyGlobster {
-    pub fn is_match<P: AsRef<Path>>(&self, path: P) -> bool {
-        let path = path.as_ref();
-        match (&self.0.globset, &self.0.nglobset) {
-            (Some(gs), Some(ngs)) => gs.is_match(path) && !ngs.is_match(path),
-            (Some(gs), None) => gs.is_match(path),
-            (None, Some(ngs)) => !ngs.is_match(path),
-            _ => false,
-        }
+    pub fn is_match_str(&self, s: &str) -> bool {
+        self.matcher.is_match(s)
     }
-}
 
-#[pymethods]
-impl PyGlobster {
-    #[new]
-    #[pyo3(
-        signature = (
-            patterns,
-            /, *,
-            case_insensitive = false,
-            literal_separator = false,
-            backslash_escape = DEFAULT_BACKSLASH_ESCAPE
-        )
-    )]
-    pub(crate) fn py_new(
-        patterns: Vec<String>,
-        case_insensitive: bool,
-        literal_separator: bool,
-        backslash_escape: bool,
-    ) -> PyResult<Self> {
-        let mut globset_builder = GlobSetBuilder::new();
-        let mut nglobset_builder = GlobSetBuilder::new();
-        let mut positive_patterns: Vec<String> = vec![];
-        let mut negative_patterns: Vec<String> = vec![];
+    pub fn len(&self) -> usize {
+        self.patterns.len()
+    }
 
-        for pattern in &patterns {
-            if pattern.is_empty() {
-                return Err(PyValueError::new_err("Empty pattern"));
-            }
-            if pattern.starts_with("!!") {
-                return Err(PyValueError::new_err("Double negation is not allowed"));
-            }
-            if pattern.starts_with('!') {
-                negative_patterns.push(pattern.clone());
-            } else {
-                positive_patterns.push(pattern.clone());
-            }
-        }
+    pub fn is_empty(&self) -> bool {
+        self.patterns.is_empty()
+    }
 
-        {
-            for pattern in &positive_patterns {
-                let g = GlobBuilder::new(pattern)
-                    .case_insensitive(case_insensitive)
-                    .literal_separator(literal_separator)
-                    .backslash_escape(backslash_escape)
-                    .build()
-                    .map_err(|e| PyValueError::new_err(e.to_string()))?;
-                globset_builder.add(g);
-            }
-        }
-        {
-            for pattern in &negative_patterns {
-                let g = GlobBuilder::new(pattern)
-                    .case_insensitive(case_insensitive)
-                    .literal_separator(literal_separator)
-                    .backslash_escape(backslash_escape)
-                    .build()
-                    .map_err(|e| PyValueError::new_err(e.to_string()))?;
-                nglobset_builder.add(g);
-            }
-        }
-        let gs = globset_builder
-            .build()
-            .map_err(|e| PyValueError::new_err(format!("Error building globset: {e}")))?;
-        let ngs = nglobset_builder
-            .build()
-            .map_err(|e| PyValueError::new_err(format!("Error building globset: {e}")))?;
-        let globster = Globster {
-            patterns,
-            globset: Option::from(gs),
-            nglobset: Option::from(ngs),
-            length: positive_patterns.len() + negative_patterns.len(),
+    pub(crate) fn from_globset(patterns: Vec<String>, globset: GlobSet) -> Self {
+        let matcher = if patterns.is_empty() {
+            GlobsterMatcher::Empty
+        } else {
+            GlobsterMatcher::Set(globset)
         };
-        Ok(Self(globster))
+        Self { matcher, patterns }
     }
 
-    fn __repr__(&self) -> String {
-        format!("{self}")
-    }
-
-    fn __len__(&self) -> usize {
-        self.0.length
-    }
-
-    fn is_empty(&self) -> bool {
-        self.0.length == 0
-    }
-
-    #[must_use]
-    fn is_match_str(&self, path: &str) -> bool {
-        match (&self.0.globset, &self.0.nglobset) {
-            (Some(gs), Some(ngs)) => gs.is_match(path) && !ngs.is_match(path),
-            (Some(gs), None) => gs.is_match(path),
-            (None, Some(ngs)) => !ngs.is_match(path),
-            _ => false,
+    pub(crate) fn from_positive_glob(pattern: String, glob: &globset::Glob) -> Self {
+        let mut builder = GlobSetBuilder::new();
+        builder.add(glob.clone());
+        let globset = builder.build().expect("single valid glob always builds");
+        Self {
+            matcher: GlobsterMatcher::Set(globset),
+            patterns: vec![pattern],
         }
-    }
-
-    #[expect(clippy::needless_pass_by_value)]
-    #[pyo3(name = "is_match")]
-    #[must_use]
-    fn py_is_match(&self, path: PathLike) -> bool {
-        match (&self.0.globset, &self.0.nglobset) {
-            (Some(gs), Some(ngs)) => gs.is_match(&path) && !ngs.is_match(&path),
-            (Some(gs), None) => gs.is_match(&path),
-            (None, Some(ngs)) => !ngs.is_match(&path),
-            _ => false,
-        }
-    }
-
-    fn __call__(&self, path: PathLike) -> bool {
-        self.is_match(path)
-    }
-
-    #[getter]
-    fn patterns<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
-        let patterns = self.0.patterns.clone();
-        PyTuple::new(py, patterns)
-    }
-}
-
-impl std::fmt::Display for PyGlobster {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let tuple_str = self.patterns_string();
-        write!(f, "Globster({tuple_str})")
     }
 }

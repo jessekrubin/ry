@@ -31,9 +31,7 @@ class GlobSet:
 
     def __new__(
         cls,
-        patterns: list[str],
-        /,
-        *,
+        *patterns: str | Glob | t.Sequence[str | Glob],
         case_insensitive: bool = False,
         literal_separator: bool = False,
         backslash_escape: bool = ...,  # True on windows, False otherwise
@@ -58,9 +56,7 @@ class Globster:
 
     def __new__(
         cls,
-        patterns: list[str],
-        /,
-        *,
+        *patterns: str | Glob | GlobSet | Globster | t.Sequence[str],
         case_insensitive: bool = False,
         literal_separator: bool = False,
         backslash_escape: bool = ...,  # True on windows, False otherwise
@@ -73,9 +69,7 @@ class Globster:
     def patterns(self) -> tuple[str, ...]: ...
 
 def globster(
-    patterns: list[str] | tuple[str, ...],
-    /,
-    *,
+    *patterns: str | Glob | GlobSet | Globster | t.Sequence[str],
     case_insensitive: bool = False,
     literal_separator: bool = False,
     backslash_escape: bool = ...,  # True on windows, False otherwise

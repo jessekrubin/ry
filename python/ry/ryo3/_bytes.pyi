@@ -37,6 +37,22 @@ class Bytes(Buffer):
         Bytes(b"hello")
 
         """
+    def clone(self) -> Bytes:
+        """Return a new `Bytes` object that shares the same underlying buffer.
+
+        Examples
+        --------
+        >>> from ry import Bytes
+        >>> b = Bytes.copy_from(b"hello")
+        >>> b.is_unique()
+        True
+        >>> c = b.clone()
+        >>> b.is_unique()
+        False
+        >>> c.is_unique()
+        False
+
+        """
     def __add__(self, other: Buffer) -> Bytes: ...
     def __buffer__(self, flags: int) -> memoryview: ...
     def __contains__(self, other: Buffer) -> bool: ...
@@ -234,6 +250,10 @@ class Bytes(Buffer):
         /,
     ) -> int:
         """Return the highest index where `sub` is found or raise `ValueError`."""
+    def split(self, sep: Buffer | None = None, maxsplit: int = -1) -> list[Bytes]:
+        """Return a list of the words in the bytes, using `sep` as the delimiter."""
+    def rsplit(self, sep: Buffer | None = None, maxsplit: int = -1) -> list[Bytes]:
+        """Return a list of the words in the bytes, using `sep` as the delimiter."""
     def partition(self, sep: Buffer, /) -> tuple[Bytes, Bytes, Bytes]:
         """Partition the bytes into three parts using the given separator.
 
@@ -255,12 +275,12 @@ class Bytes(Buffer):
         objects and the original bytes object.
         """
     def is_unique(self) -> bool:
-        """Return `True` if all bytes in the sequence are unique, `False` otherwise.
+        """Return `True` if this is the only reference to the underlying buffer.
 
         Notes
         -----
         This will usually return `False` for `Bytes` objects created from Python
-        byte slices, since they use `::bytes::Bytes::from_owner`.
+        buffer objects, since they use `::bytes::Bytes::from_owner`.
 
         Examples
         --------
@@ -268,8 +288,8 @@ class Bytes(Buffer):
         >>> b = Bytes.copy_from(b"unique-nu-yawk")
         >>> b.is_unique()
         True
-        >>> zero_copy = Bytes(b)
-        >>> zero_copy.is_unique()
+        >>> shared = b[:]
+        >>> b.is_unique()
         False
 
         """

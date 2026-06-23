@@ -9,11 +9,33 @@
 
 ## v0.0.97 [unreleased]
 
+- `ryo3-globset` — redesigned from the ground up
+  - **BREAKING** `ry.Glob` no longer allows negation (`!`-prefixed patterns)
+  - `ry.GlobSet` and `ry.Globster` constructors take (`*args`)
+  - `GlobOptions` internal refactoring
+  - `__repr__` includes kwargs when non-default
+  - `Globster` uses gitignore-style last match wins for negative patterns
+  - split src files up
 - `ryo3-bytes`
   - constructor returns same instance if input is already `ry.Bytes`
+  - added `Bytes.clone()` method which clones internally returning new instance
+  - `__add__` now accepts any `ReadableBuffer` (not just another `Bytes`);
+    returns self/other unchanged when one operand is empty
+- `ryo3-fspath`
+  - `__repr__` uses `posix_display()` for correct cross-platform path rendering
+  - `parents` returns internal lazy iter (`PyFsPathAncestors`)
+  - `drive`, `extension`, `file_name`, `file_prefix`, `file_stem`, `name` return
+    `OsString`
+  - `anchor` uses `OsStr::display()` instead of `to_string_lossy()`
+- `ryo3-jiter`
+  - `JiterParseOptions` gains builder methods: `new()`, `with_allow_inf_nan()`,
+    `with_cache_mode()`, `with_partial_mode()`, `with_catch_duplicate_keys()`
+  - re-exports `FloatMode`, `PartialMode`, `PythonParse`, `StringCacheMode`,
+    `map_json_error` as `pub use`
 - `ryo3-jiff`
   - update jiff to 0.2.29
   - add `ry.ZonedDateTime.UNIX_EPOCH`
+- `_ryo3-dev` cleaned out
 
 ---
 

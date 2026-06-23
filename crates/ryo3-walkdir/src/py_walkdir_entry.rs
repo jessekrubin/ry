@@ -3,6 +3,7 @@ use std::ffi::OsStr;
 
 use pyo3::basic::CompareOp;
 use pyo3::prelude::*;
+use ryo3_core::macros::{py_permission_error, py_type_err};
 
 #[pyclass(name = "WalkDirEntry", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
@@ -13,9 +14,7 @@ pub struct PyWalkDirEntry(walkdir::DirEntry);
 impl PyWalkDirEntry {
     #[new]
     fn py_new() -> PyResult<Self> {
-        Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
-            "WalkDirEntry cannot be instantiated directly",
-        ))
+        py_type_err!("WalkDirEntry cannot be instantiated directly")
     }
 
     fn __fspath__(&self) -> &OsStr {
@@ -29,6 +28,11 @@ impl PyWalkDirEntry {
 
     #[getter]
     fn file_name(&self) -> &OsStr {
+        self.0.file_name()
+    }
+
+    #[getter]
+    fn name(&self) -> &OsStr {
         self.0.file_name()
     }
 
@@ -76,8 +80,8 @@ impl PyWalkDirEntry {
     fn metadata(&self) -> PyResult<ryo3_std::fs::PyMetadata> {
         self.0
             .metadata()
-            .map(std::convert::Into::into)
-            .map_err(|e| PyErr::new::<pyo3::exceptions::PyPermissionError, _>(format!("{e}")))
+            .map(Into::into)
+            .map_err(|e| py_permission_error!("{e}"))
     }
 
     #[getter]
@@ -102,12 +106,10 @@ impl PyWalkDirEntry {
 
     #[getter]
     fn len(&self) -> PyResult<u64> {
-        let mlen = self
-            .0
+        self.0
             .metadata()
-            .map_err(|e| PyErr::new::<pyo3::exceptions::PyPermissionError, _>(format!("{e}")))?
-            .len();
-        Ok(mlen)
+            .map(|m| m.len())
+            .map_err(|e| py_permission_error!("{e}"))
     }
 }
 

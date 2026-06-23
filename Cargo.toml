@@ -315,5 +315,5 @@ literal_string_with_formatting_args = "warn"
 # pyo3-ffi = { git = "https://github.com/pyo3/pyo3.git" }
 # pyo3-macros = { git = "https://github.com/pyo3/pyo3.git" }
 # pyo3-macros-backend = { git = "https://github.com/pyo3/pyo3.git" }
-jiter = { git = "https://github.com/jessekrubin/jiter.git", branch = "jkr/pyo3-0.29" }
-# jiter = { git = "https://github.com/pydantic/jiter.git" }
+# jiter = { git = "https://github.com/jessekrubin/jiter.git", branch = "jkr/pyo3-0.29" }
+jiter = { git = "https://github.com/pydantic/jiter.git" }
