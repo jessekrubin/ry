@@ -96,6 +96,11 @@ class TestZonedDateTime:
         s = ry.TimeZone.system()
         assert tz == s
 
+    def test_unix_epoch(self) -> None:
+        zdt = ry.ZonedDateTime.UNIX_EPOCH
+        assert isinstance(zdt, ry.ZonedDateTime)
+        assert zdt == ry.date(1970, 1, 1).at(0, 0, 0, 0).in_tz("UTC")
+
     def test_from_parts(self) -> None:
         ts = ry.Timestamp(second=1598448420, nanosecond=0)
         tz = ry.TimeZone("America/Los_Angeles")
