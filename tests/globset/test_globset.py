@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import pickle
 
+import pytest
+
 import ry
 
 
@@ -13,24 +15,24 @@ class TestReprs:
         assert glob.__module__ == "ry.ryo3"
 
     def test_globset_str_repr_methods(self) -> None:
-        globset = ry.GlobSet(["*.py", "*.txt"])
-        assert str(globset) == 'GlobSet(["*.py", "*.txt"])'
+        globset = ry.GlobSet("*.py", "*.txt")
+        assert str(globset) == 'GlobSet("*.py", "*.txt")'
         assert str(globset) == repr(globset)
         assert globset.__module__ == "ry.ryo3"
 
     def test_globster_str_repr_methods(self) -> None:
-        globset = ry.globster(["*.py", "*.txt"])
-        assert str(globset) == 'Globster(["*.py", "*.txt"])'
+        globset = ry.globster("*.py", "*.txt")
+        assert str(globset) == 'Globster("*.py", "*.txt")'
         assert str(globset) == repr(globset)
         assert globset.__module__ == "ry.ryo3"
 
 
 class TestGlob:
     def test_negative_glob_strips_bang_for_matcher(self) -> None:
-        matcher = ry.Glob("!*.txt")
-        assert not matcher("file.txt")
-        assert matcher("file.py")
-        assert str(matcher) == 'Glob("!*.txt")'
+        with pytest.raises(
+            ValueError, match="negation is not allowed; use Globster for negation"
+        ):
+            ry.Glob("!*.txt")
 
 
 class TestGlobSet:

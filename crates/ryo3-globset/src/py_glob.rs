@@ -3,10 +3,12 @@ use pyo3::IntoPyObjectExt;
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyString, PyTuple};
+use ryo3_core::macros::{py_value_err, py_value_error};
 use ryo3_core::types::PathLike;
 
 use crate::globster::Globster;
 use crate::options::{DEFAULT_BACKSLASH_ESCAPE, GlobOptions};
+use crate::py_globster::GlobSource;
 use crate::{PyGlobSet, PyGlobster};
 
 #[pyclass(name = "Glob", frozen, immutable_type, skip_from_py_object)]
@@ -16,7 +18,6 @@ pub struct PyGlob {
     pub(crate) pattern: String,
     pub(crate) glob: Glob,
     pub(crate) matcher: globset::GlobMatcher,
-    pub(crate) negative: bool,
     pub(crate) options: GlobOptions,
 }
 
@@ -45,24 +46,14 @@ impl PyGlob {
         Self::from_pattern(pattern, options)
     }
 
-    fn __invert__(&self) -> Self {
-        Self {
-            pattern: self.pattern.clone(),
-            glob: self.glob.clone(),
-            matcher: self.matcher.clone(),
-            negative: !self.negative,
-            options: self.options,
-        }
-    }
-
     #[must_use]
     fn is_match_str(&self, path: &str) -> bool {
-        self.matcher.is_match(path) ^ self.negative
+        self.matcher.is_match(path)
     }
 
     #[must_use]
     fn is_match(&self, path: PathLike) -> bool {
-        self.matcher.is_match(path) ^ self.negative
+        self.matcher.is_match(path)
     }
 
     fn __call__(&self, path: PathLike) -> bool {
@@ -101,9 +92,8 @@ impl PyGlob {
         let gs = GlobSetBuilder::new()
             .add(self.glob.clone())
             .build()
-            .map_err(|e| PyValueError::new_err(e.to_string()))?;
+            .map_err(|e| py_value_error!("Error building globset: {e}"))?;
         Ok(PyGlobSet {
-            patterns: vec![self.pattern.clone()],
             globset: gs,
             globs: vec![self.clone()],
         })
@@ -112,14 +102,12 @@ impl PyGlob {
     pub(crate) fn globster(&self) -> PyGlobster {
         PyGlobster(
             Globster::from_positive_glob(self.pattern.clone(), &self.glob),
-            vec![self.clone()],
+            vec![GlobSource::Glob(self.clone())],
         )
     }
 
     pub(crate) fn __eq__(&self, other: &Self) -> bool {
-        self.glob.regex() == other.glob.regex()
-            && self.negative == other.negative
-            && self.options == other.options
+        self.glob.regex() == other.glob.regex() && self.options == other.options
     }
 
     pub(crate) fn __neq__(&self, other: &Self) -> bool {
@@ -129,17 +117,15 @@ impl PyGlob {
 
 impl PyGlob {
     pub(crate) fn from_pattern(pattern: String, options: GlobOptions) -> PyResult<Self> {
-        if pattern.starts_with("!!") {
-            return Err(PyValueError::new_err("Double negation is not allowed"));
+        if pattern.starts_with('!') {
+            return py_value_err!(
+                "negation is not allowed; use `Globster` for negative pattern(s)"
+            );
         }
-        let (negative, glob_pattern) = match pattern.strip_prefix('!') {
-            Some(stripped) => (true, stripped),
-            None => (false, pattern.as_str()),
-        };
-        if glob_pattern.is_empty() {
-            return Err(PyValueError::new_err("Empty pattern"));
+        if pattern.is_empty() {
+            return py_value_err!("empty pattern");
         }
-        let glob = options.build(glob_pattern);
+        let glob = options.build(&pattern);
         match glob {
             Ok(glob) => {
                 let matcher = glob.compile_matcher();
@@ -147,7 +133,6 @@ impl PyGlob {
                     pattern,
                     glob,
                     matcher,
-                    negative,
                     options,
                 })
             }
@@ -158,6 +143,24 @@ impl PyGlob {
 
 impl std::fmt::Display for PyGlob {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Glob(\"{}\")", self.pattern)
+        write!(f, "Glob(\"{}\"", self.pattern)?;
+        if self.options.is_case_insensitive() {
+            write!(f, ", case_insensitive=True")?;
+        }
+        if self.options.is_literal_separator() {
+            write!(f, ", literal_separator=True")?;
+        }
+        if self.options.is_backslash_escape() != DEFAULT_BACKSLASH_ESCAPE {
+            write!(
+                f,
+                ", backslash_escape={}",
+                if self.options.is_backslash_escape() {
+                    "True"
+                } else {
+                    "False"
+                }
+            )?;
+        }
+        write!(f, ")")
     }
 }

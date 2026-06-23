@@ -1,14 +1,14 @@
 use ::globset::GlobSetBuilder;
-use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use pyo3::types::{PyTuple, PyTupleMethods};
-use pyo3::{Borrowed, FromPyObject, PyAny, PyErr};
 use ryo3_core::PyCastExactOpt;
+use ryo3_core::macros::{py_value_err, py_value_error};
 use ryo3_core::types::PathLike;
 
 use crate::globster::Globster;
 use crate::options::{DEFAULT_BACKSLASH_ESCAPE, GlobOptions};
-use crate::traits::{PyGlobPatterns, PyGlobPatternsString};
+use crate::py_args::VarArgs;
+use crate::py_globster::GlobSource;
 use crate::{PyGlob, PyGlobster};
 
 #[pyclass(name = "GlobSet", frozen, immutable_type, skip_from_py_object)]
@@ -16,16 +16,7 @@ use crate::{PyGlob, PyGlobster};
 #[derive(Clone, Debug)]
 pub struct PyGlobSet {
     pub(crate) globset: globset::GlobSet,
-    pub(crate) patterns: Vec<String>,
     pub(crate) globs: Vec<PyGlob>,
-}
-
-impl PyGlobPatternsString for PyGlobSet {}
-
-impl PyGlobPatterns for PyGlobSet {
-    fn patterns_ref(&self) -> &Vec<String> {
-        &self.patterns
-    }
 }
 
 #[pymethods]
@@ -33,14 +24,14 @@ impl PyGlobSet {
     #[new]
     #[pyo3(
         signature = (
-            *patterns,
+            *args,
             case_insensitive = false,
             literal_separator = false,
             backslash_escape = DEFAULT_BACKSLASH_ESCAPE
         )
     )]
     fn py_new(
-        patterns: GlobSetPatterns<'_, '_>,
+        args: VarArgs<'_, '_>,
         case_insensitive: bool,
         literal_separator: bool,
         backslash_escape: bool,
@@ -50,43 +41,34 @@ impl PyGlobSet {
             .literal_separator(literal_separator)
             .backslash_escape(backslash_escape);
 
-        let args = patterns.into_inner();
         let mut globset_builder = GlobSetBuilder::new();
-        let mut patterns = Vec::new();
         let mut globs: Vec<PyGlob> = Vec::new();
 
-        for arg in args.iter_borrowed() {
+        for arg in args.into_inner().iter_borrowed() {
             if let Some(glob) = arg.cast_exact_opt::<PyGlob>() {
                 let glob = glob.get().clone();
-                patterns.push(glob.pattern.clone());
                 globset_builder.add(glob.glob.clone());
                 globs.push(glob);
             } else if let Ok(pattern) = arg.extract::<String>() {
                 let glob = PyGlob::from_pattern(pattern, options)?;
-                patterns.push(glob.pattern.clone());
                 globset_builder.add(glob.glob.clone());
                 globs.push(glob);
             } else if let Ok(arg_patterns) = arg.extract::<Vec<String>>() {
                 for pattern in arg_patterns {
                     let glob = PyGlob::from_pattern(pattern, options)?;
-                    patterns.push(glob.pattern.clone());
                     globset_builder.add(glob.glob.clone());
                     globs.push(glob);
                 }
             } else {
-                return Err(PyValueError::new_err(format!(
+                return py_value_err!(
                     "Invalid pattern argument: expected str, Glob, or list of str, got {arg:?}"
-                )));
+                );
             }
         }
         let gs = globset_builder
             .build()
-            .map_err(|e| PyValueError::new_err(format!("Error building globset: {e}")))?;
-        Ok(Self {
-            patterns,
-            globset: gs,
-            globs,
-        })
+            .map_err(|e| py_value_error!("Error building globset: {e}"))?;
+        Ok(Self { globset: gs, globs })
     }
 
     fn __repr__(&self) -> String {
@@ -125,37 +107,33 @@ impl PyGlobSet {
 
     #[getter]
     #[pyo3(name = "patterns")]
-    fn pyprop_patterns<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, pyo3::types::PyTuple>> {
-        pyo3::types::PyTuple::new(py, self.patterns.clone())
+    fn pyprop_patterns<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
+        PyTuple::new(py, self.globs.iter().map(|g| &g.pattern))
     }
 
     pub(crate) fn globster(&self) -> PyGlobster {
+        let patterns: Vec<String> = self.globs.iter().map(|g| g.pattern.clone()).collect();
         PyGlobster(
-            Globster::from_globset(self.patterns.clone(), self.globset.clone()),
-            self.globs.clone(),
+            Globster::from_globset(patterns, self.globset.clone()),
+            self.globs.iter().cloned().map(GlobSource::Glob).collect(),
         )
     }
 }
 
 impl std::fmt::Display for PyGlobSet {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let tuple_str = self.patterns_string();
-        write!(f, "GlobSet({tuple_str})")
-    }
-}
-
-struct GlobSetPatterns<'a, 'py>(Borrowed<'a, 'py, PyTuple>);
-
-impl<'a, 'py> GlobSetPatterns<'a, 'py> {
-    fn into_inner(self) -> Borrowed<'a, 'py, PyTuple> {
-        self.0
-    }
-}
-
-impl<'a, 'py> FromPyObject<'a, 'py> for GlobSetPatterns<'a, 'py> {
-    type Error = PyErr;
-
-    fn extract(obj: Borrowed<'a, 'py, PyAny>) -> PyResult<Self> {
-        Ok(Self(obj.cast_exact()?))
+        let default = GlobOptions::new();
+        write!(f, "GlobSet(")?;
+        for (i, glob) in self.globs.iter().enumerate() {
+            if i > 0 {
+                write!(f, ", ")?;
+            }
+            if glob.options == default {
+                write!(f, "\"{}\"", glob.pattern)?;
+            } else {
+                write!(f, "{glob}")?;
+            }
+        }
+        write!(f, ")")
     }
 }

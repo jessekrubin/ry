@@ -1,9 +1,9 @@
 #![doc = include_str!("../README.md")]
 mod globster;
+mod py_args;
 mod py_glob;
 mod py_globset;
 mod py_globster;
-mod traits;
 use std::str::FromStr;
 
 mod options;
