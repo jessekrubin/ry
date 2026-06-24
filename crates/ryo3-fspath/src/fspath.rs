@@ -209,6 +209,7 @@ impl PyFsPath {
 
     #[cfg(not(target_os = "windows"))]
     #[getter]
+    #[expect(clippy::unused_self, reason = "windows only")]
     fn drive(&self) -> Option<String> {
         None
     }
