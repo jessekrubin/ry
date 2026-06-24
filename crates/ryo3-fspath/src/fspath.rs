@@ -35,6 +35,7 @@ impl PyFsPath {
     }
 
     #[must_use]
+    #[inline]
     pub fn path(&self) -> &Path {
         &self.0
     }
@@ -74,8 +75,6 @@ fn to_native_pathbuf<P: AsRef<Path>>(p: P) -> PathBuf {
     p.as_ref().to_path_buf()
 }
 
-#[expect(clippy::needless_pass_by_value)]
-#[expect(clippy::unused_self)]
 #[pymethods]
 impl PyFsPath {
     #[new]
@@ -126,7 +125,8 @@ impl PyFsPath {
         hasher.finish()
     }
 
-    fn equiv(&self, other: PathLike) -> bool {
+    #[expect(clippy::needless_pass_by_value, reason = "python arg extract")]
+    fn equiv(&self, other: FsPathLike) -> bool {
         let other = other.as_ref();
         self.path() == other || self.py_to_string() == path2str(other)
     }
@@ -160,11 +160,12 @@ impl PyFsPath {
         Clone::clone(self)
     }
 
-    fn __truediv__(&self, other: PathLike) -> Self {
-        Self::from(self.path().join(other.as_ref()))
+    fn __truediv__(&self, other: FsPathLike) -> Self {
+        Self::from(self.path().join(other))
     }
 
-    fn __rtruediv__(&self, other: PathLike) -> Self {
+    #[expect(clippy::needless_pass_by_value, reason = "python arg extract")]
+    fn __rtruediv__(&self, other: FsPathLike) -> Self {
         let p = other.as_ref().join(self.path());
         Self::from(p)
     }
@@ -281,12 +282,12 @@ impl PyFsPath {
         }
     }
 
-    fn with_suffix(&self, suffix: String) -> Self {
+    fn with_suffix(&self, suffix: &str) -> Self {
         // auto strip leading dot
         let suffix = if suffix.starts_with('.') {
             suffix.trim_start_matches('.')
         } else {
-            suffix.as_ref()
+            suffix
         };
         self.path().with_extension(suffix).into()
     }
@@ -359,6 +360,7 @@ impl PyFsPath {
         Ok(fbytes.into())
     }
 
+    #[expect(clippy::needless_pass_by_value, reason = "python arg extract")]
     fn write(&self, py: Python<'_>, data: ReadableBuffer) -> PyResult<usize> {
         let b = data.as_slice();
         let write_res = py.detach(|| std::fs::write(self.path(), b));
@@ -531,18 +533,18 @@ impl PyFsPath {
         Ok(())
     }
 
-    fn rename(&self, py: Python<'_>, new_path: PathLike) -> PyResult<Self> {
+    fn rename(&self, py: Python<'_>, new_path: FsPathLike) -> PyResult<Self> {
         if new_path.as_ref() == self.path() {
             return Ok(self.clone());
         }
-        let new_path = new_path.as_ref();
-        if new_path.exists() {
+        let path_ref = new_path.as_ref();
+        if path_ref.exists() {
             return Err(PyFileExistsError::new_err(format!(
                 "rename - parent: {} - destination already exists",
                 self.py_to_string()
             )));
         }
-        py.detach(|| std::fs::rename(self.path(), new_path))
+        py.detach(|| std::fs::rename(self.path(), path_ref))
             .map_err(|e| {
                 let fspath = self.py_to_string();
                 PyNotADirectoryError::new_err(format!("rename - parent: {fspath} - {e}"))
@@ -550,20 +552,20 @@ impl PyFsPath {
         Ok(Self::from(new_path))
     }
 
-    fn replace(&self, py: Python<'_>, new_path: PathLike) -> PyResult<Self> {
+    fn replace(&self, py: Python<'_>, new_path: FsPathLike) -> PyResult<Self> {
         if new_path.as_ref() == self.path() {
             return Ok(self.clone());
         }
-        let new_path = new_path.as_ref();
-        if new_path.exists() {
+        let path_ref = new_path.as_ref();
+        if path_ref.exists() {
             // nuke file/dir
-            if new_path.is_dir() {
-                py.detach(|| std::fs::remove_dir_all(new_path))?;
+            if path_ref.is_dir() {
+                py.detach(|| std::fs::remove_dir_all(path_ref))?;
             } else {
-                py.detach(|| std::fs::remove_file(new_path))?;
+                py.detach(|| std::fs::remove_file(path_ref))?;
             }
         }
-        py.detach(|| std::fs::rename(self.path(), new_path))
+        py.detach(|| std::fs::rename(self.path(), path_ref))
             .map_err(|e| {
                 let fspath = self.py_to_string();
                 PyNotADirectoryError::new_err(format!("replace - parent: {fspath} - {e}"))
@@ -571,6 +573,7 @@ impl PyFsPath {
         Ok(Self::from(new_path))
     }
 
+    #[expect(clippy::unused_self, reason = "not implemented")]
     fn as_uri(&self) -> PyResult<String> {
         Err(pyo3::exceptions::PyNotImplementedError::new_err(
             "as_uri not implemented",
@@ -593,8 +596,10 @@ impl PyFsPath {
         pypathlib_ob.call_method(intern!(py, "open"), args, kwargs)
     }
 
-    #[expect(unused_variables)]
-    fn relative_to(&self, other: PathLike) -> PyResult<Self> {
+    #[expect(clippy::unused_self, reason = "not implemented")]
+    #[expect(unused_variables, reason = "not implemented")]
+    #[expect(clippy::needless_pass_by_value, reason = "not implemented")]
+    fn relative_to(&self, other: FsPathLike) -> PyResult<Self> {
         Err(pyo3::exceptions::PyNotImplementedError::new_err(
             "relative_to not implemented",
         ))
@@ -661,8 +666,8 @@ impl PyFsPath {
         self.path().display().to_string()
     }
 
-    fn ends_with(&self, child: PathLike) -> bool {
-        self.path().ends_with(child.as_ref())
+    fn ends_with(&self, child: FsPathLike) -> bool {
+        self.path().ends_with(child)
     }
 
     fn exists(&self) -> PyResult<bool> {
@@ -711,7 +716,7 @@ impl PyFsPath {
         self.path().is_symlink()
     }
 
-    fn join(&self, p: PathLike) -> Self {
+    fn join(&self, p: FsPathLike) -> Self {
         Self::from(self.path().join(p))
     }
 
@@ -735,13 +740,13 @@ impl PyFsPath {
             .map_err(|e| PyFileNotFoundError::new_err(format!("FsPath.read_link: {e}")))
     }
 
-    fn starts_with(&self, base: PathLike) -> bool {
-        self.path().starts_with(base.as_ref())
+    fn starts_with(&self, base: FsPathLike) -> bool {
+        self.path().starts_with(base)
     }
 
-    fn strip_prefix(&self, base: PathLike) -> PyResult<Self> {
+    fn strip_prefix(&self, base: FsPathLike) -> PyResult<Self> {
         self.path()
-            .strip_prefix(base.as_ref())
+            .strip_prefix(base)
             .map(Self::from)
             .map_err(|e| PyValueError::new_err(format!("FsPath.strip_prefix: {e}")))
     }
@@ -803,7 +808,7 @@ impl PyFsPath {
 
     #[cfg(feature = "same-file")]
     fn samefile(&self, py: Python<'_>, other: PathBuf) -> PyResult<bool> {
-        py.detach(|| same_file::is_same_file(self.path(), &other))
+        py.detach(|| same_file::is_same_file(self.path(), other))
             .map_err(|e| PyFileNotFoundError::new_err(format!("FsPath.samefile: {e}")))
     }
 
@@ -1098,5 +1103,30 @@ where
 {
     fn posix_display(&self) -> PosixPathDisplay<'_> {
         PosixPathDisplay(self.as_ref())
+    }
+}
+
+enum FsPathLike<'a, 'py> {
+    FsPath(Borrowed<'a, 'py, PyFsPath>),
+    Path(PathLike),
+}
+
+impl<'a, 'py> FromPyObject<'a, 'py> for FsPathLike<'a, 'py> {
+    type Error = PyErr;
+    fn extract(obj: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
+        if let Ok(val) = obj.cast_exact::<PyFsPath>() {
+            Ok(FsPathLike::FsPath(val))
+        } else {
+            obj.extract::<PathLike>().map(FsPathLike::Path)
+        }
+    }
+}
+
+impl AsRef<Path> for FsPathLike<'_, '_> {
+    fn as_ref(&self) -> &Path {
+        match self {
+            FsPathLike::FsPath(p) => p.get().path(),
+            FsPathLike::Path(p) => p.as_ref(),
+        }
     }
 }
