@@ -80,9 +80,9 @@ impl PyFsPath {
             return Ok(Self::from("."));
         }
         let mut path = PathBuf::new();
-        for arg in args.iter() {
-            let segment: PathBuf = arg.extract()?;
-            path = path.join(segment);
+        for arg in args.iter_borrowed() {
+            let segment: FsPathLike = arg.extract()?;
+            path.push(segment);
         }
         Ok(Self::from(path))
     }
@@ -335,9 +335,9 @@ impl PyFsPath {
     #[pyo3(signature = (*args))]
     fn joinpath(&self, args: &Bound<'_, PyTuple>) -> PyResult<Self> {
         let mut path = self.path().to_path_buf();
-        for arg in args.iter() {
-            let segment: PathBuf = arg.extract()?;
-            path = path.join(segment);
+        for arg in args.iter_borrowed() {
+            let segment: FsPathLike = arg.extract()?;
+            path.push(segment);
         }
         Ok(path.into())
     }

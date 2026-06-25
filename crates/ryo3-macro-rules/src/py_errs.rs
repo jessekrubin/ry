@@ -12,7 +12,78 @@
 //!   and instead just use the string literal directly.
 //!
 //! # DEVELOP (aka note(s) to moi)
-//! - keep the macro names sorted
+//! - keep the macro names sorted exluding (`ValueError`)
+//!
+
+/// macro that returns a `pyo3::exceptions::PyValueError`
+///
+/// # EXAMPLE
+///
+/// ```
+/// use pyo3::prelude::*;
+/// use ryo3_macro_rules::py_value_error;
+///
+/// fn value_error() -> PyResult<()> {
+///     Err(py_value_error!("this is a value error"))
+/// }
+///
+/// assert_eq!(value_error().is_err(), true);
+/// ```
+#[macro_export]
+macro_rules! py_value_error {
+    () => {
+        ::pyo3::exceptions::PyValueError::new_err("value error")
+    };
+    ($msg:ident $(,)?) => {
+        ::pyo3::exceptions::PyValueError::new_err($msg)
+    };
+    ($($arg:tt)+) => {
+        {
+            let args = ::std::format_args!($($arg)+);
+            match args.as_str() {
+                Some(s) => ::pyo3::exceptions::PyValueError::new_err(s),
+                None => ::pyo3::exceptions::PyValueError::new_err(args.to_string()),
+            }
+        }
+    };
+}
+
+/// macro that returns a `Result<_, pyo3::exceptions::PyValueError>`
+///
+/// # EXAMPLE
+///
+/// ```
+/// use pyo3::prelude::*;
+/// use ryo3_macro_rules::py_value_err;
+///
+/// fn value_error() -> PyResult<()> {
+///     py_value_err!("this is a value error")
+/// }
+///
+/// assert_eq!(value_error().is_err(), true);
+/// ```
+#[macro_export]
+macro_rules! py_value_err {
+    () => {
+        ::std::result::Result::Err(::pyo3::exceptions::PyValueError::new_err("value error"))
+    };
+    ($msg:ident $(,)?) => {
+        ::std::result::Result::Err(::pyo3::exceptions::PyValueError::new_err($msg))
+    };
+    ($($arg:tt)+) => {
+        {
+            let args = ::std::format_args!($($arg)+);
+            ::std::result::Result::Err(match args.as_str() {
+                Some(s) => ::pyo3::exceptions::PyValueError::new_err(s),
+                None => ::pyo3::exceptions::PyValueError::new_err(args.to_string()),
+            })
+        }
+    };
+}
+
+// ----------------------------------------------------------------------------
+// ERRORS
+// ----------------------------------------------------------------------------
 
 #[macro_export]
 macro_rules! py_io_error {
@@ -325,44 +396,6 @@ macro_rules! py_type_err {
             ::std::result::Result::Err(match args.as_str() {
                 Some(s) => ::pyo3::exceptions::PyTypeError::new_err(s),
                 None => ::pyo3::exceptions::PyTypeError::new_err(args.to_string()),
-            })
-        }
-    };
-}
-
-#[macro_export]
-macro_rules! py_value_error {
-    () => {
-        ::pyo3::exceptions::PyValueError::new_err("value error")
-    };
-    ($msg:ident $(,)?) => {
-        ::pyo3::exceptions::PyValueError::new_err($msg)
-    };
-    ($($arg:tt)+) => {
-        {
-            let args = ::std::format_args!($($arg)+);
-            match args.as_str() {
-                Some(s) => ::pyo3::exceptions::PyValueError::new_err(s),
-                None => ::pyo3::exceptions::PyValueError::new_err(args.to_string()),
-            }
-        }
-    };
-}
-
-#[macro_export]
-macro_rules! py_value_err {
-    () => {
-        ::std::result::Result::Err(::pyo3::exceptions::PyValueError::new_err("value error"))
-    };
-    ($msg:ident $(,)?) => {
-        ::std::result::Result::Err(::pyo3::exceptions::PyValueError::new_err($msg))
-    };
-    ($($arg:tt)+) => {
-        {
-            let args = ::std::format_args!($($arg)+);
-            ::std::result::Result::Err(match args.as_str() {
-                Some(s) => ::pyo3::exceptions::PyValueError::new_err(s),
-                None => ::pyo3::exceptions::PyValueError::new_err(args.to_string()),
             })
         }
     };
