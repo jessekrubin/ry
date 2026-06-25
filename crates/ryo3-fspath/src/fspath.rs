@@ -4,8 +4,6 @@ use std::fmt;
 #[cfg(target_os = "windows")]
 use std::fmt::Write as _;
 use std::hash::{Hash, Hasher};
-#[cfg(target_os = "windows")]
-use std::path::Component;
 use std::path::{Path, PathBuf};
 
 use pyo3::basic::CompareOp;
