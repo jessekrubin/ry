@@ -2,7 +2,7 @@ use pyo3::IntoPyObjectExt;
 use pyo3::exceptions::{PyRecursionError, PyTypeError};
 use pyo3::prelude::*;
 use ryo3_bytes::RyBytes;
-use ryo3_serde::PyAnySerializer;
+use ryo3_serde::{JsonTarget, PyAnySerializer, SerializeTarget};
 
 fn map_serde_json_err<E: std::fmt::Display>(e: E) -> PyErr {
     if e.to_string().starts_with("recursion") {
@@ -58,31 +58,40 @@ impl<'py> JsonSerializer<'py> {
     }
 
     pub(crate) fn serialize_to_vec(&self, obj: &Bound<'py, PyAny>) -> PyResult<Vec<u8>> {
-        let s = PyAnySerializer::new(obj.as_borrowed(), self.default);
         let mut bytes: Vec<u8> = Vec::with_capacity(4096);
+
         if self.opts.sort_keys {
-            // TODO: This is a very hacky way of handling sorting the keys...
-            //       ideally this would be part of the serialization process
-            //       I think
-            let value = serde_json::to_value(&s).map_err(map_serde_json_err)?;
-            if self.opts.fmt {
-                serde_json::to_writer_pretty(&mut bytes, &value).map_err(map_serde_json_err)?;
-            } else {
-                serde_json::to_writer(&mut bytes, &value).map_err(map_serde_json_err)?;
-            }
+            let s = PyAnySerializer::new_with_target(
+                obj.as_borrowed(),
+                self.default,
+                JsonTarget::<true>,
+            );
+            self.write_json(&mut bytes, &s)?;
         } else {
-            // 4k seeeems is a reasonable default size for JSON serialization?
-            if self.opts.fmt {
-                serde_json::to_writer_pretty(&mut bytes, &s).map_err(map_serde_json_err)?;
-            } else {
-                serde_json::to_writer(&mut bytes, &s).map_err(map_serde_json_err)?;
-            }
+            let s = PyAnySerializer::new_with_target(
+                obj.as_borrowed(),
+                self.default,
+                JsonTarget::<false>,
+            );
+            self.write_json(&mut bytes, &s)?;
         }
 
         if self.opts.append_newline {
             bytes.push(b'\n');
         }
         Ok(bytes)
+    }
+
+    fn write_json<T: SerializeTarget>(
+        &self,
+        bytes: &mut Vec<u8>,
+        serializer: &PyAnySerializer<'_, 'py, T>,
+    ) -> PyResult<()> {
+        if self.opts.fmt {
+            serde_json::to_writer_pretty(bytes, serializer).map_err(map_serde_json_err)
+        } else {
+            serde_json::to_writer(bytes, serializer).map_err(map_serde_json_err)
+        }
     }
 }
 

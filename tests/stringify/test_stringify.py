@@ -107,6 +107,59 @@ def test_stringify_pybytes_output() -> None:
     assert parsed_py == parsed_rs
 
 
+def test_stringify_sort_keys() -> None:
+    data = {
+        "z": {"beta": 2, "alpha": 1},
+        "a": 0,
+    }
+
+    assert ry.stringify(data, sort_keys=True) == b'{"a":0,"z":{"alpha":1,"beta":2}}'
+
+
+def test_stringify_sort_keys_fmt() -> None:
+    data = {
+        "z": 1,
+        "a": {
+            "c": 3,
+            "b": 2,
+        },
+    }
+
+    assert ry.stringify(data, sort_keys=True, fmt=True) == (
+        b'{\n  "a": {\n    "b": 2,\n    "c": 3\n  },\n  "z": 1\n}'
+    )
+
+
+def test_stringify_sort_keys_bool_keys() -> None:
+    data = {
+        True: 1,
+        "a": 2,
+        False: 3,
+    }
+
+    assert ry.stringify(data, sort_keys=True) == b'{"a":2,"false":3,"true":1}'
+
+
+def test_stringify_sort_keys_mapping() -> None:
+    class SomeMapping(t.Mapping[str, int]):
+        def __init__(self) -> None:
+            self._data = {
+                "z": 1,
+                "a": 2,
+            }
+
+        def __getitem__(self, key: str) -> int:
+            return self._data[key]
+
+        def __iter__(self) -> t.Iterator[str]:
+            return iter(self._data)
+
+        def __len__(self) -> int:
+            return len(self._data)
+
+    assert ry.stringify(SomeMapping(), sort_keys=True) == b'{"a":2,"z":1}'
+
+
 def _test_stringify_json(data: t.Any) -> None:
     """Test that stringify_json produces valid JSON strings."""
     json_bytes = ry.stringify(data)
@@ -503,6 +556,21 @@ def test_stringify_dataclass_with_slots_kwarg() -> None:
         "point1": {"x": 1, "y": 2},
         "point2": {"x": 3, "y": 4},
     }, f"Parsed JSON does not match original data: {parsed} != {data}"
+
+
+@pytest.mark.skipif(
+    sys.version_info < (3, 10),
+    reason="dataclass(slots=True) is python3.10+ (IIRC -jesse)",
+)
+def test_stringify_sort_keys_dataclass_with_slots_kwarg() -> None:
+    from dataclasses import dataclass
+
+    @dataclass(slots=True)
+    class Point:
+        z: int
+        a: int
+
+    assert ry.stringify(Point(1, 2), sort_keys=True) == b'{"a":2,"z":1}'
 
 
 def test_stringify_dataclass_with_slots_manually_added() -> None:

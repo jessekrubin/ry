@@ -3,27 +3,27 @@ use pyo3::{Borrowed, PyAny, intern};
 use serde::ser::{Serialize, Serializer};
 
 use crate::errors::pyerr2sererr;
-use crate::ser::PySerializeContext;
+use crate::ser::{PySerializeContext, SerializeTarget};
 use crate::{Depth, PyAnySerializer};
 
-pub(crate) struct PyEnumSerializer<'a, 'py> {
-    ctx: PySerializeContext<'py>,
+pub(crate) struct PyEnumSerializer<'a, 'py, T: SerializeTarget> {
+    ctx: PySerializeContext<'py, T>,
     obj: Borrowed<'a, 'py, PyAny>,
     depth: Depth,
 }
 
-impl<'a, 'py> PyEnumSerializer<'a, 'py> {
+impl<'a, 'py, T: SerializeTarget> PyEnumSerializer<'a, 'py, T> {
     #[inline]
     pub(crate) fn new(
         obj: Borrowed<'a, 'py, PyAny>,
-        ctx: PySerializeContext<'py>,
+        ctx: PySerializeContext<'py, T>,
         depth: Depth,
     ) -> Self {
         Self { ctx, obj, depth }
     }
 }
 
-impl Serialize for PyEnumSerializer<'_, '_> {
+impl<T: SerializeTarget> Serialize for PyEnumSerializer<'_, '_, T> {
     #[inline]
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where

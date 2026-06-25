@@ -15,16 +15,30 @@ pub struct BorrowedDictIter<'a, 'py> {
     dict: Borrowed<'a, 'py, PyDict>,
     ppos: ffi::Py_ssize_t,
     remaining: usize,
+    #[cfg(Py_GIL_DISABLED)]
+    critical_section: Box<std::mem::MaybeUninit<ffi::PyCriticalSection>>,
 }
 
 impl<'a, 'py> BorrowedDictIter<'a, 'py> {
     #[must_use]
     pub fn new(dict: Borrowed<'a, 'py, PyDict>) -> Self {
+        #[cfg(Py_GIL_DISABLED)]
+        let mut critical_section = Box::new(std::mem::MaybeUninit::uninit());
+
+        #[cfg(Py_GIL_DISABLED)]
+        #[expect(unsafe_code)]
+        // Safety: the critical section is ended in Drop and `dict` outlives the iterator.
+        unsafe {
+            ffi::PyCriticalSection_Begin(critical_section.as_mut_ptr(), dict.as_ptr());
+        }
+
         let len = dict.len();
-        BorrowedDictIter {
+        Self {
             dict,
             ppos: 0,
             remaining: len,
+            #[cfg(Py_GIL_DISABLED)]
+            critical_section,
         }
     }
 }
@@ -79,5 +93,16 @@ impl<'a, 'py> Iterator for BorrowedDictIter<'a, 'py> {
 impl ExactSizeIterator for BorrowedDictIter<'_, '_> {
     fn len(&self) -> usize {
         self.remaining
+    }
+}
+
+#[cfg(Py_GIL_DISABLED)]
+impl Drop for BorrowedDictIter<'_, '_> {
+    fn drop(&mut self) {
+        #[expect(unsafe_code)]
+        // Safety: initialized in `new` and ended exactly once when the iterator is dropped.
+        unsafe {
+            ffi::PyCriticalSection_End(self.critical_section.as_mut_ptr());
+        }
     }
 }

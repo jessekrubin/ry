@@ -1,11 +1,11 @@
 use pyo3::prelude::*;
-use pyo3::types::{PyDict, PyMapping};
+use pyo3::types::{PyDict, PyList, PyMapping};
 use serde::ser::{Serialize, SerializeMap, Serializer};
 
 use crate::constants::{Depth, MAX_DEPTH};
 use crate::errors::pyerr2sererr;
 use crate::ob_type::PyObType;
-use crate::ser::PySerializeContext;
+use crate::ser::json::json_map_key_str;
 use crate::ser::py_types::{
     PyBoolSerializer, PyBytesLikeSerializer, PyDateSerializer, PyDateTimeSerializer,
     PyFloatSerializer, PyFrozenSetSerializer, PyIntSerializer, PyListSerializer,
@@ -22,19 +22,20 @@ use crate::ser::py_types::{
     feature = "ryo3-std"
 ))]
 use crate::ser::ry_types;
+use crate::ser::{PySerializeContext, SerializeTarget};
 use crate::serde_err_recursion;
 
-pub(crate) struct PyDictSerializer<'a, 'py> {
-    ctx: PySerializeContext<'py>,
+pub(crate) struct PyDictSerializer<'a, 'py, T: SerializeTarget> {
+    ctx: PySerializeContext<'py, T>,
     pub(crate) obj: Borrowed<'a, 'py, PyDict>,
     pub(crate) depth: Depth,
 }
 
-impl<'a, 'py> PyDictSerializer<'a, 'py> {
+impl<'a, 'py, T: SerializeTarget> PyDictSerializer<'a, 'py, T> {
     #[inline]
     pub(crate) fn new(
         obj: Borrowed<'a, 'py, PyDict>,
-        ctx: PySerializeContext<'py>,
+        ctx: PySerializeContext<'py, T>,
         depth: Depth,
     ) -> Self {
         Self { ctx, obj, depth }
@@ -43,7 +44,7 @@ impl<'a, 'py> PyDictSerializer<'a, 'py> {
     #[inline]
     pub(crate) fn new_unchecked(
         obj: Borrowed<'a, 'py, PyAny>,
-        ctx: PySerializeContext<'py>,
+        ctx: PySerializeContext<'py, T>,
         depth: Depth,
     ) -> Self {
         #[expect(unsafe_code)]
@@ -266,7 +267,8 @@ macro_rules! serialize_map_value {
 //         m.end()
 //     }
 // }
-impl Serialize for PyDictSerializer<'_, '_> {
+
+impl<T: SerializeTarget> Serialize for PyDictSerializer<'_, '_, T> {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
@@ -279,67 +281,100 @@ impl Serialize for PyDictSerializer<'_, '_> {
             return serializer.serialize_map(Some(0))?.end();
         }
 
+        if T::SORT_KEYS {
+            return PyJsonSortedDictSerializer::new(self.obj, self.ctx, self.depth, len)
+                .serialize(serializer);
+        }
+
         let mut m = serializer.serialize_map(None)?;
         let mut prev_val_ob_type_ptr = 0;
         let mut prev_val_ob_type = PyObType::Unknown;
 
-        #[cfg(not(Py_GIL_DISABLED))]
         for (map_key, map_val) in ryo3_core::py_dict::BorrowedDictIter::new(self.obj) {
             let type_ptr = map_val.get_type_ptr() as usize;
-            let ob_type = if type_ptr == prev_val_ob_type_ptr {
-                prev_val_ob_type
-            } else {
-                let t = self.ctx.typeref.ptr2type(type_ptr);
+            if type_ptr != prev_val_ob_type_ptr {
                 prev_val_ob_type_ptr = type_ptr;
-                prev_val_ob_type = t;
-                t
-            };
+                prev_val_ob_type = self.ctx.typeref.ptr2type(type_ptr);
+            }
             let sk = PyMappingKeySerializer::new(self.ctx, map_key);
             m.serialize_key(&sk)?;
-            serialize_map_value!(ob_type, m, self, map_val);
+            serialize_map_value!(prev_val_ob_type, m, self, map_val);
+        }
+        m.end()
+    }
+}
+
+struct PyJsonSortedDictSerializer<'a, 'py, T: SerializeTarget> {
+    ctx: PySerializeContext<'py, T>,
+    obj: Borrowed<'a, 'py, PyDict>,
+    depth: Depth,
+    length: usize,
+}
+
+impl<'a, 'py, T: SerializeTarget> PyJsonSortedDictSerializer<'a, 'py, T> {
+    fn new(
+        obj: Borrowed<'a, 'py, PyDict>,
+        ctx: PySerializeContext<'py, T>,
+        depth: Depth,
+        length: usize,
+    ) -> Self {
+        Self {
+            ctx,
+            obj,
+            depth,
+            length,
+        }
+    }
+}
+
+impl<T: SerializeTarget> Serialize for PyJsonSortedDictSerializer<'_, '_, T> {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut entries = Vec::with_capacity(self.length);
+
+        for (map_key, map_val) in ryo3_core::py_dict::BorrowedDictIter::new(self.obj) {
+            entries.push((json_map_key_str::<S::Error, T>(self.ctx, map_key)?, map_val));
         }
 
-        // idk wtf would happen with freethreaded and the borrowed thing so
-        // les just use the old one for this... ?
-        #[cfg(Py_GIL_DISABLED)]
-        for (map_key, map_val) in self.obj.iter() {
-            let map_key = map_key.as_borrowed();
-            let map_val = map_val.as_borrowed();
+        entries.sort_by_key(|(key, _)| *key);
+
+        let mut m = serializer.serialize_map(Some(entries.len()))?;
+        let mut prev_val_ob_type_ptr = 0;
+        let mut prev_val_ob_type = PyObType::Unknown;
+
+        for (map_key, map_val) in entries {
             let type_ptr = map_val.get_type_ptr() as usize;
-            let ob_type = if type_ptr == prev_val_ob_type_ptr {
-                prev_val_ob_type
-            } else {
-                let t = self.ctx.typeref.ptr2type(type_ptr);
+            if type_ptr != prev_val_ob_type_ptr {
                 prev_val_ob_type_ptr = type_ptr;
-                prev_val_ob_type = t;
-                t
-            };
-            let sk = PyMappingKeySerializer::new(self.ctx, map_key);
-            m.serialize_key(&sk)?;
-            serialize_map_value!(ob_type, m, self, map_val);
+                prev_val_ob_type = self.ctx.typeref.ptr2type(type_ptr);
+            }
+            m.serialize_key(map_key)?;
+            serialize_map_value!(prev_val_ob_type, m, self, map_val);
         }
         m.end()
     }
 }
 
 // pub(crate) use serialize_map_value;
-pub(crate) struct PyMappingSerializer<'a, 'py> {
-    ctx: PySerializeContext<'py>,
+pub(crate) struct PyMappingSerializer<'a, 'py, T: SerializeTarget> {
+    ctx: PySerializeContext<'py, T>,
     obj: Borrowed<'a, 'py, PyMapping>,
     depth: Depth,
 }
 
-impl<'a, 'py> PyMappingSerializer<'a, 'py> {
+impl<'a, 'py, T: SerializeTarget> PyMappingSerializer<'a, 'py, T> {
     pub(crate) fn new_with_depth(
         obj: Borrowed<'a, 'py, PyMapping>,
-        ctx: PySerializeContext<'py>,
+        ctx: PySerializeContext<'py, T>,
         depth: Depth,
     ) -> Self {
         Self { ctx, obj, depth }
     }
 }
 
-impl Serialize for PyMappingSerializer<'_, '_> {
+impl<T: SerializeTarget> Serialize for PyMappingSerializer<'_, '_, T> {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
@@ -351,15 +386,76 @@ impl Serialize for PyMappingSerializer<'_, '_> {
         {
             return serializer.serialize_map(Some(0))?.end();
         }
-        let mut m = serializer.serialize_map(len)?;
         let keys = py_mapping.keys().map_err(pyerr2sererr)?;
         let values = py_mapping.values().map_err(pyerr2sererr)?;
+        if T::SORT_KEYS {
+            return PyJsonSortedMappingSerializer::new(keys, values, self.ctx, self.depth, len)
+                .serialize(serializer);
+        }
+
+        let mut m = serializer.serialize_map(len)?;
         for (k, v) in keys.iter().zip(values.iter()) {
             let k = k.as_borrowed();
             let v = v.as_borrowed();
             let sk = PyMappingKeySerializer::new(self.ctx, k);
             let ob_type = self.ctx.typeref.obtype(v);
             m.serialize_key(&sk)?;
+            serialize_map_value!(ob_type, m, self, v);
+        }
+        m.end()
+    }
+}
+
+struct PyJsonSortedMappingSerializer<'py, T: SerializeTarget> {
+    ctx: PySerializeContext<'py, T>,
+    keys: Bound<'py, PyList>,
+    values: Bound<'py, PyList>,
+    depth: Depth,
+    len: Option<usize>,
+}
+
+impl<'py, T: SerializeTarget> PyJsonSortedMappingSerializer<'py, T> {
+    fn new(
+        keys: Bound<'py, PyList>,
+        values: Bound<'py, PyList>,
+        ctx: PySerializeContext<'py, T>,
+        depth: Depth,
+        len: Option<usize>,
+    ) -> Self {
+        Self {
+            ctx,
+            keys,
+            values,
+            depth,
+            len,
+        }
+    }
+}
+
+impl<T: SerializeTarget> Serialize for PyJsonSortedMappingSerializer<'_, T> {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut entries = Vec::with_capacity(self.len.unwrap_or(0));
+        for (k, v) in self.keys.iter().zip(self.values.iter()) {
+            json_map_key_str::<S::Error, T>(self.ctx, k.as_borrowed())?;
+            entries.push((k, v));
+        }
+        entries.sort_by(|(a, _), (b, _)| {
+            let a =
+                json_map_key_str::<S::Error, T>(self.ctx, a.as_borrowed()).expect("JSON map key");
+            let b =
+                json_map_key_str::<S::Error, T>(self.ctx, b.as_borrowed()).expect("JSON map key");
+            a.cmp(b)
+        });
+
+        let mut m = serializer.serialize_map(self.len)?;
+        for (k, v) in entries {
+            let k = json_map_key_str::<S::Error, T>(self.ctx, k.as_borrowed())?;
+            let v = v.as_borrowed();
+            let ob_type = self.ctx.typeref.obtype(v);
+            m.serialize_key(k)?;
             serialize_map_value!(ob_type, m, self, v);
         }
         m.end()

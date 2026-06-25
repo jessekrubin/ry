@@ -8,7 +8,6 @@ use serde::ser::{Serialize, Serializer};
 
 use crate::ob_type::PyObType;
 use crate::ob_type_cache::PyTypeCache;
-use crate::ser::PySerializeContext;
 use crate::ser::py_types::{
     PyBoolSerializer, PyBytesLikeSerializer, PyDateSerializer, PyDateTimeSerializer,
     PyDictSerializer, PyFloatSerializer, PyFrozenSetSerializer, PyIntSerializer, PyListSerializer,
@@ -17,34 +16,46 @@ use crate::ser::py_types::{
 };
 #[cfg(feature = "ry")]
 use crate::ser::ry_types;
+use crate::ser::{PySerializeContext, SerdeTarget, SerializeTarget};
 use crate::{Depth, MAX_DEPTH, serde_err_recursion};
 
-pub struct PyAnySerializer<'a, 'py> {
+pub struct PyAnySerializer<'a, 'py, T: SerializeTarget = SerdeTarget> {
     pub(crate) obj: Borrowed<'a, 'py, PyAny>,
-    pub(crate) ctx: PySerializeContext<'py>,
+    pub(crate) ctx: PySerializeContext<'py, T>,
     pub(crate) depth: Depth,
 }
 
-impl<'a, 'py> PyAnySerializer<'a, 'py> {
+impl<'a, 'py> PyAnySerializer<'a, 'py, SerdeTarget> {
     #[must_use]
     pub fn new(obj: Borrowed<'a, 'py, PyAny>, default: Option<&'py Bound<'py, PyAny>>) -> Self {
+        Self::new_with_target(obj, default, SerdeTarget)
+    }
+}
+
+impl<'a, 'py, T: SerializeTarget> PyAnySerializer<'a, 'py, T> {
+    #[must_use]
+    pub fn new_with_target(
+        obj: Borrowed<'a, 'py, PyAny>,
+        default: Option<&'py Bound<'py, PyAny>>,
+        target: T,
+    ) -> Self {
         let py = obj.py();
         let typeref = PyTypeCache::cached(py);
-        let ctx = PySerializeContext::new(default, typeref);
+        let ctx = PySerializeContext::new(default, typeref, target);
         Self { obj, ctx, depth: 0 }
     }
 
     #[must_use]
     pub(crate) fn new_with_depth(
         obj: Borrowed<'a, 'py, PyAny>,
-        ctx: PySerializeContext<'py>,
+        ctx: PySerializeContext<'py, T>,
         depth: Depth,
     ) -> Self {
         Self { obj, ctx, depth }
     }
 }
 
-impl Serialize for PyAnySerializer<'_, '_> {
+impl<T: SerializeTarget> Serialize for PyAnySerializer<'_, '_, T> {
     #[expect(clippy::too_many_lines)]
     #[inline]
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>

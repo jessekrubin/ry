@@ -5,21 +5,21 @@ use pyo3::{Bound, intern};
 use serde::ser::{Error as SerError, Serialize, SerializeMap, Serializer};
 
 use crate::errors::pyerr2sererr;
-use crate::ser::PySerializeContext;
 use crate::ser::dataclass::dataclass_fields;
 use crate::ser::py_types::PyDictSerializer;
+use crate::ser::{PySerializeContext, SerializeTarget};
 use crate::{Depth, MAX_DEPTH, PyAnySerializer, serde_err, serde_err_recursion};
 
-pub(crate) struct PyDataclassSerializer<'a, 'py> {
-    ctx: PySerializeContext<'py>,
+pub(crate) struct PyDataclassSerializer<'a, 'py, T: SerializeTarget> {
+    ctx: PySerializeContext<'py, T>,
     obj: Borrowed<'a, 'py, PyAny>,
     depth: Depth,
 }
 
-impl<'a, 'py> PyDataclassSerializer<'a, 'py> {
+impl<'a, 'py, T: SerializeTarget> PyDataclassSerializer<'a, 'py, T> {
     pub(crate) fn new(
         obj: Borrowed<'a, 'py, PyAny>,
-        ctx: PySerializeContext<'py>,
+        ctx: PySerializeContext<'py, T>,
         depth: Depth,
     ) -> Self {
         Self { ctx, obj, depth }
@@ -34,7 +34,7 @@ fn get_field_marker(py: Python<'_>) -> PyResult<&Bound<'_, PyAny>> {
     DC_FIELD_MARKER.import(py, "dataclasses", "_FIELD")
 }
 
-impl Serialize for PyDataclassSerializer<'_, '_> {
+impl<T: SerializeTarget> Serialize for PyDataclassSerializer<'_, '_, T> {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
@@ -55,7 +55,7 @@ impl Serialize for PyDataclassSerializer<'_, '_> {
             }
         } else if let Some(fields) = dataclass_fields(self.obj) {
             let field_marker = get_field_marker(py).map_err(pyerr2sererr)?;
-            let mut map = serializer.serialize_map(None)?;
+            let mut entries = Vec::new();
             for (field_name, field) in fields.iter() {
                 // check if the field is a dataclass field
                 let field_type = field
@@ -66,18 +66,23 @@ impl Serialize for PyDataclassSerializer<'_, '_> {
                     let field_name_py_str =
                         field_name.cast_into::<PyString>().map_err(pyerr2sererr)?;
                     let value = self.obj.getattr(&field_name_py_str).map_err(pyerr2sererr)?;
-                    let field_ser = PyAnySerializer::new_with_depth(
-                        value.as_borrowed(),
-                        self.ctx,
-                        self.depth + 1,
-                    );
 
                     // actual string
                     let s = field_name_py_str.to_str().map_err(|_| {
                         SerError::custom("dataclass field name is not a valid UTF-8 string")
                     })?;
-                    map.serialize_entry(s, &field_ser)?;
+                    entries.push((s.to_owned(), value));
                 }
+            }
+            if T::SORT_KEYS {
+                entries.sort_by(|(a, _), (b, _)| a.cmp(b));
+            }
+
+            let mut map = serializer.serialize_map(None)?;
+            for (s, value) in entries {
+                let field_ser =
+                    PyAnySerializer::new_with_depth(value.as_borrowed(), self.ctx, self.depth + 1);
+                map.serialize_entry(&s, &field_ser)?;
             }
             map.end()
         } else {
