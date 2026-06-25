@@ -11,6 +11,8 @@
 //!   string literal and avoid having to sploop out a new string (allocating)
 //!   and instead just use the string literal directly.
 //!
+//! # DEVELOP (aka note(s) to moi)
+//! - keep the macro names sorted
 
 #[macro_export]
 macro_rules! py_io_error {

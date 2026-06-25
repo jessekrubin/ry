@@ -9,17 +9,15 @@ use std::path::Component;
 use std::path::{Path, PathBuf};
 
 use pyo3::basic::CompareOp;
-use pyo3::exceptions::{
-    PyFileExistsError, PyFileNotFoundError, PyNotADirectoryError, PyValueError,
-};
+use pyo3::exceptions::{PyFileExistsError, PyFileNotFoundError, PyNotADirectoryError};
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyTuple};
 use pyo3::{BoundObject, intern};
 use ryo3_bytes::{ReadableBuffer, RyBytes};
-use ryo3_core::macros::{any_repr, py_type_err};
+use ryo3_core::PyCastExactOpt;
 use ryo3_core::sync::RyMutex;
 use ryo3_core::types::{PathLike, PyUtf8Bytes};
-use ryo3_macro_rules::pytodo;
+use ryo3_macro_rules::{py_type_err, py_value_error, pytodo};
 
 // separator
 const MAIN_SEPARATOR: char = std::path::MAIN_SEPARATOR;
@@ -125,10 +123,14 @@ impl PyFsPath {
         hasher.finish()
     }
 
-    #[expect(clippy::needless_pass_by_value, reason = "python arg extract")]
     fn equiv(&self, other: FsPathLike) -> bool {
-        let other = other.as_ref();
-        self.path() == other || self.py_to_string() == path2str(other)
+        match other {
+            FsPathLike::FsPath(other) => self.path() == other.get().path(),
+            FsPathLike::Path(other) => {
+                let other = other.as_ref();
+                self.path() == other || self.py_to_string() == path2str(other)
+            }
+        }
     }
 
     fn __richcmp__(&self, other: &Self, op: CompareOp) -> bool {
@@ -171,21 +173,19 @@ impl PyFsPath {
     }
 
     fn __bytes__<'py>(&self, py: Python<'py>) -> Bound<'py, PyBytes> {
-        let s = path2str(self.path());
-        let b = s.as_bytes();
+        let b = self.path().as_os_str().as_encoded_bytes();
         PyBytes::new(py, b)
     }
 
     #[staticmethod]
     fn from_any<'py>(value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, Self>> {
         let py = value.py();
-        if let Ok(val) = value.cast_exact::<Self>() {
+        if let Some(val) = value.cast_exact_opt::<Self>() {
             Ok(val.as_borrowed().into_bound())
-        } else if let Ok(p) = value.extract::<PathBuf>() {
-            Self::from(p).into_pyobject(py)
+        } else if let Ok(val) = value.extract::<PathLike>() {
+            Self::from(val).into_pyobject(py)
         } else {
-            let valtype = any_repr!(value);
-            py_type_err!("FsPath conversion error: {valtype}")
+            py_type_err!("FsPath.from_any - expected FsPath or PathLike")
         }
     }
 
@@ -202,7 +202,7 @@ impl PyFsPath {
     fn drive(&self) -> Option<OsString> {
         let drive = self.path().components().next();
         match drive {
-            Some(Component::Prefix(pref)) => Some(pref.as_os_str().to_os_string()),
+            Some(std::path::Component::Prefix(pref)) => Some(pref.as_os_str().to_os_string()),
             _ => None,
         }
     }
@@ -313,9 +313,9 @@ impl PyFsPath {
 
     #[getter]
     fn stem(&self) -> PyResult<&OsStr> {
-        self.path().file_stem().ok_or_else(|| {
-            PyValueError::new_err("stem() - path contains invalid unicode characters")
-        })
+        self.path()
+            .file_stem()
+            .ok_or_else(|| py_value_error!("stem() - path contains invalid unicode characters"))
     }
 
     #[staticmethod]
@@ -574,13 +574,6 @@ impl PyFsPath {
         Ok(Self::from(new_path))
     }
 
-    #[expect(clippy::unused_self, reason = "not implemented")]
-    fn as_uri(&self) -> PyResult<String> {
-        Err(pyo3::exceptions::PyNotImplementedError::new_err(
-            "as_uri not implemented",
-        ))
-    }
-
     fn iterdir(&self, py: Python<'_>) -> PyResult<PyFsPathReadDir> {
         self.read_dir(py)
     }
@@ -749,7 +742,7 @@ impl PyFsPath {
         self.path()
             .strip_prefix(base)
             .map(Self::from)
-            .map_err(|e| PyValueError::new_err(format!("FsPath.strip_prefix: {e}")))
+            .map_err(|e| py_value_error!("FsPath.strip_prefix: {e}"))
     }
 
     fn symlink_metadata(&self) -> PyResult<ryo3_std::fs::PyMetadata> {
@@ -803,6 +796,7 @@ impl PyFsPath {
         use ryo3_pydantic::GetPydanticJsonSchemaCls;
         Self::get_pydantic_json_schema(cls, source, handler)
     }
+
     // -------------------------------------------------------------------------
     // `same-file` feature
     // ------------------------------------------------------------------------
@@ -948,10 +942,11 @@ struct PyFsPathAncestors {
 }
 
 impl PyFsPathAncestors {
-    fn empty() -> Self {
+    fn new<P: AsRef<Path>>(p: P) -> Self {
+        let buf = to_native_pathbuf(p);
         Self {
-            path: PathBuf::new(),
-            current: RyMutex::new(None),
+            current: RyMutex::new(Some(buf.clone())),
+            path: buf,
         }
     }
 
@@ -963,11 +958,10 @@ impl PyFsPathAncestors {
         }
     }
 
-    fn new<P: AsRef<Path>>(p: P) -> Self {
-        let buf = to_native_pathbuf(p);
+    fn empty() -> Self {
         Self {
-            current: RyMutex::new(Some(buf.clone())),
-            path: buf,
+            path: PathBuf::new(),
+            current: RyMutex::new(None),
         }
     }
 }
@@ -1044,6 +1038,7 @@ impl fmt::Display for PosixPathDisplay<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         #[cfg(target_os = "windows")]
         {
+            use std::path::Component;
             let mut write_sep = false;
 
             for component in self.0.components() {
@@ -1115,7 +1110,7 @@ enum FsPathLike<'a, 'py> {
 impl<'a, 'py> FromPyObject<'a, 'py> for FsPathLike<'a, 'py> {
     type Error = PyErr;
     fn extract(obj: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
-        if let Ok(val) = obj.cast_exact::<PyFsPath>() {
+        if let Some(val) = obj.cast_exact_opt::<PyFsPath>() {
             Ok(FsPathLike::FsPath(val))
         } else {
             obj.extract::<PathLike>().map(FsPathLike::Path)
