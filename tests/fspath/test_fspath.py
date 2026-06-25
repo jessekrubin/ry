@@ -431,15 +431,6 @@ class TestFsPathWindows:
         rypath = path_cls("C:/some/path")
         assert rypath.name == pypath.name
 
-    def test_as_uri(self, path_cls: TPath) -> None:
-        pypath = Path("C:/some/path")
-        rypath = path_cls("C:/some/path")
-        if path_cls is ry.FsPath:
-            with pytest.raises(NotImplementedError):
-                rypath.as_uri()
-        else:
-            assert rypath.as_uri() == pypath.as_uri()
-
 
 @pytest.mark.skipif(is_windows, reason="Windows specific tests")
 class TestFsPathNonWindows:
