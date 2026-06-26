@@ -66,7 +66,7 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(zoned, m)?)?;
 
     // register mapping(s)
-    // pyo3::types::PyMapping::register::<RySpan>(m.py())?;
+    pyo3::types::PyMapping::register::<RySpan>(m.py())?;
 
     // okee-dokey
     Ok(())

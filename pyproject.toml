@@ -44,6 +44,11 @@ urls.Homepage = "https://github.com/jessekrubin/ry"
 urls.Issues = "https://github.com/jessekrubin/ry/issues"
 urls.Source = "https://github.com/jessekrubin/ry"
 
+[tool.pyrefly.errors]
+deprecated = "error"
+redundant-cast = "warn"
+bad-match = false
+
 [dependency-groups]
 dev = [
   "anyio>=4.8",
@@ -159,3 +164,11 @@ exclude = []
 MD013.code_blocks = false
 per-file-ignores."README.md" = [ "MD036" ]
 per-file-ignores."docs/src/index.md" = [ "MD041" ]
+
+[tool.pyrefly]
+python-version = "3.11.0"
+preset = "legacy"
+ignore-missing-imports = [
+    "tests.*",
+    "*",
+]

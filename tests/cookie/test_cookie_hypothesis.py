@@ -35,15 +35,18 @@ class _CookieKwargs(t.TypedDict):
     same_site: t.Literal["Lax", "Strict", "None"] | None
 
 
-def st_cookie_kwargs() -> st.SearchStrategy:
-    return st.fixed_dictionaries({
-        "domain": st.sampled_from(_DOMAINS),
-        "path": st.sampled_from(_PATHS),
-        "max_age": st.sampled_from(_DURATIONS),
-        "secure": st.sampled_from(_SECURES),
-        "http_only": st.sampled_from(_HTTP_ONLY),
-        "same_site": st.sampled_from(_SAME_SITES),
-    })
+def st_cookie_kwargs() -> st.SearchStrategy[_CookieKwargs]:
+    return t.cast(
+        "st.SearchStrategy[_CookieKwargs]",
+        st.fixed_dictionaries({  # pyrefly: ignore[bad-argument-type]
+            "domain": st.sampled_from(_DOMAINS),
+            "path": st.sampled_from(_PATHS),
+            "max_age": st.sampled_from(_DURATIONS),
+            "secure": st.sampled_from(_SECURES),
+            "http_only": st.sampled_from(_HTTP_ONLY),
+            "same_site": st.sampled_from(_SAME_SITES),
+        }),
+    )
 
 
 @given(st_cookie_kwargs())

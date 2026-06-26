@@ -10,6 +10,10 @@ import ry
 if TYPE_CHECKING:
     from pytest_benchmark.fixture import BenchmarkFixture
 
+    from ry.ryo3._aws_lc import (
+        _Sha,
+    )
+
 
 def random_bytes(size: int) -> bytes:
     # make random bytes
@@ -38,9 +42,9 @@ _PY_HASHERS = [(name, "py", cls) for name, _, cls in _HASHERS]
 
 
 @pytest.mark.benchmark(group="aws-lc-digest")
-@pytest.mark.parametrize("id_data", _BYTES, ids=lambda t: t[0])
+@pytest.mark.parametrize("id_data", _BYTES, ids=lambda id_data: id_data[0])
 @pytest.mark.parametrize(
-    "impl", [*_RY_HASHERS, *_PY_HASHERS], ids=lambda t: f"{t[0]}-{t[1]}"
+    "impl", [*_RY_HASHERS, *_PY_HASHERS], ids=lambda impl: f"{impl[0]}-{impl[1]}"
 )
 def test_bench_aws_lc_digest_sha(
     benchmark: BenchmarkFixture, id_data: tuple[str, bytes], impl: tuple[str, str, type]
@@ -60,7 +64,7 @@ def test_bench_aws_lc_digest_sha(
 @pytest.mark.parametrize("id_data", _BYTES, ids=lambda t: t[0])
 @pytest.mark.parametrize("impl", _RY_HASHERS, ids=lambda t: f"{t[0]}-{t[1]}")
 def test_bench_aws_lc_digest_oneshot(
-    benchmark: BenchmarkFixture, id_data: tuple[str, bytes], impl: tuple[str, str, type]
+    benchmark: BenchmarkFixture, id_data: tuple[str, bytes], impl: tuple[str, str, _Sha]
 ) -> None:
     size, data = id_data
     benchmark.group = impl[0] + "-" + size

@@ -49,9 +49,9 @@ def test_parse_params_no_dict_with_kwargs() -> None:
     with pytest.raises(TypeError):
         _url = ry.URL(  # type: ignore[call-arg,misc]
             "https://example.net",
-            {
+            {  # pyrefly: ignore[bad-argument-count]
                 "lang": "rust",
                 "browser": "servo",
             },
-            something="else",
+            something="else",  # pyrefly: ignore[unexpected-keyword]
         )

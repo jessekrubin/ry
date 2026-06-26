@@ -32,6 +32,7 @@ def py_stringify(data: t.Any) -> bytes:
 
 def oj_stringify(data: t.Any) -> bytes:
     """Convert data to a JSON string using orjson."""
+    assert orjson is not None, "orjson is not installed"
     return orjson.dumps(data)
 
 
@@ -62,6 +63,9 @@ def test_stringify_json(data: t.Any) -> None:
 
 def _test_stringify_json_orjson_compatible(data: t.Any) -> None:
     """Test that stringify_json produces valid JSON strings compatible with orjson."""
+    if orjson is None:
+        pytest.skip("orjson is not installed, skipping test")
+        return
     json_bytes = ry.stringify(data)
     assert isinstance(json_bytes, ry.Bytes), "Result should be a `ry.Bytes`"
     oj_res = oj_stringify(data)

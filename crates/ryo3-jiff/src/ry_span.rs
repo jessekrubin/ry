@@ -152,26 +152,7 @@ impl RySpan {
         if self.0.is_zero() {
             return Ok(PyTuple::empty(py));
         }
-        let mut units = Vec::new();
-        macro_rules! unite_das_units {
-            ($field:ident, $unit:expr) => {
-                if self.0.$field() != 0 {
-                    units.push($unit);
-                }
-            };
-        }
-
-        unite_das_units!(get_years, SpanUnit::Years);
-        unite_das_units!(get_months, SpanUnit::Months);
-        unite_das_units!(get_weeks, SpanUnit::Weeks);
-        unite_das_units!(get_days, SpanUnit::Days);
-        unite_das_units!(get_hours, SpanUnit::Hours);
-        unite_das_units!(get_minutes, SpanUnit::Minutes);
-        unite_das_units!(get_seconds, SpanUnit::Seconds);
-        unite_das_units!(get_milliseconds, SpanUnit::Milliseconds);
-        unite_das_units!(get_microseconds, SpanUnit::Microseconds);
-        unite_das_units!(get_nanoseconds, SpanUnit::Nanoseconds);
-        PyTuple::new(py, units)
+        PyTuple::new(py, SpanUnits::from(&self.0))
     }
 
     fn __len__(&self) -> usize {

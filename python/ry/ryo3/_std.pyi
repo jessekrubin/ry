@@ -29,7 +29,10 @@ class Duration(FromStr, ToPyTimeDelta, ToPy[pydt.timedelta], ToString, _Parse):
     SECOND: t.Final[Duration]
     MINUTE: t.Final[Duration]
     HOUR: t.Final[Duration]
-    __match_args__: t.Final[tuple[str, str]] = ("secs", "nanos")
+    __match_args__: t.Final[tuple[t.Literal["secs"], t.Literal["nanos"]]] = (
+        "secs",
+        "nanos",
+    )
 
     def __new__(cls, secs: int = 0, nanos: int = 0) -> t.Self: ...
     def __eq__(self, other: object) -> bool: ...
@@ -430,43 +433,85 @@ def write_text(path: FsPathLike, s: str) -> int: ...
 # STD::NET
 # =============================================================================
 
-class _Version4(t.Protocol):
+class _IpVersion4(t.Protocol):
     @property
     def version(self) -> t.Literal[4]: ...
+    @property
+    def is_ipv4(self) -> t.Literal[True]: ...
+    @property
+    def is_ipv6(self) -> t.Literal[False]: ...
 
-class _Version6(t.Protocol):
+class _IpVersion6(t.Protocol):
     @property
     def version(self) -> t.Literal[6]: ...
+    @property
+    def is_ipv4(self) -> t.Literal[False]: ...
+    @property
+    def is_ipv6(self) -> t.Literal[True]: ...
 
-class _Version(t.Protocol):
+class _IpVersion(t.Protocol):
     @property
     def version(self) -> t.Literal[4, 6]: ...
+    @property
+    def is_ipv4(self) -> bool: ...
+    @property
+    def is_ipv6(self) -> bool: ...
 
-class _Ipv4AddrProperties(t.Protocol):
+class _IpPropertiesIntersection(t.Protocol):
+    """Ipv4 & Ipv6 properties intersection"""
     @property
     def is_benchmarking(self) -> bool: ...
-    @property
-    def is_broadcast(self) -> bool: ...
     @property
     def is_documentation(self) -> bool: ...
     @property
     def is_global(self) -> t.NoReturn: ...
     @property
-    def is_link_local(self) -> bool: ...
-    @property
     def is_loopback(self) -> bool: ...
     @property
     def is_multicast(self) -> bool: ...
-    @property
-    def is_private(self) -> bool: ...
     @property
     def is_reserved(self) -> bool: ...
     @property
     def is_shared(self) -> bool: ...
     @property
-    def is_unspecified(self) -> bool: ...
-    @property
     def is_unicast(self) -> bool: ...
+    @property
+    def is_unspecified(self) -> bool: ...
+
+class _Ipv4OnlyProperties(t.Protocol):
+    @property
+    def is_broadcast(self) -> bool: ...
+    @property
+    def is_link_local(self) -> bool: ...
+    @property
+    def is_private(self) -> bool: ...
+
+class _Ipv6OnlyProperties(t.Protocol):
+    @property
+    def is_ipv4_mapped(self) -> bool: ...
+    @property
+    def is_unicast_global(self) -> bool: ...
+    @property
+    def is_unicast_link_local(self) -> bool: ...
+    @property
+    def is_unique_local(self) -> bool: ...
+
+class _Ipv4AddrProperties(
+    _IpPropertiesIntersection,
+    _Ipv4OnlyProperties,
+    t.Protocol,
+): ...
+class _Ipv6AddrProperties(
+    _IpPropertiesIntersection,
+    _Ipv6OnlyProperties,
+    t.Protocol,
+): ...
+class _IpAddrProperties(
+    _IpPropertiesIntersection,
+    _Ipv4OnlyProperties,
+    _Ipv6OnlyProperties,
+    t.Protocol,
+): ...
 
 _T_ipaddress_co = t.TypeVar(
     "_T_ipaddress_co",
@@ -480,7 +525,7 @@ class ToPyIpAddress(t.Protocol[_T_ipaddress_co]):
 @t.final
 class Ipv4Addr(
     _Ipv4AddrProperties,
-    _Version4,
+    _IpVersion4,
     FromStr,
     _Parse,
     ToPy[ipaddress.IPv4Address],
@@ -536,40 +581,10 @@ class Ipv4Addr(
         self, port: int, flowinfo: int = 0, scope_id: int = 0
     ) -> SocketAddrV6: ...
 
-class _Ipv6AddrProperties(t.Protocol):
-    # ========================================================================
-    # PROPERTIES
-    # ========================================================================
-
-    @property
-    def is_benchmarking(self) -> bool: ...
-    @property
-    def is_global(self) -> t.NoReturn: ...
-    @property
-    def is_ipv4_mapped(self) -> bool: ...
-    @property
-    def is_loopback(self) -> bool: ...
-    @property
-    def is_multicast(self) -> bool: ...
-    @property
-    def is_reserved(self) -> bool: ...
-    @property
-    def is_shared(self) -> bool: ...
-    @property
-    def is_unicast(self) -> bool: ...
-    @property
-    def is_unicast_global(self) -> t.NoReturn: ...
-    @property
-    def is_unicast_link_local(self) -> bool: ...
-    @property
-    def is_unique_local(self) -> bool: ...
-    @property
-    def is_unspecified(self) -> bool: ...
-
 @t.final
 class Ipv6Addr(
     _Ipv6AddrProperties,
-    _Version6,
+    _IpVersion6,
     FromStr,
     _Parse,
     ToPy[ipaddress.IPv6Address],
@@ -623,9 +638,8 @@ class Ipv6Addr(
 
 @t.final
 class IpAddr(
-    _Ipv4AddrProperties,
-    _Ipv6AddrProperties,
-    _Version,
+    _IpAddrProperties,
+    _IpVersion,
     FromStr,
     _Parse,
     ToPy[ipaddress.IPv4Address | ipaddress.IPv6Address],
@@ -701,7 +715,7 @@ class IpAddr(
 @t.final
 class SocketAddrV4(
     _Ipv4AddrProperties,
-    _Version4,
+    _IpVersion4,
     # protocols
     FromStr,
     ToPyIpAddress[ipaddress.IPv4Address],
@@ -740,7 +754,7 @@ class SocketAddrV4(
 @t.final
 class SocketAddrV6(
     _Ipv6AddrProperties,
-    _Version6,
+    _IpVersion6,
     # protocols
     FromStr,
     ToPyIpAddress[ipaddress.IPv6Address],
@@ -777,15 +791,14 @@ class SocketAddrV6(
     @property
     def is_documentation(self) -> t.NoReturn: ...
     @property
-    def is_ipv4(self) -> t.Literal[True]: ...
+    def is_ipv4(self) -> t.Literal[False]: ...
     @property
-    def is_ipv6(self) -> t.Literal[False]: ...
+    def is_ipv6(self) -> t.Literal[True]: ...
 
 @t.final
 class SocketAddr(
-    _Ipv4AddrProperties,
-    _Ipv6AddrProperties,
-    _Version,
+    _IpAddrProperties,
+    _IpVersion,
     # protocols
     FromStr,
     _Parse,

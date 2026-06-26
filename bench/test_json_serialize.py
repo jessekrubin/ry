@@ -88,7 +88,7 @@ class _TestData:
 
     @staticmethod
     def mixed_array(size: int = 1000) -> list[t.Any]:
-        arr = []
+        arr: list[str | int | float | None] = []
         for i in range(size):
             if i % 4 == 0:
                 arr.append(f"string_{i}")
@@ -119,6 +119,6 @@ def test_bench_serialize(
     benchmark: BenchmarkFixture, data_fn: t.Callable[[], t.Any]
 ) -> None:
     # set the group
-    benchmark.group = data_fn.__name__
+    benchmark.group = data_fn.__name__  # ty:ignore[unresolved-attribute]
     data = data_fn()
     benchmark(ry.stringify, data)

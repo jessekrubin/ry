@@ -12,7 +12,14 @@ import threading
 import time
 import typing as t
 from asyncio import sleep as aiosleep
-from collections.abc import AsyncGenerator, Awaitable, Callable, Coroutine, Iterator
+from collections.abc import (
+    AsyncGenerator,
+    Awaitable,
+    Callable,
+    Coroutine,
+    Generator,
+    Iterator,
+)
 
 import pytest
 from uvicorn import _types as uvt
@@ -325,7 +332,7 @@ class ReqtestServer(Server):
 
 
 @contextlib.contextmanager
-def serve_in_thread(server: ReqtestServer) -> Iterator[ReqtestServer]:
+def serve_in_thread(server: ReqtestServer) -> Generator[ReqtestServer, None, None]:
     thread = threading.Thread(target=server.run)
     thread.start()
     try:

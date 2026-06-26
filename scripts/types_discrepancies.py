@@ -6,7 +6,7 @@ import typing as t
 from functools import lru_cache
 from pathlib import Path
 
-import griffe
+import griffe  # ty:ignore[unresolved-import]
 from rich import print  # noqa
 
 import ry
