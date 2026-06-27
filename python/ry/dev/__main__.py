@@ -41,7 +41,7 @@ def _main() -> None:
 
         import IPython
 
-        IPython.InteractiveShell.banner1 = _banner()  # type: ignore[attr-defined,assignment]
+        IPython.InteractiveShell.banner1 = _banner()  # type: ignore[attr-defined,assignment]  # ty:ignore[invalid-assignment]
         rich = None  # type: ignore[assignment, ty:invalid-assignment]
         ipython_argv = [
             "--no-tip",

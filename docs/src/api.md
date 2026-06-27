@@ -749,10 +749,10 @@ class Bytes(Buffer):
     ) -> int:
         """Return the highest index where `sub` is found or raise `ValueError`."""
 
-    def split(self, sep: Buffer | None = None, maxsplit: int = -1) -> list[Bytes]:
+    def split(self, sep: Buffer | None = None, maxsplit: int = -1, /) -> list[Bytes]:
         """Return a list of the words in the bytes, using `sep` as the delimiter."""
 
-    def rsplit(self, sep: Buffer | None = None, maxsplit: int = -1) -> list[Bytes]:
+    def rsplit(self, sep: Buffer | None = None, maxsplit: int = -1, /) -> list[Bytes]:
         """Return a list of the words in the bytes, using `sep` as the delimiter."""
 
     def partition(self, sep: Buffer, /) -> tuple[Bytes, Bytes, Bytes]:
@@ -1690,7 +1690,8 @@ class Glob:
     def is_match(self, path: str | PathLike[str]) -> bool: ...
     def is_match_str(self, path: str) -> bool: ...
     def __call__(self, path: str | PathLike[str]) -> bool: ...
-    def __invert__(self) -> Glob: ...
+    def __eq__(self, other: object, /) -> bool: ...
+    def __ne__(self, other: object, /) -> bool: ...
     def globset(self) -> GlobSet: ...
     def globster(self) -> Globster: ...
 
@@ -2043,6 +2044,7 @@ class HttpStatus:
 
 import datetime as pydt
 import typing as t
+from collections.abc import Mapping
 
 from ry._types import (
     DateDifferenceTypedDict,
@@ -3141,9 +3143,23 @@ TimeSpanArithmetic: t.TypeAlias = (
     | tuple[TimeSpan | Duration | SignedDuration, ZonedDateTime | Date | DateTime]
 )
 
+_TTimeSpanKey: t.TypeAlias = t.Literal[
+    "years",
+    "months",
+    "weeks",
+    "days",
+    "hours",
+    "minutes",
+    "seconds",
+    "milliseconds",
+    "microseconds",
+    "nanoseconds",
+]
+
 
 @t.final
 class TimeSpan(
+    Mapping[_TTimeSpanKey, int],
     # protocols
     ToPy[pydt.timedelta],
     ToPyTimeDelta,
@@ -3247,10 +3263,12 @@ class TimeSpan(
     def __ne__(self, other: object) -> bool: ...
     def __rmul__(self, other: int) -> t.Self: ...
     def __hash__(self) -> int: ...
-    def __iter__(self) -> t.Iterator[str]: ...
+    def __iter__(
+        self,
+    ) -> t.Iterator[_TTimeSpanKey]: ...
     def __len__(self) -> int: ...
-    def __contains__(self, key: str) -> bool: ...
-    def __getitem__(self, key: str) -> int: ...
+    def __contains__(self, key: object) -> bool: ...
+    def __getitem__(self, key: _TTimeSpanKey) -> int: ...
 
     # =========================================================================
     # ARITHMETIC METHODS
@@ -3264,7 +3282,6 @@ class TimeSpan(
     # =========================================================================
 
     def abs(self) -> t.Self: ...
-    def keys(self) -> tuple[str, ...]: ...
     def to_dict(self) -> TimeSpanTypedDict: ...
     def fieldwise(self) -> TimeSpanTypedDict: ...
     def compare(
@@ -6262,7 +6279,10 @@ class Duration(FromStr, ToPyTimeDelta, ToPy[pydt.timedelta], ToString, _Parse):
     SECOND: t.Final[Duration]
     MINUTE: t.Final[Duration]
     HOUR: t.Final[Duration]
-    __match_args__: t.Final[tuple[str, str]] = ("secs", "nanos")
+    __match_args__: t.Final[tuple[t.Literal["secs"], t.Literal["nanos"]]] = (
+        "secs",
+        "nanos",
+    )
 
     def __new__(cls, secs: int = 0, nanos: int = 0) -> t.Self: ...
     def __eq__(self, other: object) -> bool: ...
@@ -6681,46 +6701,96 @@ def write_text(path: FsPathLike, s: str) -> int: ...
 # =============================================================================
 
 
-class _Version4(t.Protocol):
+class _IpVersion4(t.Protocol):
     @property
     def version(self) -> t.Literal[4]: ...
+    @property
+    def is_ipv4(self) -> t.Literal[True]: ...
+    @property
+    def is_ipv6(self) -> t.Literal[False]: ...
 
 
-class _Version6(t.Protocol):
+class _IpVersion6(t.Protocol):
     @property
     def version(self) -> t.Literal[6]: ...
+    @property
+    def is_ipv4(self) -> t.Literal[False]: ...
+    @property
+    def is_ipv6(self) -> t.Literal[True]: ...
 
 
-class _Version(t.Protocol):
+class _IpVersion(t.Protocol):
     @property
     def version(self) -> t.Literal[4, 6]: ...
+    @property
+    def is_ipv4(self) -> bool: ...
+    @property
+    def is_ipv6(self) -> bool: ...
 
 
-class _Ipv4AddrProperties(t.Protocol):
+class _IpPropertiesIntersection(t.Protocol):
+    """Ipv4 & Ipv6 properties intersection"""
+
     @property
     def is_benchmarking(self) -> bool: ...
-    @property
-    def is_broadcast(self) -> bool: ...
     @property
     def is_documentation(self) -> bool: ...
     @property
     def is_global(self) -> t.NoReturn: ...
     @property
-    def is_link_local(self) -> bool: ...
-    @property
     def is_loopback(self) -> bool: ...
     @property
     def is_multicast(self) -> bool: ...
-    @property
-    def is_private(self) -> bool: ...
     @property
     def is_reserved(self) -> bool: ...
     @property
     def is_shared(self) -> bool: ...
     @property
-    def is_unspecified(self) -> bool: ...
-    @property
     def is_unicast(self) -> bool: ...
+    @property
+    def is_unspecified(self) -> bool: ...
+
+
+class _Ipv4OnlyProperties(t.Protocol):
+    @property
+    def is_broadcast(self) -> bool: ...
+    @property
+    def is_link_local(self) -> bool: ...
+    @property
+    def is_private(self) -> bool: ...
+
+
+class _Ipv6OnlyProperties(t.Protocol):
+    @property
+    def is_ipv4_mapped(self) -> bool: ...
+    @property
+    def is_unicast_global(self) -> bool: ...
+    @property
+    def is_unicast_link_local(self) -> bool: ...
+    @property
+    def is_unique_local(self) -> bool: ...
+
+
+class _Ipv4AddrProperties(
+    _IpPropertiesIntersection,
+    _Ipv4OnlyProperties,
+    t.Protocol,
+): ...
+
+
+class _Ipv6AddrProperties(
+    _IpPropertiesIntersection,
+    _Ipv6OnlyProperties,
+    t.Protocol,
+): ...
+
+
+class _IpAddrProperties(
+    _IpPropertiesIntersection,
+    _Ipv4OnlyProperties,
+    _Ipv6OnlyProperties,
+    t.Protocol,
+): ...
 
 
 _T_ipaddress_co = t.TypeVar(
@@ -6737,7 +6807,7 @@ class ToPyIpAddress(t.Protocol[_T_ipaddress_co]):
 @t.final
 class Ipv4Addr(
     _Ipv4AddrProperties,
-    _Version4,
+    _IpVersion4,
     FromStr,
     _Parse,
     ToPy[ipaddress.IPv4Address],
@@ -6794,41 +6864,10 @@ class Ipv4Addr(
     ) -> SocketAddrV6: ...
 
 
-class _Ipv6AddrProperties(t.Protocol):
-    # ========================================================================
-    # PROPERTIES
-    # ========================================================================
-
-    @property
-    def is_benchmarking(self) -> bool: ...
-    @property
-    def is_global(self) -> t.NoReturn: ...
-    @property
-    def is_ipv4_mapped(self) -> bool: ...
-    @property
-    def is_loopback(self) -> bool: ...
-    @property
-    def is_multicast(self) -> bool: ...
-    @property
-    def is_reserved(self) -> bool: ...
-    @property
-    def is_shared(self) -> bool: ...
-    @property
-    def is_unicast(self) -> bool: ...
-    @property
-    def is_unicast_global(self) -> t.NoReturn: ...
-    @property
-    def is_unicast_link_local(self) -> bool: ...
-    @property
-    def is_unique_local(self) -> bool: ...
-    @property
-    def is_unspecified(self) -> bool: ...
-
-
 @t.final
 class Ipv6Addr(
     _Ipv6AddrProperties,
-    _Version6,
+    _IpVersion6,
     FromStr,
     _Parse,
     ToPy[ipaddress.IPv6Address],
@@ -6883,9 +6922,8 @@ class Ipv6Addr(
 
 @t.final
 class IpAddr(
-    _Ipv4AddrProperties,
-    _Ipv6AddrProperties,
-    _Version,
+    _IpAddrProperties,
+    _IpVersion,
     FromStr,
     _Parse,
     ToPy[ipaddress.IPv4Address | ipaddress.IPv6Address],
@@ -6962,7 +7000,7 @@ class IpAddr(
 @t.final
 class SocketAddrV4(
     _Ipv4AddrProperties,
-    _Version4,
+    _IpVersion4,
     # protocols
     FromStr,
     ToPyIpAddress[ipaddress.IPv4Address],
@@ -7002,7 +7040,7 @@ class SocketAddrV4(
 @t.final
 class SocketAddrV6(
     _Ipv6AddrProperties,
-    _Version6,
+    _IpVersion6,
     # protocols
     FromStr,
     ToPyIpAddress[ipaddress.IPv6Address],
@@ -7039,16 +7077,15 @@ class SocketAddrV6(
     @property
     def is_documentation(self) -> t.NoReturn: ...
     @property
-    def is_ipv4(self) -> t.Literal[True]: ...
+    def is_ipv4(self) -> t.Literal[False]: ...
     @property
-    def is_ipv6(self) -> t.Literal[False]: ...
+    def is_ipv6(self) -> t.Literal[True]: ...
 
 
 @t.final
 class SocketAddr(
-    _Ipv4AddrProperties,
-    _Ipv6AddrProperties,
-    _Version,
+    _IpAddrProperties,
+    _IpVersion,
     # protocols
     FromStr,
     _Parse,
@@ -7501,6 +7538,7 @@ class WsMessage(Buffer):
     # -------------------------------------------------------------------------
     def json(
         self,
+        *,
         allow_inf_nan: bool = False,
         cache_mode: t.Literal[True, False, "all", "keys", "none"] = "all",
         partial_mode: t.Literal[True, False, "off", "on", "trailing-strings"] = False,
@@ -8243,6 +8281,8 @@ class WalkDirEntry:
     def path(self) -> str: ...
     @property
     def file_name(self) -> str: ...
+    @property
+    def name(self) -> str: ...
     @property
     def depth(self) -> int: ...
     @property

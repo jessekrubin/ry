@@ -3,6 +3,7 @@ from __future__ import annotations
 import datetime as pydt
 import functools
 import itertools as it
+import typing as t
 
 import pytest
 
@@ -28,6 +29,35 @@ def test_span_fn_no_positionals_allowed() -> None:
 
 
 def test_span_dict(subtests: pytest.Subtests) -> None:
+    def _is_typespan_key(
+        val: str,
+    ) -> t.TypeGuard[
+        t.Literal[
+            "years",
+            "months",
+            "weeks",
+            "days",
+            "hours",
+            "minutes",
+            "seconds",
+            "milliseconds",
+            "microseconds",
+            "nanoseconds",
+        ]
+    ]:
+        return val in (
+            "years",
+            "months",
+            "weeks",
+            "days",
+            "hours",
+            "minutes",
+            "seconds",
+            "milliseconds",
+            "microseconds",
+            "nanoseconds",
+        )
+
     s = _TIMESPAN_ONES
     assert s.to_dict() == {
         "years": 1,
@@ -44,6 +74,9 @@ def test_span_dict(subtests: pytest.Subtests) -> None:
     assert len(s) == 10
     assert s.to_dict() == s.fieldwise()
     for k, v in s.to_dict().items():
+        if not _is_typespan_key(k):
+            emsg = f"Unexpected key in TimeSpan dict: {k}"
+            raise AssertionError(emsg)
         with subtests.test(k=k):
             assert k in s
             assert s[k] == v
@@ -53,7 +86,7 @@ def test_span_dict(subtests: pytest.Subtests) -> None:
 def test_span_mapping() -> None:
     s = ry.timespan(years=1, weeks=3)
     expected = {"years": 1, "weeks": 3}
-    assert s.keys() == ("years", "weeks")
+    assert tuple(s.keys()) == ("years", "weeks")
     assert tuple(s) == ("years", "weeks")
     assert len(s) == 2
     assert "years" in s
@@ -234,7 +267,7 @@ class TestTimeSpanStrings:
         assert f"{s:#}" == "2mo 10d 2h 30m"
 
         with pytest.raises(TypeError):
-            assert s.to_string(True) == "2mo 10d 2h 30m"  # type: ignore[misc] # noqa: FBT003
+            assert s.to_string(True) == "2mo 10d 2h 30m"  # type: ignore[misc] # ty: ignore[too-many-positional-arguments] # noqa: FBT003
 
     def test_invalid_format_specifier(self) -> None:
         s = ry.TimeSpan.parse("P2M10DT2H30M")

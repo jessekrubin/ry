@@ -7,7 +7,7 @@
 
 ---
 
-## v0.0.97 [unreleased]
+## v0.0.97 [2026-06-26]
 
 - `ryo3-globset` — redesigned from the ground up
   - **BREAKING** `ry.Glob` no longer allows negation (`!`-prefixed patterns)

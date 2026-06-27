@@ -183,7 +183,7 @@ def test_properties_v6(
     assert obj.to_pyipaddress() == pyip.IPv6Address("::1")
 
     with pytest.raises(NotImplementedError):
-        _r = obj.is_global
+        _r = obj.is_global  # type: ignore[var-annotated]
 
 
 class TestSocketAddrV4:

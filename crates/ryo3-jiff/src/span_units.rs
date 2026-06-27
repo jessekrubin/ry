@@ -1,6 +1,7 @@
 use jiff::Span;
 use pyo3::prelude::*;
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum SpanUnit {
     Years = 1 << 0,
     Months = 1 << 1,
@@ -12,6 +13,29 @@ pub(crate) enum SpanUnit {
     Milliseconds = 1 << 7,
     Microseconds = 1 << 8,
     Nanoseconds = 1 << 9,
+}
+
+impl SpanUnit {
+    /// Return the `SpanUnit` from an index (0-9) for iteration
+    ///
+    /// # Panics
+    ///
+    /// Panics if the index is not in 0..=9
+    fn from_idx(index: u8) -> Self {
+        match index {
+            0 => Self::Years,
+            1 => Self::Months,
+            2 => Self::Weeks,
+            3 => Self::Days,
+            4 => Self::Hours,
+            5 => Self::Minutes,
+            6 => Self::Seconds,
+            7 => Self::Milliseconds,
+            8 => Self::Microseconds,
+            9 => Self::Nanoseconds,
+            _ => unreachable!(),
+        }
+    }
 }
 
 impl<'py> IntoPyObject<'py> for SpanUnit {
@@ -47,6 +71,57 @@ impl SpanUnits {
     )]
     pub(crate) fn count(&self) -> u8 {
         self.0.count_ones() as u8
+    }
+}
+
+pub(crate) struct SpanUnitsIter {
+    units: u16,
+    index: u8,
+}
+
+impl SpanUnitsIter {
+    const MAX_INDEX: u8 = 10;
+}
+
+impl Iterator for SpanUnitsIter {
+    type Item = SpanUnit;
+
+    #[expect(
+        clippy::arithmetic_side_effects,
+        reason = "wenodis: index is always < 10, so no overflow can occur"
+    )]
+    fn next(&mut self) -> Option<Self::Item> {
+        while self.index < Self::MAX_INDEX {
+            let unit = SpanUnit::from_idx(self.index);
+            self.index += 1;
+            if (self.units & (unit as u16)) != 0 {
+                return Some(unit);
+            }
+        }
+        None
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        let remaining = self.units.count_ones() as usize;
+        (remaining, Some(remaining))
+    }
+}
+
+impl IntoIterator for SpanUnits {
+    type Item = SpanUnit;
+    type IntoIter = SpanUnitsIter;
+
+    fn into_iter(self) -> Self::IntoIter {
+        SpanUnitsIter {
+            units: self.0,
+            index: 0,
+        }
+    }
+}
+
+impl ExactSizeIterator for SpanUnitsIter {
+    fn len(&self) -> usize {
+        self.units.count_ones() as usize
     }
 }
 

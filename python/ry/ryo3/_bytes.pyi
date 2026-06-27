@@ -250,9 +250,9 @@ class Bytes(Buffer):
         /,
     ) -> int:
         """Return the highest index where `sub` is found or raise `ValueError`."""
-    def split(self, sep: Buffer | None = None, maxsplit: int = -1) -> list[Bytes]:
+    def split(self, sep: Buffer | None = None, maxsplit: int = -1, /) -> list[Bytes]:
         """Return a list of the words in the bytes, using `sep` as the delimiter."""
-    def rsplit(self, sep: Buffer | None = None, maxsplit: int = -1) -> list[Bytes]:
+    def rsplit(self, sep: Buffer | None = None, maxsplit: int = -1, /) -> list[Bytes]:
         """Return a list of the words in the bytes, using `sep` as the delimiter."""
     def partition(self, sep: Buffer, /) -> tuple[Bytes, Bytes, Bytes]:
         """Partition the bytes into three parts using the given separator.

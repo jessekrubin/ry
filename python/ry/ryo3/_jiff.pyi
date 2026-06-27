@@ -2,6 +2,7 @@
 
 import datetime as pydt
 import typing as t
+from collections.abc import Mapping
 
 from ry._types import (
     DateDifferenceTypedDict,
@@ -1072,8 +1073,22 @@ TimeSpanArithmetic: t.TypeAlias = (
     | tuple[TimeSpan | Duration | SignedDuration, ZonedDateTime | Date | DateTime]
 )
 
+_TTimeSpanKey: t.TypeAlias = t.Literal[
+    "years",
+    "months",
+    "weeks",
+    "days",
+    "hours",
+    "minutes",
+    "seconds",
+    "milliseconds",
+    "microseconds",
+    "nanoseconds",
+]
+
 @t.final
 class TimeSpan(
+    Mapping[_TTimeSpanKey, int],
     # protocols
     ToPy[pydt.timedelta],
     ToPyTimeDelta,
@@ -1176,10 +1191,12 @@ class TimeSpan(
     def __ne__(self, other: object) -> bool: ...
     def __rmul__(self, other: int) -> t.Self: ...
     def __hash__(self) -> int: ...
-    def __iter__(self) -> t.Iterator[str]: ...
+    def __iter__(
+        self,
+    ) -> t.Iterator[_TTimeSpanKey]: ...
     def __len__(self) -> int: ...
-    def __contains__(self, key: str) -> bool: ...
-    def __getitem__(self, key: str) -> int: ...
+    def __contains__(self, key: object) -> bool: ...
+    def __getitem__(self, key: _TTimeSpanKey) -> int: ...
 
     # =========================================================================
     # ARITHMETIC METHODS
@@ -1193,7 +1210,6 @@ class TimeSpan(
     # =========================================================================
 
     def abs(self) -> t.Self: ...
-    def keys(self) -> tuple[str, ...]: ...
     def to_dict(self) -> TimeSpanTypedDict: ...
     def fieldwise(self) -> TimeSpanTypedDict: ...
     def compare(

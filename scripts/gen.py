@@ -11,7 +11,7 @@ def eprint(*args: Any, **kwargs: Any) -> None:
 
 
 def _gen_init() -> None:
-    ry_all = ryo3.__all__  # type: ignore[attr-defined]
+    ry_all = ryo3.__all__  # type: ignore[attr-defined]  # ty:ignore[unresolved-attribute]
 
     eprint(ryo3.__description__)
     eprint(ryo3.__pkg_name__)
