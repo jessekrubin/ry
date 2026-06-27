@@ -133,6 +133,7 @@ class WsMessage(Buffer):
     # -------------------------------------------------------------------------
     def json(
         self,
+        *,
         allow_inf_nan: bool = False,
         cache_mode: t.Literal[True, False, "all", "keys", "none"] = "all",
         partial_mode: t.Literal[True, False, "off", "on", "trailing-strings"] = False,

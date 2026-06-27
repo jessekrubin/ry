@@ -110,7 +110,7 @@ impl PyGlob {
         self.glob.regex() == other.glob.regex() && self.options == other.options
     }
 
-    pub(crate) fn __neq__(&self, other: &Self) -> bool {
+    pub(crate) fn __ne__(&self, other: &Self) -> bool {
         !self.__eq__(other)
     }
 }
