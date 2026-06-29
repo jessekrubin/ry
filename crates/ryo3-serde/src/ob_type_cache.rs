@@ -250,6 +250,12 @@ macro_rules! py_obj_ptr_feat {
 }
 
 impl PyTypeCache {
+    #[must_use]
+    #[inline(always)]
+    pub(crate) fn is_exact_string_ptr(&self, ptr: usize) -> bool {
+        ptr == self.string
+    }
+
     #[inline]
     pub(crate) fn ptr2type(&self, ptr: usize) -> PyObType {
         // --- das builtins ---

@@ -279,12 +279,13 @@ impl Serialize for PyDictSerializer<'_, '_> {
             return serializer.serialize_map(Some(0))?.end();
         }
 
-        let mut m = serializer.serialize_map(None)?;
+        let mut m = serializer.serialize_map(Some(len))?;
         let mut prev_val_ob_type_ptr = 0;
         let mut prev_val_ob_type = PyObType::Unknown;
 
         #[cfg(not(Py_GIL_DISABLED))]
-        for (map_key, map_val) in ryo3_core::py_dict::BorrowedDictIter::new(self.obj) {
+        for (map_key, map_val) in ryo3_core::py_dict::BorrowedDictIter::new_with_len(self.obj, len)
+        {
             let type_ptr = map_val.get_type_ptr() as usize;
             let ob_type = if type_ptr == prev_val_ob_type_ptr {
                 prev_val_ob_type
@@ -294,8 +295,12 @@ impl Serialize for PyDictSerializer<'_, '_> {
                 prev_val_ob_type = t;
                 t
             };
-            let sk = PyMappingKeySerializer::new(self.ctx, map_key);
-            m.serialize_key(&sk)?;
+            let key_type_ptr = map_key.get_type_ptr() as usize;
+            if self.ctx.typeref.is_exact_string_ptr(key_type_ptr) {
+                m.serialize_key(&PyStrSerializer::new_unchecked(map_key))?;
+            } else {
+                m.serialize_key(&PyMappingKeySerializer::new(self.ctx, map_key))?;
+            }
             serialize_map_value!(ob_type, m, self, map_val);
         }
 
@@ -314,8 +319,12 @@ impl Serialize for PyDictSerializer<'_, '_> {
                 prev_val_ob_type = t;
                 t
             };
-            let sk = PyMappingKeySerializer::new(self.ctx, map_key);
-            m.serialize_key(&sk)?;
+            let key_type_ptr = map_key.get_type_ptr() as usize;
+            if self.ctx.typeref.is_exact_string_ptr(key_type_ptr) {
+                m.serialize_key(&PyStrSerializer::new_unchecked(map_key))?;
+            } else {
+                m.serialize_key(&PyMappingKeySerializer::new(self.ctx, map_key))?;
+            }
             serialize_map_value!(ob_type, m, self, map_val);
         }
         m.end()
