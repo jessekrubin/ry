@@ -11,6 +11,10 @@
 
 - `ryo3-jiff`
   - updated to `v0.16.0`
+- `ryo3-serde`
+  - dictionary serialization
+    - exact map lengths and no double `len()` calls
+    - hot path for string keys (which is the primary use case)
 
 ---
 
