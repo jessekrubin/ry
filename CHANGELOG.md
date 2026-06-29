@@ -7,6 +7,13 @@
 
 ---
 
+## v0.0.98 [unreleased]
+
+- `ryo3-jiff`
+  - updated to `v0.16.0`
+
+---
+
 ## v0.0.97 [2026-06-26]
 
 - `ryo3-globset` — redesigned from the ground up
