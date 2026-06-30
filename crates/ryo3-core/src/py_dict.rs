@@ -21,6 +21,11 @@ impl<'a, 'py> BorrowedDictIter<'a, 'py> {
     #[must_use]
     pub fn new(dict: Borrowed<'a, 'py, PyDict>) -> Self {
         let len = dict.len();
+        Self::new_with_len(dict, len)
+    }
+
+    #[must_use]
+    pub fn new_with_len(dict: Borrowed<'a, 'py, PyDict>, len: usize) -> Self {
         BorrowedDictIter {
             dict,
             ppos: 0,
