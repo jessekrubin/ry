@@ -48,10 +48,10 @@ class TestDateTime:
         assert str(default) == expected_default_string
 
         for unit, mode in it.product(_JIFF_UNITS, _JIFF_ROUND_MODES):
-            options = ry.DateTimeRound(smallest=unit, mode=mode, increment=1)  # type: ignore[arg-type]
+            options = ry.DateTimeRound(smallest=unit, mode=mode, increment=1)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
 
             options_chained = (
-                ry.DateTimeRound()._smallest(unit)._mode(mode)._increment(1)  # type: ignore[arg-type]
+                ry.DateTimeRound()._smallest(unit)._mode(mode)._increment(1)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
             )
             expected_string = (
                 f'DateTimeRound(smallest="{unit}", mode="{mode}", increment=1)'
@@ -289,7 +289,7 @@ class TestDateTimeReplace:
         with pytest.raises(
             TypeError, match=re.escape("obj must be a Date or Time; given: (1+2j)")
         ):
-            dt1.replace(complex(1, 2))  # type: ignore[arg-type]
+            dt1.replace(complex(1, 2))  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
 
     def test_replace_example(self) -> None:
 

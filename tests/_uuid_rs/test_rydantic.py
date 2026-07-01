@@ -61,9 +61,9 @@ def test_uuid_model(
     model_cls = RyUuidModel
     if expected is pydantic.ValidationError:
         with pytest.raises(pydantic.ValidationError):
-            _m = model_cls(uu=value)  # type: ignore[arg-type]
+            _m = model_cls(uu=value)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
     else:
-        m = model_cls(uu=value)  # type: ignore[arg-type]
+        m = model_cls(uu=value)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
         assert isinstance(m.uu, ryuuid.UUID)
         assert m.uu == expected
         as_json = m.model_dump_json()

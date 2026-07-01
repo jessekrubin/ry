@@ -10,9 +10,7 @@ from hypothesis import strategies as st
 import ry
 
 
-class _SqlFormatOptions(
-    t.TypedDict,
-):
+class _SqlFormatOptions(t.TypedDict):
     indent: t.Literal["tabs", "\t"] | int
     uppercase: bool
     dialect: t.Literal["generic", "postgresql", "sqlserver"]
@@ -65,7 +63,7 @@ def test_sqlfmt_with_indent_invalid(
     indent: str | float,
 ) -> None:
     with pytest.raises(TypeError):
-        ry.sqlfmt("SELECT * FROM foo", indent=indent)  # type: ignore[arg-type]
+        ry.sqlfmt("SELECT * FROM foo", indent=indent)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
 
 
 @pytest.mark.parametrize("indent", [-1, "\t", "tabs"])
@@ -206,7 +204,7 @@ def test_sql_formatter_default() -> None:
     ["\t", "tabs", 4, 2, None],
 )
 def test_repr_indent(indent: int | str | None) -> None:
-    fmt = ry.SqlFormatter(indent=indent)  # type: ignore[arg-type]
+    fmt = ry.SqlFormatter(indent=indent)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
     repr_str = repr(fmt)
 
     assert "SqlFormatter(" in repr_str
@@ -287,7 +285,7 @@ def st_sqlformat_options() -> st.SearchStrategy[_SqlFormatOptions]:
             st.just("sqlserver"),
         ),
     }).map(
-        lambda d: _SqlFormatOptions(**d)  # type: ignore[typeddict-item]
+        lambda d: _SqlFormatOptions(**{**_SQL_FORMAT_DEFAULTS, **d})  # type: ignore[typeddict-item]
     )
 
 

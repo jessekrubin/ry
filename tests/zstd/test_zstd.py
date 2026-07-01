@@ -35,7 +35,7 @@ def test_compression_level_range() -> None:
             ValueError,
             match="zstd-compression-level must be an integer between 1 and 22",
         ):
-            ry.zstd_encode(input_data, bad_level)  # type: ignore[arg-type]
+            ry.zstd_encode(input_data, bad_level)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
 
 
 @pytest.mark.parametrize("level", [-5, 0, 23, 100, "snorkel", b"dingo"])
@@ -48,10 +48,10 @@ def test_compression_level_invalid(
             ValueError,
             match="zstd-compression-level must be an integer between 1 and 22",
         ):
-            ry.zstd_encode(input_data, level)  # type: ignore[arg-type]
+            ry.zstd_encode(input_data, level)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
     else:
         with pytest.raises(TypeError):
-            ry.zstd_encode(input_data, level)  # type: ignore[arg-type]
+            ry.zstd_encode(input_data, level)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
 
 
 def test_zstd_decode_error() -> None:

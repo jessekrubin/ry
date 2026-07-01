@@ -99,7 +99,7 @@ def test_datetime_rounding(
 ) -> None:
     """Test that rounding a datetime with various options works correctly"""
     if unit in ("year", "month", "week"):
-        options = ry.DateTimeRound(smallest=unit, mode=mode, increment=increment)  # type: ignore[arg-type]
+        options = ry.DateTimeRound(smallest=unit, mode=mode, increment=increment)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
         with pytest.raises(ValueError, match="failed rounding datetime:"):
             rounded_dt = dt._round(options)
     else:

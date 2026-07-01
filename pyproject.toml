@@ -44,11 +44,6 @@ urls.Homepage = "https://github.com/jessekrubin/ry"
 urls.Issues = "https://github.com/jessekrubin/ry/issues"
 urls.Source = "https://github.com/jessekrubin/ry"
 
-[tool.pyrefly.errors]
-deprecated = "error"
-redundant-cast = "warn"
-bad-match = false
-
 [dependency-groups]
 dev = [
   "anyio>=4.8",
@@ -58,13 +53,13 @@ dev = [
   "maturin>=1.13.3",
   "mypy",
   "orjson==3.11.4; implementation_name=='cpython'",
-  "prek>=0.2.2",
+  "prek>=0.4.6",
   "pydantic>=2.11.7",
   "pytest>=9.0.1",
   "pytest-asyncio>=1.0.0",
   "pytest-benchmark>=5.1",
   "pytest-cov>=6.2.1",
-  "rich>=14.0.0",
+  "rich>=15.0.0",
   "ruff>=0.11.12",
   "ty>=0.0.33",
   "tzdata>=2025.2",
@@ -74,12 +69,12 @@ dev = [
 misc = [ "griffe>=1.12.1" ]
 
 [tool.maturin]
-python-source = "python"
-# strip = true
-features = [ "pyo3/extension-module" ]
 module-name = "ry.ryo3"
 bindings = "pyo3"
+python-source = "python"
 include = [ { path = "python/ry/.git-sha", format = "sdist" } ]
+features = [ "pyo3/extension-module" ]
+# strip = true
 
 [tool.uv]
 # UV problemo: https://github.com/astral-sh/setup-uv/issues/489
@@ -92,50 +87,62 @@ package = false  # don't build package w/ uv
 extend = "./ruff.toml"
 
 [tool.mypy]
-strict = true
 ignore_missing_imports = true
 python_version = "3.11"
-enable_error_code = [ "deprecated" ]
-overrides = [ { module = "tests.*", ignore_missing_imports = true, check_untyped_defs = true } ]
 warn_redundant_casts = true
+enable_error_code = [ "deprecated" ]
+strict = true
+# plugins = [ "pydantic.mypy" ]
+overrides = [ { module = "tests.*", ignore_missing_imports = true, check_untyped_defs = true } ]
 
-# plugins = ['pydantic.mypy']
+[tool.pyrefly]
+errors.bad-match = false
+errors.deprecated = "error"
+errors.redundant-cast = "warn"
+ignore-missing-imports = [
+  "tests.*",
+  "*",
+]
+preset = "default"
+python-version = "3.11.0"
+search-path = [ ".", "python" ]
+
 [tool.pyright]
-include = [ "python", "tests" ]
 pythonVersion = "3.11"
-reportMissingTypeStubs = false
-reportMissingImports = "error"
 useLibraryCodeForTypes = false
+include = [ "python", "tests" ]
+reportMissingImports = "error"
+reportMissingTypeStubs = false
 executionEnvironments = [
   { root = "tests/xxhash", reportAttributeAccessIssue = false },
 ]
 
 [tool.pytest]
 ini_options.testpaths = [ "tests" ]
-ini_options.filterwarnings = [ "ignore:ry not compiled in release mode:RuntimeWarning" ]
-ini_options.addopts = [ "--doctest-modules" ]
-ini_options.asyncio_mode = "auto"
-ini_options.asyncio_default_fixture_loop_scope = "function"
 ini_options.norecursedirs = [
+  "*.bak",
+  "*.egg",
+  "*.egg-info",
+  ".*",
   ".git",
   ".nox",
   ".pytest_cache",
   ".venv",
   "build",
   "dist",
-  "scratch",
   "node_modules",
-  "venv",
-  "*.bak",
-  "*.egg-info",
-  "*.egg",
-  ".*",
+  "scratch",
   "target",
+  "venv",
 ]
+ini_options.addopts = [ "--doctest-modules" ]
 ini_options.markers = [
-  "slow: marks tests as slow (deselect with '-m \"not slow\"')",
   "bench",
+  "slow: marks tests as slow (deselect with '-m \"not slow\"')",
 ]
+ini_options.filterwarnings = [ "ignore:ry not compiled in release mode:RuntimeWarning" ]
+ini_options.asyncio_default_fixture_loop_scope = "function"
+ini_options.asyncio_mode = "auto"
 
 [tool.coverage]
 run.branch = true
@@ -164,11 +171,3 @@ exclude = []
 MD013.code_blocks = false
 per-file-ignores."README.md" = [ "MD036" ]
 per-file-ignores."docs/src/index.md" = [ "MD041" ]
-
-[tool.pyrefly]
-python-version = "3.11.0"
-preset = "legacy"
-ignore-missing-imports = [
-    "tests.*",
-    "*",
-]

@@ -447,7 +447,7 @@ def test_ancestors_repr() -> None:
 
 def test_ancestors() -> None:
     p = ry.FsPath("rooot") / "dir1" / "dir2" / "file.txt"
-    ancestors = list(p.ancestors())
+    ancestors = p.ancestors().collect()
     ancestor_paths = [a.as_posix() for a in ancestors]
     expected_paths = [
         p.as_posix(),

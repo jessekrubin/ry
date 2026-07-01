@@ -43,12 +43,12 @@ def test_invalid_decompress() -> None:
 @pytest.mark.parametrize("quality", list(range(12)))
 def test_quality(quality: int) -> None:
     input_data = b"XXXXXXXXXXYYYYYYYYYY"
-    output_data = ry.brotli_encode(input_data, quality=quality)  # type: ignore[arg-type]
+    output_data = ry.brotli_encode(input_data, quality=quality)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
     assert output_data is not None
     decoded = ry.brotli_decode(output_data)
     assert decoded == input_data
 
-    output_data_alias = ry.brotli(input_data, quality=quality)  # type: ignore[arg-type]
+    output_data_alias = ry.brotli(input_data, quality=quality)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
     assert output_data == output_data_alias
 
 
@@ -56,4 +56,4 @@ def test_quality(quality: int) -> None:
 def test_quality_out_of_range(quality: int) -> None:
     input_data = b"XXXXXXXXXXYYYYYYYYYY"
     with pytest.raises(ValueError, match="Compression level must be an integer 0-11"):
-        ry.brotli_encode(input_data, quality=quality)  # type: ignore[arg-type]
+        ry.brotli_encode(input_data, quality=quality)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]

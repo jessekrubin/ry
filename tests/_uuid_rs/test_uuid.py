@@ -62,7 +62,7 @@ def test_init_multiple_kwargs_invalid() -> None:
     )
     for init_kwargs in init_kwargs_combinations:
         with pytest.raises(TypeError):
-            ryuuid.UUID(**init_kwargs)  # type: ignore[call-overload]
+            ryuuid.UUID(**init_kwargs)  # type: ignore[call-overload]  # ty:ignore[no-matching-overload]
 
 
 def test_create_uuid() -> None:

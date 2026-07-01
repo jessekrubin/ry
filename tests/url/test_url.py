@@ -99,7 +99,7 @@ def test_host_type(
 def test_inheritance() -> None:
     with pytest.raises(TypeError):
 
-        class MyURL(ry.URL):  # type: ignore[misc]
+        class MyURL(ry.URL):  # type: ignore[misc]  # ty:ignore[subclass-of-final-class]
             ...
 
 

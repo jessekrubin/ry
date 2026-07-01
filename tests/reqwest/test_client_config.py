@@ -166,7 +166,7 @@ class TestTlsVersions:
     ) -> None:
         match_pat = "TLS version must be a string (options: '1.0', '1.1', '1.2', '1.3')"
         with pytest.raises(TypeError, match=re.escape(match_pat)):
-            _ = client_cls(tls_version_min=1.2)  # type: ignore[arg-type]
+            _ = client_cls(tls_version_min=1.2)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
 
     def test_client_config_tls_versions_value_problemo(
         self,
@@ -176,7 +176,7 @@ class TestTlsVersions:
             "Invalid TLS version: snorkling (options: '1.0', '1.1', '1.2', '1.3')"
         )
         with pytest.raises(ValueError, match=re.escape(match_pat)):
-            _ = client_cls(tls_version_min="snorkling")  # type: ignore[arg-type]
+            _ = client_cls(tls_version_min="snorkling")  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
 
 
 @pytest.mark.parametrize(

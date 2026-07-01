@@ -35,13 +35,13 @@ class TestUlidPydantic:
             ulid: ULID | None = None
 
         for value in [ulid, str(ulid), int(ulid), bytes(ulid)]:
-            model = Model(ulid=value)  # type: ignore[arg-type]
+            model = Model(ulid=value)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
             assert isinstance(model.ulid, ULID)
             assert model.ulid == ulid
 
         for value in [b"not-enough", "not-enough"]:
             with pytest.raises(ValidationError):
-                Model(ulid=value)  # type: ignore[arg-type]
+                Model(ulid=value)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
 
         model = Model(ulid=ulid)
         model_dict = model.model_dump()
@@ -89,13 +89,13 @@ class TestUlidPydantic:
 
         strict_ok_inputs = [ulid, str(ulid)]
         for value in strict_ok_inputs:
-            model = ModelStrict(ulid=value)  # type: ignore[arg-type]
+            model = ModelStrict(ulid=value)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
             assert isinstance(model.ulid, ULID)
             assert model.ulid == ulid
 
         for value in [int(ulid), bytes(ulid)]:
             with pytest.raises(pydantic.ValidationError):
-                ModelStrict(ulid=value)  # type: ignore[arg-type]
+                ModelStrict(ulid=value)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
 
     def test_pydantic_protocol_strict_ok(self) -> None:
         import pydantic
@@ -112,7 +112,7 @@ class TestUlidPydantic:
 
         strict_ok_inputs = [ulid, str(ulid)]
         for value in strict_ok_inputs:
-            model = ModelStrict(ulid=value)  # type: ignore[arg-type]
+            model = ModelStrict(ulid=value)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
             assert isinstance(model.ulid, ULID)
             assert model.ulid == ulid
             model_dict = model.model_dump()

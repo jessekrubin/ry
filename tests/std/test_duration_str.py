@@ -84,7 +84,7 @@ class TestDurationFriendlyStr:
                 "invalid designator: dingo (expected 'human'/'human-time', 'short', 'compact', or 'verbose')"
             ),
         ):
-            _s = max_dur.friendly("dingo")  # type: ignore[arg-type]
+            _s = max_dur.friendly("dingo")  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
         with pytest.raises(TypeError):
             _s = f"{max_dur:herm}"
 

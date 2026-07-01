@@ -19,7 +19,7 @@ from ._xxhash_fixtures import (
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    import xxhash
+    import xxhash  # ty:ignore[unresolved-import]
 
     _PyHasher: TypeAlias = type[
         xxhash.xxh32 | xxhash.xxh64 | xxhash.xxh128 | xxhash.xxh3_64 | xxhash.xxh3_128
@@ -35,14 +35,14 @@ if TYPE_CHECKING:
 
 try:
     # test against python-xxhash if importable...
-    import xxhash
+    import xxhash  # ty:ignore[unresolved-import]
 except ImportError:
 
     class _xxhash:  # noqa: N801
         def __getattr__(self, name: str) -> None:
             return None
 
-    xxhash = _xxhash()  # ty:ignore[invalid-assignment]
+    xxhash = _xxhash()  # ty:ignore[invalid-assignment,unused-ignore-comment]
 
 pytest_skip_xxhash = pytest.mark.skipif(
     "xxhash" not in sys.modules, reason="xxhash is not installed"

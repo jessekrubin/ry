@@ -52,4 +52,4 @@ def test_file_type(
 
 def test_file_type_invalid() -> None:
     with pytest.raises(ValueError, match="invalid file type string: invalid"):
-        ry.FileType("invalid")  # type: ignore[arg-type]
+        ry.FileType("invalid")  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
