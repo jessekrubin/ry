@@ -100,6 +100,7 @@ resolver = "3"
 members = [
   "crates/_future/ryo3-ignore",
   "crates/_ryo3-dev",
+  "crates/_ryo3-lz4rip",
   "crates/_ryo3-quick-maths",
   "crates/ryo3",
   # external wrappers
@@ -158,6 +159,7 @@ ryo3-bzip2 = { path = "./crates/ryo3-bzip2" }
 ryo3-cookie = { path = "./crates/ryo3-cookie" }
 ryo3-core = { path = "./crates/ryo3-core" }
 ryo3-dev = { path = "./crates/_ryo3-dev" }
+ryo3-lz4rip = { path = "./crates/_ryo3-lz4rip" }
 ryo3-dirs = { path = "./crates/ryo3-dirs" }
 ryo3-flate2 = { path = "./crates/ryo3-flate2" }
 ryo3-fnv = { path = "./crates/ryo3-fnv" }
@@ -225,6 +227,7 @@ http-body-util = { version = "0.1.3", default-features = false, features = [] }
 ignore = { version = "0.4.24", default-features = false, features = [] }
 jiff = { version = "0.2.30", default-features = false, features = ["default", "perf-inline"] }
 jiter = { version = "0.16", default-features = false, features = ["python"] }
+lz4rip = { version = "0.9.3", default-features = false, features = ["std"] }
 memchr = { version = "2.7.5", default-features = false, features = [] }
 mime = { version = "0.3.17", default-features = false, features = [] }
 rand = { version = "0.10.1", default-features = false, features = [] }

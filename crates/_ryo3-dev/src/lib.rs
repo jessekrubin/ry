@@ -19,5 +19,6 @@ pub fn devfn() -> &'static str {
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(devfn, m)?)?;
+    ryo3_lz4rip::pymod_add(m)?;
     Ok(())
 }
