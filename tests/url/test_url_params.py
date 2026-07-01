@@ -52,6 +52,6 @@ def test_parse_params_no_dict_with_kwargs() -> None:
             {  # pyrefly: ignore[bad-argument-count]
                 "lang": "rust",
                 "browser": "servo",
-            },
-            something="else",  # pyrefly: ignore[unexpected-keyword]
+            },  # ty:ignore[too-many-positional-arguments]
+            something="else",  # pyrefly: ignore[unexpected-keyword]  # ty:ignore[unknown-argument]
         )

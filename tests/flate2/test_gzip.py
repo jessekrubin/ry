@@ -133,10 +133,10 @@ def test_gzip_quality_value_error(
         ValueError,
         match="Invalid compression level; valid levels are int 0-9 or string 'fast' or 'best'",
     ):
-        _r = ry.gzip_encode(b"data", quality=quality)  # type: ignore[arg-type]
+        _r = ry.gzip_encode(b"data", quality=quality)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
 
     with pytest.raises(
         ValueError,
         match="Invalid compression level; valid levels are int 0-9 or string 'fast' or 'best'",
     ):
-        _r = ry.gzip(b"data", quality=quality)  # type: ignore[arg-type]
+        _r = ry.gzip(b"data", quality=quality)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]

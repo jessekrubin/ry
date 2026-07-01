@@ -52,7 +52,7 @@ def test_timezone_equivalence() -> None:
     py_tzinfo = tz_utc.to_pytzinfo()
     assert tz_utc.equiv(py_tzinfo)
     with pytest.raises(TypeError):
-        tz_utc.equiv(123)  # type: ignore[arg-type]
+        tz_utc.equiv(123)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
 
 
 def test_tz_to_dict() -> None:

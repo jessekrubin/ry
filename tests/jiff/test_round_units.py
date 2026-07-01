@@ -83,7 +83,7 @@ class TestDifferenceUnitsDefaults:
         timestamp_difference_units = []
         for unit in _JIFF_UNITS:
             try:
-                _diff = ts1.until(ts2, smallest=unit)  # type: ignore[arg-type]
+                _diff = ts1.until(ts2, smallest=unit)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
                 timestamp_difference_units.append(unit)
             except ValueError as _ve:
                 ...
@@ -98,7 +98,7 @@ class TestDifferenceUnitsDefaults:
         time_difference_units = []
         for unit in _JIFF_UNITS:
             try:
-                _diff = t1.until(t2, smallest=unit)  # type: ignore[arg-type]
+                _diff = t1.until(t2, smallest=unit)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
                 time_difference_units.append(unit)
             except ValueError as _ve:
                 ...
@@ -112,7 +112,7 @@ class TestDifferenceUnitsDefaults:
         date_difference_units = []
         for unit in _JIFF_UNITS:
             try:
-                _diff = d1.until(d2, smallest=unit)  # type: ignore[arg-type]
+                _diff = d1.until(d2, smallest=unit)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
                 date_difference_units.append(unit)
             except ValueError as _ve:
                 ...
@@ -204,7 +204,7 @@ class TestRoundingAllUnits:
         timestamp_smallest_units = []
         for unit in _JIFF_UNITS:
             try:
-                _rounded = ts.round(unit)  # type: ignore[arg-type]
+                _rounded = ts.round(unit)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
                 timestamp_smallest_units.append(unit)
             except ValueError as _ve:
                 ...
@@ -217,7 +217,7 @@ class TestRoundingAllUnits:
         time_smallest_units = []
         for unit in _JIFF_UNITS:
             try:
-                _rounded = t.round(unit)  # type: ignore[arg-type]
+                _rounded = t.round(unit)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
                 time_smallest_units.append(unit)
             except ValueError as _ve:
                 ...
@@ -230,7 +230,7 @@ class TestRoundingAllUnits:
         datetime_smallest_units = []
         for unit in _JIFF_UNITS:
             try:
-                _rounded = dt.round(unit)  # type: ignore[arg-type]
+                _rounded = dt.round(unit)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
                 datetime_smallest_units.append(unit)
             except ValueError as _ve:
                 ...
@@ -243,7 +243,7 @@ class TestRoundingAllUnits:
         zoned_datetime_smallest_units = []
         for unit in _JIFF_UNITS:
             try:
-                _rounded = zdt.round(unit)  # type: ignore[arg-type]
+                _rounded = zdt.round(unit)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
                 zoned_datetime_smallest_units.append(unit)
             except ValueError as _ve:
                 ...
@@ -256,7 +256,7 @@ class TestRoundingAllUnits:
         offset_smallest_units = []
         for unit in _JIFF_UNITS:
             try:
-                _rounded = off.round(unit)  # type: ignore[arg-type]
+                _rounded = off.round(unit)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
                 offset_smallest_units.append(unit)
             except ValueError as _ve:
                 ...
@@ -269,7 +269,7 @@ class TestRoundingAllUnits:
         signed_duration_smallest_units = []
         for unit in _JIFF_UNITS:
             try:
-                _rounded = sd.round(unit)  # type: ignore[arg-type]
+                _rounded = sd.round(unit)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
                 signed_duration_smallest_units.append(unit)
             except ValueError as _ve:
                 ...

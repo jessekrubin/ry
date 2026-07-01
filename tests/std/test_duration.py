@@ -230,9 +230,9 @@ class TestDurationArithmetic:
     def test_div_type_error(self) -> None:
         dur = ry.Duration(1, 0)
         with pytest.raises(TypeError):
-            _r = dur / "string"  # type: ignore[operator, ty:unsupported-operator]
+            _r = dur / "string"  # type: ignore[operator]  # ty:ignore[unsupported-operator]
         with pytest.raises(TypeError):
-            _r = dur / []  # type: ignore[operator, ty:unsupported-operator]
+            _r = dur / []  # type: ignore[operator]  # ty:ignore[unsupported-operator]
 
     @given(st_durations(), st.floats())
     def test_duration_div_f32(
@@ -437,9 +437,9 @@ class TestDurationArithmetic:
     def test_mul_type_error(self) -> None:
         dur = ry.Duration(1, 0)
         with pytest.raises(TypeError):
-            _ = dur * "string"  # type: ignore[operator, ty:unsupported-operator]
+            _ = dur * "string"  # type: ignore[operator]  # ty:ignore[unsupported-operator]
         with pytest.raises(TypeError):
-            _ = "string" * dur  # type: ignore[operator, ty:unsupported-operator]
+            _ = "string" * dur  # type: ignore[operator]  # ty:ignore[unsupported-operator]
 
     # =========================================================================
     # ABS_DIFF
@@ -796,4 +796,4 @@ class TestDurationDictConversion:
     @pytest.mark.parametrize("d", [{}, {"secs": 1}, {"nanos": 1}])
     def test_duration_from_dict_missing_keys(self, d: dict[str, int]) -> None:
         with pytest.raises(KeyError):
-            _dur = ry.Duration.from_dict(d)  # type: ignore[arg-type]
+            _dur = ry.Duration.from_dict(d)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]

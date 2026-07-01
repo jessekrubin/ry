@@ -167,8 +167,9 @@ per-file-ignores."docs/src/index.md" = [ "MD041" ]
 
 [tool.pyrefly]
 python-version = "3.11.0"
-preset = "legacy"
+preset = "default"
 ignore-missing-imports = [
     "tests.*",
     "*",
 ]
+search-path = [".", "python"]

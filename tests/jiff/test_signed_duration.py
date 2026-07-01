@@ -148,7 +148,7 @@ def test_truediv() -> None:
         _ = dur / ry.SignedDuration(0, 0)
 
     with pytest.raises(TypeError):
-        _ = dur / "string"  # type: ignore[operator, ty:unsupported-operator]
+        _ = dur / "string"  # type: ignore[operator]  # ty:ignore[unsupported-operator]
 
 
 def test_duration_2_pydelta() -> None:
@@ -216,7 +216,7 @@ def test_equiv(
 )
 def test_equiv_invalid_type(obj: complex | list[int]) -> None:
     with pytest.raises(TypeError):
-        _e = ry.SignedDuration(1, 0).equiv(obj)  # type: ignore[arg-type]
+        _e = ry.SignedDuration(1, 0).equiv(obj)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
 
 
 class TestSignedDurationProperties:
@@ -282,7 +282,7 @@ class TestSignedDurationStrings:
         assert f"{sd}" == "PT2H30M"
         assert f"{sd:#}" == "2h 30m"
         with pytest.raises(TypeError):
-            assert sd.to_string(True) == "2h 30m"  # type: ignore[misc, ty:too-many-positional-arguments]  # noqa: FBT003
+            assert sd.to_string(True) == "2h 30m"  # type: ignore[misc]  # noqa: FBT003  # ty:ignore[too-many-positional-arguments]
 
     def test_invalid_format_specifier(self) -> None:
         sd = ry.SignedDuration.parse("PT2H30M")
@@ -475,9 +475,9 @@ class TestDurationArithmetic:
     def test_div_type_error(self) -> None:
         dur = ry.SignedDuration(1, 0)
         with pytest.raises(TypeError):
-            _r = dur / "string"  # type: ignore[operator, ty:unsupported-operator]
+            _r = dur / "string"  # type: ignore[operator]  # ty:ignore[unsupported-operator]
         with pytest.raises(TypeError):
-            _r = dur / []  # type: ignore[operator, ty:unsupported-operator]
+            _r = dur / []  # type: ignore[operator]  # ty:ignore[unsupported-operator]
 
     @given(st_signed_durations(), st.floats(width=32))
     def test_div_f32(
@@ -718,22 +718,22 @@ class TestDurationArithmetic:
         assert _res is NotImplemented
         if operator == "__add__":
             with pytest.raises(TypeError):
-                _ = dur + value  # type: ignore[operator, ty:unsupported-operator]
+                _ = dur + value  # type: ignore[operator]  # ty:ignore[unsupported-operator]
         elif operator == "__sub__":
             with pytest.raises(TypeError):
-                _ = dur - value  # type: ignore[operator, ty:unsupported-operator]
+                _ = dur - value  # type: ignore[operator]  # ty:ignore[unsupported-operator]
         elif operator == "__rsub__":
             with pytest.raises(TypeError):
-                _ = value - dur  # type: ignore[operator, ty:unsupported-operator]
+                _ = value - dur  # type: ignore[operator]  # ty:ignore[unsupported-operator]
         elif operator == "__radd__":
             with pytest.raises(TypeError):
-                _ = value + dur  # type: ignore[operator, ty:unsupported-operator]
+                _ = value + dur  # type: ignore[operator]  # ty:ignore[unsupported-operator]
         elif operator == "__truediv__":
             with pytest.raises(TypeError):
-                _ = dur / value  # type: ignore[operator, ty:unsupported-operator]
+                _ = dur / value  # type: ignore[operator]  # ty:ignore[unsupported-operator]
         else:  # operator == "__mul__":
             with pytest.raises(TypeError):
-                _ = dur * value  # type: ignore[operator, ty:unsupported-operator]
+                _ = dur * value  # type: ignore[operator]  # ty:ignore[unsupported-operator]
 
 
 class TestSignedDurationCheckedArithmetic:
@@ -1035,7 +1035,7 @@ class TestSignedDurationFromIntegers:
 
     def test_from_days(self) -> None:
         with pytest.raises(AttributeError):
-            _ = ry.SignedDuration.from_days(1)  # type: ignore[attr-defined]
+            _ = ry.SignedDuration.from_days(1)  # type: ignore[attr-defined]  # ty:ignore[unresolved-attribute]
 
     @given(st.floats(width=32))
     def test_from_secs_f32(self, secs: float) -> None:
@@ -1076,4 +1076,4 @@ class TestSignedDurationFromIntegers:
 
     def test_from_secs_type_error(self) -> None:
         with pytest.raises(TypeError):
-            _ = ry.SignedDuration.from_secs("string")  # type: ignore[arg-type]
+            _ = ry.SignedDuration.from_secs("string")  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]

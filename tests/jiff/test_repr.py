@@ -82,7 +82,7 @@ def test_round_reprs(
     jiff_round_mode: JiffRoundMode,
 ) -> None:
     # TODO: fix tests so that these aren't possible...
-    round_obj = cls(smallest=jiff_unit, mode=jiff_round_mode, increment=1)  # type: ignore[arg-type]
+    round_obj = cls(smallest=jiff_unit, mode=jiff_round_mode, increment=1)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
     repr_str = repr(round_obj)
     assert repr_str == str(round_obj)
     evaled = eval("ry." + repr_str)

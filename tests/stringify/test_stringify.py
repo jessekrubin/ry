@@ -16,7 +16,7 @@ try:
 
     _ORJSON_INSTALLED = True
 except ImportError:
-    orjson = None  # type: ignore[assignment]
+    orjson = None  # type: ignore[assignment]  # ty:ignore[invalid-assignment]
 
 pytest_mark_skip_orjson = pytest.mark.skipif(
     not _ORJSON_INSTALLED,
@@ -457,7 +457,7 @@ class TestStringifyDefault:
             "key2": self.SomeSTupidCustomType("test"),
         }
         with pytest.raises(TypeError, match="'str' is not callable"):
-            ry.stringify(data, default="poopy::not-a-callable", fmt=True)  # type: ignore[call-overload]
+            ry.stringify(data, default="poopy::not-a-callable", fmt=True)  # type: ignore[call-overload]  # ty:ignore[invalid-argument-type]
 
 
 def test_stringify_dataclass() -> None:

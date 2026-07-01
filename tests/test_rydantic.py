@@ -198,7 +198,7 @@ class TestFsPathPydantic:
         ["some/path.txt", pathlib.Path("some/path.txt"), ry.FsPath("some/path.txt")],
     )
     def test_parse_ok(self, value: str | pathlib.Path | ry.FsPath) -> None:
-        model = RyFsPathModel(path=value)  # type: ignore[arg-type]
+        model = RyFsPathModel(path=value)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
         assert isinstance(model.path, ry.FsPath)
         assert str(model.path).replace("\\", "/") == "some/path.txt"
 
@@ -208,13 +208,13 @@ class TestFsPathPydantic:
 
     def test_json_matches_pathlib(self) -> None:
         py_model = PyPathModel(path=pathlib.Path("some/path.txt"))
-        ry_model = RyFsPathModel(path="some/path.txt")  # type: ignore[arg-type]
+        ry_model = RyFsPathModel(path="some/path.txt")  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
         assert ry_model.model_dump_json() == py_model.model_dump_json()
 
     @pytest.mark.parametrize("value", [123, object()])
     def test_parse_err(self, value: object) -> None:
         with pytest.raises(pydantic.ValidationError):
-            RyFsPathModel(path=value)  # type: ignore[arg-type]
+            RyFsPathModel(path=value)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
 
 
 def _create_tz(minutes: int) -> pydt.tzinfo:
@@ -265,7 +265,7 @@ class TestDuration:
         value: float | str | bytes | pydt.datetime,
         result: pydt.timedelta | None,
     ) -> None:
-        m = RyDurationModel(d=value)  # type: ignore[arg-type]
+        m = RyDurationModel(d=value)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
         assert isinstance(m.d, ry.Duration)
         if result is not None:
             assert m.d.to_pytimedelta() == result
@@ -294,13 +294,13 @@ class TestDuration:
         self, value: float | str, result: pydt.timedelta
     ) -> None:
         with pytest.raises(pydantic.ValidationError):
-            _m = RyDurationModel(d=value)  # type: ignore[arg-type]
+            _m = RyDurationModel(d=value)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
 
         # Convert negative values to positive for parsing to sanity check
         positive_value = (
             abs(value) if isinstance(value, (int, float)) else value.lstrip("-")
         )
-        m = RyDurationModel(d=positive_value)  # type: ignore[arg-type]
+        m = RyDurationModel(d=positive_value)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
         assert m.d.to_pytimedelta() == -result
         as_json = m.model_dump_json()
         from_json = m.model_validate_json(as_json)
@@ -345,7 +345,7 @@ class TestDate:
         ],
     )
     def test_date_inputs(self, data: pydt.date | pydt.datetime | ry.Date | str) -> None:
-        ry_model = RyDateModel(date=data)  # type: ignore[arg-type]
+        ry_model = RyDateModel(date=data)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
         assert isinstance(ry_model.date, ry.Date)
 
         model_dumped_json = ry_model.model_dump_json()
@@ -367,7 +367,7 @@ class TestDate:
         self, value: pydt.date | pydt.datetime | ry.Date | str, result: pydt.date
     ) -> None:
         ry_date = ry.Date.from_pydate(result)
-        m = RyDateModel(date=value)  # type: ignore[arg-type]
+        m = RyDateModel(date=value)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
         assert m.date == ry_date
         assert m.date.to_pydate() == result
 
@@ -404,7 +404,7 @@ class TestDate:
         raw: pydt.date | pydt.datetime | ry.Date | str,
     ) -> None:
         with pytest.raises(pydantic.ValidationError):
-            _d = RyDateModel(date=raw)  # type: ignore[arg-type]
+            _d = RyDateModel(date=raw)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
 
 
 class TestISOWeekdateDate:
@@ -420,7 +420,7 @@ class TestISOWeekdateDate:
         ],
     )
     def test_date_inputs(self, data: pydt.date | pydt.datetime | ry.Date | str) -> None:
-        ry_model = RyIsoWeekDateModel(iwd=data)  # type: ignore[arg-type]
+        ry_model = RyIsoWeekDateModel(iwd=data)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
         assert isinstance(ry_model.iwd, ry.ISOWeekDate)
 
         model_dumped_json = ry_model.model_dump_json()
@@ -442,7 +442,7 @@ class TestISOWeekdateDate:
         self, value: pydt.date | pydt.datetime | ry.Date | str, result: pydt.date
     ) -> None:
         ry_date = ry.ISOWeekDate.from_pydate(result)
-        m = RyIsoWeekDateModel(iwd=value)  # type: ignore[arg-type]
+        m = RyIsoWeekDateModel(iwd=value)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
         assert m.iwd == ry_date
         assert m.iwd.to_pydate() == result
 
@@ -479,7 +479,7 @@ class TestISOWeekdateDate:
         raw: pydt.date | pydt.datetime | ry.ISOWeekDate | str,
     ) -> None:
         with pytest.raises(pydantic.ValidationError):
-            _d = RyIsoWeekDateModel(iwd=raw)  # type: ignore[arg-type]
+            _d = RyIsoWeekDateModel(iwd=raw)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
 
 
 class TestTime:
@@ -519,7 +519,7 @@ class TestTime:
         self, value: float | ry.Time | str, result: pydt.time
     ) -> None:
         rs_time = ry.Time.from_pytime(result)
-        m = RyTimeModel(d=value)  # type: ignore[arg-type]
+        m = RyTimeModel(d=value)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
         assert isinstance(m.d, ry.Time)
         assert m.d == rs_time
         assert m.d == rs_time
@@ -549,7 +549,7 @@ class TestTime:
         value: float | ry.Time | str,
     ) -> None:
         with pytest.raises(pydantic.ValidationError):
-            _d = RyTimeModel(d=value)  # type: ignore[arg-type]
+            _d = RyTimeModel(d=value)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
 
     @pytest.mark.parametrize(
         ("value", "result"),
@@ -616,7 +616,7 @@ class TestDatetime:
     ) -> None:
         result = result.replace(tzinfo=None)
         rs_expected = ry.DateTime.from_pydatetime(result)
-        m = RyDatetimeModel(dt=value)  # type: ignore[arg-type]
+        m = RyDatetimeModel(dt=value)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
         assert isinstance(m.dt, ry.DateTime)
         assert m.dt == rs_expected
 
@@ -653,7 +653,7 @@ class TestDatetime:
         value: float | str | bytes | pydt.datetime,
     ) -> None:
         with pytest.raises(pydantic.ValidationError):
-            _d = RyDatetimeModel(dt=value)  # type: ignore[arg-type]
+            _d = RyDatetimeModel(dt=value)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
 
 
 class TestZonedDatetime:
@@ -690,7 +690,7 @@ class TestZonedDatetime:
     ) -> None:
         rs_expected = ry.ZonedDateTime.from_pydatetime(result)
         assert isinstance(rs_expected, ry.ZonedDateTime)
-        m = RyZonedDatetimeModel(dt=value)  # type: ignore[arg-type]
+        m = RyZonedDatetimeModel(dt=value)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
         assert isinstance(m.dt, ry.ZonedDateTime)
         assert m.dt == rs_expected
 
@@ -720,7 +720,7 @@ class TestZonedDatetime:
         self, value: float | str | bytes | pydt.datetime
     ) -> None:
         with pytest.raises(pydantic.ValidationError):
-            _d = RyZonedDatetimeModel(dt=value)  # type: ignore[arg-type]
+            _d = RyZonedDatetimeModel(dt=value)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
 
 
 class TestSignedDuration:
@@ -769,7 +769,7 @@ class TestSignedDuration:
     def test_parse_signed_duration_ok(
         self, value: float | str | bytes | pydt.datetime, result: pydt.timedelta
     ) -> None:
-        m = RySignedDurationModel(d=value)  # type: ignore[arg-type]
+        m = RySignedDurationModel(d=value)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
         assert m.d.to_py() == result
         as_json = m.model_dump_json()
         from_json = m.model_validate_json(as_json)
@@ -848,7 +848,7 @@ class TestTimeSpan:
     def test_parse_timespan_ok(
         self, value: str | float, result: pydt.timedelta
     ) -> None:
-        m = RyTimeSpanModel(d=value)  # type: ignore[arg-type]
+        m = RyTimeSpanModel(d=value)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
         assert isinstance(m.d, ry.TimeSpan)
         assert (
             m.d.total_seconds(days_are_24_hours=True)
@@ -871,7 +871,7 @@ class TestTimeSpan:
     )
     def test_parse_timespan_err(self, value: str) -> None:
         with pytest.raises(pydantic.ValidationError):
-            _m = RyTimeSpanModel(d=value)  # type: ignore[arg-type]
+            _m = RyTimeSpanModel(d=value)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
 
     @pytest.mark.parametrize(
         "value",
@@ -882,7 +882,7 @@ class TestTimeSpan:
         ],
     )
     def test_parse_timespan_special(self, value: str) -> None:
-        m = RyTimeSpanModel(d=value)  # type: ignore[arg-type]
+        m = RyTimeSpanModel(d=value)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
         assert isinstance(m.d, ry.TimeSpan)
         as_json = m.model_dump_json()
         from_json = RyTimeSpanModel.model_validate_json(as_json)
@@ -923,7 +923,7 @@ class TestTimestamp:
     def test_timestamp_parsing_ok(
         self, value: ry.DateTime | ry.ZonedDateTime | ry.Timestamp
     ) -> None:
-        m = RyTimestampModel(ts=value)  # type: ignore[arg-type]
+        m = RyTimestampModel(ts=value)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
         assert isinstance(m.ts, ry.Timestamp)
 
         as_json = m.model_dump_json(
@@ -947,7 +947,7 @@ class TestTimestamp:
         value: str,
     ) -> None:
         with pytest.raises(pydantic.ValidationError):
-            _d = RyTimestampModel(ts=value)  # type: ignore[arg-type]
+            _d = RyTimestampModel(ts=value)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
 
 
 # ---------------------------------------------------------------------------
@@ -1033,7 +1033,7 @@ _OK_URLS = [
     ],
 )
 def test_url_parsing_ok(val: str | bytes) -> None:
-    model_obj = RyUrlModel(url=val)  # type: ignore[arg-type]
+    model_obj = RyUrlModel(url=val)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
     url_obj = ry.URL.parse(val)
     assert isinstance(model_obj.url, ry.URL)
     assert model_obj.url == url_obj
@@ -1071,7 +1071,7 @@ def test_url_parsing_ok(val: str | bytes) -> None:
 )
 def test_url_parsing_err(value: str | None, err_msg: str) -> None:
     with pytest.raises(pydantic.ValidationError) as exc_info:
-        RyUrlModel(url=value)  # type: ignore[arg-type]
+        RyUrlModel(url=value)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
     assert len(exc_info.value.errors(include_url=False)) == 1, exc_info.value.errors(
         include_url=False
     )
@@ -1233,8 +1233,8 @@ def test_ipaddress_success(
     value: str | bytes | int | IPv4Address | IPv6Address,
     cls: type[IPv4Address] | type[IPv6Address],
 ) -> None:
-    assert PyIpAddr(ip=value).ip == cls(value)  # type: ignore[arg-type]
-    assert RyIpAddr(ip=value).ip.to_pyipaddress() == cls(value)  # type: ignore[arg-type]
+    assert PyIpAddr(ip=value).ip == cls(value)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
+    assert RyIpAddr(ip=value).ip.to_pyipaddress() == cls(value)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
 
 
 @pytest.mark.parametrize(
@@ -1268,8 +1268,8 @@ def test_ipaddress_success(
     ],
 )
 def test_ipv4addr_ok(value: str | bytes | int | IPv4Address | ry.Ipv4Addr) -> None:
-    assert PyIpv4Addr(ip=value).ip == IPv4Address(value)  # type: ignore[arg-type]
-    assert RyIpv4Addr(ip=value).ip.to_py() == IPv4Address(value)  # type: ignore[arg-type]
+    assert PyIpv4Addr(ip=value).ip == IPv4Address(value)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
+    assert RyIpv4Addr(ip=value).ip.to_py() == IPv4Address(value)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
 
 
 @pytest.mark.parametrize(
@@ -1286,14 +1286,14 @@ def test_ipv4addr_ok(value: str | bytes | int | IPv4Address | ry.Ipv4Addr) -> No
     ],
 )
 def test_ipv6addr_ok(value: str | bytes | int | IPv6Address | ry.Ipv6Addr) -> None:
-    assert PyIpv6Addr(ip=value).ip == IPv6Address(value)  # type: ignore[arg-type]
-    assert RyIpv6Addr(ip=value).ip.to_py() == IPv6Address(value)  # type: ignore[arg-type]
+    assert PyIpv6Addr(ip=value).ip == IPv6Address(value)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
+    assert RyIpv6Addr(ip=value).ip.to_py() == IPv6Address(value)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
 
 
 @pytest.mark.parametrize("value", ["hello,world", "192.168.0.1.1.1", -1, 2**128 + 1])
 def test_ipaddr_err(value: str | int) -> None:
     with pytest.raises(pydantic.ValidationError) as exc_info:
-        RyIpAddr(ip=value)  # type: ignore[arg-type]
+        RyIpAddr(ip=value)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
     assert exc_info.value.error_count() == 1
 
 
@@ -1302,7 +1302,7 @@ def test_ipaddr_err(value: str | int) -> None:
 )
 def test_ipv4addr_err(value: str | int | IPv6Address) -> None:
     with pytest.raises(pydantic.ValidationError) as exc_info:
-        RyIpv4Addr(ip=value)  # type: ignore[arg-type]
+        RyIpv4Addr(ip=value)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
     assert exc_info.value.error_count() == 1
 
 
@@ -1312,7 +1312,7 @@ def test_ipv4addr_err(value: str | int | IPv6Address) -> None:
 )
 def test_ipv6addr_err(value: str | int | IPv4Address) -> None:
     with pytest.raises(pydantic.ValidationError) as exc_info:
-        RyIpv6Addr(ip=value)  # type: ignore[arg-type]
+        RyIpv6Addr(ip=value)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
     assert exc_info.value.error_count() == 1
 
 
@@ -1370,7 +1370,7 @@ class TestSocketAddr:
         value: str | bytes | ry.SocketAddr | ry.SocketAddrV4 | ry.SocketAddrV6,
         result: str,
     ) -> None:
-        m = RySocketAddr(sock=value)  # type: ignore[arg-type]
+        m = RySocketAddr(sock=value)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
         assert isinstance(m.sock, ry.SocketAddr)
         assert str(m.sock) == result
 
@@ -1407,7 +1407,7 @@ class TestSocketAddrV4:
         value: str | bytes | ry.SocketAddr | ry.SocketAddrV4 | ry.SocketAddrV6,
         result: str,
     ) -> None:
-        m = RySocketAddrV4(sock=value)  # type: ignore[arg-type]
+        m = RySocketAddrV4(sock=value)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
         assert isinstance(m.sock, ry.SocketAddrV4)
         assert str(m.sock) == result
 
@@ -1443,7 +1443,7 @@ class TestSocketAddrV6:
         value: str | bytes | ry.SocketAddr | ry.SocketAddrV4 | ry.SocketAddrV6,
         result: str,
     ) -> None:
-        m = RySocketAddrV6(sock=value)  # type: ignore[arg-type]
+        m = RySocketAddrV6(sock=value)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
         assert isinstance(m.sock, ry.SocketAddrV6)
         assert str(m.sock) == result
 
@@ -1534,7 +1534,7 @@ class TestTimeZone:
         ],
     )
     def test_timezone_parsing_ok(self, value: str | bytes | ry.TimeZone) -> None:
-        m = RyTimeZoneModel(tz=value)  # type: ignore[arg-type]
+        m = RyTimeZoneModel(tz=value)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
         assert isinstance(m.tz, ry.TimeZone)
 
         as_json = m.model_dump_json()
@@ -1554,7 +1554,7 @@ class TestTimeZone:
     )
     def test_timezone_parsing_err(self, value: str | bytes | complex) -> None:
         with pytest.raises(pydantic.ValidationError):
-            _m = RyTimeZoneModel(tz=value)  # type: ignore[arg-type]
+            _m = RyTimeZoneModel(tz=value)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
 
 
 class TestHttpStatus:
@@ -1564,7 +1564,7 @@ class TestHttpStatus:
         assert ry_schema["properties"]["status"] == py_schema["properties"]["status"]
 
     def test_http_status_pydantic_round_trip(self) -> None:
-        model = RyHttpStatusModel(status=200)  # type: ignore[arg-type]
+        model = RyHttpStatusModel(status=200)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
         assert model.status == ry.HttpStatus.OK
         assert model.model_dump() == {"status": 200}
         assert model.model_dump_json() == '{"status":200}'
@@ -1580,12 +1580,12 @@ class TestHttpStatus:
         with pytest.raises(
             pydantic.ValidationError, match="HTTP status validation error"
         ):
-            RyHttpStatusModel(status=99)  # type: ignore[arg-type]
+            RyHttpStatusModel(status=99)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
 
     @pytest.mark.parametrize("value", ["200", None, complex(1, 2)])
     def test_http_status_pydantic_fails_type(self, value: str | None | complex) -> None:
         with pytest.raises(pydantic.ValidationError):
-            RyHttpStatusModel(status=value)  # type: ignore[arg-type]
+            RyHttpStatusModel(status=value)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
 
 
 class TestHttpHeaders:
@@ -1599,7 +1599,7 @@ class TestHttpHeaders:
             "Content-Type": ["application/json", "application/problem+json"],
             "X-Trace-Id": "abc123",
         }
-        model = RyHeadersModel(headers=input_headers)  # type: ignore[arg-type]
+        model = RyHeadersModel(headers=input_headers)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
         assert isinstance(model.headers, ry.Headers)
         assert model.headers.is_flat is False
         assert model.headers.to_dict() == {
@@ -1629,9 +1629,9 @@ class TestHttpHeaders:
 
     def test_headers_pydantic_fails_header_value(self) -> None:
         with pytest.raises(pydantic.ValidationError, match="Headers validation error"):
-            RyHeadersModel(headers={"x-test": ["ok", "bad\r\n"]})  # type: ignore[arg-type]
+            RyHeadersModel(headers={"x-test": ["ok", "bad\r\n"]})  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
 
     @pytest.mark.parametrize("value", [{"x-test": 123}, {"x-test": [123]}, None])
     def test_headers_pydantic_fails_type(self, value: object) -> None:
         with pytest.raises(pydantic.ValidationError):
-            RyHeadersModel(headers=value)  # type: ignore[arg-type]
+            RyHeadersModel(headers=value)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]

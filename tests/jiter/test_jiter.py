@@ -108,7 +108,7 @@ def test_parse_json_lines() -> None:
 def test_parse_bytes_in_numpy_u8_arr() -> None:
     """Test that reading bytes from a buffer-protocol obj (eg numpy uint8 array works)"""
     try:
-        import numpy as np
+        import numpy as np  # ty:ignore[unresolved-import]
 
     except ImportError:
         pytest.skip("Numpy is not available")

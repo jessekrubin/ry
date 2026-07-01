@@ -52,7 +52,7 @@ def test_fnv_seed_parse() -> None:
 @pytest.mark.parametrize("bad_seed", [b"short", b"way-2-damn-long", 3.14, "string"])
 def test_fnv_seed_parse_err(bad_seed: bytes | float | str) -> None:
     with pytest.raises(TypeError):
-        ry.fnv1a(seed=bad_seed)  # type: ignore[arg-type]
+        ry.fnv1a(seed=bad_seed)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
 
 
 @pytest.mark.parametrize(("data", "expected"), FNV_TEST_DATA)

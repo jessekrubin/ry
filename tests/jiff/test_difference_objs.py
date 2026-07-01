@@ -118,7 +118,7 @@ def test_difference_obj(
 ) -> None:
     obj = diff_cls["obj"]
     _kwargs_no_none = {k: v for k, v in diff_opts.items() if v is not None}
-    diff_ob = diff_cls["diff_type"](obj, increment=2, **_kwargs_no_none)  # type: ignore[arg-type]
+    diff_ob = diff_cls["diff_type"](obj, increment=2, **_kwargs_no_none)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
     if diff_opts["smallest"] is None:
         assert diff_ob.smallest == diff_cls["smallest_default"]
     else:

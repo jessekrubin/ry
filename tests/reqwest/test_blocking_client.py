@@ -351,8 +351,8 @@ def test_client_post(
 ) -> None:
     url = server.url
     client = ry.BlockingClient()
-    _body = body() if callable(body) else body
-    response = client.post(str(url) + "echo", body=_body)
+    _body = body() if callable(body) else body  # ty:ignore[call-top-callable]
+    response = client.post(str(url) + "echo", body=_body)  # ty:ignore[invalid-argument-type]
     assert response.status_code == 200
     res_json = response.json()
     assert res_json["body"] == "BABOOM"

@@ -24,28 +24,28 @@ class TestJiffDeprecationsInTz:
             "`Date.intz` is deprecated; use `Date.in_tz` instead [removal: v0.0.93]"
         )
         with pytest.warns(DeprecationWarning, match=msg):
-            _d = ry.Date.today().intz("UTC")  # type: ignore[attr-defined]
+            _d = ry.Date.today().intz("UTC")  # type: ignore[attr-defined]  # ty:ignore[unresolved-attribute]
 
     def test_jiff_intz_deprecation_datetime(self) -> None:
         msg = re.escape(
             "`DateTime.intz` is deprecated; use `DateTime.in_tz` instead [removal: v0.0.93]"
         )
         with pytest.warns(DeprecationWarning, match=msg):
-            _d = ry.now().datetime().intz("UTC")  # type: ignore[attr-defined]
+            _d = ry.now().datetime().intz("UTC")  # type: ignore[attr-defined]  # ty:ignore[unresolved-attribute]
 
     def test_jiff_intz_deprecation_timestamp(self) -> None:
         msg = re.escape(
             "`Timestamp.intz` is deprecated; use `Timestamp.in_tz` instead [removal: v0.0.93]"
         )
         with pytest.warns(DeprecationWarning, match=msg):
-            _d = ry.now().timestamp().intz("UTC")  # type: ignore[attr-defined]
+            _d = ry.now().timestamp().intz("UTC")  # type: ignore[attr-defined]  # ty:ignore[unresolved-attribute]
 
     def test_jiff_intz_deprecation_zoned_datetime(self) -> None:
         msg = re.escape(
             "`ZonedDateTime.intz` is deprecated; use `ZonedDateTime.in_tz` instead [removal: v0.0.93]"
         )
         with pytest.warns(DeprecationWarning, match=msg):
-            _d = ry.now().intz("UTC")  # type: ignore[attr-defined]
+            _d = ry.now().intz("UTC")  # type: ignore[attr-defined]  # ty:ignore[unresolved-attribute]
 
 
 class TestTokioDeprecations:
@@ -57,7 +57,7 @@ class TestTokioDeprecations:
                 "`aiopen` is deprecated; use `aopen` instead [removal: v0.0.93]"
             )
         ):
-            _ = ry.aiopen("some_path.txt", "rb")  # type: ignore[attr-defined]
+            _ = ry.aiopen("some_path.txt", "rb")  # type: ignore[attr-defined]  # ty:ignore[unresolved-attribute]
 
 
 @pytest.mark.skip(reason="removed in v0.0.93")
@@ -120,7 +120,7 @@ class TestReqwestDeprecations:
                 "`HttpClient` is deprecated; use `Client` instead [removal: v0.0.93]"
             )
         ):
-            _c = ry.HttpClient()  # type: ignore[attr-defined]
+            _c = ry.HttpClient()  # type: ignore[attr-defined]  # ty:ignore[unresolved-attribute]
 
 
 @pytest.mark.skip(reason="removed in v0.0.96")
@@ -130,18 +130,18 @@ class TestJiffDeprecations:
             "SignedDuration.from_isoformat", "SignedDuration.fromisoformat", "v0.0.96"
         )
         with pytest.warns(DeprecationWarning, match=msg):
-            _sd = ry.SignedDuration.from_isoformat("PT48m")  # type: ignore[attr-defined]
+            _sd = ry.SignedDuration.from_isoformat("PT48m")  # type: ignore[attr-defined]  # ty:ignore[unresolved-attribute]
 
     def test_jiff_timespan_from_isoformat_deprecated(self) -> None:
         msg = _deprecation_message(
             "TimeSpan.from_isoformat", "TimeSpan.fromisoformat", "v0.0.96"
         )
         with pytest.warns(DeprecationWarning, match=msg):
-            _s = ry.TimeSpan.from_isoformat("PT48m")  # type: ignore[attr-defined]
+            _s = ry.TimeSpan.from_isoformat("PT48m")  # type: ignore[attr-defined]  # ty:ignore[unresolved-attribute]
 
     def test_jiff_span_parse_common_iso_deprecated(self) -> None:
         msg = _deprecation_message(
             "TimeSpan.parse_common_iso", "TimeSpan.fromisoformat", "v0.0.96"
         )
         with pytest.warns(DeprecationWarning, match=msg):
-            _s = ry.TimeSpan.parse_common_iso("PT48m")  # type: ignore[attr-defined]
+            _s = ry.TimeSpan.parse_common_iso("PT48m")  # type: ignore[attr-defined]  # ty:ignore[unresolved-attribute]

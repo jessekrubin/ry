@@ -61,7 +61,7 @@ class TestBytesSlice:
         rs_bytes = Bytes(b"abcdefg")
         py_bytes = b"abcdefg"
         with pytest.raises(ValueError, match="slice step cannot be zero"):
-            _py_new = py_bytes[0:4:0]
+            _py_new = py_bytes[0:4:0]  # ty:ignore[zero-stepsize-in-slice]
 
         with pytest.raises(ValueError, match="slice step cannot be zero"):
             _rs_bytes = rs_bytes[0:4:0]

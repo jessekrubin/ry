@@ -497,8 +497,8 @@ async def test_client_post(
     client: TClient,
 ) -> None:
     url = server.url
-    _body = body() if callable(body) else body
-    response = await client.post(str(url) + "echo", body=_body)
+    _body = body() if callable(body) else body  # ty:ignore[call-top-callable]
+    response = await client.post(str(url) + "echo", body=_body)  # ty:ignore[invalid-argument-type]
     assert response.status_code == 200
     res_json = await response.json()
     assert res_json["body"] == "BABYDOG"
@@ -520,7 +520,7 @@ async def test_client_post_body_err(
         TypeError,
         match="Expected bytes-like object or an async or sync iterable for request body",
     ):
-        _ = await client.post(str(url) + "echo", body=body)  # type: ignore[arg-type]
+        _ = await client.post(str(url) + "echo", body=body)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
 
 
 async def test_client_post_json(server: ReqtestServer, client: TClient) -> None:
