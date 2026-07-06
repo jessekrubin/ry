@@ -58,7 +58,7 @@ pub fn lz4_compress(
                     &mut output,
                     dict,
                     dict_id.unwrap_or(0),
-                    frame_info.map(|f| f.into_inner()),
+                    frame_info.map(py_frame_info::PyFrameInfo::into_inner),
                 )
                 .map_err(compression_error)?
             } else {

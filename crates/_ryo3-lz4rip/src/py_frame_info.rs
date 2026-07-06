@@ -6,21 +6,23 @@ use ryo3_core::macros::{py_type_err, py_value_err};
 pub struct PyBlockSize(lz4rip::frame::BlockSize);
 
 impl PyBlockSize {
-    const AUTO: Self = Self(lz4rip::frame::BlockSize::Auto);
-    const MAX_64KB: Self = Self(lz4rip::frame::BlockSize::Max64KB);
-    const MAX_256KB: Self = Self(lz4rip::frame::BlockSize::Max256KB);
-    const MAX_1MB: Self = Self(lz4rip::frame::BlockSize::Max1MB);
-    const MAX_4MB: Self = Self(lz4rip::frame::BlockSize::Max4MB);
+    const AUTO: Self = Self::new(lz4rip::frame::BlockSize::Auto);
+    const MAX_64KB: Self = Self::new(lz4rip::frame::BlockSize::Max64KB);
+    const MAX_256KB: Self = Self::new(lz4rip::frame::BlockSize::Max256KB);
+    const MAX_1MB: Self = Self::new(lz4rip::frame::BlockSize::Max1MB);
+    const MAX_4MB: Self = Self::new(lz4rip::frame::BlockSize::Max4MB);
 
     const fn new(block_size: lz4rip::frame::BlockSize) -> Self {
         Self(block_size)
     }
 
-    fn inner(&self) -> &lz4rip::frame::BlockSize {
+    #[must_use]
+    pub fn inner(&self) -> &lz4rip::frame::BlockSize {
         &self.0
     }
 
-    fn into_inner(self) -> lz4rip::frame::BlockSize {
+    #[must_use]
+    pub fn into_inner(self) -> lz4rip::frame::BlockSize {
         self.0
     }
 }
@@ -61,18 +63,20 @@ impl<'py> FromPyObject<'_, 'py> for PyBlockSize {
 pub struct PyBlockMode(lz4rip::frame::BlockMode);
 
 impl PyBlockMode {
-    const INDEPENDENT: Self = Self(lz4rip::frame::BlockMode::Independent);
-    const LINKED: Self = Self(lz4rip::frame::BlockMode::Linked);
+    const INDEPENDENT: Self = Self::new(lz4rip::frame::BlockMode::Independent);
+    const LINKED: Self = Self::new(lz4rip::frame::BlockMode::Linked);
 
     const fn new(block_mode: lz4rip::frame::BlockMode) -> Self {
         Self(block_mode)
     }
 
-    fn inner(&self) -> &lz4rip::frame::BlockMode {
+    #[must_use]
+    pub fn inner(&self) -> &lz4rip::frame::BlockMode {
         &self.0
     }
 
-    fn into_inner(self) -> lz4rip::frame::BlockMode {
+    #[must_use]
+    pub fn into_inner(self) -> lz4rip::frame::BlockMode {
         self.0
     }
 }
@@ -98,14 +102,17 @@ impl<'py> FromPyObject<'_, 'py> for PyBlockMode {
 pub struct PyFrameInfo(lz4rip::frame::FrameInfo);
 
 impl PyFrameInfo {
+    #[must_use]
     pub fn new(frame_info: lz4rip::frame::FrameInfo) -> Self {
         Self(frame_info)
     }
 
+    #[must_use]
     pub fn inner(&self) -> &lz4rip::frame::FrameInfo {
         &self.0
     }
 
+    #[must_use]
     pub fn into_inner(self) -> lz4rip::frame::FrameInfo {
         self.0
     }
