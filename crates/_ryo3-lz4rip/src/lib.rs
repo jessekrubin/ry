@@ -72,7 +72,7 @@ pub fn lz4_compress(
 }
 
 #[pyfunction]
-#[pyo3(signature = (data, uncompressed_size, *, block = false, dictionary = None))]
+#[pyo3(signature = (data, uncompressed_size, *, block = false, dictionary = None, dict_id = None))]
 #[expect(clippy::needless_pass_by_value)]
 pub fn lz4_decompress(
     py: Python<'_>,
@@ -80,6 +80,7 @@ pub fn lz4_decompress(
     uncompressed_size: Option<usize>,
     block: bool,
     dictionary: Option<ReadableBuffer>,
+    dict_id: Option<u32>,
 ) -> PyResult<RyBytes> {
     let input = data.as_ref();
     let dict = dictionary.as_ref().map(AsRef::as_ref);
@@ -99,7 +100,12 @@ pub fn lz4_decompress(
     } else {
         py.detach(|| {
             let mut output = vec![0; uncompressed_size.unwrap_or(0)];
-            let mut decoder = lz4rip::frame::FrameDecoder::new(input);
+            let mut decoder = if let Some(dict) = dict {
+                lz4rip::frame::FrameDecoder::with_dictionary(input, dict, dict_id.unwrap_or(0))
+            } else {
+                lz4rip::frame::FrameDecoder::new(input)
+            };
+            // let mut decoder = lz4rip::frame::FrameDecoder::new(input);
             decoder
                 .read_exact(&mut output)
                 .map_err(decompression_error)?;
