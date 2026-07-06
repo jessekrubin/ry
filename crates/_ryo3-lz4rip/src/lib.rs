@@ -23,7 +23,7 @@ fn decompression_error(err: impl std::fmt::Display) -> PyErr {
 }
 
 #[pyfunction]
-#[pyo3(signature = (data, *, block = false, dictionary=None, dict_id=None, frame_info=None))]
+#[pyo3(signature = (data, *, block = false, dictionary = None, dict_id = None, frame_info = None))]
 #[expect(clippy::needless_pass_by_value)]
 pub fn lz4_compress(
     py: Python<'_>,
@@ -72,7 +72,7 @@ pub fn lz4_compress(
 }
 
 #[pyfunction]
-#[pyo3(signature = (data, uncompressed_size, *, block = false, dictionary=None))]
+#[pyo3(signature = (data, uncompressed_size, *, block = false, dictionary = None))]
 #[expect(clippy::needless_pass_by_value)]
 pub fn lz4_decompress(
     py: Python<'_>,
