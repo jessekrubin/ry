@@ -5,33 +5,39 @@ use lz4rip::block::{
     compress, compress_into_with_dict, decompress_into, decompress_into_with_dict,
     get_maximum_output_size,
 };
-use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use ryo3_bytes::{ReadableBuffer, RyBytes};
+mod py_frame_info;
 mod py_lz4_dict_compressor;
 use lz4rip::frame::FrameEncoder;
+pub use py_frame_info::{PyBlockMode, PyBlockSize, PyFrameInfo};
 pub use py_lz4_dict_compressor::PyLz4DictCompressor;
+use ryo3_core::macros::{py_value_err, py_value_error};
 
 fn compression_error(err: impl std::fmt::Display) -> PyErr {
-    PyValueError::new_err(format!("LZ4 compression failed: {err}"))
+    py_value_error!("LZ4 compression failed: {err}")
 }
 
 fn decompression_error(err: impl std::fmt::Display) -> PyErr {
-    PyValueError::new_err(format!("LZ4 decompression failed: {err}"))
+    py_value_error!("LZ4 decompression failed: {err}")
 }
 
 #[pyfunction]
-#[pyo3(signature = (data, *, block = false, dictionary=None))]
+#[pyo3(signature = (data, *, block = false, dictionary=None, dict_id=None, frame_info=None))]
 #[expect(clippy::needless_pass_by_value)]
 pub fn lz4_compress(
     py: Python<'_>,
     data: ReadableBuffer,
     block: bool,
     dictionary: Option<ReadableBuffer>,
+    dict_id: Option<u32>,
+    frame_info: Option<py_frame_info::PyFrameInfo>,
 ) -> PyResult<RyBytes> {
     let input = data.as_ref();
     let dict = dictionary.as_ref().map(AsRef::as_ref);
-
+    if block && frame_info.is_some() {
+        return py_value_err!("frame_info is not applicable when block=True");
+    }
     if block {
         py.detach(|| {
             if let Some(dict) = dict {
@@ -48,7 +54,13 @@ pub fn lz4_compress(
         py.detach(|| {
             let mut output = Vec::new();
             let mut encoder = if let Some(dict) = dict {
-                FrameEncoder::with_dictionary(&mut output, dict, 0)
+                FrameEncoder::with_dictionary(
+                    &mut output,
+                    dict,
+                    dict_id.unwrap_or(0),
+                    frame_info.map(|f| f.into_inner()),
+                )
+                .map_err(compression_error)?
             } else {
                 FrameEncoder::new(&mut output)
             };

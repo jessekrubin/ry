@@ -1,11 +1,11 @@
-use lz4rip::block::Compressor;
+use lz4rip::block::DictCompressor;
 use pyo3::prelude::*;
 use ryo3_bytes::{ReadableBuffer, RyBytes};
 
 #[pyclass(name = "Lz4DictCompressor", module = "ry.ryo3")]
 #[derive(Debug)]
 pub struct PyLz4DictCompressor {
-    inner: Compressor,
+    inner: DictCompressor,
 }
 
 #[pymethods]
@@ -14,7 +14,7 @@ impl PyLz4DictCompressor {
     #[expect(clippy::needless_pass_by_value)]
     fn new(dictionary: ReadableBuffer) -> Self {
         Self {
-            inner: Compressor::with_dict(dictionary.as_ref()),
+            inner: DictCompressor::new(dictionary.as_ref()),
         }
     }
 

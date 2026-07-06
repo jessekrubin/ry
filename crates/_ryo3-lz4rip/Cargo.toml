@@ -15,6 +15,7 @@ description = "python + lz4rip (https://crates.io/crates/lz4rip)"
 [dependencies]
 lz4rip = { workspace = true, features = ["frame"] }
 pyo3.workspace = true
+ryo3-core.workspace = true
 ryo3-bytes.workspace = true
 
 
