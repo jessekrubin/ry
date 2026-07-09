@@ -31,7 +31,7 @@ jobs:
           components: clippy,rustfmt
       - name: setup-rust-cache
         uses: Swatinem/rust-cache@e18b497796c12c097a38f9edb9d0641fb99eee32 # v2
-      - uses: taiki-e/install-action@50414676f9f5d50a65992c6dd2ed02641263226c # v2
+      - uses: taiki-e/install-action@5ebac0d9522d786674368e47e92963ba13f2c376 # v2
         with:
           tool: just
       - run: just ci
