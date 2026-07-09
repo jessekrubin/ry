@@ -2,19 +2,30 @@
 
 import typing as t
 
-# =============================================================================
-# SUBPROCESS (VERY MUCH WIP)
-# =============================================================================
-def run(
-    *args: str | list[str],
-    capture_output: bool = True,
-    input: bytes | None = None,  # noqa: A002
-) -> t.Any: ...
+from ry._types import Buffer
+from ry.ryo3._bytes import Bytes
+
+def devfn() -> t.Literal["_ryo3-dev"]: ...
 
 # =============================================================================
-# STRING-DEV
+# LZ4RIP
 # =============================================================================
 
-def anystr_noop(s: t.AnyStr) -> t.AnyStr: ...
-def string_noop(s: str) -> str: ...
-def bytes_noop(s: bytes) -> bytes: ...
+def lz4_compress(data: Buffer, block: bool = False) -> bytes: ...
+@t.overload
+def lz4_decompress(
+    data: Buffer,
+    uncompressed_size: int | None = None,
+    *,
+    block: t.Literal[True] = ...,
+    dictionary: Buffer | None = None,
+) -> Bytes: ...
+@t.overload
+def lz4_decompress(
+    data: Buffer,
+    uncompressed_size: int,
+    *,
+    block: t.Literal[False] = False,
+    dictionary: Buffer | None = None,
+    dict_id: int = 0,
+) -> Bytes: ...
