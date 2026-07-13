@@ -3063,11 +3063,11 @@ checksum = "b6f5e870be6c3b371b77fe0ee0bafb859fa4964b4404c27de1d380043c4dda20"
 
 [[package]]
 name = "ulid"
-version = "1.2.1"
+version = "2.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "470dbf6591da1b39d43c14523b2b469c86879a53e8b758c8e090a470fe7b1fbe"
+checksum = "39493d572b98fe1d142e132e7a726c50c68121bce84429216a5ec20e1ad7fec5"
 dependencies = [
- "rand 0.9.4",
+ "rand 0.10.2",
  "serde",
  "web-time",
 ]
