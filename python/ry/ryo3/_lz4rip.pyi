@@ -18,7 +18,7 @@ class Lz4FrameInfo(t.TypedDict, total=False):
     block_checksums: bool
     """include a checksum (xxh32<seed=0>) for each frame block (default: `False`)"""
     content_checksum: bool
-    """include a checksum (xxh32<seed=0>) of the uncompressed data (default: `False`)"""
+    """include a checksum (xxh32<seed=0>) of uncompressed data (default: `False`)"""
     content_size: int | None
     """include the total uncompressed size of data in the frame (default: `None`)"""
 
