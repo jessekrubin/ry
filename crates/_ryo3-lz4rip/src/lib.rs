@@ -1,6 +1,7 @@
 #![doc = include_str!("../README.md")]
 pub mod block;
 pub mod constants;
+pub mod dict;
 #[cfg(feature = "frame")]
 pub mod frame;
 pub use error::Error;
@@ -25,6 +26,8 @@ pub mod error {
         /// frame header declares a content-size that doesn't fit in `usize`
         /// (only reachable on <64-bit targets)
         FrameContentSizeTooBig { declared: u64 },
+        /// dict training produced an empty dictionary
+        DictTrainFailed { samples: usize },
     }
 
     #[derive(Debug)]
@@ -72,6 +75,12 @@ pub mod error {
                     write!(
                         f,
                         "frame declares content-size ({declared}) larger than usize::MAX"
+                    )
+                }
+                Self::DictTrainFailed { samples } => {
+                    write!(
+                        f,
+                        "dict training failed; need >= 2 samples of 4..=dict_size bytes (usable samples: {samples})"
                     )
                 }
             }
@@ -144,6 +153,7 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     }
     m.add_function(wrap_pyfunction!(block::lz4_compress_block, m)?)?;
     m.add_function(wrap_pyfunction!(block::lz4_decompress_block, m)?)?;
+    m.add_function(wrap_pyfunction!(dict::lz4_train_dict, m)?)?;
     m.add_class::<block::PyLz4BlockCompressor>()?;
     m.add_class::<block::PyLz4BlockDecompressor>()?;
     Ok(())

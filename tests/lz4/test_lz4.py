@@ -4,7 +4,6 @@ import pytest
 
 from ry import dev as ry
 
-_dev = ry
 _10X_10Y = b"XXXXXXXXXXYYYYYYYYYY"
 _DICTIONARY = b'{"name":"ry","kind":"lz4","value":' * 8
 _JSONISH = b'{"name":"ry","kind":"lz4","value":123456789}\n' * 32
@@ -29,7 +28,7 @@ class TestLz4Block:
         assert decompressed == _10X_10Y
 
     def test_block_round_trip_empty(self) -> None:
-        assert ry.lz4_decompress_block(_dev.lz4_compress_block(b"", size=True)) == b""
+        assert ry.lz4_decompress_block(ry.lz4_compress_block(b"", size=True)) == b""
         compressed_raw = ry.lz4_compress_block(b"", size=False)
         assert ry.lz4_decompress_block(compressed_raw, 0) == b""
 
@@ -100,11 +99,11 @@ class TestLz4Frame:
         assert decompressed == _10X_10Y
 
     def test_frame_round_trip_empty(self) -> None:
-        assert ry.lz4_decompress(_dev.lz4_compress(b"")) == b""
+        assert ry.lz4_decompress(ry.lz4_compress(b"")) == b""
 
     def test_frame_round_trip_large(self) -> None:
         data = _JSONISH * 1024  # ~1.4mb, spans multiple blocks
-        assert ry.lz4_decompress(_dev.lz4_compress(data)) == data
+        assert ry.lz4_decompress(ry.lz4_compress(data)) == data
 
     def test_frame_round_trip_dictionary(self) -> None:
         compressed = ry.lz4_compress(_JSONISH, dictionary=_DICTIONARY, dict_id=42)
@@ -180,3 +179,53 @@ class TestLz4Frame:
             compressor.flush()
         with pytest.raises(ValueError, match="finished"):
             compressor.finish()
+
+
+# =============================================================================
+# TRAIN-DICT
+# =============================================================================
+
+
+class TestLz4TrainDict:
+    @staticmethod
+    def _generate_samples() -> list[bytes]:
+        return [b'{"name":"ry","kind":"lz4","value":%d}' % i for i in range(64)]
+
+    def test_train_dict_block_round_trip(self) -> None:
+        dictionary = ry.lz4_train_dict(self._generate_samples(), 2048)
+        assert isinstance(dictionary, ry.Bytes)
+        assert 0 < len(dictionary) <= 2048
+        msg = self._generate_samples()[0]
+        compressed = ry.lz4_compress_block(msg, dictionary=dictionary)
+        assert len(compressed) < len(bytes(ry.lz4_compress_block(msg)))
+        decompressed = ry.lz4_decompress_block(
+            compressed, len(msg), dictionary=dictionary
+        )
+        assert decompressed == msg
+
+    def test_train_dict_frame_round_trip(self) -> None:
+        dictionary = ry.lz4_train_dict(self._generate_samples(), 2048)
+        msg = self._generate_samples()[0]
+        compressed = ry.lz4_compress(msg, dictionary=dictionary, dict_id=42)
+        decompressed = ry.lz4_decompress(compressed, dictionary=dictionary, dict_id=42)
+        assert decompressed == msg
+
+    def test_train_dict_accepts_any_iterable(self) -> None:
+        dictionary = ry.lz4_train_dict(iter(self._generate_samples()), 2048)
+        assert len(dictionary) > 0
+
+    def test_train_dict_size_capped_at_max_distance(self) -> None:
+        dictionary = ry.lz4_train_dict(self._generate_samples(), 1_000_000)
+        assert len(dictionary) <= 0xFFFF
+
+    def test_train_dict_too_few_samples(self) -> None:
+        with pytest.raises(ValueError, match="dict training failed"):
+            ry.lz4_train_dict([b"one-lonely-sample"], 2048)
+
+    def test_train_dict_zero_dict_size(self) -> None:
+        with pytest.raises(ValueError, match="dict_size must be positive"):
+            ry.lz4_train_dict(self._generate_samples(), 0)
+
+    def test_train_dict_not_iterable(self) -> None:
+        with pytest.raises(TypeError):
+            ry.lz4_train_dict(123, 2048)  # type: ignore[arg-type]
