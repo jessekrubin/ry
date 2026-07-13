@@ -18,6 +18,10 @@ pyo3.workspace = true
 ryo3-core.workspace = true
 ryo3-bytes.workspace = true
 
+[features]
+default = ["frame"]
+frame = ["lz4rip/frame"]
+ry = ["frame"]
 
 [lints]
 workspace = true

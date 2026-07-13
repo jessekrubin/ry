@@ -15,7 +15,7 @@ description = "ryo3-dev crate"
 [dependencies]
 pyo3.workspace = true
 ryo3-macro-rules.workspace = true
-ryo3-lz4rip.workspace = true
+ryo3-lz4rip = { workspace = true, features = ["ry"] }
 serde.workspace = true
 serde_bytes = { workspace = true, features = ["std"] }
 serde_json.workspace = true

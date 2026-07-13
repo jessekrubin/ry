@@ -1,122 +1,150 @@
 #![doc = include_str!("../README.md")]
-use std::io::{Read, Write};
-
-use lz4rip::block::{
-    compress, compress_into_with_dict, decompress_into, decompress_into_with_dict,
-    get_maximum_output_size,
-};
+pub mod block;
+pub mod constants;
+#[cfg(feature = "frame")]
+pub mod frame;
+pub use error::Error;
 use pyo3::prelude::*;
-use ryo3_bytes::{ReadableBuffer, RyBytes};
-mod py_frame_info;
-mod py_lz4_dict_compressor;
-use lz4rip::frame::FrameEncoder;
-pub use py_frame_info::{PyBlockMode, PyBlockSize, PyFrameInfo};
-pub use py_lz4_dict_compressor::PyLz4DictCompressor;
-use ryo3_core::macros::{py_value_err, py_value_error};
 
-fn compression_error(err: impl std::fmt::Display) -> PyErr {
-    py_value_error!("LZ4 compression failed: {err}")
-}
+pub type Ryo3Lz4ripResult<T, E = error::Error> = std::result::Result<T, E>;
 
-fn decompression_error(err: impl std::fmt::Display) -> PyErr {
-    py_value_error!("LZ4 decompression failed: {err}")
-}
+pub mod error {
+    use pyo3::prelude::*;
 
-#[pyfunction]
-#[pyo3(signature = (data, *, block = false, dictionary = None, dict_id = None, frame_info = None))]
-#[expect(clippy::needless_pass_by_value)]
-pub fn lz4_compress(
-    py: Python<'_>,
-    data: ReadableBuffer,
-    block: bool,
-    dictionary: Option<ReadableBuffer>,
-    dict_id: Option<u32>,
-    frame_info: Option<py_frame_info::PyFrameInfo>,
-) -> PyResult<RyBytes> {
-    let input = data.as_ref();
-    let dict = dictionary.as_ref().map(AsRef::as_ref);
-    if block && frame_info.is_some() {
-        return py_value_err!("frame_info is not applicable when block=True");
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    pub enum RyLz4Error {
+        /// input too (damn) large for a u32-le size prefix
+        BlockPrefixTooBig,
+        /// input too (damn) short for u32-le size prefix (4 bytes)
+        BlockPrefixMissing { input_len: usize },
+        /// size prefix claims more than the theoretical max compression ratio
+        /// REF: <https://github.com/lz4/lz4/blob/dev/doc/lz4_Block_format.md>
+        BlockPrefixFishy { size: usize, input_len: usize },
+        /// size prefix dont match da real decompressed size
+        BlockPrefixMismatch { expected: usize, actual: usize },
+        /// frame header declares a content-size that doesn't fit in `usize`
+        /// (only reachable on <64-bit targets)
+        FrameContentSizeTooBig { declared: u64 },
     }
-    if block {
-        py.detach(|| {
-            if let Some(dict) = dict {
-                let mut output = vec![0; get_maximum_output_size(input.len())];
-                let size =
-                    compress_into_with_dict(input, &mut output, dict).map_err(compression_error)?;
-                output.truncate(size);
-                Ok(output.into())
-            } else {
-                Ok(compress(input).into())
-            }
-        })
-    } else {
-        py.detach(|| {
-            let mut output = Vec::new();
-            let mut encoder = if let Some(dict) = dict {
-                FrameEncoder::with_dictionary(
-                    &mut output,
-                    dict,
-                    dict_id.unwrap_or(0),
-                    frame_info.map(py_frame_info::PyFrameInfo::into_inner),
-                )
-                .map_err(compression_error)?
-            } else {
-                FrameEncoder::new(&mut output)
-            };
-            encoder.write_all(input).map_err(compression_error)?;
-            encoder.finish().map_err(compression_error)?;
-            Ok(output.into())
-        })
+
+    #[derive(Debug)]
+    pub enum Error {
+        // --------------------------------------------------------------------
+        // ryo3-lz4rip errors
+        // --------------------------------------------------------------------
+        Ry(RyLz4Error),
+
+        // --------------------------------------------------------------------
+        // foreign errors
+        // --------------------------------------------------------------------
+        Io(std::io::Error),
+        BlockCompress(lz4rip::block::CompressError),
+        BlockDecompress(lz4rip::block::DecompressError),
+        #[cfg(feature = "frame")]
+        FrameError(lz4rip::frame::Error),
     }
-}
 
-#[pyfunction]
-#[pyo3(signature = (data, uncompressed_size, *, block = false, dictionary = None, dict_id = None))]
-#[expect(clippy::needless_pass_by_value)]
-pub fn lz4_decompress(
-    py: Python<'_>,
-    data: ReadableBuffer,
-    uncompressed_size: Option<usize>,
-    block: bool,
-    dictionary: Option<ReadableBuffer>,
-    dict_id: Option<u32>,
-) -> PyResult<RyBytes> {
-    let input = data.as_ref();
-    let dict = dictionary.as_ref().map(AsRef::as_ref);
-
-    if block {
-        py.detach(|| {
-            let mut output = vec![0; uncompressed_size.unwrap_or(0)];
-            let size = if let Some(dict) = dict {
-                decompress_into_with_dict(input, &mut output, dict)
-            } else {
-                decompress_into(input, &mut output)
+    impl std::fmt::Display for RyLz4Error {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            match self {
+                Self::BlockPrefixTooBig => {
+                    write!(f, "block size prefix too big; input must be < u32::MAX")
+                }
+                Self::BlockPrefixMissing { input_len } => {
+                    write!(
+                        f,
+                        "input too short for u32-le size prefix (got {input_len} bytes); pass `size` for raw blocks"
+                    )
+                }
+                Self::BlockPrefixFishy { size, input_len } => {
+                    write!(
+                        f,
+                        "size prefix ({size}) impossibly large for {input_len}-byte input"
+                    )
+                }
+                Self::BlockPrefixMismatch { expected, actual } => {
+                    write!(
+                        f,
+                        "size prefix ({expected}) != decompressed size ({actual})"
+                    )
+                }
+                Self::FrameContentSizeTooBig { declared } => {
+                    write!(
+                        f,
+                        "frame declares content-size ({declared}) larger than usize::MAX"
+                    )
+                }
             }
-            .map_err(decompression_error)?;
-            output.truncate(size);
-            Ok(output.into())
-        })
-    } else {
-        py.detach(|| {
-            let mut output = vec![0; uncompressed_size.unwrap_or(0)];
-            let mut decoder = if let Some(dict) = dict {
-                lz4rip::frame::FrameDecoder::with_dictionary(input, dict, dict_id.unwrap_or(0))
-            } else {
-                lz4rip::frame::FrameDecoder::new(input)
-            };
-            // let mut decoder = lz4rip::frame::FrameDecoder::new(input);
-            decoder
-                .read_exact(&mut output)
-                .map_err(decompression_error)?;
-            Ok(output.into())
-        })
+        }
+    }
+
+    impl std::fmt::Display for Error {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            match self {
+                Self::Ry(e) => write!(f, "{e}"),
+                Self::Io(e) => write!(f, "io error: {e}"),
+                Self::BlockCompress(e) => write!(f, "block compression error: {e}"),
+                Self::BlockDecompress(e) => write!(f, "block decompression error: {e}"),
+                #[cfg(feature = "frame")]
+                Self::FrameError(e) => write!(f, "frame error: {e}"),
+            }
+        }
+    }
+
+    impl From<RyLz4Error> for Error {
+        fn from(err: RyLz4Error) -> Self {
+            Self::Ry(err)
+        }
+    }
+
+    impl From<std::io::Error> for Error {
+        fn from(err: std::io::Error) -> Self {
+            Self::Io(err)
+        }
+    }
+
+    impl From<lz4rip::block::CompressError> for Error {
+        fn from(err: lz4rip::block::CompressError) -> Self {
+            Self::BlockCompress(err)
+        }
+    }
+
+    impl From<lz4rip::block::DecompressError> for Error {
+        fn from(err: lz4rip::block::DecompressError) -> Self {
+            Self::BlockDecompress(err)
+        }
+    }
+
+    #[cfg(feature = "frame")]
+    impl From<lz4rip::frame::Error> for Error {
+        fn from(err: lz4rip::frame::Error) -> Self {
+            match err {
+                lz4rip::frame::Error::IoError(e) => Self::Io(e),
+                lz4rip::frame::Error::CompressionError(e) => Self::BlockCompress(e),
+                lz4rip::frame::Error::DecompressionError(e) => Self::BlockDecompress(e),
+                _ => Self::FrameError(err),
+            }
+        }
+    }
+
+    impl From<Error> for PyErr {
+        fn from(err: Error) -> Self {
+            match err {
+                Error::Io(e) => e.into(),
+                _ => pyo3::exceptions::PyValueError::new_err(err.to_string()),
+            }
+        }
     }
 }
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    m.add_function(wrap_pyfunction!(lz4_compress, m)?)?;
-    m.add_function(wrap_pyfunction!(lz4_decompress, m)?)?;
-    m.add_class::<PyLz4DictCompressor>()?;
+    #[cfg(feature = "frame")]
+    {
+        frame::pymod_add(m)?;
+    }
+    m.add_function(wrap_pyfunction!(block::lz4_compress_block, m)?)?;
+    m.add_function(wrap_pyfunction!(block::lz4_decompress_block, m)?)?;
+    m.add_class::<block::PyLz4BlockCompressor>()?;
+    m.add_class::<block::PyLz4BlockDecompressor>()?;
     Ok(())
 }
