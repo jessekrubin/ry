@@ -16,7 +16,8 @@
     - `ULID.NIL` => `ULID("00000000000000000000000000")`
     - `ULID.TIME_BITS` => `48`
     - `ULID.RAND_BITS` => `80`
-
+- `ryo3-lz4rip`
+  - Initial wrapper library for lz4 compression/decompression
 - `ryo3-jiff`
   - updated to `v0.16.0`
 - `ryo3-serde`

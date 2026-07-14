@@ -1,5 +1,5 @@
 [package]
-name = "ryo3-dev"
+name = "ryo3-lz4rip"
 version.workspace = true
 authors.workspace = true
 categories.workspace = true
@@ -10,16 +10,18 @@ homepage.workspace = true
 keywords.workspace = true
 license.workspace = true
 repository.workspace = true
-description = "ryo3-dev crate"
+description = "python + lz4rip (https://crates.io/crates/lz4rip)"
 
 [dependencies]
+lz4rip = { workspace = true, features = ["frame"] }
 pyo3.workspace = true
-ryo3-macro-rules.workspace = true
-ryo3-lz4rip = { workspace = true, features = ["ry"] }
-serde.workspace = true
-serde_bytes = { workspace = true, features = ["std"] }
-serde_json.workspace = true
-tracing.workspace = true
+ryo3-core.workspace = true
+ryo3-bytes.workspace = true
+
+[features]
+default = ["frame"]
+frame = ["lz4rip/frame"]
+ry = ["frame"]
 
 [lints]
 workspace = true

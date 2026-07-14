@@ -41,8 +41,16 @@ use crate::{ReadableBuffer, search};
 /// data view without copies. In Python, this `PyBytes` object can be passed to Python `bytes` or
 /// `memoryview` constructors, `numpy.frombuffer`, or any other function that supports buffer
 /// protocol input.
-#[pyclass(name = "Bytes", subclass, frozen, immutable_type, sequence, weakref)]
-#[derive(Hash, PartialEq, PartialOrd, Eq, Ord)]
+#[pyclass(
+    name = "Bytes",
+    subclass,
+    frozen,
+    immutable_type,
+    sequence,
+    skip_from_py_object,
+    weakref
+)]
+#[derive(Clone, Hash, PartialEq, PartialOrd, Eq, Ord)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct PyBytes(Bytes);
 
@@ -212,6 +220,11 @@ impl PyBytes {
             ReadableBuffer::Buffer(b) => Self::new(b).into_pyobject(py),
         }
     }
+
+    // #[classattr]
+    // fn EMPTY() -> Self {
+    //     Self(Bytes::new())
+    // }
 
     #[staticmethod]
     fn copy_from(buf: ReadableBuffer) -> Self {

@@ -34,6 +34,7 @@ cargo llvm-cov report \
   --package ryo3-jiff \
   --package ryo3-jiter \
   --package ryo3-json \
+  --package ryo3-lz4rip \
   --package ryo3-macro-rules \
   --package ryo3-memchr \
   --package ryo3-pydantic \
@@ -77,6 +78,7 @@ cargo llvm-cov report \
   --package ryo3-jiff \
   --package ryo3-jiter \
   --package ryo3-json \
+  --package ryo3-lz4rip \
   --package ryo3-macro-rules \
   --package ryo3-memchr \
   --package ryo3-pydantic \

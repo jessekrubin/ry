@@ -123,6 +123,15 @@ from ry.ryo3._jiter import json_cache_usage as json_cache_usage
 from ry.ryo3._jiter import parse_json as parse_json
 from ry.ryo3._jiter import parse_jsonl as parse_jsonl
 from ry.ryo3._jiter import read_json as read_json
+from ry.ryo3._lz4rip import Lz4BlockCompressor as Lz4BlockCompressor
+from ry.ryo3._lz4rip import Lz4BlockDecompressor as Lz4BlockDecompressor
+from ry.ryo3._lz4rip import Lz4FrameCompressor as Lz4FrameCompressor
+from ry.ryo3._lz4rip import Lz4FrameInfo as Lz4FrameInfo
+from ry.ryo3._lz4rip import lz4_compress as lz4_compress
+from ry.ryo3._lz4rip import lz4_compress_block as lz4_compress_block
+from ry.ryo3._lz4rip import lz4_decompress as lz4_decompress
+from ry.ryo3._lz4rip import lz4_decompress_block as lz4_decompress_block
+from ry.ryo3._lz4rip import lz4_train_dict as lz4_train_dict
 from ry.ryo3._memchr import memchr as memchr
 from ry.ryo3._memchr import memchr2 as memchr2
 from ry.ryo3._memchr import memchr3 as memchr3

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import ry  # noqa: F401
 from ry import ryo3
 
@@ -11,6 +13,8 @@ from ry.ryo3 import *  # noqa: F403
 # noinspection PyUnresolvedReferences
 from ry.ryo3._dev import *  # noqa: F403
 
+if TYPE_CHECKING:
+    from ry.ryo3._dev import *  # noqa: F403
 __version__ = ryo3.__version__
 __build_profile__ = ryo3.__build_profile__
 __build_timestamp__ = ryo3.__build_timestamp__
