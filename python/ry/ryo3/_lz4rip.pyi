@@ -34,7 +34,7 @@ class Lz4BlockDecompressor:
 
 @t.final
 class Lz4FrameCompressor:
-    """Streaming lz4 frame compressor.
+    """streaming lz4 frame compressor
 
     `compress`/`flush` return the newly produced compressed bytes; `finish`
     ends the frame and returns the tail. The concatenation of all returned
@@ -72,7 +72,7 @@ def lz4_compress(
     dict_id: int | None = None,
     frame_info: Lz4FrameInfo | None = None,
 ) -> Bytes:
-    """Compress data into a complete lz4 frame.
+    """compress data into a complete lz4 frame
 
     Parameters
     ----------
@@ -97,7 +97,7 @@ def lz4_compress_block(
     size: bool = False,
     dictionary: Buffer | None = None,
 ) -> Bytes:
-    """Compress a raw lz4 block.
+    """compress a raw lz4 block
 
     Parameters
     ----------
@@ -144,7 +144,7 @@ def lz4_decompress_block(
     *,
     dictionary: Buffer | None = None,
 ) -> Bytes:
-    """Decompress a raw lz4 block.
+    """decompress a raw lz4 block
 
     Parameters
     ----------
@@ -165,11 +165,11 @@ def lz4_decompress_block(
     """
 
 def lz4_train_dict(samples: t.Iterable[Buffer], dict_size: int = 65535) -> Bytes:
-    """Train an lz4 dictionary from sample messages (COVER algorithm).
+    """train an lz4 dictionary from sample messages
 
-    Signature mirrors `compression.zstd.train_dict` but returns raw
+    signature mirrors `compression.zstd.train_dict` but returns raw
     dictionary bytes usable as the `dictionary` argument of the lz4
-    (de)compression functions/classes.
+    (de)compression functions/classes
 
     Parameters
     ----------

@@ -23,6 +23,7 @@
 - [`ry.ryo3._jiff`](#ry.ryo3._jiff)
 - [`ry.ryo3._jiff_tz`](#ry.ryo3._jiff_tz)
 - [`ry.ryo3._jiter`](#ry.ryo3._jiter)
+- [`ry.ryo3._lz4rip`](#ry.ryo3._lz4rip)
 - [`ry.ryo3._memchr`](#ry.ryo3._memchr)
 - [`ry.ryo3._orjson`](#ry.ryo3._orjson)
 - [`ry.ryo3._quick_maths`](#ry.ryo3._quick_maths)
@@ -49,6 +50,7 @@
 - [`ry.ryo3.xxhash`](#ry.ryo3.xxhash)
 - [`ry.ryo3.zstd`](#ry.ryo3.zstd)
 - [`ry._types`](#ry._types)
+- [`ry.dev._lz4rip`](#ry.dev._lz4rip)
 - [`ry.JSON`](#ry.JSON)
 - [`ry.protocols`](#ry.protocols)
 - [`ry.xxhash`](#ry.xxhash)
@@ -183,6 +185,15 @@ from ry.ryo3._jiter import json_cache_usage as json_cache_usage
 from ry.ryo3._jiter import parse_json as parse_json
 from ry.ryo3._jiter import parse_jsonl as parse_jsonl
 from ry.ryo3._jiter import read_json as read_json
+from ry.ryo3._lz4rip import Lz4BlockCompressor as Lz4BlockCompressor
+from ry.ryo3._lz4rip import Lz4BlockDecompressor as Lz4BlockDecompressor
+from ry.ryo3._lz4rip import Lz4FrameCompressor as Lz4FrameCompressor
+from ry.ryo3._lz4rip import Lz4FrameInfo as Lz4FrameInfo
+from ry.ryo3._lz4rip import lz4_compress as lz4_compress
+from ry.ryo3._lz4rip import lz4_compress_block as lz4_compress_block
+from ry.ryo3._lz4rip import lz4_decompress as lz4_decompress
+from ry.ryo3._lz4rip import lz4_decompress_block as lz4_decompress_block
+from ry.ryo3._lz4rip import lz4_train_dict as lz4_train_dict
 from ry.ryo3._memchr import memchr as memchr
 from ry.ryo3._memchr import memchr2 as memchr2
 from ry.ryo3._memchr import memchr3 as memchr3
@@ -749,10 +760,14 @@ class Bytes(Buffer):
     ) -> int:
         """Return the highest index where `sub` is found or raise `ValueError`."""
 
-    def split(self, sep: Buffer | None = None, maxsplit: int = -1, /) -> list[Bytes]:
+    def split(
+        self, sep: Buffer | None = None, maxsplit: int = -1, /
+    ) -> list[Bytes]:
         """Return a list of the words in the bytes, using `sep` as the delimiter."""
 
-    def rsplit(self, sep: Buffer | None = None, maxsplit: int = -1, /) -> list[Bytes]:
+    def rsplit(
+        self, sep: Buffer | None = None, maxsplit: int = -1, /
+    ) -> list[Bytes]:
         """Return a list of the words in the bytes, using `sep` as the delimiter."""
 
     def partition(self, sep: Buffer, /) -> tuple[Bytes, Bytes, Bytes]:
@@ -812,7 +827,9 @@ class Bytes(Buffer):
 
         """
 
-    def windows(self, size: int, /, *, reverse: bool = False) -> _BytesSliceIter:
+    def windows(
+        self, size: int, /, *, reverse: bool = False
+    ) -> _BytesSliceIter:
         """Returns an iterator over all contiguous windows of length size.
 
         The windows overlap. If the slice is shorter than size, the iterator returns no values.
@@ -878,7 +895,9 @@ import typing as t
 from ry.protocols import FromStr, _Parse
 from ry.ryo3._std import Duration
 
-_SameSiteKw: t.TypeAlias = t.Literal["Lax", "lax", "Strict", "strict", "None", "none"]
+_SameSiteKw: t.TypeAlias = t.Literal[
+    "Lax", "lax", "Strict", "strict", "None", "none"
+]
 """same-site kwarg allows title-case and lower-case values"""
 
 
@@ -981,25 +1000,15 @@ class Cookie(FromStr, _Parse):
 
 import typing as t
 
-
-# =============================================================================
-# SUBPROCESS (VERY MUCH WIP)
-# =============================================================================
-def run(
-    *args: str | list[str],
-    capture_output: bool = True,
-    input: bytes | None = None,  # noqa: A002
-) -> t.Any: ...
+from ry.ryo3._lz4rip import Lz4FrameInfo as Lz4FrameInfo
+from ry.ryo3._lz4rip import lz4_compress as lz4_compress
+from ry.ryo3._lz4rip import lz4_compress_block as lz4_compress_block
+from ry.ryo3._lz4rip import lz4_decompress as lz4_decompress
+from ry.ryo3._lz4rip import lz4_decompress_block as lz4_decompress_block
+from ry.ryo3._lz4rip import lz4_train_dict as lz4_train_dict
 
 
-# =============================================================================
-# STRING-DEV
-# =============================================================================
-
-
-def anystr_noop(s: t.AnyStr) -> t.AnyStr: ...
-def string_noop(s: str) -> str: ...
-def bytes_noop(s: bytes) -> bytes: ...
+def devfn() -> t.Literal["_ryo3-dev"]: ...
 ```
 
 <h2 id="ry.ryo3._dirs"><code>ry.ryo3._dirs</code></h2>
@@ -1395,11 +1404,17 @@ class fnv1a:  # noqa: N801
     def hexdigest(self) -> str: ...
     def copy(self) -> t.Self: ...
     @staticmethod
-    def oneshot(data: Buffer, *, seed: int | bytes = 0xCBF29CE484222325) -> bytes: ...  # noqa: PYI054
+    def oneshot(
+        data: Buffer, *, seed: int | bytes = 0xCBF29CE484222325
+    ) -> bytes: ...  # noqa: PYI054
     @staticmethod
-    def oneshot_int(data: Buffer, *, seed: int | bytes = 0xCBF29CE484222325) -> int: ...  # noqa: PYI054
+    def oneshot_int(
+        data: Buffer, *, seed: int | bytes = 0xCBF29CE484222325
+    ) -> int: ...  # noqa: PYI054
     @staticmethod
-    def oneshot_hex(data: Buffer, *, seed: int | bytes = 0xCBF29CE484222325) -> str: ...  # noqa: PYI054
+    def oneshot_hex(
+        data: Buffer, *, seed: int | bytes = 0xCBF29CE484222325
+    ) -> str: ...  # noqa: PYI054
 ```
 
 <h2 id="ry.ryo3._fspath"><code>ry.ryo3._fspath</code></h2>
@@ -1468,7 +1483,9 @@ class FsPath(ToPy[Path], ToString):
     def replace(self, new_path: PathLike[str] | str) -> FsPath: ...
     def resolve(self) -> FsPath: ...
     def rmdir(self, recursive: bool = False) -> None: ...
-    def unlink(self, missing_ok: bool = False, recursive: bool = False) -> None: ...
+    def unlink(
+        self, missing_ok: bool = False, recursive: bool = False
+    ) -> None: ...
     def with_name(self, name: str) -> t.Self: ...
     def with_suffix(self, suffix: str) -> t.Self: ...
 
@@ -1541,7 +1558,9 @@ class FsPath(ToPy[Path], ToString):
     @staticmethod
     def which_all(cmd: str, path: str | None = None) -> list[FsPath]: ...
     @staticmethod
-    def which_re(regex: str | Regex, path: str | None = None) -> list[FsPath]: ...
+    def which_re(
+        regex: str | Regex, path: str | None = None
+    ) -> list[FsPath]: ...
 
     # =========================================================================
     # DUNDERS
@@ -3012,7 +3031,9 @@ class SignedDuration(
     def __int__(self) -> int: ...
     def __bool__(self) -> bool: ...
     @t.overload
-    def __truediv__(self, other: t.Self | Duration | pydt.timedelta) -> float: ...
+    def __truediv__(
+        self, other: t.Self | Duration | pydt.timedelta
+    ) -> float: ...
     @t.overload
     def __truediv__(self, other: float) -> t.Self: ...
     def abs(self) -> t.Self: ...
@@ -3140,7 +3161,9 @@ TimeSpanArithmetic: t.TypeAlias = (
     TimeSpan
     | Duration
     | SignedDuration
-    | tuple[TimeSpan | Duration | SignedDuration, ZonedDateTime | Date | DateTime]
+    | tuple[
+        TimeSpan | Duration | SignedDuration, ZonedDateTime | Date | DateTime
+    ]
 )
 
 _TTimeSpanKey: t.TypeAlias = t.Literal[
@@ -3742,7 +3765,9 @@ class ZonedDateTime(
     @classmethod
     def parse_rfc2822(cls, s: str) -> t.Self: ...
     @classmethod
-    def from_parts(cls, timestamp: Timestamp, time_zone: TimeZone) -> t.Self: ...
+    def from_parts(
+        cls, timestamp: Timestamp, time_zone: TimeZone
+    ) -> t.Self: ...
 
     # =========================================================================
     # STRPTIME/STRFTIME
@@ -5098,7 +5123,9 @@ def parse_json(
     *,
     allow_inf_nan: bool = False,
     cache_mode: t.Literal[True, False, "all", "keys", "none"] = "all",
-    partial_mode: t.Literal[True, False, "off", "on", "trailing-strings"] = False,
+    partial_mode: t.Literal[
+        True, False, "off", "on", "trailing-strings"
+    ] = False,
     catch_duplicate_keys: bool = False,
 ) -> JsonValue: ...
 def parse_jsonl(
@@ -5106,7 +5133,9 @@ def parse_jsonl(
     *,
     allow_inf_nan: bool = False,
     cache_mode: t.Literal[True, False, "all", "keys", "none"] = "all",
-    partial_mode: t.Literal[True, False, "off", "on", "trailing-strings"] = False,
+    partial_mode: t.Literal[
+        True, False, "off", "on", "trailing-strings"
+    ] = False,
     catch_duplicate_keys: bool = False,
 ) -> list[JsonValue]: ...
 def read_json(
@@ -5114,12 +5143,224 @@ def read_json(
     *,
     allow_inf_nan: bool = False,
     cache_mode: t.Literal[True, False, "all", "keys", "none"] = "all",
-    partial_mode: t.Literal[True, False, "off", "on", "trailing-strings"] = False,
+    partial_mode: t.Literal[
+        True, False, "off", "on", "trailing-strings"
+    ] = False,
     catch_duplicate_keys: bool = False,
     lines: bool = False,
 ) -> JsonValue: ...
 def json_cache_clear() -> None: ...
 def json_cache_usage() -> int: ...
+```
+
+<h2 id="ry.ryo3._lz4rip"><code>ry.ryo3._lz4rip</code></h2>
+
+```python
+"""ry.ryo3.dev"""
+
+import typing as t
+
+from ry._types import Buffer
+from ry.ryo3._bytes import Bytes
+
+_Lz4BlockSize: t.TypeAlias = t.Literal[
+    "auto", "max-64kb", "max-256kb", "max-1mb", "max-4mb", 0, 4, 5, 6, 7
+]
+_Lz4BlockMode: t.TypeAlias = t.Literal["independent", "linked"]
+
+
+class Lz4FrameInfo(t.TypedDict, total=False):
+    block_size: _Lz4BlockSize
+    """block size for frame compression (default: `"auto"`/`0`)"""
+    block_mode: _Lz4BlockMode
+    """block dependency mode for frame compression (default: `"independent"`)"""
+    block_checksums: bool
+    """include a checksum (xxh32<seed=0>) for each frame block (default: `False`)"""
+    content_checksum: bool
+    """include a checksum (xxh32<seed=0>) of uncompressed data (default: `False`)"""
+    content_size: int | None
+    """include the total uncompressed size of data in the frame (default: `None`)"""
+
+
+@t.final
+class Lz4BlockCompressor:
+    def __new__(cls, dictionary: Buffer | None = None) -> t.Self: ...
+    def compress(self, data: Buffer, *, size: bool = False) -> Bytes: ...
+
+
+@t.final
+class Lz4BlockDecompressor:
+    def __new__(cls, dictionary: Buffer | None = None) -> t.Self: ...
+    def decompress(self, data: Buffer, size: int | None = None) -> Bytes: ...
+
+
+@t.final
+class Lz4FrameCompressor:
+    """streaming lz4 frame compressor
+
+    `compress`/`flush` return the newly produced compressed bytes; `finish`
+    ends the frame and returns the tail. The concatenation of all returned
+    chunks is one complete lz4 frame.
+
+    Parameters
+    ----------
+    dictionary : Buffer or None, default None
+        Optional compression dictionary (e.g. from `lz4_train_dict`).
+    dict_id : int or None, default None
+        Dictionary id recorded in the frame header (default 0).
+    frame_info : Lz4FrameInfo or None, default None
+        Frame options (block size/mode, checksums, content size).
+    """
+
+    def __new__(
+        cls,
+        *,
+        dictionary: Buffer | None = None,
+        dict_id: int | None = None,
+        frame_info: Lz4FrameInfo | None = None,
+    ) -> t.Self: ...
+    def compress(self, data: Buffer) -> Bytes: ...
+    def flush(self) -> Bytes: ...
+    def finish(self) -> Bytes: ...
+    def copy(self) -> t.Self:
+        """Return a new compressor with the same state (dictionary, dict_id, frame_info)"""
+
+    def reset(self) -> None:
+        """Reset the compressor to its initial state (dictionary, dict_id, frame_info)"""
+
+
+def lz4_compress(
+    data: Buffer,
+    *,
+    dictionary: Buffer | None = None,
+    dict_id: int | None = None,
+    frame_info: Lz4FrameInfo | None = None,
+) -> Bytes:
+    """compress data into a complete lz4 frame
+
+    Parameters
+    ----------
+    data : Buffer
+        Data to compress.
+    dictionary : Buffer or None, default None
+        Optional compression dictionary (e.g. from `lz4_train_dict`).
+    dict_id : int or None, default None
+        Dictionary id recorded in the frame header (default 0).
+    frame_info : Lz4FrameInfo or None, default None
+        Frame options (block size/mode, checksums, content size).
+
+    Returns
+    -------
+    Bytes
+        A complete lz4 frame.
+    """
+
+
+def lz4_compress_block(
+    data: Buffer,
+    *,
+    size: bool = False,
+    dictionary: Buffer | None = None,
+) -> Bytes:
+    """compress a raw lz4 block
+
+    Parameters
+    ----------
+    data : Buffer
+        Data to compress.
+    size : bool, default False
+        If True (python-lz4 compatible), prepend the uncompressed size to
+        the block as a u32-le integer.
+    dictionary : Buffer or None, default None
+        Optional compression dictionary (e.g. from `lz4_train_dict`).
+
+    Returns
+    -------
+    Bytes
+        The compressed block.
+    """
+
+
+def lz4_decompress(
+    data: Buffer,
+    *,
+    dictionary: Buffer | None = None,
+    dict_id: int | None = None,
+) -> Bytes:
+    """Decompress a complete lz4 frame.
+
+    Parameters
+    ----------
+    data : Buffer
+        Complete lz4 frame data.
+    dictionary : Buffer or None, default None
+        Optional dictionary; must match the one used for compression.
+    dict_id : int or None, default None
+        Expected dictionary id (default 0).
+
+    Returns
+    -------
+    Bytes
+        The decompressed data.
+    """
+
+
+def lz4_decompress_block(
+    data: Buffer,
+    size: int | None = None,
+    *,
+    dictionary: Buffer | None = None,
+) -> Bytes:
+    """decompress a raw lz4 block
+
+    Parameters
+    ----------
+    data : Buffer
+        Compressed lz4 block data.
+    size : int or None, default None
+        If None (python-lz4 compatible), the block is expected to start
+        with a u32-le uncompressed-size prefix (as written by
+        `lz4_compress_block(..., size=True)`). Pass an explicit size
+        (>= the actual uncompressed size) for prefix-less raw blocks.
+    dictionary : Buffer or None, default None
+        Optional dictionary; must match the one used for compression.
+
+    Returns
+    -------
+    Bytes
+        The decompressed data.
+    """
+
+
+def lz4_train_dict(
+    samples: t.Iterable[Buffer], dict_size: int = 65535
+) -> Bytes:
+    """train an lz4 dictionary from sample messages
+
+    signature mirrors `compression.zstd.train_dict` but returns raw
+    dictionary bytes usable as the `dictionary` argument of the lz4
+    (de)compression functions/classes
+
+    Parameters
+    ----------
+    samples : Iterable[Buffer]
+        Sample messages to train on. Samples shorter than 4 bytes or
+        longer than `dict_size` are silently skipped.
+    dict_size : int, default 65535
+        Maximum size of the trained dictionary in bytes; capped at 65535
+        (the lz4 max match distance).
+
+    Returns
+    -------
+    Bytes
+        The trained dictionary (at most `dict_size` bytes).
+
+    Raises
+    ------
+    ValueError
+        If `dict_size` is not positive, or if training yields an empty
+        dictionary (fewer than 2 usable samples).
+    """
 ```
 
 <h2 id="ry.ryo3._memchr"><code>ry.ryo3._memchr</code></h2>
@@ -5140,7 +5381,9 @@ def memchr3(
     needle1: _Byte, needle2: _Byte, needle3: _Byte, haystack: Buffer
 ) -> int | None: ...
 def memrchr(needle: _Byte, haystack: Buffer) -> int | None: ...
-def memrchr2(needle1: _Byte, needle2: _Byte, haystack: Buffer) -> int | None: ...
+def memrchr2(
+    needle1: _Byte, needle2: _Byte, haystack: Buffer
+) -> int | None: ...
 def memrchr3(
     needle1: _Byte, needle2: _Byte, needle3: _Byte, haystack: Buffer
 ) -> int | None: ...
@@ -5334,8 +5577,12 @@ class ClientConfig(t.TypedDict):
     tls_crls_only: list[CertificateRevocationList] | None
     tls_info: bool
     tls_sni: bool
-    tls_version_max: t.Literal["1.0", "1.1", "1.2", "1.3"] | None  # default: None
-    tls_version_min: t.Literal["1.0", "1.1", "1.2", "1.3"] | None  # default: None
+    tls_version_max: (
+        t.Literal["1.0", "1.1", "1.2", "1.3"] | None
+    )  # default: None
+    tls_version_min: (
+        t.Literal["1.0", "1.1", "1.2", "1.3"] | None
+    )  # default: None
     tls_danger_accept_invalid_certs: bool  # default: False
     tls_danger_accept_invalid_hostnames: bool  # default: False
     # __ UNSTABLE __
@@ -5590,7 +5837,9 @@ class Response:
         *,
         allow_inf_nan: bool = False,
         cache_mode: t.Literal[True, False, "all", "keys", "none"] = "all",
-        partial_mode: t.Literal[True, False, "off", "on", "trailing-strings"] = False,
+        partial_mode: t.Literal[
+            True, False, "off", "on", "trailing-strings"
+        ] = False,
         catch_duplicate_keys: bool = False,
     ) -> t.Any: ...
     async def bytes(self) -> ry.Bytes: ...
@@ -5605,11 +5854,15 @@ class Response:
     @property
     def version(
         self,
-    ) -> t.Literal["HTTP/0.9", "HTTP/1.0", "HTTP/1.1", "HTTP/2.0", "HTTP/3.0"]: ...
+    ) -> t.Literal[
+        "HTTP/0.9", "HTTP/1.0", "HTTP/1.1", "HTTP/2.0", "HTTP/3.0"
+    ]: ...
     @property
     def http_version(
         self,
-    ) -> t.Literal["HTTP/0.9", "HTTP/1.0", "HTTP/1.1", "HTTP/2.0", "HTTP/3.0"]: ...
+    ) -> t.Literal[
+        "HTTP/0.9", "HTTP/1.0", "HTTP/1.1", "HTTP/2.0", "HTTP/3.0"
+    ]: ...
     @property
     def redirected(self) -> bool: ...
     @property
@@ -5652,22 +5905,30 @@ class BlockingResponse:
         *,
         allow_inf_nan: bool = False,
         cache_mode: t.Literal[True, False, "all", "keys", "none"] = "all",
-        partial_mode: t.Literal[True, False, "off", "on", "trailing-strings"] = False,
+        partial_mode: t.Literal[
+            True, False, "off", "on", "trailing-strings"
+        ] = False,
         catch_duplicate_keys: bool = False,
     ) -> t.Any: ...
     def bytes(self) -> ry.Bytes: ...
-    def bytes_stream(self, min_read_size: int = 0, /) -> BlockingResponseStream: ...
+    def bytes_stream(
+        self, min_read_size: int = 0, /
+    ) -> BlockingResponseStream: ...
     def stream(self, min_read_size: int = 0, /) -> BlockingResponseStream: ...
     @property
     def url(self) -> URL: ...
     @property
     def version(
         self,
-    ) -> t.Literal["HTTP/0.9", "HTTP/1.0", "HTTP/1.1", "HTTP/2.0", "HTTP/3.0"]: ...
+    ) -> t.Literal[
+        "HTTP/0.9", "HTTP/1.0", "HTTP/1.1", "HTTP/2.0", "HTTP/3.0"
+    ]: ...
     @property
     def http_version(
         self,
-    ) -> t.Literal["HTTP/0.9", "HTTP/1.0", "HTTP/1.1", "HTTP/2.0", "HTTP/3.0"]: ...
+    ) -> t.Literal[
+        "HTTP/0.9", "HTTP/1.0", "HTTP/1.1", "HTTP/2.0", "HTTP/3.0"
+    ]: ...
     @property
     def redirected(self) -> bool: ...
     @property
@@ -5707,7 +5968,9 @@ class ResponseStream:
     @t.overload
     async def collect(self, join: t.Literal[True]) -> ry.Bytes: ...
     @t.overload
-    async def collect(self, join: t.Literal[False] = False) -> list[ry.Bytes]: ...
+    async def collect(
+        self, join: t.Literal[False] = False
+    ) -> list[ry.Bytes]: ...
 
 
 @t.final
@@ -6170,11 +6433,15 @@ class SqlfmtQueryParams:
 
 
 def sqlfmt_params(
-    params: SqlfmtParamsLike[_TSqlfmtParamValue_co] | SqlfmtQueryParams | None = None,
+    params: SqlfmtParamsLike[_TSqlfmtParamValue_co]
+    | SqlfmtQueryParams
+    | None = None,
 ) -> SqlfmtQueryParams: ...
 def sqlfmt(
     sql: str,
-    params: SqlfmtParamsLike[_TSqlfmtParamValue_co] | SqlfmtQueryParams | None = None,
+    params: SqlfmtParamsLike[_TSqlfmtParamValue_co]
+    | SqlfmtQueryParams
+    | None = None,
     *,
     indent: int | t.Literal["tabs", "\t"] = 2,
     uppercase: bool | None = None,
@@ -7280,7 +7547,9 @@ async def asleep(secs: float) -> float:
 # =============================================================================
 @t.final
 class AsyncFile:
-    def __new__(cls, path: FsPathLike, mode: OpenBinaryMode = "rb") -> t.Self: ...
+    def __new__(
+        cls, path: FsPathLike, mode: OpenBinaryMode = "rb"
+    ) -> t.Self: ...
     async def close(self) -> None: ...
     async def flush(self) -> None: ...
     async def isatty(self) -> t.NoReturn: ...
@@ -7486,7 +7755,9 @@ class WsMessage(Buffer):
         """
 
     @staticmethod
-    def close(code: int = 1_000, reason: str | Buffer | None = None) -> WsMessage:
+    def close(
+        code: int = 1_000, reason: str | Buffer | None = None
+    ) -> WsMessage:
         """Construct a new close message with the given close-code and reason"""
 
     # -------------------------------------------------------------------------
@@ -7541,7 +7812,9 @@ class WsMessage(Buffer):
         *,
         allow_inf_nan: bool = False,
         cache_mode: t.Literal[True, False, "all", "keys", "none"] = "all",
-        partial_mode: t.Literal[True, False, "off", "on", "trailing-strings"] = False,
+        partial_mode: t.Literal[
+            True, False, "off", "on", "trailing-strings"
+        ] = False,
         catch_duplicate_keys: bool = False,
     ) -> t.Any:
         """Parse the message payload as JSON"""
@@ -7661,7 +7934,9 @@ class xxh32:  # noqa: N801
     digest_size: t.Literal[4]
     block_size: t.Literal[16]
 
-    def __new__(cls, data: Buffer | None = None, *, seed: int = 0) -> t.Self: ...
+    def __new__(
+        cls, data: Buffer | None = None, *, seed: int = 0
+    ) -> t.Self: ...
     def update(self, data: Buffer) -> None: ...
     def digest(self) -> bytes: ...
     def hexdigest(self) -> str: ...
@@ -7688,7 +7963,9 @@ class xxh64:  # noqa: N801
     digest_size: t.Literal[8]
     block_size: t.Literal[32]
 
-    def __new__(cls, data: Buffer | None = None, *, seed: int = 0) -> t.Self: ...
+    def __new__(
+        cls, data: Buffer | None = None, *, seed: int = 0
+    ) -> t.Self: ...
     def update(self, data: Buffer) -> None: ...
     def digest(self) -> bytes: ...
     def hexdigest(self) -> str: ...
@@ -7854,6 +8131,11 @@ from ry.protocols import FromStr
 
 @t.final
 class ULID(FromStr):
+    TIME_BITS: t.Literal[48]
+    RAND_BITS: t.Literal[80]
+    MAX: t.Final[ULID]
+    NIL: t.Final[ULID]
+
     def __new__(cls, value: builtins.bytes | str | None = None) -> t.Self: ...
 
     # ----------------
@@ -7960,7 +8242,9 @@ class URL(FromStr, ToString, _Parse):
     @classmethod
     def from_str(cls, s: str, /) -> t.Self: ...
     @classmethod
-    def parse_with_params(cls, url: str | bytes, params: dict[str, str]) -> t.Self: ...
+    def parse_with_params(
+        cls, url: str | bytes, params: dict[str, str]
+    ) -> t.Self: ...
     @classmethod
     def from_directory_path(cls, path: FsPathLike) -> t.Self: ...
     @classmethod
@@ -8073,7 +8357,12 @@ class URL(FromStr, ToString, _Parse):
         *,
         fragment: str | None = None,
         host: str | None = None,
-        ip_host: IPv4Address | IPv6Address | Ipv4Addr | Ipv6Addr | IpAddr | None = None,
+        ip_host: IPv4Address
+        | IPv6Address
+        | Ipv4Addr
+        | Ipv6Addr
+        | IpAddr
+        | None = None,
         password: str | None = None,
         path: str | None = None,
         port: int | None = None,
@@ -8150,9 +8439,13 @@ class UUID(FromStr):
     @t.overload
     def __new__(cls, *, bytes: _Bytes, version: _V | None = None) -> t.Self: ...
     @t.overload
-    def __new__(cls, *, bytes_le: _Bytes, version: _V | None = None) -> t.Self: ...
+    def __new__(
+        cls, *, bytes_le: _Bytes, version: _V | None = None
+    ) -> t.Self: ...
     @t.overload
-    def __new__(cls, *, fields: _UuidFields, version: _V | None = None) -> t.Self: ...
+    def __new__(
+        cls, *, fields: _UuidFields, version: _V | None = None
+    ) -> t.Self: ...
     @t.overload
     def __new__(cls, *, int: _Int, version: _V | None = None) -> t.Self: ...
     @t.overload
@@ -8481,7 +8774,9 @@ def loads(
     *,
     allow_inf_nan: bool = False,
     cache_mode: t.Literal[True, False, "all", "keys", "none"] = "all",
-    partial_mode: t.Literal[True, False, "off", "on", "trailing-strings"] = False,
+    partial_mode: t.Literal[
+        True, False, "off", "on", "trailing-strings"
+    ] = False,
     catch_duplicate_keys: bool = False,
 ) -> JsonValue: ...
 def parse(
@@ -8489,7 +8784,9 @@ def parse(
     *,
     allow_inf_nan: bool = False,
     cache_mode: t.Literal[True, False, "all", "keys", "none"] = "all",
-    partial_mode: t.Literal[True, False, "off", "on", "trailing-strings"] = False,
+    partial_mode: t.Literal[
+        True, False, "off", "on", "trailing-strings"
+    ] = False,
     catch_duplicate_keys: bool = False,
 ) -> JsonValue: ...
 def cache_clear() -> None: ...
@@ -8924,6 +9221,12 @@ OpenMode: TypeAlias = Literal[
     "x", "x+", "xb", "xb+", "xt", "xt+",
 ]
 # fmt: on
+```
+
+<h2 id="ry.dev._lz4rip"><code>ry.dev._lz4rip</code></h2>
+
+```python
+
 ```
 
 <h2 id="ry.JSON"><code>ry.JSON</code></h2>
