@@ -21,7 +21,7 @@ use pyo3::prelude::*;
 use ryo3_bytes::{ReadableBuffer, RyBytes};
 use ryo3_core::macros::{py_type_err, py_type_error, py_value_err, py_value_error};
 use ryo3_core::py_dict::BorrowedDictIter;
-use ryo3_core::{PyCastExactOpt, pystr_read_fast};
+use ryo3_core::{PyAsciiString, PyCastExactOpt, pystr_read_fast};
 
 use crate::Ryo3Lz4ripResult;
 use crate::constants::{LZ4F_FLG_CONTENT_SIZE, LZ4F_MAGIC};
@@ -408,6 +408,16 @@ impl PyLz4FrameCompressor {
             config: self.config.clone(),
             encoder: Some(encoder),
         }
+    }
+
+    fn __repr__(&self) -> PyAsciiString {
+        format!("{self}").into()
+    }
+}
+
+impl std::fmt::Display for PyLz4FrameCompressor {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<Lz4FrameCompressor>")
     }
 }
 

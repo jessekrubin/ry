@@ -5,6 +5,7 @@ use lz4rip::block::{
 };
 use pyo3::prelude::*;
 use ryo3_bytes::{ReadableBuffer, RyBytes};
+use ryo3_core::PyAsciiString;
 
 use crate::Ryo3Lz4ripResult;
 use crate::error::RyLz4Error;
@@ -157,10 +158,16 @@ impl BlockCompressor {
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+struct PyLz4BlockCompressorConfig {
+    size: bool,
+}
+
 #[pyclass(name = "Lz4BlockCompressor", immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Debug)]
-pub struct PyLz4BlockCompressor(
+pub struct PyLz4BlockCompressor {
+    cfg: PyLz4BlockCompressorConfig,
     // boxed: the compressors embed 64-byte-aligned hash tables, which exceeds
     // what pyo3's pyclass allocation guarantees - inlined, construction
     // dereferences a misaligned pointer (UB; aborts in debug):
@@ -168,39 +175,68 @@ pub struct PyLz4BlockCompressor(
     //   thread '<unnamed>' panicked at pyo3-0.29.0\src\pyclass_init.rs:160:18:
     //   misaligned pointer dereference: address must be a multiple of 0x40 but is 0x19ef54173b0
     //   thread caused non-unwinding panic. aborting.
-    Box<BlockCompressor>,
-);
+    inner: Box<BlockCompressor>,
+}
 
-#[pymethods]
 impl PyLz4BlockCompressor {
-    #[new]
-    #[pyo3(signature = (dictionary = None))]
-    fn py_new(dictionary: Option<ReadableBuffer>) -> Self {
-        let inner = if let Some(dict) = dictionary {
-            BlockCompressor::Dict(lz4rip::block::DictCompressor::new(dict.as_ref()))
-        } else {
-            BlockCompressor::Vanilla(lz4rip::block::Compressor::new())
-        };
-        Self(Box::new(inner))
-    }
-
-    #[expect(clippy::needless_pass_by_value, reason = "python extract")]
-    #[pyo3(name = "compress", signature = (data, *, size = false))]
-    fn py_compress(
+    fn compress(
         &mut self,
         py: Python<'_>,
-        data: ReadableBuffer,
+        data: &ReadableBuffer,
         size: bool,
     ) -> Ryo3Lz4ripResult<RyBytes> {
         let input = data.as_ref();
         py.detach(|| {
             if size {
-                compress_block_with::<true, _>(input, |i, o| self.0.compress_into(i, o))
+                compress_block_with::<true, _>(input, |i, o| self.inner.compress_into(i, o))
             } else {
-                compress_block_with::<false, _>(input, |i, o| self.0.compress_into(i, o))
+                compress_block_with::<false, _>(input, |i, o| self.inner.compress_into(i, o))
             }
             .map(RyBytes::from)
         })
+    }
+}
+
+#[pymethods]
+impl PyLz4BlockCompressor {
+    #[new]
+    #[pyo3(signature = (dictionary = None, *, size = false))]
+    fn py_new(dictionary: Option<ReadableBuffer>, size: bool) -> Self {
+        let inner = if let Some(dict) = dictionary {
+            BlockCompressor::Dict(lz4rip::block::DictCompressor::new(dict.as_ref()))
+        } else {
+            BlockCompressor::Vanilla(lz4rip::block::Compressor::new())
+        };
+        Self {
+            cfg: PyLz4BlockCompressorConfig { size },
+            inner: Box::new(inner),
+        }
+    }
+
+    #[expect(clippy::needless_pass_by_value, reason = "python extract")]
+    #[pyo3(name = "compress", signature = (data, *, size = None))]
+    fn py_compress(
+        &mut self,
+        py: Python<'_>,
+        data: ReadableBuffer,
+        size: Option<bool>,
+    ) -> Ryo3Lz4ripResult<RyBytes> {
+        self.compress(py, &data, size.unwrap_or(self.cfg.size))
+    }
+
+    #[expect(clippy::needless_pass_by_value, reason = "python extract")]
+    #[pyo3(signature = (data, *, size = None))]
+    fn __call__(
+        &mut self,
+        py: Python<'_>,
+        data: ReadableBuffer,
+        size: Option<bool>,
+    ) -> Ryo3Lz4ripResult<RyBytes> {
+        self.compress(py, &data, size.unwrap_or(self.cfg.size))
+    }
+
+    fn __repr__(&self) -> PyAsciiString {
+        format!("{self}").into()
     }
 }
 
@@ -208,6 +244,21 @@ impl PyLz4BlockCompressor {
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Debug)]
 pub struct PyLz4BlockDecompressor(lz4rip::block::Decompressor);
+
+impl PyLz4BlockDecompressor {
+    fn decompress(
+        &self,
+        py: Python<'_>,
+        data: &ReadableBuffer,
+        size: Option<usize>,
+    ) -> Ryo3Lz4ripResult<RyBytes> {
+        let input = data.as_ref();
+        py.detach(|| {
+            decompress_block_with(input, size, |i, o| self.0.decompress_into(i, o))
+                .map(RyBytes::from)
+        })
+    }
+}
 
 #[pymethods]
 impl PyLz4BlockDecompressor {
@@ -229,10 +280,36 @@ impl PyLz4BlockDecompressor {
         data: ReadableBuffer,
         size: Option<usize>,
     ) -> Ryo3Lz4ripResult<RyBytes> {
-        let input = data.as_ref();
-        py.detach(|| {
-            decompress_block_with(input, size, |i, o| self.0.decompress_into(i, o))
-                .map(RyBytes::from)
-        })
+        self.decompress(py, &data, size)
+    }
+
+    #[pyo3(signature = (data, size = None))]
+    #[expect(clippy::needless_pass_by_value, reason = "python extract")]
+    fn __call__(
+        &self,
+        py: Python<'_>,
+        data: ReadableBuffer,
+        size: Option<usize>,
+    ) -> Ryo3Lz4ripResult<RyBytes> {
+        self.decompress(py, &data, size)
+    }
+
+    fn __repr__(&self) -> PyAsciiString {
+        format!("{self}").into()
+    }
+}
+
+impl std::fmt::Display for PyLz4BlockCompressor {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self.inner.as_ref() {
+            BlockCompressor::Vanilla(_) => write!(f, "<Lz4BlockCompressor; dictionary=False>"),
+            BlockCompressor::Dict(_) => write!(f, "<Lz4BlockCompressor; dictionary=True>"),
+        }
+    }
+}
+
+impl std::fmt::Display for PyLz4BlockDecompressor {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<Lz4BlockDecompressor>")
     }
 }

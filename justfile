@@ -147,6 +147,7 @@ clippy:
 # run clippy with feature-powerset via cargo-hack
 clippy-features:
     cargo hack --feature-powerset clippy --package ryo3-bytes
+    cargo hack --feature-powerset clippy --package ryo3-lz4rip
     cargo hack --feature-powerset clippy --package ryo3-fspath
     cargo hack --feature-powerset clippy --package ryo3-http
     cargo hack --feature-powerset clippy --package ryo3-jiff
@@ -164,6 +165,7 @@ clippy-features:
 # run cargo check with feature-powerset via cargo-hack
 check-features:
     cargo hack --feature-powerset check --package ryo3-bytes
+    cargo hack --feature-powerset check --package ryo3-lz4rip
     cargo hack --feature-powerset check --package ryo3-fspath
     cargo hack --feature-powerset check --package ryo3-http
     cargo hack --feature-powerset check --package ryo3-jiff
