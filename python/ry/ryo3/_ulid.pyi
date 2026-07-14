@@ -12,6 +12,11 @@ from ry.protocols import FromStr
 
 @t.final
 class ULID(FromStr):
+    TIME_BITS: t.Literal[48]
+    RAND_BITS: t.Literal[80]
+    MAX: t.Final[ULID]
+    NIL: t.Final[ULID]
+
     def __new__(cls, value: builtins.bytes | str | None = None) -> t.Self: ...
 
     # ----------------

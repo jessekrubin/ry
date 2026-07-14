@@ -9,6 +9,7 @@ import asyncio
 import json
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from threading import Thread
+from typing import Any
 
 # =============================================================================
 import ry
@@ -105,11 +106,10 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
 
 
 def start_server(
-    host: str = "127.0.0.1", port: int = 8888, logging: bool = False
+    host: str = "127.0.0.1", port: int = 8888, *, logging: bool = False
 ) -> HTTPServer:
     class HttpRequestHandlerNoLog(HTTPRequestHandler):
-        def log_message(self, format, *args):  # type: ignore[no-untyped-def]
-            ...
+        def log_message(self, format: str, *args: Any) -> None: ...
 
     server_address = (host, port)
     handler = HttpRequestHandlerNoLog if not logging else HTTPRequestHandler

@@ -25,6 +25,7 @@ task-tags = [
 ]
 select = [
   "A",
+  "ANN",
   "ARG",
   "B",
   "C",

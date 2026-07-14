@@ -55,6 +55,11 @@ impl From<PyUlidDecodeError> for PyErr {
 }
 
 impl PyUlid {
+    #[must_use]
+    pub const fn new(ulid: Ulid) -> Self {
+        Self(ulid)
+    }
+
     fn to_u128(self) -> u128 {
         let b = self.0.to_bytes();
         u128::from_be_bytes(b)
@@ -90,10 +95,33 @@ impl PyUlid {
     pub fn py_from_string(encoded: &str) -> PyResult<Self> {
         Self::from_stringc(encoded).map_err(Into::into)
     }
+
+    const fn from_u128(value: u128) -> Self {
+        Self(Ulid(value))
+    }
 }
 
 #[pymethods]
 impl PyUlid {
+    /// The number of bits in a Ulid's time portion
+    #[classattr]
+    pub const TIME_BITS: u8 = 48;
+
+    /// The number of bits in a Ulid's random portion
+    #[classattr]
+    pub const RAND_BITS: u8 = 80;
+
+    /// The 'max Ulid'.
+    ///
+    /// The max Ulid is special form of Ulid that is specified to have
+    /// all 128 bits set to one.
+    #[classattr]
+    pub const MAX: Self = Self::new(Ulid::max());
+
+    /// The 'nil Ulid'.
+    #[classattr]
+    pub const NIL: Self = Self::new(Ulid::nil());
+
     #[new]
     #[pyo3(signature = (value = None))]
     pub fn py_new(value: Option<Bound<'_, PyAny>>) -> PyResult<Self> {
@@ -221,9 +249,7 @@ impl PyUlid {
 
     #[staticmethod]
     fn from_int(i: u128) -> Self {
-        let b = i.to_be_bytes();
-        let ul = Ulid::from_bytes(b);
-        Self(ul)
+        Self::from_u128(i)
     }
 
     #[staticmethod]
@@ -395,7 +421,10 @@ impl PyUlid {
     }
 
     #[getter]
-    #[expect(clippy::cast_precision_loss)]
+    #[expect(
+        clippy::cast_precision_loss,
+        reason = "wenodis: 48-bit timestamp is ALWAYS ok as f64"
+    )]
     fn timestamp(&self) -> f64 {
         self.0.timestamp_ms() as f64 / 1000.0
     }

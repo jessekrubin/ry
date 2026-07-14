@@ -26,7 +26,7 @@ class RegexOptions(t.TypedDict, total=False):
     unicode: bool
 
 
-def _gen_kwargs_options() -> t.Generator[dict[str, t.Any], None, None]:
+def _gen_kwargs_options_gen() -> t.Generator[dict[str, t.Any], None, None]:
     bool_keys = [
         "case_insensitive",
         "crlf",
@@ -43,6 +43,10 @@ def _gen_kwargs_options() -> t.Generator[dict[str, t.Any], None, None]:
 
     yield {"size_limit": 100000}
     yield {"size_limit": None}
+
+
+def _gen_kwargs_options() -> list[dict[str, t.Any]]:
+    return list(_gen_kwargs_options_gen())
 
 
 _DEFAULT_OPTIONS = {

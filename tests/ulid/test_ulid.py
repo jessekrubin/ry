@@ -32,6 +32,26 @@ def datetimes_almost_equal(a: pydt.datetime, b: pydt.datetime) -> None:
     )
 
 
+class TestUlidConstants:
+    def test_bits_constants(self) -> None:
+        assert ULID.TIME_BITS == 48
+        assert ULID.RAND_BITS == 80
+
+    def test_max_ulid(self) -> None:
+        max_ulid = ULID.MAX
+        assert isinstance(max_ulid, ULID)
+        assert int(max_ulid) == 2**128 - 1
+        assert max_ulid.bytes == b"\xff" * 16
+        assert str(max_ulid) == "7ZZZZZZZZZZZZZZZZZZZZZZZZZ"
+
+    def test_nil_ulid(self) -> None:
+        nil_ulid = ULID.NIL
+        assert isinstance(nil_ulid, ULID)
+        assert int(nil_ulid) == 0
+        assert nil_ulid.bytes == b"\x00" * 16
+        assert str(nil_ulid) == "00000000000000000000000000"
+
+
 def test_ulid() -> None:
     ulid = ULID()
     now = pydt.datetime.now(pydt.UTC)
