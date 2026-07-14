@@ -9,6 +9,14 @@
 
 ## v0.0.98 [unreleased]
 
+- `ryo3-ulid`
+  - Update to ulid v2.0.1
+  - Added class-attrs:
+    - `ULID.MAX` => `ULID("7ZZZZZZZZZZZZZZZZZZZZZZZZZ")`
+    - `ULID.NIL` => `ULID("00000000000000000000000000")`
+    - `ULID.TIME_BITS` => `48`
+    - `ULID.RAND_BITS` => `80`
+
 - `ryo3-jiff`
   - updated to `v0.16.0`
 - `ryo3-serde`

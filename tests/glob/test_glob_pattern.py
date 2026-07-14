@@ -137,7 +137,7 @@ def test_pattern(case: _PatternTestCaseDict) -> None:
             )
 
 
-def _pattern_kwargs_permutations() -> t.Generator[_MatchKwargs | None, None, None]:
+def _pattern_kwargs_permutations_gen() -> t.Generator[_MatchKwargs | None, None, None]:
     kw_opts = [True, False, None]
 
     for case in it.product(kw_opts, repeat=3):
@@ -151,6 +151,10 @@ def _pattern_kwargs_permutations() -> t.Generator[_MatchKwargs | None, None, Non
         yield case_dict if case_dict else None
 
 
+def _pattern_kwargs_permutations() -> list[_MatchKwargs | None]:
+    return list(_pattern_kwargs_permutations_gen())
+
+
 @pytest.mark.parametrize(
     "pattern_kwargs",
     _pattern_kwargs_permutations(),
@@ -160,7 +164,6 @@ def test_pattern_kwargs(pattern_kwargs: _MatchKwargs | None) -> None:
     p = ry.GlobPattern("*.py", **(pattern_kwargs or {}))
 
     repr_str = repr(p)
-    # evaluta
     from_eval = eval("ry." + repr_str)
     assert from_eval == p
 

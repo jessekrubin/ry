@@ -55,7 +55,7 @@ def replace_section_content(section: dict[str, t.Any] | None) -> None:
         replace_section_content(sub_item)
 
 
-def main():
+def main() -> None:
     for line in sys.stdin:
         if line:
             [_context, book] = orjson.loads(line)
