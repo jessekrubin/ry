@@ -49,6 +49,7 @@ ryo3-http = { workspace = true, optional = true }
 ryo3-jiff = { workspace = true, optional = true }
 ryo3-jiter = { workspace = true, optional = true }
 ryo3-json = { workspace = true, optional = true }
+ryo3-lz4rip= { workspace = true, optional = true }
 ryo3-memchr = { workspace = true, optional = true }
 ryo3-regex = { workspace = true, optional = true }
 ryo3-reqwest = { workspace = true, optional = true }
@@ -84,6 +85,7 @@ all = [
   "jiff",
   "jiter",
   "json",
+  "lz4rip",
   "memchr",
   "regex",
   "reqwest",
@@ -124,6 +126,7 @@ ry = [
   "ryo3-globset/ry",
   "ryo3-http/ry",
   "ryo3-jiff/ry",
+  "ryo3-lz4rip/ry",
   "ryo3-regex/ry",
   "ryo3-reqwest/ry",
   "ryo3-size/ry",
@@ -158,6 +161,7 @@ http = ["dep:ryo3-http"]
 jiff = ["dep:ryo3-jiff"]
 jiter = ["dep:ryo3-jiter"]
 json = ["dep:ryo3-json"]
+lz4rip = ["dep:ryo3-lz4rip"]
 memchr = ["dep:ryo3-memchr"]
 regex = ["dep:ryo3-regex", "ryo3-which/regex"]
 reqwest = ["dep:ryo3-reqwest", "bytes", "cookie", "http", "url"]

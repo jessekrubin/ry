@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from ry import dev as ry
+import ry
 
 _JSONISH = b'{"name":"ry","kind":"lz4","value":123456789}\n' * 32
 

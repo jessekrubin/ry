@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from ry import dev as ry
+import ry
 
 _10X_10Y = b"XXXXXXXXXXYYYYYYYYYY"
 _DICTIONARY = b'{"name":"ry","kind":"lz4","value":' * 8

@@ -22,6 +22,49 @@ class Lz4FrameInfo(t.TypedDict, total=False):
     content_size: int | None
     """include the total uncompressed size of data in the frame (default: `None`)"""
 
+@t.final
+class Lz4BlockCompressor:
+    def __new__(cls, dictionary: Buffer | None = None) -> t.Self: ...
+    def compress(self, data: Buffer, *, size: bool = False) -> Bytes: ...
+
+@t.final
+class Lz4BlockDecompressor:
+    def __new__(cls, dictionary: Buffer | None = None) -> t.Self: ...
+    def decompress(self, data: Buffer, size: int | None = None) -> Bytes: ...
+
+@t.final
+class Lz4FrameCompressor:
+    """Streaming lz4 frame compressor.
+
+    `compress`/`flush` return the newly produced compressed bytes; `finish`
+    ends the frame and returns the tail. The concatenation of all returned
+    chunks is one complete lz4 frame.
+
+    Parameters
+    ----------
+    dictionary : Buffer or None, default None
+        Optional compression dictionary (e.g. from `lz4_train_dict`).
+    dict_id : int or None, default None
+        Dictionary id recorded in the frame header (default 0).
+    frame_info : Lz4FrameInfo or None, default None
+        Frame options (block size/mode, checksums, content size).
+    """
+
+    def __new__(
+        cls,
+        *,
+        dictionary: Buffer | None = None,
+        dict_id: int | None = None,
+        frame_info: Lz4FrameInfo | None = None,
+    ) -> t.Self: ...
+    def compress(self, data: Buffer) -> Bytes: ...
+    def flush(self) -> Bytes: ...
+    def finish(self) -> Bytes: ...
+    def copy(self) -> t.Self:
+        """Return a new compressor with the same state (dictionary, dict_id, frame_info)"""
+    def reset(self) -> None:
+        """Reset the compressor to its initial state (dictionary, dict_id, frame_info)"""
+
 def lz4_compress(
     data: Buffer,
     *,
@@ -51,7 +94,7 @@ def lz4_compress(
 def lz4_compress_block(
     data: Buffer,
     *,
-    size: bool = True,
+    size: bool = False,
     dictionary: Buffer | None = None,
 ) -> Bytes:
     """Compress a raw lz4 block.
@@ -60,7 +103,7 @@ def lz4_compress_block(
     ----------
     data : Buffer
         Data to compress.
-    size : bool, default True
+    size : bool, default False
         If True (python-lz4 compatible), prepend the uncompressed size to
         the block as a u32-le integer.
     dictionary : Buffer or None, default None
@@ -148,39 +191,3 @@ def lz4_train_dict(samples: t.Iterable[Buffer], dict_size: int = 65535) -> Bytes
         If `dict_size` is not positive, or if training yields an empty
         dictionary (fewer than 2 usable samples).
     """
-
-class Lz4BlockCompressor:
-    def __init__(self, dictionary: Buffer | None = None) -> None: ...
-    def compress(self, data: Buffer, *, size: bool = True) -> Bytes: ...
-
-class Lz4BlockDecompressor:
-    def __init__(self, dictionary: Buffer | None = None) -> None: ...
-    def decompress(self, data: Buffer, size: int | None = None) -> Bytes: ...
-
-class Lz4FrameCompressor:
-    """Streaming lz4 frame compressor.
-
-    `compress`/`flush` return the newly produced compressed bytes; `finish`
-    ends the frame and returns the tail. The concatenation of all returned
-    chunks is one complete lz4 frame.
-
-    Parameters
-    ----------
-    dictionary : Buffer or None, default None
-        Optional compression dictionary (e.g. from `lz4_train_dict`).
-    dict_id : int or None, default None
-        Dictionary id recorded in the frame header (default 0).
-    frame_info : Lz4FrameInfo or None, default None
-        Frame options (block size/mode, checksums, content size).
-    """
-
-    def __init__(
-        self,
-        *,
-        dictionary: Buffer | None = None,
-        dict_id: int | None = None,
-        frame_info: Lz4FrameInfo | None = None,
-    ) -> None: ...
-    def compress(self, data: Buffer) -> Bytes: ...
-    def flush(self) -> Bytes: ...
-    def finish(self) -> Bytes: ...
