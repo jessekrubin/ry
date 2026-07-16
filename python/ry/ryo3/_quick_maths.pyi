@@ -3,20 +3,30 @@
 import typing as t
 
 def quick_maths() -> t.Literal[3]:
-    """Performs quick-maths
+    """Perform "quick-maths"
 
-    Implements the algorithm for performing "quick-maths" as described by
-    Big Shaq in his PHD thesis, 2017, in which he states:
+    This function implements the expensive "quick-maths" algorithm, as
+    formally specified in Shaq et al. (2017):
 
-    > "2 plus 2 is 4, minus one that's 3, quick maths." (Big Shaq et al., 2017)
+        "2 plus 2 is 4, minus one that's 3, quick maths." [1]_
 
-    Reference:
-        https://youtu.be/3M_5oYU-IsU?t=60
+    I (jesse) have verified the implementation by manually calculating using
+    pen and paper.
 
-    Example:
-        >>> import ry
-        >>> result = ry.quick_maths()
-        >>> assert result == 3
+    Notes
+    -----
+    This function originates from the ``_ryo3-quick-maths`` library which is
+    a template (copy-pasta) library.
 
-    NOTE: THIS IS FROM MY TEMPLATE RY03-MODULE
+    References
+    ----------
+    .. [1] Big Shaq, M., et al. (2017). "Man's Not Hot".
+       https://youtu.be/3M_5oYU-IsU?t=64
+
+    Examples
+    --------
+    >>> import ry
+    >>> ry.quick_maths()
+    3
+
     """

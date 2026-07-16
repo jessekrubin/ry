@@ -74,6 +74,7 @@ bindings = "pyo3"
 python-source = "python"
 include = [ { path = "python/ry/.git-sha", format = "sdist" } ]
 features = [ "pyo3/extension-module" ]
+
 # strip = true
 
 [tool.uv]
@@ -85,37 +86,6 @@ package = false  # don't build package w/ uv
 
 [tool.ruff]
 extend = "./ruff.toml"
-
-[tool.mypy]
-ignore_missing_imports = true
-python_version = "3.11"
-warn_redundant_casts = true
-enable_error_code = [ "deprecated" ]
-strict = true
-# plugins = [ "pydantic.mypy" ]
-overrides = [ { module = "tests.*", ignore_missing_imports = true, check_untyped_defs = true } ]
-
-[tool.pyrefly]
-errors.bad-match = false
-errors.deprecated = "error"
-errors.redundant-cast = "warn"
-ignore-missing-imports = [
-  "tests.*",
-  "*",
-]
-preset = "default"
-python-version = "3.11.0"
-search-path = [ ".", "python" ]
-
-[tool.pyright]
-pythonVersion = "3.11"
-useLibraryCodeForTypes = false
-include = [ "python", "tests" ]
-reportMissingImports = "error"
-reportMissingTypeStubs = false
-executionEnvironments = [
-  { root = "tests/xxhash", reportAttributeAccessIssue = false },
-]
 
 [tool.pytest]
 ini_options.testpaths = [ "tests" ]
@@ -164,6 +134,37 @@ report.exclude_lines = [
   # 'assert_never',
 ]
 report.precision = 2
+
+[tool.mypy]
+ignore_missing_imports = true
+python_version = "3.11"
+warn_redundant_casts = true
+enable_error_code = [ "deprecated" ]
+strict = true
+# plugins = [ "pydantic.mypy" ]
+overrides = [ { module = "tests.*", ignore_missing_imports = true, check_untyped_defs = true } ]
+
+[tool.pyrefly]
+errors.bad-match = false
+errors.deprecated = "error"
+errors.redundant-cast = "warn"
+ignore-missing-imports = [
+  "tests.*",
+  "*",
+]
+preset = "default"
+python-version = "3.11.0"
+search-path = [ ".", "python" ]
+
+[tool.pyright]
+pythonVersion = "3.11"
+useLibraryCodeForTypes = false
+include = [ "python", "tests" ]
+reportMissingImports = "error"
+reportMissingTypeStubs = false
+executionEnvironments = [
+  { root = "tests/xxhash", reportAttributeAccessIssue = false },
+]
 
 [tool.rumdl]
 disable = [ "MD033" ]

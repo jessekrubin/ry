@@ -9,7 +9,7 @@
   "toml": {},
   "dockerfile": {},
   "ruff": {
-    "lineLength": 80,
+    "lineLength": 80
   },
   "includes": [
     "**/*.{ts,tsx,mts,cts,cjs,mjs,js,jsx,json,md,toml,Dockerfile,dockerfile}",

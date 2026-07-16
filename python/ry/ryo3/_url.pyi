@@ -52,10 +52,11 @@ class URL(FromStr, ToString, _Parse):
     def path_segments(self) -> tuple[str, ...]: ...
     @property
     def port(self) -> int | None:
-        """
-        Return the port number for this URL, if any.
+        """The port number for this URL, if any.
 
-        Note: the default port numbers are never reflected by the serialization,
+        Note
+        ----
+        the default port numbers are never reflected by the serialization,
         use the `port_or_known_default` if you want a default port number returned.
 
         Default port numbers:
@@ -63,36 +64,36 @@ class URL(FromStr, ToString, _Parse):
             - `https` | `wss` => `443`
             - `ftp`           => `21`
 
-        Examples:
-
-            >>> from ry import URL
-            >>> assert URL("https://rotatingsandwiches.com:3000").port == 3000
-            >>> assert URL("https://rotatingsandwiches.com").port is None
-            >>> assert URL("https://rotatingsandwiches.com:443/").port is None
-            >>> assert URL("ssh://rotatingsandwiches.com:22").port == 22
+        Examples
+        --------
+        >>> from ry import URL
+        >>> assert URL("https://rotatingsandwiches.com:3000").port == 3000
+        >>> assert URL("https://rotatingsandwiches.com").port is None
+        >>> assert URL("https://rotatingsandwiches.com:443/").port is None
+        >>> assert URL("ssh://rotatingsandwiches.com:22").port == 22
 
         """
 
     @property
     def port_or_known_default(self) -> int | None:
-        """Return the port number, or the default port number if known.
+        """The port number, or the default port number if known.
 
         Default port numbers:
             - `http`  | `ws`  => `80`
             - `https` | `wss` => `443`
             - `ftp`           => `21`
 
-        Examples:
-
-            >>> from ry import URL
-            >>> URL("https://rotatingsandwiches.com:3000").port_or_known_default
-            3000
-            >>> URL("https://rotatingsandwiches.com").port_or_known_default
-            443
-            >>> URL("https://rotatingsandwiches.com:443/").port_or_known_default
-            443
-            >>> URL("ssh://rotatingsandwiches.com:22").port_or_known_default
-            22
+        Examples
+        --------
+        >>> from ry import URL
+        >>> URL("https://rotatingsandwiches.com:3000").port_or_known_default
+        3000
+        >>> URL("https://rotatingsandwiches.com").port_or_known_default
+        443
+        >>> URL("https://rotatingsandwiches.com:443/").port_or_known_default
+        443
+        >>> URL("ssh://rotatingsandwiches.com:22").port_or_known_default
+        22
 
         """
     @property

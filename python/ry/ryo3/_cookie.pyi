@@ -26,27 +26,41 @@ class Cookie(FromStr, _Parse):
     ) -> t.Self:
         """Create a new cookie with the given name and value, and optional attributes
 
-        Args:
-            name: The name of the cookie
-            value: The value of the cookie
-            domain: The domain of the cookie (optional)
-            expires: The expiration time of the cookie as a UNIX timestamp (optional)
-            http_only: Whether the cookie is HTTP-only (optional)
-            max_age: The maximum age of the cookie as a Duration (optional)
-            partitioned: Whether the cookie is partitioned (optional)
-            path: The path of the cookie (optional)
-            permanent: Whether the cookie is permanent (optional)
-            removal: Whether the cookie is marked for removal (optional)
-            same_site: The same-site attribute of the cookie (optional)
-            secure: Whether the cookie is secure (optional)
+        Parameters
+        ----------
+        name : str
+            name of the cookie
+        value : str
+            value of the cookie
+        domain : str | None, optional
+            domain of the cookie, by default None
+        expires : int | None, optional
+            expiration time of the cookie as a UNIX timestamp, by default None
+        http_only : bool | None, optional
+            whether the cookie is HTTP-only, by default None
+        max_age : Duration | None, optional
+            maximum age of the cookie as a Duration, by default None
+        partitioned : bool | None, optional
+            whether the cookie is partitioned, by default None
+        path : str | None, optional
+            path of the cookie, by default None
+        permanent : bool, optional
+            whether the cookie is permanent, by default False
+        removal : bool, optional
+            whether the cookie is marked for removal, by default False
+        same_site : _SameSiteKw | None, optional
+            same-site attribute of the cookie, by default None
+        secure : bool | None, optional
+            whether the cookie is secure, by default None
 
-        Examples:
-            >>> from ry import Cookie
-            >>> c = Cookie("id", "cookie-monster")
-            >>> c
-            Cookie("id", "cookie-monster")
-            >>> str(c)
-            'id=cookie-monster'
+        Examples
+        --------
+        >>> from ry import Cookie
+        >>> c = Cookie("id", "cookie-monster")
+        >>> c
+        Cookie("id", "cookie-monster")
+        >>> str(c)
+        'id=cookie-monster'
 
         """
     @classmethod

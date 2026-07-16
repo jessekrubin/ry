@@ -29,6 +29,7 @@ select = [
   "ARG",
   "B",
   "C",
+  "D",
   "DTZ",
   "E",
   "ERA001",
@@ -60,14 +61,16 @@ select = [
   "YTT",
 ]
 ignore = [
+  "D204",    # incorrect-blank-line-after-class
+  "D400",    # missing-trailing-period
   "E501",    # line length
   "PLR2004", # magic values (super dumb rule)
-  "PYI053",  #
   "PYI021",  # docstring-in-stub
+  "PYI053",  #
   "SIM105",  # suppressible-exception
 ]
 preview = true
-pydocstyle.convention = "google"
+pydocstyle.convention = "numpy"
 # Require explicit selection of preview rules.
 explicit-preview-rules = true
 exclude = [
@@ -113,14 +116,16 @@ flake8-boolean-trap.extend-allowed-calls = [
   "FIX002",
   "ASYNC109",
   "TD",
+  "D401",     # non-imperative-mood # FIX THIS
   "D415",     # missing-terminal-punctuation
   "D212",     # multi-line-summary-first-line
   "D205",     # missing-blank-line-after-summary
+  "D400",     # missing-trailing-period
   "D403",     # first-word-uncapitalized
   "D418",     # overload-with-docstring
   # ^ fine for annotations
-  "D301",     # escape-sequence-in-docstring
-  "D412",     # blank-lines-between-header-and-content
+  "D301", # escape-sequence-in-docstring
+  "D412", # blank-lines-between-header-and-content
   # ^ causes problems when hovering over a method it looks bad
 ]
 "python/ry/**/*.py" = [
@@ -180,15 +185,20 @@ flake8-boolean-trap.extend-allowed-calls = [
   "COM812",   # missing-trailing-comma
   "D100",     # undocumented-public-module
   "D101",     # undocumented-public-class
+  "D103",     # undocumented-public-function
   "D104",     # undocumented-public-package
   "D105",     # undocumented-magic-method
   "D106",     # undocumented-public-nested-class
   "D107",     # undocumented-public-init
   "D200",     # unnecessary-multiline-docstring
+  "D204",     # incorrect-blank-line-after-class
   "D205",     # missing-blank-line-after-summary
   "D212",     # multi-line-summary-first-line
   "D301",     # escape-sequence-in-docstring
+  "D400",     # missing-trailing-period
+  "D401",     # non-imperative-mood
   "D403",     # first-word-uncapitalized
+  "D406",     # missing-new-line-after-section-name
   "D415",     # missing-terminal-punctuation
   "D417",     # undocumented-param
   "D418",     # overload-with-docstring
@@ -212,17 +222,10 @@ flake8-boolean-trap.extend-allowed-calls = [
   "S603", # subprocess-without-shell-equals-true
   "T201", # print
   # --- with `--select ALL` ---
-  "ANN401",  # any-type
-  "COM812",  # missing-trailing-comma
-  "D100",    # undocumented-public-module
-  "D101",    # undocumented-public-class
-  "D102",    # undocumented-public-method
-  "D103",    # undocumented-public-function
-  "D105",    # undocumented-magic-method
-  "D107",    # undocumented-public-init
-  "D202",    # blank-line-after-function
-  "D403",    # first-word-uncapitalized
-  "D415",    # missing-terminal-punctuation
+  "ANN401", # any-type
+  "COM812", # missing-trailing-comma
+
+  "D",
   "FIX002",  # line-contains-todo
   "INP001",  # implicit-namespace-package
   "PERF102", # incorrect-dict-iterator

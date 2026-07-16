@@ -868,12 +868,13 @@ class TimeZone(
     def to_fixed_offset(self) -> Offset:
         """Return a TimeZone with a fixed offset equivalent to this TimeZone.
 
-        Examples:
-            >>> import ry
-            >>> tz = ry.TimeZone.fixed(ry.Offset(hours=-5))
-            >>> fixed_tz = tz.to_fixed_offset()
-            >>> fixed_tz
-            Offset(hours=-5)
+        Examples
+        --------
+        >>> import ry
+        >>> tz = ry.TimeZone.fixed(ry.Offset(hours=-5))
+        >>> fixed_tz = tz.to_fixed_offset()
+        >>> fixed_tz
+        Offset(hours=-5)
 
         """
 
@@ -1410,17 +1411,15 @@ class Timestamp(
     def second(self) -> int:
         """Return the second component of the timestamp
 
-        Returns:
-            int: The second component of the timestamp.
-
-        Examples:
-            >>> import ry
-            >>> ts = ry.Timestamp(5, 123_456_789)
-            >>> ts.second
-            5
-            >>> ts = ry.Timestamp(-5, -123_456_789)
-            >>> ts.second
-            -5
+        Examples
+        --------
+        >>> import ry
+        >>> ts = ry.Timestamp(5, 123_456_789)
+        >>> ts.second
+        5
+        >>> ts = ry.Timestamp(-5, -123_456_789)
+        >>> ts.second
+        -5
 
         """
 
@@ -1428,23 +1427,21 @@ class Timestamp(
     def nanosecond(self) -> int:
         """Return the nanosecond component (-999_999_999..999_999_999)
 
-        Returns:
-            int: The nanosecond component of the timestamp (-999_999_999..999_999_999).
-
-        Examples:
-            >>> import ry
-            >>> ts = ry.Timestamp(5, 123_456_789)
-            >>> ts.nanosecond
-            123456789
-            >>> ts = ry.Timestamp(5, 999_999_999)
-            >>> ts.nanosecond
-            999999999
-            >>> ts = ry.Timestamp(-5, -123_456_789)
-            >>> ts.nanosecond
-            -123456789
-            >>> ts = ry.Timestamp(-5, -999_999_999)
-            >>> ts.nanosecond
-            -999999999
+        Examples
+        --------
+        >>> import ry
+        >>> ts = ry.Timestamp(5, 123_456_789)
+        >>> ts.nanosecond
+        123456789
+        >>> ts = ry.Timestamp(5, 999_999_999)
+        >>> ts.nanosecond
+        999999999
+        >>> ts = ry.Timestamp(-5, -123_456_789)
+        >>> ts.nanosecond
+        -123456789
+        >>> ts = ry.Timestamp(-5, -999_999_999)
+        >>> ts.nanosecond
+        -999999999
 
         """
 
@@ -1452,69 +1449,63 @@ class Timestamp(
     def subsec_microsecond(self) -> int:
         """Return the subsecond microsecond component (-999_999..999_999)
 
-        Returns:
-            int: subsecond microsecond component of the timestamp
-
-        Examples:
-            >>> import ry
-            >>> ts = ry.Timestamp(5, 123_456_789)
-            >>> ts.subsec_microsecond
-            123456
-            >>> ts = ry.Timestamp(5, 999_999_999)
-            >>> ts.subsec_microsecond
-            999999
-            >>> ts = ry.Timestamp(-5, -123_456_789)
-            >>> ts.subsec_microsecond
-            -123456
-            >>> ts = ry.Timestamp(-5, -999_999_999)
-            >>> ts.subsec_microsecond
-            -999999
+        Examples
+        --------
+        >>> import ry
+        >>> ts = ry.Timestamp(5, 123_456_789)
+        >>> ts.subsec_microsecond
+        123456
+        >>> ts = ry.Timestamp(5, 999_999_999)
+        >>> ts.subsec_microsecond
+        999999
+        >>> ts = ry.Timestamp(-5, -123_456_789)
+        >>> ts.subsec_microsecond
+        -123456
+        >>> ts = ry.Timestamp(-5, -999_999_999)
+        >>> ts.subsec_microsecond
+        -999999
 
         """
     @property
     def subsec_millisecond(self) -> int:
         """Return the subsecond millisecond component (-999..999)
 
-        Returns:
-            int: The subsecond millisecond component of the timestamp (-999..999).
-
-        Examples:
-            >>> import ry
-            >>> ts = ry.Timestamp(5, 123_456_789)
-            >>> ts.subsec_millisecond
-            123
-            >>> ts = ry.Timestamp(5, 999_999_999)
-            >>> ts.subsec_millisecond
-            999
-            >>> ts = ry.Timestamp(-5, -123_456_789)
-            >>> ts.subsec_millisecond
-            -123
-            >>> ts = ry.Timestamp(-5, -999_999_999)
-            >>> ts.subsec_millisecond
-            -999
+        Examples
+        --------
+        >>> import ry
+        >>> ts = ry.Timestamp(5, 123_456_789)
+        >>> ts.subsec_millisecond
+        123
+        >>> ts = ry.Timestamp(5, 999_999_999)
+        >>> ts.subsec_millisecond
+        999
+        >>> ts = ry.Timestamp(-5, -123_456_789)
+        >>> ts.subsec_millisecond
+        -123
+        >>> ts = ry.Timestamp(-5, -999_999_999)
+        >>> ts.subsec_millisecond
+        -999
 
         """
     @property
     def subsec_nanosecond(self) -> int:
         """Return the subsecond nanosecond component (-999_999_999..999_999_999)
 
-        Returns:
-            int: The subsecond nanosecond component of the timestamp (-999_999_999..999_999_999).
-
-        Examples:
-            >>> import ry
-            >>> ts = ry.Timestamp(5, 123_456_789)
-            >>> ts.subsec_nanosecond
-            123456789
-            >>> ts = ry.Timestamp(5, 999_999_999)
-            >>> ts.subsec_nanosecond
-            999999999
-            >>> ts = ry.Timestamp(-5, -123_456_789)
-            >>> ts.subsec_nanosecond
-            -123456789
-            >>> ts = ry.Timestamp(-5, -999_999_999)
-            >>> ts.subsec_nanosecond
-            -999999999
+        Examples
+        --------
+        >>> import ry
+        >>> ts = ry.Timestamp(5, 123_456_789)
+        >>> ts.subsec_nanosecond
+        123456789
+        >>> ts = ry.Timestamp(5, 999_999_999)
+        >>> ts.subsec_nanosecond
+        999999999
+        >>> ts = ry.Timestamp(-5, -123_456_789)
+        >>> ts.subsec_nanosecond
+        -123456789
+        >>> ts = ry.Timestamp(-5, -999_999_999)
+        >>> ts.subsec_nanosecond
+        -999999999
 
         """
     # =========================================================================

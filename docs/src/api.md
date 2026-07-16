@@ -913,27 +913,41 @@ class Cookie(FromStr, _Parse):
     ) -> t.Self:
         """Create a new cookie with the given name and value, and optional attributes
 
-        Args:
-            name: The name of the cookie
-            value: The value of the cookie
-            domain: The domain of the cookie (optional)
-            expires: The expiration time of the cookie as a UNIX timestamp (optional)
-            http_only: Whether the cookie is HTTP-only (optional)
-            max_age: The maximum age of the cookie as a Duration (optional)
-            partitioned: Whether the cookie is partitioned (optional)
-            path: The path of the cookie (optional)
-            permanent: Whether the cookie is permanent (optional)
-            removal: Whether the cookie is marked for removal (optional)
-            same_site: The same-site attribute of the cookie (optional)
-            secure: Whether the cookie is secure (optional)
+        Parameters
+        ----------
+        name : str
+            name of the cookie
+        value : str
+            value of the cookie
+        domain : str | None, optional
+            domain of the cookie, by default None
+        expires : int | None, optional
+            expiration time of the cookie as a UNIX timestamp, by default None
+        http_only : bool | None, optional
+            whether the cookie is HTTP-only, by default None
+        max_age : Duration | None, optional
+            maximum age of the cookie as a Duration, by default None
+        partitioned : bool | None, optional
+            whether the cookie is partitioned, by default None
+        path : str | None, optional
+            path of the cookie, by default None
+        permanent : bool, optional
+            whether the cookie is permanent, by default False
+        removal : bool, optional
+            whether the cookie is marked for removal, by default False
+        same_site : _SameSiteKw | None, optional
+            same-site attribute of the cookie, by default None
+        secure : bool | None, optional
+            whether the cookie is secure, by default None
 
-        Examples:
-            >>> from ry import Cookie
-            >>> c = Cookie("id", "cookie-monster")
-            >>> c
-            Cookie("id", "cookie-monster")
-            >>> str(c)
-            'id=cookie-monster'
+        Examples
+        --------
+        >>> from ry import Cookie
+        >>> c = Cookie("id", "cookie-monster")
+        >>> c
+        Cookie("id", "cookie-monster")
+        >>> str(c)
+        'id=cookie-monster'
 
         """
 
@@ -1319,18 +1333,42 @@ class UnreachableError(AssertionError):
 
 
 def unreachable(msg: str | None = None) -> t.NoReturn:
-    """raise UnreachableError with the given message
+    """raise `UnreachableError` with given message
 
-    Raises:
-        UnreachableError: always
+    Parameters
+    ----------
+    msg : str | None, optional
+        message to include in the error, by default None
+
+    Returns
+    -------
+    t.NoReturn
+        always raises UnreachableError
+
+    Raises
+    ------
+    UnreachableError
+        always
     """
 
 
 def panic(msg: str | None = None) -> t.NoReturn:
-    """panic with the given message
+    """raise `PanicError` with given message
 
-    Raises:
-        PanicException: always
+    Parameters
+    ----------
+    msg : str | None, optional
+        message to include in the error, by default None
+
+    Returns
+    -------
+    t.NoReturn
+        always raises PanicError
+
+    Raises
+    ------
+    PanicError
+        always
     """
 ```
 
@@ -2929,12 +2967,13 @@ class TimeZone(
     def to_fixed_offset(self) -> Offset:
         """Return a TimeZone with a fixed offset equivalent to this TimeZone.
 
-        Examples:
-            >>> import ry
-            >>> tz = ry.TimeZone.fixed(ry.Offset(hours=-5))
-            >>> fixed_tz = tz.to_fixed_offset()
-            >>> fixed_tz
-            Offset(hours=-5)
+        Examples
+        --------
+        >>> import ry
+        >>> tz = ry.TimeZone.fixed(ry.Offset(hours=-5))
+        >>> fixed_tz = tz.to_fixed_offset()
+        >>> fixed_tz
+        Offset(hours=-5)
 
         """
 
@@ -3477,17 +3516,15 @@ class Timestamp(
     def second(self) -> int:
         """Return the second component of the timestamp
 
-        Returns:
-            int: The second component of the timestamp.
-
-        Examples:
-            >>> import ry
-            >>> ts = ry.Timestamp(5, 123_456_789)
-            >>> ts.second
-            5
-            >>> ts = ry.Timestamp(-5, -123_456_789)
-            >>> ts.second
-            -5
+        Examples
+        --------
+        >>> import ry
+        >>> ts = ry.Timestamp(5, 123_456_789)
+        >>> ts.second
+        5
+        >>> ts = ry.Timestamp(-5, -123_456_789)
+        >>> ts.second
+        -5
 
         """
 
@@ -3495,23 +3532,21 @@ class Timestamp(
     def nanosecond(self) -> int:
         """Return the nanosecond component (-999_999_999..999_999_999)
 
-        Returns:
-            int: The nanosecond component of the timestamp (-999_999_999..999_999_999).
-
-        Examples:
-            >>> import ry
-            >>> ts = ry.Timestamp(5, 123_456_789)
-            >>> ts.nanosecond
-            123456789
-            >>> ts = ry.Timestamp(5, 999_999_999)
-            >>> ts.nanosecond
-            999999999
-            >>> ts = ry.Timestamp(-5, -123_456_789)
-            >>> ts.nanosecond
-            -123456789
-            >>> ts = ry.Timestamp(-5, -999_999_999)
-            >>> ts.nanosecond
-            -999999999
+        Examples
+        --------
+        >>> import ry
+        >>> ts = ry.Timestamp(5, 123_456_789)
+        >>> ts.nanosecond
+        123456789
+        >>> ts = ry.Timestamp(5, 999_999_999)
+        >>> ts.nanosecond
+        999999999
+        >>> ts = ry.Timestamp(-5, -123_456_789)
+        >>> ts.nanosecond
+        -123456789
+        >>> ts = ry.Timestamp(-5, -999_999_999)
+        >>> ts.nanosecond
+        -999999999
 
         """
 
@@ -3519,23 +3554,21 @@ class Timestamp(
     def subsec_microsecond(self) -> int:
         """Return the subsecond microsecond component (-999_999..999_999)
 
-        Returns:
-            int: subsecond microsecond component of the timestamp
-
-        Examples:
-            >>> import ry
-            >>> ts = ry.Timestamp(5, 123_456_789)
-            >>> ts.subsec_microsecond
-            123456
-            >>> ts = ry.Timestamp(5, 999_999_999)
-            >>> ts.subsec_microsecond
-            999999
-            >>> ts = ry.Timestamp(-5, -123_456_789)
-            >>> ts.subsec_microsecond
-            -123456
-            >>> ts = ry.Timestamp(-5, -999_999_999)
-            >>> ts.subsec_microsecond
-            -999999
+        Examples
+        --------
+        >>> import ry
+        >>> ts = ry.Timestamp(5, 123_456_789)
+        >>> ts.subsec_microsecond
+        123456
+        >>> ts = ry.Timestamp(5, 999_999_999)
+        >>> ts.subsec_microsecond
+        999999
+        >>> ts = ry.Timestamp(-5, -123_456_789)
+        >>> ts.subsec_microsecond
+        -123456
+        >>> ts = ry.Timestamp(-5, -999_999_999)
+        >>> ts.subsec_microsecond
+        -999999
 
         """
 
@@ -3543,23 +3576,21 @@ class Timestamp(
     def subsec_millisecond(self) -> int:
         """Return the subsecond millisecond component (-999..999)
 
-        Returns:
-            int: The subsecond millisecond component of the timestamp (-999..999).
-
-        Examples:
-            >>> import ry
-            >>> ts = ry.Timestamp(5, 123_456_789)
-            >>> ts.subsec_millisecond
-            123
-            >>> ts = ry.Timestamp(5, 999_999_999)
-            >>> ts.subsec_millisecond
-            999
-            >>> ts = ry.Timestamp(-5, -123_456_789)
-            >>> ts.subsec_millisecond
-            -123
-            >>> ts = ry.Timestamp(-5, -999_999_999)
-            >>> ts.subsec_millisecond
-            -999
+        Examples
+        --------
+        >>> import ry
+        >>> ts = ry.Timestamp(5, 123_456_789)
+        >>> ts.subsec_millisecond
+        123
+        >>> ts = ry.Timestamp(5, 999_999_999)
+        >>> ts.subsec_millisecond
+        999
+        >>> ts = ry.Timestamp(-5, -123_456_789)
+        >>> ts.subsec_millisecond
+        -123
+        >>> ts = ry.Timestamp(-5, -999_999_999)
+        >>> ts.subsec_millisecond
+        -999
 
         """
 
@@ -3567,23 +3598,21 @@ class Timestamp(
     def subsec_nanosecond(self) -> int:
         """Return the subsecond nanosecond component (-999_999_999..999_999_999)
 
-        Returns:
-            int: The subsecond nanosecond component of the timestamp (-999_999_999..999_999_999).
-
-        Examples:
-            >>> import ry
-            >>> ts = ry.Timestamp(5, 123_456_789)
-            >>> ts.subsec_nanosecond
-            123456789
-            >>> ts = ry.Timestamp(5, 999_999_999)
-            >>> ts.subsec_nanosecond
-            999999999
-            >>> ts = ry.Timestamp(-5, -123_456_789)
-            >>> ts.subsec_nanosecond
-            -123456789
-            >>> ts = ry.Timestamp(-5, -999_999_999)
-            >>> ts.subsec_nanosecond
-            -999999999
+        Examples
+        --------
+        >>> import ry
+        >>> ts = ry.Timestamp(5, 123_456_789)
+        >>> ts.subsec_nanosecond
+        123456789
+        >>> ts = ry.Timestamp(5, 999_999_999)
+        >>> ts.subsec_nanosecond
+        999999999
+        >>> ts = ry.Timestamp(-5, -123_456_789)
+        >>> ts.subsec_nanosecond
+        -123456789
+        >>> ts = ry.Timestamp(-5, -999_999_999)
+        >>> ts.subsec_nanosecond
+        -999999999
 
         """
 
@@ -5149,12 +5178,14 @@ class Lz4FrameInfo(t.TypedDict, total=False):
 class Lz4BlockCompressor:
     def __new__(cls, dictionary: Buffer | None = None) -> t.Self: ...
     def compress(self, data: Buffer, *, size: bool = False) -> Bytes: ...
+    def __call__(self, data: Buffer, *, size: bool = False) -> Bytes: ...
 
 
 @t.final
 class Lz4BlockDecompressor:
     def __new__(cls, dictionary: Buffer | None = None) -> t.Self: ...
     def decompress(self, data: Buffer, size: int | None = None) -> Bytes: ...
+    def __call__(self, data: Buffer, size: int | None = None) -> Bytes: ...
 
 
 @t.final
@@ -5383,22 +5414,32 @@ import typing as t
 
 
 def quick_maths() -> t.Literal[3]:
-    """Performs quick-maths
+    """Perform "quick-maths"
 
-    Implements the algorithm for performing "quick-maths" as described by
-    Big Shaq in his PHD thesis, 2017, in which he states:
+    This function implements the expensive "quick-maths" algorithm, as
+    formally specified in Shaq et al. (2017):
 
-    > "2 plus 2 is 4, minus one that's 3, quick maths." (Big Shaq et al., 2017)
+        "2 plus 2 is 4, minus one that's 3, quick maths." [1]_
 
-    Reference:
-        https://youtu.be/3M_5oYU-IsU?t=60
+    I (jesse) have verified the implementation by manually calculating using
+    pen and paper.
 
-    Example:
-        >>> import ry
-        >>> result = ry.quick_maths()
-        >>> assert result == 3
+    Notes
+    -----
+    This function originates from the ``_ryo3-quick-maths`` library which is
+    a template (copy-pasta) library.
 
-    NOTE: THIS IS FROM MY TEMPLATE RY03-MODULE
+    References
+    ----------
+    .. [1] Big Shaq, M., et al. (2017). "Man's Not Hot".
+       https://youtu.be/3M_5oYU-IsU?t=64
+
+    Examples
+    --------
+    >>> import ry
+    >>> ry.quick_maths()
+    3
+
     """
 ```
 
@@ -5839,7 +5880,7 @@ class Response:
     @property
     def status_code(self) -> HttpStatus: ...
     def __bool__(self) -> bool:
-        """True if the status is a success (2xx)"""
+        """Return `True` if the status is a success (2xx)"""
 
 
 @t.final
@@ -5897,7 +5938,7 @@ class BlockingResponse:
     @property
     def status_code(self) -> HttpStatus: ...
     def __bool__(self) -> bool:
-        """True if the status is a success (2xx)"""
+        """Return `True` if the status is a success (2xx)"""
 
 
 @t.final
@@ -6139,8 +6180,10 @@ def fmt_size(
 def parse_size(s: str) -> int:
     """Return integer representation of human-readable bytes-size string.
 
-    Raises:
-        ValueError: If string is not a valid human-readable bytes-size string.
+    Raises
+    ------
+    ValueError
+        If string is not a valid human-readable bytes-size string.
     """
 
 
@@ -6653,25 +6696,33 @@ class Instant:
 
 
 def duration(secs: int = 0, nanos: int = 0) -> Duration:
-    """constructor alias for Duration"""
+    """Return a `Duration` ~ alias for `Duration` constructor"""
 
 
 def instant() -> Instant:
-    """constructor alias for Instant"""
+    """Return an `Instant` ~ alias for `Instant` constructor"""
 
 
 def sleep(secs: float) -> float:
-    """sleep for given seconds
+    """Sleep for the given number of seconds.
 
-    Args:
-        secs: number of seconds to sleep
+    Parameters
+    ----------
+    secs : float
+        number of seconds to sleep
 
-    Returns:
-        number of seconds actually slept
+    Returns
+    -------
+    float
+        number of seconds slept (ideally 8 hours)
 
-    Raises:
-        ValueError: if secs is negative
-        OverflowError: if NaN or secs is too large to convert to a duration
+    Raises
+    ------
+    ValueError
+        if secs is negative
+    OverflowError
+        if NaN or secs is too large to convert to a duration
+
     """
 
 
@@ -6808,19 +6859,29 @@ class FileReadStream(RyIterator[Bytes]):
         buffered: bool = True,
         strict: bool = True,
     ) -> t.Self:
-        """Return a FileReadStream
+        """Synchronous file read stream/iterable
 
-        Args:
-            path: path-like object
-            read_size: number of bytes to read at a time. Defaults to 65536.
-            offset: offset to start reading from. Defaults to 0.
-            buffered: whether the stream is buffered. Defaults to True.
-            strict: whether to raise a ValueError on offset beyond EOF. Defaults to True.
+        Parameters
+        ----------
+        path : FsPathLike
+            path-like object
+        read_size : int, optional
+            number of bytes to read at a time (default=65536)
+        offset : int, optional
+            offset to start reading from (default=0)
+        buffered : bool, optional
+            whether the stream is buffered (default=True)
+        strict : bool, optional
+            whether to raise a ValueError on offset beyond EOF (default=True)
 
-        Raises:
-            FileNotFoundError: If file does not exist.
-            IsADirectoryError: If path is a directory.
-            ValueError: If offset is beyond EOF and strict is True.
+        Raises
+        ------
+        FileNotFoundError
+            If file does not exist.
+        IsADirectoryError
+            If path is a directory.
+        ValueError
+            If offset is beyond EOF and strict is True.
 
         """
 
@@ -6866,19 +6927,29 @@ def read_stream(
     buffered: bool = True,
     strict: bool = True,
 ) -> FileReadStream:
-    """Return a FileReadStream
+    """Return a `FileReadStream` for the given path
 
-    Args:
-        path: path-like object
-        read_size: number of bytes to read at a time. Defaults to 65536.
-        offset: offset to start reading from. Defaults to 0.
-        buffered: whether the stream is buffered. Defaults to True.
-        strict: whether to raise a ValueError on offset beyond EOF. Defaults to True.
+    Parameters
+    ----------
+    path : FsPathLike
+        path-like object
+    read_size : int, optional
+        number of bytes to read at a time (default=65536)
+    offset : int, optional
+        offset to start reading from (default=0)
+    buffered : bool, optional
+        whether the stream is buffered (default=True)
+    strict : bool, optional
+        whether to raise a ValueError on offset beyond EOF (default=True)
 
-    Raises:
-        FileNotFoundError: If file does not exist.
-        IsADirectoryError: If path is a directory.
-        ValueError: If offset is beyond EOF and strict is True.
+    Raises
+    ------
+    FileNotFoundError
+        If file does not exist.
+    IsADirectoryError
+        If path is a directory.
+    ValueError
+        If offset is beyond EOF and strict is True.
 
     """
 
@@ -7324,15 +7395,19 @@ class SocketAddr(
     def to_socketaddrv4(self) -> SocketAddrV4:
         """Return SocketAddrV4 representation
 
-        Raises:
-            ValueError: if the internal SocketAddr v6
+        Raises
+        ------
+        ValueError
+            if the internal `SocketAddr` is v6
         """
 
     def to_socketaddrv6(self) -> SocketAddrV6:
         """Return SocketAddrV6 representation
 
-        Raises:
-            ValueError: if the internal SocketAddr v4
+        Raises
+        ------
+        ValueError
+            if the internal `SocketAddr` is v4
         """
 
     @property
@@ -7529,19 +7604,29 @@ class AsyncFileReadStream(RyAsyncIterator[Bytes]):
         buffered: bool = True,
         strict: bool = True,
     ) -> t.Self:
-        """Return an AsyncFileReadStream
+        """asynchronous file read stream
 
-        Args:
-            path: path-like object
-            read_size: number of bytes to read at a time. Defaults to 65536.
-            offset: offset to start reading from. Defaults to 0.
-            buffered: whether the stream is buffered. Defaults to True.
-            strict: whether to raise a ValueError on offset beyond EOF. Defaults to True.
+        Parameters
+        ----------
+        path : FsPathLike
+            path-like object
+        read_size : int, optional
+            number of bytes to read at a time (default=65536)
+        offset : int, optional
+            offset to start reading from (default=0)
+        buffered : bool, optional
+            whether the stream is buffered (default=True)
+        strict : bool, optional
+            whether to raise a ValueError on offset beyond EOF (default=True)
 
-        Raises:
-            FileNotFoundError: If file does not exist.
-            IsADirectoryError: If path is a directory.
-            ValueError: If offset is beyond EOF and strict is True.
+        Raises
+        ------
+        FileNotFoundError
+            If file does not exist.
+        IsADirectoryError
+            If path is a directory.
+        ValueError
+            If offset is beyond EOF and strict is True.
 
         """
 
@@ -7568,19 +7653,29 @@ def read_stream_async(
     buffered: bool = True,
     strict: bool = True,
 ) -> AsyncFileReadStream:
-    """Return a FileReadStream
+    """Return an `AsyncFileReadStream` for the given path-like object
 
-    Args:
-        path: path-like object
-        read_size: number of bytes to read at a time. Defaults to 65536.
-        offset: offset to start reading from. Defaults to 0.
-        buffered: whether the stream is buffered. Defaults to True.
-        strict: whether to raise a ValueError on offset beyond EOF. Defaults to True.
+    Parameters
+    ----------
+    path : FsPathLike
+        path-like object
+    read_size : int, optional
+        number of bytes to read at a time (default=65536)
+    offset : int, optional
+        offset to start reading from (default=0)
+    buffered : bool, optional
+        whether the stream is buffered (default=True)
+    strict : bool, optional
+        whether to raise a ValueError on offset beyond EOF (default=True)
 
-    Raises:
-        FileNotFoundError: If file does not exist.
-        IsADirectoryError: If path is a directory.
-        ValueError: If offset is beyond EOF and strict is True.
+    Raises
+    ------
+    FileNotFoundError
+        If file does not exist.
+    IsADirectoryError
+        If path is a directory.
+    ValueError
+        If offset is beyond EOF and strict is True.
 
     """
 ```
@@ -7651,40 +7746,70 @@ class WsMessage(Buffer):
     # -------------------------------------------------------------------------
     @staticmethod
     def text(text: str) -> WsMessage:
-        """Construct a new text message with the given text data
-
-        Args:
-            text: the text data for the message
-
-        Returns:
-            text `WsMessage`
-        """
+        """Construct a new text message with the given text data."""
 
     @staticmethod
     def binary(data: Buffer) -> WsMessage:
-        """Construct a new binary message with the given data.
-
-        Args:
-            data: readable-buffer data for the message
-
-        Returns:
-            binary `WsMessage`
-        """
+        """Construct a new binary message with the given data."""
 
     @staticmethod
     def ping(payload: Buffer | None = None) -> WsMessage:
         """Construct a new ping message with the given optional payload
 
-        Returns:
-            ping `WsMessage`
+        Parameters
+        ----------
+        payload : Buffer | None, optional
+            optional payload data for the ping message, by default None
+
+        Raises
+        ------
+        ValueError
+            if the payload is larger than 125 bytes
+
+        Examples
+        --------
+        >>> from ry import WsMessage
+        >>> ping_msg = WsMessage.ping(b"ping-payload")
+        >>> ping_msg.kind
+        'ping'
+        >>> ping_msg.payload
+        Bytes(b"ping-payload")
+        >>> too_large_payload = b"x" * 126
+        >>> WsMessage.ping(too_large_payload)  # doctest: +IGNORE_EXCEPTION_DETAIL
+        Traceback (most recent call last):
+            ...
+        ValueError: ping-payload exceeds the websocket limit of 125 bytes
+
         """
 
     @staticmethod
     def pong(payload: Buffer | None = None) -> WsMessage:
         """Construct a new pong message with the given optional payload
 
-        Returns:
-            pong `WsMessage`
+        Parameters
+        ----------
+        payload : Buffer | None, optional
+            optional payload data for the pong message, by default None
+
+        Raises
+        ------
+        ValueError
+            if the payload is larger than 125 bytes
+
+        Examples
+        --------
+        >>> from ry import WsMessage
+        >>> pong_msg = WsMessage.pong(b"pong-payload")
+        >>> pong_msg.kind
+        'pong'
+        >>> pong_msg.payload
+        Bytes(b"pong-payload")
+        >>> too_large_payload = b"x" * 126
+        >>> WsMessage.pong(too_large_payload)  # doctest: +IGNORE_EXCEPTION_DETAIL
+        Traceback (most recent call last):
+            ...
+        ValueError: pong-payload exceeds the websocket limit of 125 bytes
+
         """
 
     @staticmethod
@@ -7814,9 +7939,12 @@ class WebSocket:
     ) -> None:
         """Close the WebSocket connection.
 
-        Args:
-            code: Optional close code (default: `1000`=NORMAL_CLOSURE)
-            reason: Optional close reason (max length: 123 bytes)
+        Parameters
+        ----------
+        code : int, optional
+            close code (default: `1000`=NORMAL_CLOSURE)
+        reason : str | Buffer | None, optional
+            close reason (max length: 123 bytes), by default None
         """
 
     async def ping(self, payload: Buffer | None = None) -> None:
@@ -8201,10 +8329,11 @@ class URL(FromStr, ToString, _Parse):
     def path_segments(self) -> tuple[str, ...]: ...
     @property
     def port(self) -> int | None:
-        """
-        Return the port number for this URL, if any.
+        """The port number for this URL, if any.
 
-        Note: the default port numbers are never reflected by the serialization,
+        Note
+        ----
+        the default port numbers are never reflected by the serialization,
         use the `port_or_known_default` if you want a default port number returned.
 
         Default port numbers:
@@ -8212,36 +8341,36 @@ class URL(FromStr, ToString, _Parse):
             - `https` | `wss` => `443`
             - `ftp`           => `21`
 
-        Examples:
-
-            >>> from ry import URL
-            >>> assert URL("https://rotatingsandwiches.com:3000").port == 3000
-            >>> assert URL("https://rotatingsandwiches.com").port is None
-            >>> assert URL("https://rotatingsandwiches.com:443/").port is None
-            >>> assert URL("ssh://rotatingsandwiches.com:22").port == 22
+        Examples
+        --------
+        >>> from ry import URL
+        >>> assert URL("https://rotatingsandwiches.com:3000").port == 3000
+        >>> assert URL("https://rotatingsandwiches.com").port is None
+        >>> assert URL("https://rotatingsandwiches.com:443/").port is None
+        >>> assert URL("ssh://rotatingsandwiches.com:22").port == 22
 
         """
 
     @property
     def port_or_known_default(self) -> int | None:
-        """Return the port number, or the default port number if known.
+        """The port number, or the default port number if known.
 
         Default port numbers:
             - `http`  | `ws`  => `80`
             - `https` | `wss` => `443`
             - `ftp`           => `21`
 
-        Examples:
-
-            >>> from ry import URL
-            >>> URL("https://rotatingsandwiches.com:3000").port_or_known_default
-            3000
-            >>> URL("https://rotatingsandwiches.com").port_or_known_default
-            443
-            >>> URL("https://rotatingsandwiches.com:443/").port_or_known_default
-            443
-            >>> URL("ssh://rotatingsandwiches.com:22").port_or_known_default
-            22
+        Examples
+        --------
+        >>> from ry import URL
+        >>> URL("https://rotatingsandwiches.com:3000").port_or_known_default
+        3000
+        >>> URL("https://rotatingsandwiches.com").port_or_known_default
+        443
+        >>> URL("https://rotatingsandwiches.com:443/").port_or_known_default
+        443
+        >>> URL("ssh://rotatingsandwiches.com:22").port_or_known_default
+        22
 
         """
 
@@ -8588,25 +8717,30 @@ from ry.ryo3._jiter import JsonValue
 def minify(buf: Buffer | str, /) -> Bytes:
     """Return minified json data (remove whitespace, newlines)
 
-    Args:
-        buf: JSON buffer/string to minify
+    Parameters
+    ----------
+    buf : Buffer | str
+        JSON buffer/string to minify
 
-    Returns:
+    Returns
+    -------
+    Bytes
         Minified JSON data as a `Bytes` object.
 
-    Examples:
-        >>> import json as pyjson
-        >>> from ry.ryo3 import JSON
-        >>> data = {"key": "value", "number": 123, "bool": True}
-        >>> json_str = pyjson.dumps(data, indent=2)
-        >>> print(json_str)
-        {
-          "key": "value",
-          "number": 123,
-          "bool": true
-        }
-        >>> bytes(JSON.minify(json_str))
-        b'{"key":"value","number":123,"bool":true}'
+    Examples
+    --------
+    >>> import json as pyjson
+    >>> from ry.ryo3 import JSON
+    >>> data = {"key": "value", "number": 123, "bool": True}
+    >>> json_str = pyjson.dumps(data, indent=2)
+    >>> print(json_str)
+    {
+      "key": "value",
+      "number": 123,
+      "bool": true
+    }
+    >>> bytes(JSON.minify(json_str))
+    b'{"key":"value","number":123,"bool":true}'
 
     """
 
@@ -8614,31 +8748,36 @@ def minify(buf: Buffer | str, /) -> Bytes:
 def fmt(buf: Buffer | str, /) -> Bytes:
     """Return formatted json data (add indentation, newlines)
 
-    Args:
-        buf: JSON buffer/string to format
+    Parameters
+    ----------
+    buf : Buffer | str
+        JSON buffer/string to format
 
-    Returns:
+    Returns
+    -------
+    Bytes
         Formatted JSON data as a `Bytes` object.
 
-    Examples:
-        >>> import json as pyjson
-        >>> from ry.ryo3 import JSON
-        >>> data = {"key": "value", "number": 123, "bool": True}
-        >>> json_str = pyjson.dumps(data, indent=2)
-        >>> print(json_str)
-        {
-          "key": "value",
-          "number": 123,
-          "bool": true
-        }
-        >>> bytes(JSON.fmt(json_str)).decode()
-        '{\n  "key": "value",\n  "number": 123,\n  "bool": true\n}'
-        >>> print(bytes(JSON.fmt(json_str)).decode())
-        {
-          "key": "value",
-          "number": 123,
-          "bool": true
-        }
+    Examples
+    --------
+    >>> import json as pyjson
+    >>> from ry.ryo3 import JSON
+    >>> data = {"key": "value", "number": 123, "bool": True}
+    >>> json_str = pyjson.dumps(data, indent=2)
+    >>> print(json_str)
+    {
+      "key": "value",
+      "number": 123,
+      "bool": true
+    }
+    >>> bytes(JSON.fmt(json_str)).decode()
+    '{\n  "key": "value",\n  "number": 123,\n  "bool": true\n}'
+    >>> print(bytes(JSON.fmt(json_str)).decode())
+    {
+      "key": "value",
+      "number": 123,
+      "bool": true
+    }
 
     """
 
@@ -8932,7 +9071,7 @@ class ZonedDateTimeTypedDict(TypedDict):
     tz: str
 
 
-class TimestampTypedDict:
+class TimestampTypedDict(TypedDict):
     second: int
     nanosecond: int
 
@@ -8943,15 +9082,16 @@ class SignedDurationTypedDict(TypedDict):
 
 
 class TimeSpanTypedDict(TypedDict, total=False):
-    """TimeSpan TypedDict
+    """Timespan TypedDict
 
-    Examples:
-        >>> import ry
-        >>> ts = ry.timespan(years=1, months=2, weeks=3)
-        >>> ts.to_dict()
-        {'years': 1, 'months': 2, 'weeks': 3}
-        >>> {**ts}
-        {'years': 1, 'months': 2, 'weeks': 3}
+    Examples
+    --------
+    >>> import ry
+    >>> ts = ry.timespan(years=1, months=2, weeks=3)
+    >>> ts.to_dict()
+    {'years': 1, 'months': 2, 'weeks': 3}
+    >>> {**ts}
+    {'years': 1, 'months': 2, 'weeks': 3}
 
     """
 

@@ -38,32 +38,32 @@ def _tokens() -> dict[str, str]:
 TOKENS = {"{{#" + k + "}}": v for k, v in _tokens().items()}
 
 
-def replace_tokens(content: str) -> str:
+def _replace_tokens(content: str) -> str:
     for token, value in TOKENS.items():
         if token in content:
             content = content.replace(token, value)
     return content
 
 
-def replace_section_content(section: dict[str, t.Any] | None) -> None:
+def _replace_section_content(section: dict[str, t.Any] | None) -> None:
     if not isinstance(section, dict) or "Chapter" not in section:
         return
 
     # Replace raw and url-encoded forms
-    section["Chapter"]["content"] = replace_tokens(section["Chapter"]["content"])
+    section["Chapter"]["content"] = _replace_tokens(section["Chapter"]["content"])
     for sub_item in section["Chapter"]["sub_items"]:
-        replace_section_content(sub_item)
+        _replace_section_content(sub_item)
 
 
-def main() -> None:
+def _main() -> None:
     for line in sys.stdin:
         if line:
             [_context, book] = orjson.loads(line)
             for section in book["items"]:
-                replace_section_content(section)
+                _replace_section_content(section)
             b = orjson.dumps(book, option=orjson.OPT_APPEND_NEWLINE)
             sys.stdout.buffer.write(b)
 
 
 if __name__ == "__main__":
-    main()
+    _main()
