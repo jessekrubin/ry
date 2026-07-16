@@ -3,7 +3,7 @@ ulid tests (adapted from `python-ulid`)
 
 ADAPTED FROM `python-ulid`'s TESTS; REF https://github.com/mdomke/python-ulid/blob/main/tests/test_ulid.py
 
-removed freezegun as it is not really needed nor does pyo3 stuff respsect it
+removed freezegun as it is not really needed nor does pyo3 stuff respect it
 """
 
 from __future__ import annotations

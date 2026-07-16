@@ -1114,7 +1114,7 @@ impl std::fmt::Display for PyBytesSliceIter {
     }
 }
 
-/// Interal iterator of the window ranges either fwd or reverse
+/// Internal iterator of the window ranges either fwd or reverse
 #[derive(Clone, Debug)]
 enum BytesSliceIterRanges {
     WindowsForward(BytesWindowRanges<false>),
