@@ -7,7 +7,7 @@
 
 ---
 
-## v0.0.98 [unreleased]
+## v0.0.98 [2026-07-16]
 
 - docs/types
   - Converted (painstakingly/by-hand) all (public) docstrings from
