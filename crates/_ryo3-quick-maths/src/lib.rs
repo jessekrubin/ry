@@ -18,10 +18,12 @@ use pyo3::prelude::*;
 /// ```
 #[pyfunction]
 #[must_use]
-pub const fn quick_maths() -> i32 {
+pub const fn quick_maths() -> i8 {
     // 2 + 2 that's 4, minus 1 that's 3, quick maths
     let mut qm = 2 + 2;
+    debug_assert!(qm == 4, "2 plus 2 is 4");
     qm -= 1;
+    debug_assert!(qm == 3, "minus one that's 3");
     qm
 }
 
