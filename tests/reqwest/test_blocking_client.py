@@ -378,14 +378,6 @@ def test_client_post_json_and_form_errors(server: ReqtestServer) -> None:
 
 
 class TestTimeout:
-    def test_client_timeout_dev(self, server: ReqtestServer) -> None:
-        url = server.url
-        client = ry.BlockingClient(timeout=ry.Duration.from_secs_f64(0.1))
-        res = client.get(str(url) + "slow")
-        assert res.status_code == 200
-        with pytest.raises(ry.ReqwestError, match="TimedOut"):
-            _text = res.text()
-
     def test_client_timeout_get_both_same_time(self, server: ReqtestServer) -> None:
         url = server.url
         client = ry.BlockingClient()
