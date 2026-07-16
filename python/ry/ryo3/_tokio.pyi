@@ -108,19 +108,29 @@ class AsyncFileReadStream(RyAsyncIterator[Bytes]):
         buffered: bool = True,
         strict: bool = True,
     ) -> t.Self:
-        """Return an AsyncFileReadStream
+        """asynchronous file read stream
 
-        Args:
-            path: path-like object
-            read_size: number of bytes to read at a time. Defaults to 65536.
-            offset: offset to start reading from. Defaults to 0.
-            buffered: whether the stream is buffered. Defaults to True.
-            strict: whether to raise a ValueError on offset beyond EOF. Defaults to True.
+        Parameters
+        ----------
+        path : FsPathLike
+            path-like object
+        read_size : int, optional
+            number of bytes to read at a time (default=65536)
+        offset : int, optional
+            offset to start reading from (default=0)
+        buffered : bool, optional
+            whether the stream is buffered (default=True)
+        strict : bool, optional
+            whether to raise a ValueError on offset beyond EOF (default=True)
 
-        Raises:
-            FileNotFoundError: If file does not exist.
-            IsADirectoryError: If path is a directory.
-            ValueError: If offset is beyond EOF and strict is True.
+        Raises
+        ------
+        FileNotFoundError
+            If file does not exist.
+        IsADirectoryError
+            If path is a directory.
+        ValueError
+            If offset is beyond EOF and strict is True.
 
         """
 
@@ -146,18 +156,28 @@ def read_stream_async(
     buffered: bool = True,
     strict: bool = True,
 ) -> AsyncFileReadStream:
-    """Return a FileReadStream
+    """Return an `AsyncFileReadStream` for the given path-like object
 
-    Args:
-        path: path-like object
-        read_size: number of bytes to read at a time. Defaults to 65536.
-        offset: offset to start reading from. Defaults to 0.
-        buffered: whether the stream is buffered. Defaults to True.
-        strict: whether to raise a ValueError on offset beyond EOF. Defaults to True.
+    Parameters
+    ----------
+    path : FsPathLike
+        path-like object
+    read_size : int, optional
+        number of bytes to read at a time (default=65536)
+    offset : int, optional
+        offset to start reading from (default=0)
+    buffered : bool, optional
+        whether the stream is buffered (default=True)
+    strict : bool, optional
+        whether to raise a ValueError on offset beyond EOF (default=True)
 
-    Raises:
-        FileNotFoundError: If file does not exist.
-        IsADirectoryError: If path is a directory.
-        ValueError: If offset is beyond EOF and strict is True.
+    Raises
+    ------
+    FileNotFoundError
+        If file does not exist.
+    IsADirectoryError
+        If path is a directory.
+    ValueError
+        If offset is beyond EOF and strict is True.
 
     """

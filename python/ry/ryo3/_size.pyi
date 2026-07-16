@@ -23,8 +23,10 @@ def fmt_size(
 def parse_size(s: str) -> int:
     """Return integer representation of human-readable bytes-size string.
 
-    Raises:
-        ValueError: If string is not a valid human-readable bytes-size string.
+    Raises
+    ------
+    ValueError
+        If string is not a valid human-readable bytes-size string.
     """
 
 @t.final

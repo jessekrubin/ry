@@ -10,15 +10,39 @@ class UnreachableError(AssertionError):
     """Raised when unreachable code is reached"""
 
 def unreachable(msg: str | None = None) -> t.NoReturn:
-    """raise UnreachableError with the given message
+    """raise `UnreachableError` with given message
 
-    Raises:
-        UnreachableError: always
+    Parameters
+    ----------
+    msg : str | None, optional
+        message to include in the error, by default None
+
+    Returns
+    -------
+    t.NoReturn
+        always raises UnreachableError
+
+    Raises
+    ------
+    UnreachableError
+        always
     """
 
 def panic(msg: str | None = None) -> t.NoReturn:
-    """panic with the given message
+    """raise `PanicError` with given message
 
-    Raises:
-        PanicException: always
+    Parameters
+    ----------
+    msg : str | None, optional
+        message to include in the error, by default None
+
+    Returns
+    -------
+    t.NoReturn
+        always raises PanicError
+
+    Raises
+    ------
+    PanicError
+        always
     """

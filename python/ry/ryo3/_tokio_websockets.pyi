@@ -58,37 +58,67 @@ class WsMessage(Buffer):
     # -------------------------------------------------------------------------
     @staticmethod
     def text(text: str) -> WsMessage:
-        """Construct a new text message with the given text data
-
-        Args:
-            text: the text data for the message
-
-        Returns:
-            text `WsMessage`
-        """
+        """Construct a new text message with the given text data."""
     @staticmethod
     def binary(data: Buffer) -> WsMessage:
-        """Construct a new binary message with the given data.
-
-        Args:
-            data: readable-buffer data for the message
-
-        Returns:
-            binary `WsMessage`
-        """
+        """Construct a new binary message with the given data."""
     @staticmethod
     def ping(payload: Buffer | None = None) -> WsMessage:
         """Construct a new ping message with the given optional payload
 
-        Returns:
-            ping `WsMessage`
+        Parameters
+        ----------
+        payload : Buffer | None, optional
+            optional payload data for the ping message, by default None
+
+        Raises
+        ------
+        ValueError
+            if the payload is larger than 125 bytes
+
+        Examples
+        --------
+        >>> from ry import WsMessage
+        >>> ping_msg = WsMessage.ping(b"ping-payload")
+        >>> ping_msg.kind
+        'ping'
+        >>> ping_msg.payload
+        Bytes(b"ping-payload")
+        >>> too_large_payload = b"x" * 126
+        >>> WsMessage.ping(too_large_payload)  # doctest: +IGNORE_EXCEPTION_DETAIL
+        Traceback (most recent call last):
+            ...
+        ValueError: ping-payload exceeds the websocket limit of 125 bytes
+
         """
     @staticmethod
     def pong(payload: Buffer | None = None) -> WsMessage:
         """Construct a new pong message with the given optional payload
 
-        Returns:
-            pong `WsMessage`
+        Parameters
+        ----------
+        payload : Buffer | None, optional
+            optional payload data for the pong message, by default None
+
+        Raises
+        ------
+        ValueError
+            if the payload is larger than 125 bytes
+
+        Examples
+        --------
+        >>> from ry import WsMessage
+        >>> pong_msg = WsMessage.pong(b"pong-payload")
+        >>> pong_msg.kind
+        'pong'
+        >>> pong_msg.payload
+        Bytes(b"pong-payload")
+        >>> too_large_payload = b"x" * 126
+        >>> WsMessage.pong(too_large_payload)  # doctest: +IGNORE_EXCEPTION_DETAIL
+        Traceback (most recent call last):
+            ...
+        ValueError: pong-payload exceeds the websocket limit of 125 bytes
+
         """
     @staticmethod
     def close(code: int = 1_000, reason: str | Buffer | None = None) -> WsMessage:
@@ -196,9 +226,12 @@ class WebSocket:
     ) -> None:
         """Close the WebSocket connection.
 
-        Args:
-            code: Optional close code (default: `1000`=NORMAL_CLOSURE)
-            reason: Optional close reason (max length: 123 bytes)
+        Parameters
+        ----------
+        code : int, optional
+            close code (default: `1000`=NORMAL_CLOSURE)
+        reason : str | Buffer | None, optional
+            close reason (max length: 123 bytes), by default None
         """
     async def ping(self, payload: Buffer | None = None) -> None:
         """Send a ping frame over the WebSocket connection"""

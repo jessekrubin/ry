@@ -1,9 +1,13 @@
 from __future__ import annotations
 
+import typing as t
+
 import pytest
 
 import ry
 
+if t.TYPE_CHECKING:
+    from ry.ryo3._lz4rip import _Lz4BlockMode, _Lz4BlockSize
 _10X_10Y = b"XXXXXXXXXXYYYYYYYYYY"
 _DICTIONARY = b'{"name":"ry","kind":"lz4","value":' * 8
 _JSONISH = b'{"name":"ry","kind":"lz4","value":123456789}\n' * 32
@@ -110,14 +114,12 @@ class TestLz4Frame:
         decompressed = ry.lz4_decompress(compressed, dictionary=_DICTIONARY, dict_id=42)
         assert decompressed == _JSONISH
 
-    @pytest.mark.parametrize("block_size", ["auto", "max-64kb", "max-256kb", 6, 7])
-    @pytest.mark.parametrize("block_mode", ["independent", "linked"])
     def test_frame_info_block_options(
-        self, block_size: str | int, block_mode: str
+        self, lz4_block_size: _Lz4BlockSize, lz4_block_mode: _Lz4BlockMode
     ) -> None:
         compressed = ry.lz4_compress(
             _JSONISH,
-            frame_info={"block_size": block_size, "block_mode": block_mode},  # type: ignore[typeddict-item]
+            frame_info={"block_size": lz4_block_size, "block_mode": lz4_block_mode},
         )
         assert ry.lz4_decompress(compressed) == _JSONISH
 
@@ -136,11 +138,11 @@ class TestLz4Frame:
 
     def test_frame_info_invalid_key(self) -> None:
         with pytest.raises(ValueError, match="Invalid FrameInfo key: block_szie"):
-            ry.lz4_compress(_10X_10Y, frame_info={"block_szie": "auto"})  # type: ignore[typeddict-unknown-key]
+            ry.lz4_compress(_10X_10Y, frame_info={"block_szie": "auto"})  # type: ignore[arg-type]
 
     def test_frame_info_invalid_block_size(self) -> None:
         with pytest.raises(ValueError, match="Invalid block-size"):
-            ry.lz4_compress(_10X_10Y, frame_info={"block_size": "max-9000kb"})  # type: ignore[typeddict-item]
+            ry.lz4_compress(_10X_10Y, frame_info={"block_size": "max-9000kb"})  # type: ignore[arg-type]
 
     def test_frame_decompress_wtf_is_this(self) -> None:
         with pytest.raises(OSError, match="wrong magic number"):

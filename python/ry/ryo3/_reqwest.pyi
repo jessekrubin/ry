@@ -385,7 +385,7 @@ class Response:
     @property
     def status_code(self) -> HttpStatus: ...
     def __bool__(self) -> bool:
-        """True if the status is a success (2xx)"""
+        """Return `True` if the status is a success (2xx)"""
 
 @t.final
 class BlockingResponse:
@@ -442,7 +442,7 @@ class BlockingResponse:
     @property
     def status_code(self) -> HttpStatus: ...
     def __bool__(self) -> bool:
-        """True if the status is a success (2xx)"""
+        """Return `True` if the status is a success (2xx)"""
 
 @t.final
 class ResponseStream:

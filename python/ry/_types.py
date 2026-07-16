@@ -130,7 +130,7 @@ class ZonedDateTimeTypedDict(TypedDict):
     tz: str
 
 
-class TimestampTypedDict:
+class TimestampTypedDict(TypedDict):
     second: int
     nanosecond: int
 
@@ -141,15 +141,16 @@ class SignedDurationTypedDict(TypedDict):
 
 
 class TimeSpanTypedDict(TypedDict, total=False):
-    """TimeSpan TypedDict
+    """Timespan TypedDict
 
-    Examples:
-        >>> import ry
-        >>> ts = ry.timespan(years=1, months=2, weeks=3)
-        >>> ts.to_dict()
-        {'years': 1, 'months': 2, 'weeks': 3}
-        >>> {**ts}
-        {'years': 1, 'months': 2, 'weeks': 3}
+    Examples
+    --------
+    >>> import ry
+    >>> ts = ry.timespan(years=1, months=2, weeks=3)
+    >>> ts.to_dict()
+    {'years': 1, 'months': 2, 'weeks': 3}
+    >>> {**ts}
+    {'years': 1, 'months': 2, 'weeks': 3}
 
     """
 

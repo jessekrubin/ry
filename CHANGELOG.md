@@ -9,6 +9,9 @@
 
 ## v0.0.98 [unreleased]
 
+- docs/types
+  - Converted (painstakingly/by-hand) all (public) docstrings from
+    "google-style" to "numpydoc-style"
 - `ryo3-ulid`
   - Update to ulid v2.0.1
   - Added class-attrs:

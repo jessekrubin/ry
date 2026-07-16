@@ -197,23 +197,31 @@ class Instant:
     def saturating_duration_since(self, earlier: t.Self) -> Duration: ...
 
 def duration(secs: int = 0, nanos: int = 0) -> Duration:
-    """constructor alias for Duration"""
+    """Return a `Duration` ~ alias for `Duration` constructor"""
 
 def instant() -> Instant:
-    """constructor alias for Instant"""
+    """Return an `Instant` ~ alias for `Instant` constructor"""
 
 def sleep(secs: float) -> float:
-    """sleep for given seconds
+    """Sleep for the given number of seconds.
 
-    Args:
-        secs: number of seconds to sleep
+    Parameters
+    ----------
+    secs : float
+        number of seconds to sleep
 
-    Returns:
-        number of seconds actually slept
+    Returns
+    -------
+    float
+        number of seconds slept (ideally 8 hours)
 
-    Raises:
-        ValueError: if secs is negative
-        OverflowError: if NaN or secs is too large to convert to a duration
+    Raises
+    ------
+    ValueError
+        if secs is negative
+    OverflowError
+        if NaN or secs is too large to convert to a duration
+
     """
 
 # =============================================================================
@@ -343,22 +351,31 @@ class FileReadStream(RyIterator[Bytes]):
         buffered: bool = True,
         strict: bool = True,
     ) -> t.Self:
-        """Return a FileReadStream
+        """Synchronous file read stream/iterable
 
-        Args:
-            path: path-like object
-            read_size: number of bytes to read at a time. Defaults to 65536.
-            offset: offset to start reading from. Defaults to 0.
-            buffered: whether the stream is buffered. Defaults to True.
-            strict: whether to raise a ValueError on offset beyond EOF. Defaults to True.
+        Parameters
+        ----------
+        path : FsPathLike
+            path-like object
+        read_size : int, optional
+            number of bytes to read at a time (default=65536)
+        offset : int, optional
+            offset to start reading from (default=0)
+        buffered : bool, optional
+            whether the stream is buffered (default=True)
+        strict : bool, optional
+            whether to raise a ValueError on offset beyond EOF (default=True)
 
-        Raises:
-            FileNotFoundError: If file does not exist.
-            IsADirectoryError: If path is a directory.
-            ValueError: If offset is beyond EOF and strict is True.
+        Raises
+        ------
+        FileNotFoundError
+            If file does not exist.
+        IsADirectoryError
+            If path is a directory.
+        ValueError
+            If offset is beyond EOF and strict is True.
 
         """
-
     def __enter__(self) -> t.Self: ...
     def __exit__(
         self,
@@ -399,19 +416,29 @@ def read_stream(
     buffered: bool = True,
     strict: bool = True,
 ) -> FileReadStream:
-    """Return a FileReadStream
+    """Return a `FileReadStream` for the given path
 
-    Args:
-        path: path-like object
-        read_size: number of bytes to read at a time. Defaults to 65536.
-        offset: offset to start reading from. Defaults to 0.
-        buffered: whether the stream is buffered. Defaults to True.
-        strict: whether to raise a ValueError on offset beyond EOF. Defaults to True.
+    Parameters
+    ----------
+    path : FsPathLike
+        path-like object
+    read_size : int, optional
+        number of bytes to read at a time (default=65536)
+    offset : int, optional
+        offset to start reading from (default=0)
+    buffered : bool, optional
+        whether the stream is buffered (default=True)
+    strict : bool, optional
+        whether to raise a ValueError on offset beyond EOF (default=True)
 
-    Raises:
-        FileNotFoundError: If file does not exist.
-        IsADirectoryError: If path is a directory.
-        ValueError: If offset is beyond EOF and strict is True.
+    Raises
+    ------
+    FileNotFoundError
+        If file does not exist.
+    IsADirectoryError
+        If path is a directory.
+    ValueError
+        If offset is beyond EOF and strict is True.
 
     """
 
@@ -835,14 +862,18 @@ class SocketAddr(
     def to_socketaddrv4(self) -> SocketAddrV4:
         """Return SocketAddrV4 representation
 
-        Raises:
-            ValueError: if the internal SocketAddr v6
+        Raises
+        ------
+        ValueError
+            if the internal `SocketAddr` is v6
         """
     def to_socketaddrv6(self) -> SocketAddrV6:
         """Return SocketAddrV6 representation
 
-        Raises:
-            ValueError: if the internal SocketAddr v4
+        Raises
+        ------
+        ValueError
+            if the internal `SocketAddr` is v4
         """
     @property
     def is_ipv4(self) -> bool: ...
