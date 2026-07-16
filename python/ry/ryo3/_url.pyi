@@ -76,7 +76,7 @@ class URL(FromStr, ToString, _Parse):
 
     @property
     def port_or_known_default(self) -> int | None:
-        """The the port number, or the default port number if known.
+        """The port number, or the default port number if known.
 
         Default port numbers:
             - `http`  | `ws`  => `80`

@@ -20,7 +20,8 @@ def quick_maths() -> t.Literal[3]:
 
     References
     ----------
-    .. [1] [Big Shaq, M., et al. (2017). "Man's Not Hot".](https://youtu.be/3M_5oYU-IsU?t=64)
+    .. [1] Big Shaq, M., et al. (2017). "Man's Not Hot".
+       https://youtu.be/3M_5oYU-IsU?t=64
 
     Examples
     --------
