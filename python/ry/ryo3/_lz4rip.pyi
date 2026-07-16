@@ -24,9 +24,32 @@ class Lz4FrameInfo(t.TypedDict, total=False):
 
 @t.final
 class Lz4BlockCompressor:
-    def __new__(cls, dictionary: Buffer | None = None) -> t.Self: ...
-    def compress(self, data: Buffer, *, size: bool = False) -> Bytes: ...
-    def __call__(self, data: Buffer, *, size: bool = False) -> Bytes: ...
+    def __new__(cls, dictionary: Buffer | None = None, *, size: bool = False) -> t.Self:
+        """lz4 block compressor
+
+        Parameters
+        ----------
+        dictionary : Buffer or None, default None
+            Optional compression dictionary (e.g. from `lz4_train_dict`).
+        size : bool, default False
+            If True (python-lz4 compatible), prepend the uncompressed size to
+            the block as a u32-le integer.
+        """
+    def compress(self, data: Buffer, *, size: bool | None = None) -> Bytes:
+        """compress a raw lz4 block
+
+        Parameters
+        ----------
+        data : Buffer
+            Data to compress.
+        size : bool or None, default None
+            If True (python-lz4 compatible), prepend the uncompressed size to
+            the block as a u32-le integer. If None, use the default value
+            passed to the constructor.
+
+        """
+    def __call__(self, data: Buffer, *, size: bool | None = None) -> Bytes:
+        """compress a raw lz4 block (alias for `compress`)"""
 
 @t.final
 class Lz4BlockDecompressor:

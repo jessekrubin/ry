@@ -12,7 +12,7 @@
 //!   and instead just use the string literal directly.
 //!
 //! # DEVELOP (aka note(s) to moi)
-//! - keep the macro names sorted exluding (`ValueError`)
+//! - keep the macro names sorted excluding (`ValueError`)
 //!
 
 /// macro that returns a `pyo3::exceptions::PyValueError`

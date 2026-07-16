@@ -184,14 +184,15 @@ jobs:
             TZ: America/Los_Angeles
           install: |
             apk add py3-virtualenv tzdata
+          # REMOVE THESE AS THEY TAKE A LONGGGG TIME
+          #   pip install -r requirements.dev.txt
+          #   pytest
           run: |
             set -e
             python3 -m virtualenv .venv
             source .venv/bin/activate
             pip install ry --no-index --find-links dist --force-reinstall
             python -m ry
-            pip install -r requirements.dev.txt
-            pytest
   windows:
     runs-on: ${{ matrix.platform.runner }}
     strategy:

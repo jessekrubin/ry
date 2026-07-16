@@ -7,7 +7,7 @@
 
 ---
 
-## v0.0.98 [unreleased]
+## v0.0.98 [2026-07-16]
 
 - docs/types
   - Converted (painstakingly/by-hand) all (public) docstrings from
@@ -131,7 +131,7 @@
 ## v0.0.94 [2026-06-03]
 
 - `ryo3-reqwest`
-  - upate to `0.13.4` which notably updates `hickory-resolver` to `0.26`
+  - update to `0.13.4` which notably updates `hickory-resolver` to `0.26`
 - `ryo3-jiff`
   - added `ry.TimeSpan.MIN` and `ry.TimeSpan.MAX` as the minimum and maximum
     representable time spans
@@ -1512,7 +1512,7 @@ IntoTimestampDifference = (
   - `xxhash` is own sub package now `ry.xxhash`
   - `JSON` is own subpackage right now -- named `ry.JSON` to avoid conflict with
     `json` module but maybe will change...
-  - food-for-thought-ing how `ryo3` and `ry` should be organized w/ respsect to
+  - food-for-thought-ing how `ryo3` and `ry` should be organized w/ respect to
     sub-packages and where that organization should be
 - type-annotations
   - required to break up the type annotations due to migration to sub-packages
