@@ -146,6 +146,7 @@
 - `ryo3-cookie`
   - added `ry.Cookie.to_string()` for consistency w/ other `ry` types
 - `ryo3-size`
+
   - added constants/classattrs to `ry.Size`
     - min/max/zero
       - `ry.Size.ZERO: t.Final[Size]  # Size(0)`
@@ -1134,10 +1135,12 @@ test_rydantic_bench_python[ry.Timestamp] (0002_wrap)      1.4080 (1.33)     35.9
   - Add function `parse_jsonl` for parsing json lines
   - Add `lines` kwarg to `read_json` for parsing/reading json lines
 - `ryo3-jiff`
+
   - `ZonedDateTime.__new__` takes more python-datetime like args/kwargs, old
     version of constructor moved to classmethod
     `ZonedDateTime.from_parts(timestamp: ry.Timestamp, tz: ry.TimeZone) -> ZonedDateTime`
   - `zoned` top level function
+
     - if `tz` is `None` then it uses the system timezone
     - SIGNATURE
 

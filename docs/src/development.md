@@ -49,8 +49,9 @@
 - pyo3-signature-formatting; put spaces around `=`:
   - ok: `#[pyo3(signature = (data = None, *, mode = Foo::BAR, _check = false))]`
   - bad: `#[pyo3(signature=(data=None, *, mode=Foo::BAR, _check=false))]`
-- docstrings
-  - use numpydoc style for docstrings; [example/ref](https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_numpy.html)
+- docstrings use `numpydoc`
+  - [docs](https://numpydoc.readthedocs.io/en/latest/format.html)
+  - [example](https://numpydoc.readthedocs.io/en/latest/example.html#source)
 
 ## deprecations
 
