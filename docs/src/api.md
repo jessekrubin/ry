@@ -397,6 +397,8 @@ __git_sha__: str
 <h2 id="ry.ryo3._aws_lc"><code>ry.ryo3._aws_lc</code></h2>
 
 ```python
+"""ryo3-aws-lc ~ types"""
+
 import typing as t
 
 from ry._types import Buffer
@@ -465,7 +467,7 @@ sha512_256: type[_Sha[t.Literal["sha512_256"], SHA512_256_BLOCK_SIZE, SHA512_256
 <h2 id="ry.ryo3._brotli"><code>ry.ryo3._brotli</code></h2>
 
 ```python
-"""ryo3-brotli types"""
+"""ryo3-brotli ~ types"""
 
 import typing as t
 
@@ -488,6 +490,8 @@ def brotli(
 <h2 id="ry.ryo3._bytes"><code>ry.ryo3._bytes</code></h2>
 
 ```python
+"""ryo3-bytes ~ types"""
+
 import sys
 import typing as t
 
@@ -865,7 +869,7 @@ ReadableBuffer: t.TypeAlias = Buffer | bytes | bytearray | memoryview | Bytes
 <h2 id="ry.ryo3._bzip2"><code>ry.ryo3._bzip2</code></h2>
 
 ```python
-"""ryo3-bzip2 types"""
+"""ryo3-bzip2 ~ types"""
 
 import typing as t
 
@@ -884,6 +888,8 @@ def bzip2(data: Buffer, quality: _Quality = 6) -> Bytes:
 <h2 id="ry.ryo3._cookie"><code>ry.ryo3._cookie</code></h2>
 
 ```python
+"""ryo3-cookie ~ types"""
+
 import typing as t
 
 from ry.protocols import FromStr, _Parse
@@ -1013,33 +1019,185 @@ def devfn() -> t.Literal["_ryo3-dev"]: ...
 <h2 id="ry.ryo3._dirs"><code>ry.ryo3._dirs</code></h2>
 
 ```python
-"""ryo3-dirs types"""
+"""ryo3-dirs ~ types"""
 
 
-def audio_dir() -> str | None: ...
-def cache_dir() -> str | None: ...
-def config_dir() -> str | None: ...
-def config_local_dir() -> str | None: ...
-def data_dir() -> str | None: ...
-def data_local_dir() -> str | None: ...
-def desktop_dir() -> str | None: ...
-def document_dir() -> str | None: ...
-def download_dir() -> str | None: ...
-def executable_dir() -> str | None: ...
-def font_dir() -> str | None: ...
-def home_dir() -> str | None: ...
-def picture_dir() -> str | None: ...
-def preference_dir() -> str | None: ...
-def public_dir() -> str | None: ...
-def runtime_dir() -> str | None: ...
-def state_dir() -> str | None: ...
-def template_dir() -> str | None: ...
-def video_dir() -> str | None: ...
+def audio_dir() -> str | None:
+    """Return audio directory or None.
+
+    - lin: `Some(XDG_MUSIC_DIR)` or `None`
+    - win: `Some({FOLDERID_Music})`
+    - mac: `Some($HOME/Music/)`
+    """
+
+
+def cache_dir() -> str | None:
+    """Return cache directory or None.
+
+    - lin: `Some($XDG_CACHE_HOME)` or `Some($HOME/.cache)`
+    - win: `Some({FOLDERID_LocalAppData})`
+    - mac: `Some($HOME/Library/Caches)`
+    """
+
+
+def config_dir() -> str | None:
+    """Return config directory or None.
+
+    - lin: `Some($XDG_CONFIG_HOME)` or `Some($HOME/.config)`
+    - win: `Some({FOLDERID_RoamingAppData})`
+    - mac: `Some($HOME/Library/Application Support)`
+    """
+
+
+def config_local_dir() -> str | None:
+    """Return local config directory or None.
+
+    - lin: `Some($XDG_CONFIG_HOME)` or `Some($HOME/.config)`
+    - win: `Some({FOLDERID_LocalAppData})`
+    - mac: `Some($HOME/Library/Application Support)`
+    """
+
+
+def data_dir() -> str | None:
+    """Return data directory or None.
+
+    - lin: `Some($XDG_DATA_HOME)` or `Some($HOME/.local/share)`
+    - win: `Some({FOLDERID_RoamingAppData})`
+    - mac: `Some($HOME/Library/Application Support)`
+    """
+
+
+def data_local_dir() -> str | None:
+    """Return local data directory or None.
+
+    - lin: `Some($XDG_DATA_HOME)` or `Some($HOME/.local/share)`
+    - win: `Some({FOLDERID_LocalAppData})`
+    - mac: `Some($HOME/Library/Application Support)`
+    """
+
+
+def desktop_dir() -> str | None:
+    """Return desktop directory or None.
+
+    - lin: `Some(XDG_DESKTOP_DIR)` or `None`
+    - win: `Some({FOLDERID_Desktop})`
+    - mac: `Some($HOME/Desktop/)`
+    """
+
+
+def document_dir() -> str | None:
+    """Return document directory or None.
+
+    - lin: `Some(XDG_DOCUMENTS_DIR)` or `None`
+    - win: `Some({FOLDERID_Documents})`
+    - mac: `Some($HOME/Documents/)`
+    """
+
+
+def download_dir() -> str | None:
+    """Return download directory or None.
+
+    - lin: `Some(XDG_DOWNLOAD_DIR)` or `None`
+    - win: `Some({FOLDERID_Downloads})`
+    - mac: `Some($HOME/Downloads/)`
+    """
+
+
+def executable_dir() -> str | None:
+    """Return executable directory or None.
+
+    - lin: `Some($XDG_BIN_HOME)` or `Some($HOME/.local/bin)`
+    - win: `None`
+    - mac: `None`
+    """
+
+
+def font_dir() -> str | None:
+    """Return font directory or None.
+
+    - lin: `Some($XDG_DATA_HOME/fonts/)` or `Some($HOME/.local/share/fonts/)`
+    - win: `None`
+    - mac: `Some($HOME/Library/Fonts/)`
+    """
+
+
+def home_dir() -> str | None:
+    """Return home directory or None.
+
+    - lin: `Some($HOME)`
+    - win: `Some({FOLDERID_Profile})`
+    - mac: `Some($HOME)`
+    """
+
+
+def picture_dir() -> str | None:
+    """Return picture directory or None.
+
+    - lin: `Some(XDG_PICTURES_DIR)` or `None`
+    - win: `Some({FOLDERID_Pictures})`
+    - mac: `Some($HOME/Pictures/)`
+    """
+
+
+def preference_dir() -> str | None:
+    """Return preference directory or None.
+
+    - lin: `Some($XDG_CONFIG_HOME)` or `Some($HOME/.config)`
+    - win: `Some({FOLDERID_RoamingAppData})`
+    - mac: `Some($HOME/Library/Preferences)`
+    """
+
+
+def public_dir() -> str | None:
+    """Return public directory or None.
+
+    - lin: `Some(XDG_PUBLICSHARE_DIR)` or `None`
+    - win: `Some({FOLDERID_Public})`
+    - mac: `Some($HOME/Public/)`
+    """
+
+
+def runtime_dir() -> str | None:
+    """Return runtime directory or None.
+
+    - lin: `Some($XDG_RUNTIME_DIR)` or `None`
+    - win: `None`
+    - mac: `None`
+    """
+
+
+def state_dir() -> str | None:
+    """Return state directory or None.
+
+    - lin: `Some($XDG_STATE_HOME)` or `Some($HOME/.local/state)`
+    - win: `None`
+    - mac: `None`
+    """
+
+
+def template_dir() -> str | None:
+    """Return template directory or None.
+
+    - lin: `Some(XDG_TEMPLATES_DIR)` or `None`
+    - win: `Some({FOLDERID_Templates})`
+    - mac: `None`
+    """
+
+
+def video_dir() -> str | None:
+    """Return video directory or None.
+
+    - lin: `Some(XDG_VIDEOS_DIR)` or `None`
+    - win: `Some({FOLDERID_Videos})`
+    - mac: `Some($HOME/Movies/)`
+    """
 ```
 
 <h2 id="ry.ryo3._encoding_rs"><code>ry.ryo3._encoding_rs</code></h2>
 
 ```python
+"""encoding_rs ~ types"""
+
 import typing as t
 
 Encoding: t.TypeAlias = t.Literal[
@@ -1317,6 +1475,8 @@ Encoding: t.TypeAlias = t.Literal[
 <h2 id="ry.ryo3._errors"><code>ry.ryo3._errors</code></h2>
 
 ```python
+"""ryo3-core ~ types"""
+
 import typing as t
 
 
@@ -1375,7 +1535,7 @@ def panic(msg: str | None = None) -> t.NoReturn:
 <h2 id="ry.ryo3._flate2"><code>ry.ryo3._flate2</code></h2>
 
 ```python
-"""ryo3-flate2 types"""
+"""ryo3-flate2 ~ types"""
 
 import typing as t
 
@@ -1401,7 +1561,7 @@ def is_gzipped(data: Buffer) -> bool: ...
 <h2 id="ry.ryo3._fnv"><code>ry.ryo3._fnv</code></h2>
 
 ```python
-"""ryo3-fnv types"""
+"""ryo3-fnv ~ types"""
 
 import typing as t
 
@@ -1437,7 +1597,7 @@ class fnv1a:  # noqa: N801
 <h2 id="ry.ryo3._fspath"><code>ry.ryo3._fspath</code></h2>
 
 ```python
-"""ryo3-fspath types"""
+"""ryo3-fspath ~ types"""
 
 import typing as t
 from os import PathLike
@@ -1601,7 +1761,7 @@ class FsPathReaddir(RyIterator[FsPath]):
 <h2 id="ry.ryo3._glob"><code>ry.ryo3._glob</code></h2>
 
 ```python
-"""ryo3-glob types"""
+"""ryo3-glob ~ types"""
 
 import typing as t
 from os import PathLike
@@ -1698,7 +1858,7 @@ class GlobPattern:
 <h2 id="ry.ryo3._globset"><code>ry.ryo3._globset</code></h2>
 
 ```python
-"""ryo3-globset types"""
+"""ryo3-globset ~ types"""
 
 import typing as t
 from os import PathLike
@@ -1784,7 +1944,7 @@ def globster(
 <h2 id="ry.ryo3._heck"><code>ry.ryo3._heck</code></h2>
 
 ```python
-"""ryo3-heck types"""
+"""ryo3-heck ~ types"""
 
 
 def camel_case(string: str) -> str: ...
@@ -1801,6 +1961,8 @@ def train_case(string: str) -> str: ...
 <h2 id="ry.ryo3._http"><code>ry.ryo3._http</code></h2>
 
 ```python
+"""ryo3-http ~ types"""
+
 import typing as t
 from collections.abc import Mapping
 
@@ -2072,7 +2234,7 @@ class HttpStatus:
 <h2 id="ry.ryo3._jiff"><code>ry.ryo3._jiff</code></h2>
 
 ```python
-"""ryo3-jiff types"""
+"""ryo3-jiff ~ types"""
 
 import datetime as pydt
 import typing as t
@@ -4493,6 +4655,8 @@ class TimeZoneDatabase:
 <h2 id="ry.ryo3._jiff_tz"><code>ry.ryo3._jiff_tz</code></h2>
 
 ```python
+"""ryo3-jiff ~ tz types"""
+
 import typing as t
 
 TimezoneDbName: t.TypeAlias = t.Literal[
@@ -5100,6 +5264,8 @@ TimezoneDbName: t.TypeAlias = t.Literal[
 <h2 id="ry.ryo3._jiter"><code>ry.ryo3._jiter</code></h2>
 
 ```python
+"""ryo3-jiter ~ types"""
+
 import typing as t
 from os import PathLike
 
@@ -5148,7 +5314,7 @@ def json_cache_usage() -> int: ...
 <h2 id="ry.ryo3._lz4rip"><code>ry.ryo3._lz4rip</code></h2>
 
 ```python
-"""ry.ryo3.dev"""
+"""ryo3-lz4rip ~ types"""
 
 import typing as t
 
@@ -5383,7 +5549,7 @@ def lz4_train_dict(samples: t.Iterable[Buffer], dict_size: int = 65535) -> Bytes
 <h2 id="ry.ryo3._memchr"><code>ry.ryo3._memchr</code></h2>
 
 ```python
-"""ryo3-memchr types"""
+"""ryo3-memchr ~ types"""
 
 import typing as t
 
@@ -5433,7 +5599,7 @@ def orjson_default(obj: t.Any) -> orjson.Fragment:
 <h2 id="ry.ryo3._quick_maths"><code>ry.ryo3._quick_maths</code></h2>
 
 ```python
-"""ryo3-quick-maths types"""
+"""ryo3-quick-maths ~ types"""
 
 import typing as t
 
@@ -5471,7 +5637,7 @@ def quick_maths() -> t.Literal[3]:
 <h2 id="ry.ryo3._regex"><code>ry.ryo3._regex</code></h2>
 
 ```python
-"""ryo3-regex types"""
+"""ryo3-regex ~ types"""
 
 import typing as t
 
@@ -5511,7 +5677,7 @@ class Regex:
 <h2 id="ry.ryo3._reqwest"><code>ry.ryo3._reqwest</code></h2>
 
 ```python
-"""ryo3-reqwest types"""
+"""ryo3-reqwest ~ types"""
 
 import typing as t
 
@@ -6114,7 +6280,7 @@ class Proxy:
 <h2 id="ry.ryo3._same_file"><code>ry.ryo3._same_file</code></h2>
 
 ```python
-"""ryo3-same-file types"""
+"""ryo3-same-file ~ types"""
 
 from os import PathLike
 
@@ -6125,6 +6291,8 @@ def is_same_file(left: PathLike[str], right: PathLike[str]) -> bool: ...
 <h2 id="ry.ryo3._sh"><code>ry.ryo3._sh</code></h2>
 
 ```python
+"""ry.ryo3.sh"""
+
 import typing as t
 from os import PathLike
 
@@ -6168,7 +6336,7 @@ def mkdirp(path: str | PathLike[str]) -> None: ...
 <h2 id="ry.ryo3._shlex"><code>ry.ryo3._shlex</code></h2>
 
 ```python
-"""ryo3-shlex types"""
+"""ryo3-shlex ~ types"""
 
 
 def shplit(s: str) -> list[str]:
@@ -6178,6 +6346,8 @@ def shplit(s: str) -> list[str]:
 <h2 id="ry.ryo3._size"><code>ry.ryo3._size</code></h2>
 
 ```python
+"""ryo3-size ~ types"""
+
 import builtins
 import typing as t
 
@@ -6414,7 +6584,7 @@ class Size(FromStr, _Parse):
 <h2 id="ry.ryo3._sqlformat"><code>ry.ryo3._sqlformat</code></h2>
 
 ```python
-"""ryo3-sqlformat types"""
+"""ryo3-sqlformat ~ types"""
 
 import typing as t
 
@@ -7448,6 +7618,8 @@ class SocketAddr(
 <h2 id="ry.ryo3._std_constants"><code>ry.ryo3._std_constants</code></h2>
 
 ```python
+"""ryo3-std ~ numeric constants"""
+
 import typing as t
 
 # ruff: noqa: PYI054
@@ -7511,7 +7683,7 @@ ISIZE_MIN: t.Literal[-2_147_483_648, -9_223_372_036_854_775_808]
 <h2 id="ry.ryo3._tokio"><code>ry.ryo3._tokio</code></h2>
 
 ```python
-"""ryo3-tokio types"""
+"""ryo3-tokio ~ types"""
 
 import pathlib
 import typing as t
@@ -7708,7 +7880,7 @@ def read_stream_async(
 <h2 id="ry.ryo3._tokio_websockets"><code>ry.ryo3._tokio_websockets</code></h2>
 
 ```python
-"""ryo3-tokio-websockets types"""
+"""ryo3-tokio-websockets ~ types"""
 
 import datetime as pydt
 import sys
@@ -8005,6 +8177,8 @@ def websocket(
 <h2 id="ry.ryo3._twox_hash"><code>ry.ryo3._twox_hash</code></h2>
 
 ```python
+"""ryo3-twox-hash ~ types"""
+
 import typing as t
 
 from ry._types import Buffer
@@ -8192,6 +8366,8 @@ def xxh128_intdigest(
 <h2 id="ry.ryo3._ulid"><code>ry.ryo3._ulid</code></h2>
 
 ```python
+"""ryo3-ulid ~ types"""
+
 import builtins
 import datetime as pydt
 import typing as t
@@ -8289,7 +8465,7 @@ class ULID(FromStr):
 <h2 id="ry.ryo3._unindent"><code>ry.ryo3._unindent</code></h2>
 
 ```python
-"""ryo3-unindent types"""
+"""ryo3-unindent ~ types"""
 
 
 def unindent(s: str, /) -> str: ...
@@ -8299,6 +8475,8 @@ def unindent_bytes(b: bytes, /) -> bytes: ...
 <h2 id="ry.ryo3._url"><code>ry.ryo3._url</code></h2>
 
 ```python
+"""ryo3-url ~ types"""
+
 import typing as t
 from ipaddress import IPv4Address, IPv6Address
 
@@ -8624,7 +8802,7 @@ RESERVED_FUTURE: t.Final = "reserved for future definition"
 <h2 id="ry.ryo3._walkdir"><code>ry.ryo3._walkdir</code></h2>
 
 ```python
-"""ryo3-walkdir types"""
+"""ryo3-walkdir ~ types"""
 
 import typing as t
 from os import PathLike
@@ -8695,7 +8873,7 @@ def walkdir(
 <h2 id="ry.ryo3._which"><code>ry.ryo3._which</code></h2>
 
 ```python
-"""ryo3-which types"""
+"""ryo3-which ~ types"""
 
 from pathlib import Path
 

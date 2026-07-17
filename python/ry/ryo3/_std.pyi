@@ -1,4 +1,4 @@
-"""ryo3-std types"""
+"""ryo3-std ~ types"""
 
 import datetime as pydt
 import ipaddress
