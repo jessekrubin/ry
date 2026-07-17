@@ -1,3 +1,5 @@
+"""ryo3-size ~ types"""
+
 import builtins
 import typing as t
 

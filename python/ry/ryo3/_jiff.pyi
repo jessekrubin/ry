@@ -1,4 +1,4 @@
-"""ryo3-jiff types"""
+"""ryo3-jiff ~ types"""
 
 import datetime as pydt
 import typing as t

@@ -7,6 +7,13 @@
 
 ---
 
+## v0.0.99 [unreleased]
+
+- `ryo3-dirs`
+  - added docstrings
+
+---
+
 ## v0.0.98 [2026-07-16]
 
 - docs/types

@@ -1,3 +1,5 @@
+"""ryo3-http ~ types"""
+
 import typing as t
 from collections.abc import Mapping
 

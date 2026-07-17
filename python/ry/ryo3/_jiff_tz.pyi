@@ -1,3 +1,5 @@
+"""ryo3-jiff ~ tz types"""
+
 import typing as t
 
 TimezoneDbName: t.TypeAlias = t.Literal[

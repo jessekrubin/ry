@@ -1,4 +1,4 @@
-"""ryo3-glob types"""
+"""ryo3-glob ~ types"""
 
 import typing as t
 from os import PathLike

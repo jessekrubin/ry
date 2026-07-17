@@ -1,4 +1,4 @@
-"""ryo3-tokio types"""
+"""ryo3-tokio ~ types"""
 
 import pathlib
 import typing as t

@@ -1,4 +1,4 @@
-"""ryo3-regex types"""
+"""ryo3-regex ~ types"""
 
 import typing as t
 

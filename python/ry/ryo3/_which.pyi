@@ -1,4 +1,4 @@
-"""ryo3-which types"""
+"""ryo3-which ~ types"""
 
 from pathlib import Path
 

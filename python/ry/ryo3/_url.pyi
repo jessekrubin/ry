@@ -1,3 +1,5 @@
+"""ryo3-url ~ types"""
+
 import typing as t
 from ipaddress import IPv4Address, IPv6Address
 

@@ -1,4 +1,4 @@
-"""ryo3-flate2 types"""
+"""ryo3-flate2 ~ types"""
 
 import typing as t
 

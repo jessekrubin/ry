@@ -1,4 +1,4 @@
-"""ry.ryo3.dev"""
+"""ryo3-lz4rip ~ types"""
 
 import typing as t
 

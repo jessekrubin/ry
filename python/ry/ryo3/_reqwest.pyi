@@ -1,4 +1,4 @@
-"""ryo3-reqwest types"""
+"""ryo3-reqwest ~ types"""
 
 import typing as t
 

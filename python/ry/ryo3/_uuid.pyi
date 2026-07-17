@@ -1,4 +1,4 @@
-"""ryo3-uuid types
+"""ryo3-uuid ~ types
 
 based on typeshed types for python's builtin uuid module
 

@@ -1,3 +1,5 @@
+"""ryo3-core ~ types"""
+
 import typing as t
 
 class PanicError(BaseException):
