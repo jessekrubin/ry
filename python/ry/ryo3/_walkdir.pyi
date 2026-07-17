@@ -1,4 +1,4 @@
-"""ryo3-walkdir types"""
+"""ryo3-walkdir ~ types"""
 
 import typing as t
 from os import PathLike

@@ -1,4 +1,4 @@
-"""ryo3-quick-maths types"""
+"""ryo3-quick-maths ~ types"""
 
 import typing as t
 

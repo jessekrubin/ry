@@ -1,3 +1,5 @@
+"""encoding_rs ~ types"""
+
 import typing as t
 
 Encoding: t.TypeAlias = t.Literal[

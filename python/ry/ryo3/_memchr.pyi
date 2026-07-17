@@ -1,4 +1,4 @@
-"""ryo3-memchr types"""
+"""ryo3-memchr ~ types"""
 
 import typing as t
 

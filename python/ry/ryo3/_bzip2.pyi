@@ -1,4 +1,4 @@
-"""ryo3-bzip2 types"""
+"""ryo3-bzip2 ~ types"""
 
 import typing as t
 

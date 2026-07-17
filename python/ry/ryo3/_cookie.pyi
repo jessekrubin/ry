@@ -1,3 +1,5 @@
+"""ryo3-cookie ~ types"""
+
 import typing as t
 
 from ry.protocols import FromStr, _Parse

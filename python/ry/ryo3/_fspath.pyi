@@ -1,4 +1,4 @@
-"""ryo3-fspath types"""
+"""ryo3-fspath ~ types"""
 
 import typing as t
 from os import PathLike

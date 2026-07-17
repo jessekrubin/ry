@@ -1,3 +1,5 @@
+"""ryo3-twox-hash ~ types"""
+
 import typing as t
 
 from ry._types import Buffer

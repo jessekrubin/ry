@@ -1,4 +1,4 @@
-"""ryo3-same-file types"""
+"""ryo3-same-file ~ types"""
 
 from os import PathLike
 

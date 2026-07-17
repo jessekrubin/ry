@@ -1,3 +1,5 @@
+"""ryo3-std ~ numeric constants"""
+
 import typing as t
 
 # ruff: noqa: PYI054

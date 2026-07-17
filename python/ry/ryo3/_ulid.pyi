@@ -1,3 +1,5 @@
+"""ryo3-ulid ~ types"""
+
 import builtins
 import datetime as pydt
 import typing as t

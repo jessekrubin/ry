@@ -1,4 +1,4 @@
-"""ryo3-sqlformat types"""
+"""ryo3-sqlformat ~ types"""
 
 import typing as t
 

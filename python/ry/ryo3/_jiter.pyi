@@ -1,3 +1,5 @@
+"""ryo3-jiter ~ types"""
+
 import typing as t
 from os import PathLike
 

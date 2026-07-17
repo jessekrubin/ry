@@ -1,4 +1,4 @@
-"""ryo3-brotli types"""
+"""ryo3-brotli ~ types"""
 
 import typing as t
 

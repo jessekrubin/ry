@@ -1,4 +1,4 @@
-"""ryo3-fnv types"""
+"""ryo3-fnv ~ types"""
 
 import typing as t
 

@@ -1,3 +1,5 @@
+"""ryo3-bytes ~ types"""
+
 import sys
 import typing as t
 

@@ -1,4 +1,4 @@
-"""ryo3-tokio-websockets types"""
+"""ryo3-tokio-websockets ~ types"""
 
 import datetime as pydt
 import sys
