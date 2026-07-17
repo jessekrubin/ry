@@ -6291,8 +6291,6 @@ def is_same_file(left: PathLike[str], right: PathLike[str]) -> bool: ...
 <h2 id="ry.ryo3._sh"><code>ry.ryo3._sh</code></h2>
 
 ```python
-"""ry.ryo3.sh"""
-
 import typing as t
 from os import PathLike
 
@@ -6680,7 +6678,7 @@ class SqlFormatter:
 <h2 id="ry.ryo3._std"><code>ry.ryo3._std</code></h2>
 
 ```python
-"""ryo3-std types"""
+"""ryo3-std ~ types"""
 
 import datetime as pydt
 import ipaddress
@@ -8650,7 +8648,7 @@ class URL(FromStr, ToString, _Parse):
 <h2 id="ry.ryo3._uuid"><code>ry.ryo3._uuid</code></h2>
 
 ```python
-"""ryo3-uuid types
+"""ryo3-uuid ~ types
 
 based on typeshed types for python's builtin uuid module
 
