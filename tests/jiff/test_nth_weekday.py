@@ -4,6 +4,9 @@ import pytest
 
 import ry
 
+_DAY_RANGE_ERR = r"parameter 'day'.*1\.\.=31"
+_DATE_RANGE_ERR = r"parameter '(year|Unix epoch days)'.*required range"
+
 
 class TestDateTimeNthWeekdayOfMonth:
     def test_nth_weekday_of_month(self) -> None:
@@ -26,16 +29,12 @@ class TestDateTimeNthWeekdayOfMonth:
         # There is no 5th Monday.
         with pytest.raises(
             ValueError,
-            match=re.escape(
-                "parameter 'day' for `2024-03` is invalid, must be in range `1..=31`"
-            ),
+            match=_DAY_RANGE_ERR,
         ):
             _r = dt.nth_weekday_of_month(5, "monday")
         with pytest.raises(
             ValueError,
-            match=re.escape(
-                "parameter 'day' for `2024-03` is invalid, must be in range `1..=31`"
-            ),
+            match=_DAY_RANGE_ERR,
         ):
             _r = dt.nth_weekday_of_month(-5, "monday")
 
@@ -68,16 +67,12 @@ class TestDateTimeNthWeekday:
     def test_overflow_results_in_error(self) -> None:
         with pytest.raises(
             ValueError,
-            match=re.escape(
-                "parameter 'year' is not in the required range of -9999..=9999"
-            ),
+            match=_DATE_RANGE_ERR,
         ):
             _r = ry.DateTime.MAX.nth_weekday(1, "saturday")
         with pytest.raises(
             ValueError,
-            match=re.escape(
-                "parameter 'year' is not in the required range of -9999..=9999"
-            ),
+            match=_DATE_RANGE_ERR,
         ):
             _r = ry.DateTime.MIN.nth_weekday(-1, "monday")
 
@@ -96,16 +91,12 @@ class TestDateNthWeekdayOfMonth:
         # There is no 5th Monday.
         with pytest.raises(
             ValueError,
-            match=re.escape(
-                "parameter 'day' for `2024-03` is invalid, must be in range `1..=31`"
-            ),
+            match=_DAY_RANGE_ERR,
         ):
             _r = dt.nth_weekday_of_month(5, "monday")
         with pytest.raises(
             ValueError,
-            match=re.escape(
-                "parameter 'day' for `2024-03` is invalid, must be in range `1..=31`"
-            ),
+            match=_DAY_RANGE_ERR,
         ):
             _r = dt.nth_weekday_of_month(-5, "monday")
 
@@ -138,16 +129,12 @@ class TestDateNthWeekday:
     def test_overflow_results_in_error(self) -> None:
         with pytest.raises(
             ValueError,
-            match=re.escape(
-                "parameter 'year' is not in the required range of -9999..=9999",
-            ),
+            match=_DATE_RANGE_ERR,
         ):
             _r = ry.Date.MAX.nth_weekday(1, "saturday")
         with pytest.raises(
             ValueError,
-            match=re.escape(
-                "parameter 'year' is not in the required range of -9999..=9999"
-            ),
+            match=_DATE_RANGE_ERR,
         ):
             _r = ry.Date.MIN.nth_weekday(-1, "monday")
 
@@ -169,16 +156,12 @@ class TestZonedDateTimeNthWeekdayOfMonth:
         zdt = ry.date(2024, 3, 25).at(7, 30, 0, 0).in_tz("America/New_York")
         with pytest.raises(
             ValueError,
-            match=re.escape(
-                "parameter 'day' for `2024-03` is invalid, must be in range `1..=31`"
-            ),
+            match=_DAY_RANGE_ERR,
         ):
             _r = zdt.nth_weekday_of_month(5, "monday")
         with pytest.raises(
             ValueError,
-            match=re.escape(
-                "parameter 'day' for `2024-03` is invalid, must be in range `1..=31`"
-            ),
+            match=_DAY_RANGE_ERR,
         ):
             _r = zdt.nth_weekday_of_month(-5, "monday")
 

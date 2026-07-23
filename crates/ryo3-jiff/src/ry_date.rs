@@ -358,8 +358,9 @@ impl RyDate {
     }
 
     fn in_tz(&self, tz: &str) -> PyResult<RyZoned> {
+        let tz = crate::ry_timezone::get_time_zone(tz).map_err(map_py_value_err)?;
         self.0
-            .in_tz(tz)
+            .to_zoned(tz)
             .map(RyZoned::from)
             .map_err(map_py_value_err)
     }

@@ -468,7 +468,7 @@ class TestDateTimeReplace:
         ):
             dt1.replace(day_of_year=366)
         dt1 = ry.date(9999, 1, 1).at(0, 0, 0, 0)
-        with pytest.raises(ValueError, match="day of year is invalid"):
+        with pytest.raises(ValueError, match=r"1\.\.=365"):
             dt1.replace(day_of_year=366)
 
     # ==== DAY OF YEAR NO LEAP ====
@@ -485,11 +485,11 @@ class TestDateTimeReplace:
     def test_replace_day_of_year_no_leap_err(self) -> None:
         dt1 = ry.date(2023, 1, 1).at(0, 0, 0, 0)
 
-        err_msg = "number of days is invalid, must be in range `1..=365`"
-        with pytest.raises(ValueError, match=re.escape(err_msg)):
+        err_msg = r"1\.\.=365"
+        with pytest.raises(ValueError, match=err_msg):
             dt1.replace(day_of_year_no_leap=366)
         dt1 = ry.date(9999, 1, 1).at(0, 0, 0, 0)
-        with pytest.raises(ValueError, match=re.escape(err_msg)):
+        with pytest.raises(ValueError, match=err_msg):
             dt1.replace(day_of_year_no_leap=366)
 
     # ==== HOUR ====

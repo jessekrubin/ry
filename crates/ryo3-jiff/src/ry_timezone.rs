@@ -13,12 +13,17 @@ use crate::JiffTimeZone;
 use crate::ry_datetime::RyDateTime;
 use crate::ry_offset::RyOffset;
 use crate::ry_timestamp::RyTimestamp;
+use crate::ry_timezone_database::bundled_tzdb;
 use crate::ry_zoned::RyZoned;
 
 #[derive(Debug, Clone)]
 #[pyclass(name = "TimeZone", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyTimeZone(pub(crate) TimeZone);
+
+pub(crate) fn get_time_zone(time_zone_name: &str) -> Result<TimeZone, jiff::Error> {
+    TimeZone::get(time_zone_name).or_else(|_| bundled_tzdb().get(time_zone_name))
+}
 
 #[pymethods]
 impl RyTimeZone {
@@ -30,7 +35,7 @@ impl RyTimeZone {
         if time_zone_name.eq_ignore_ascii_case("utc") {
             return Ok(Self::from(TimeZone::fixed(Offset::UTC)));
         }
-        TimeZone::get(time_zone_name)
+        get_time_zone(time_zone_name)
             .map(Self::from)
             .map_err(map_py_value_err)
     }
@@ -143,7 +148,7 @@ impl RyTimeZone {
 
     #[staticmethod]
     fn get(tz_name: &str) -> PyResult<Self> {
-        TimeZone::get(tz_name)
+        get_time_zone(tz_name)
             .map(Self::from)
             .map_err(map_py_value_err)
     }

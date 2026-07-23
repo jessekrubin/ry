@@ -52,11 +52,11 @@ pub fn zoned(
     tz: Option<&str>,
 ) -> PyResult<RyZoned> {
     if let Some(tz) = tz {
-        // let a =
+        let tz = crate::ry_timezone::get_time_zone(tz).map_err(map_py_value_err)?;
         Date::new(year, month, day)
             .map_err(map_py_value_err)?
             .at(hour, minute, second, nanosecond)
-            .in_tz(tz)
+            .to_zoned(tz)
             .map(RyZoned::from)
             .map_err(map_py_value_err)
     } else {

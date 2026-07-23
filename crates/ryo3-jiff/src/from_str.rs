@@ -1,10 +1,12 @@
 use std::str::FromStr;
 
+use jiff::Zoned;
 use jiff::civil::DateTime;
 use jiff::tz::TimeZone;
 use ryo3_core::PyFromStr;
 
 use crate::isoformat::parse_iso_week_date;
+use crate::ry_timezone_database::bundled_tzdb;
 use crate::{
     RyDate, RyDateTime, RyISOWeekDate, RyOffset, RySignedDuration, RySpan, RyTime, RyTimeZone,
     RyTimestamp, RyZoned,
@@ -31,7 +33,21 @@ impl_ry_jiff_from_str!(RySignedDuration);
 impl_ry_jiff_from_str!(RySpan);
 impl_ry_jiff_from_str!(RyTime);
 impl_ry_jiff_from_str!(RyTimestamp);
-impl_ry_jiff_from_str!(RyZoned);
+impl FromStr for RyZoned {
+    type Err = jiff::Error;
+
+    #[inline]
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        // first try to get the thing from the default db
+        if let Ok(zdt) = s.parse::<Zoned>() {
+            return Ok(Self::from(zdt));
+        }
+        // oh shit now we try the bundled db
+        crate::constants::DATETIME_PARSER
+            .parse_zoned_with(bundled_tzdb(), s)
+            .map(Self::from)
+    }
+}
 
 // WTF is up here... I fugue-state-jesse do not remember..
 // I think they don't have FromStr impls in jiff? herm...
@@ -52,7 +68,7 @@ impl PyFromStr for RyISOWeekDate {
 impl PyFromStr for RyTimeZone {
     #[inline]
     fn py_from_str(s: &str) -> pyo3::PyResult<Self> {
-        TimeZone::get(s)
+        crate::ry_timezone::get_time_zone(s)
             .map(Self::from)
             .map_err(ryo3_core::map_py_value_err)
     }

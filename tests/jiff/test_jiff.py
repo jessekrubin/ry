@@ -14,7 +14,7 @@ class TestParse:
         assert parsed_date == self.d
 
     def test_parse_datetime(self) -> None:
-        parsed_datetime = ry.DateTime.from_str(str(self.dt))
+        parsed_datetime = ry.DateTime.parse(str(self.dt))
         assert parsed_datetime == self.dt
 
     def test_parse_time(self) -> None:
