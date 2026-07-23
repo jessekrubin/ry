@@ -67,7 +67,7 @@ impl<'py> FromPyObject<'_, 'py> for JiffTimeZone {
         if ob.hasattr(attr)? {
             let tz_pystr = ob.getattr(attr)?.extract::<PyBackedStr>()?;
             let tz_str = tz_pystr.to_string();
-            let tz = TimeZone::get(&tz_str).map_err(map_py_value_err)?;
+            let tz = crate::ry_timezone::get_time_zone(&tz_str).map_err(map_py_value_err)?;
             Ok(Self(tz))
         } else {
             Ok(ob.extract::<JiffOffset>()?.0.to_time_zone().into())

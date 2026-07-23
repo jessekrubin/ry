@@ -333,10 +333,8 @@ impl RyTimestamp {
     }
 
     fn in_tz(&self, tz: &str) -> PyResult<RyZoned> {
-        self.0
-            .in_tz(tz)
-            .map(RyZoned::from)
-            .map_err(map_py_value_err)
+        let tz = crate::ry_timezone::get_time_zone(tz).map_err(map_py_value_err)?;
+        Ok(RyZoned::from(self.0.to_zoned(tz)))
     }
 
     #[staticmethod]

@@ -11,6 +11,8 @@
 
 - `ryo3-dirs`
   - added docstrings
+- `ryo3-jiff`
+  - update to latest jiff and fix error msg changes that occured
 
 ---
 
@@ -39,7 +41,7 @@
 
 ## v0.0.97 [2026-06-26]
 
-- `ryo3-globset` — redesigned from the ground up
+- `ryo3-globset` - redesigned from the ground up
   - **BREAKING** `ry.Glob` no longer allows negation (`!`-prefixed patterns)
   - `ry.GlobSet` and `ry.Globster` constructors take (`*args`)
   - `GlobOptions` internal refactoring

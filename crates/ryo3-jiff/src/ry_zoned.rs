@@ -23,6 +23,7 @@ use crate::ry_span::RySpan;
 use crate::ry_time::RyTime;
 use crate::ry_timestamp::RyTimestamp;
 use crate::ry_timezone::RyTimeZone;
+use crate::ry_timezone_database::bundled_tzdb;
 use crate::series::RyZonedSeries;
 use crate::spanish::Spanish;
 use crate::util::SpanKwargs;
@@ -70,10 +71,11 @@ impl RyZoned {
         tz: Option<&str>,
     ) -> PyResult<Self> {
         if let Some(tz) = tz {
+            let tz = crate::ry_timezone::get_time_zone(tz).map_err(map_py_value_err)?;
             Date::new(year, month, day)
                 .map_err(map_py_value_err)?
                 .at(hour, minute, second, nanosecond)
-                .in_tz(tz)
+                .to_zoned(tz)
                 .map(Self::from)
                 .map_err(map_py_value_err)
         } else {
@@ -134,10 +136,8 @@ impl RyZoned {
     #[pyo3(signature = (tz = None))]
     fn now(tz: Option<&str>) -> PyResult<Self> {
         if let Some(tz) = tz {
-            Zoned::now()
-                .in_tz(tz)
-                .map(Self::from)
-                .map_err(map_py_value_err)
+            let tz = crate::ry_timezone::get_time_zone(tz).map_err(map_py_value_err)?;
+            Ok(Self::from(Zoned::now().with_time_zone(tz)))
         } else {
             Ok(Self::from(Zoned::now()))
         }
@@ -176,6 +176,9 @@ impl RyZoned {
     #[pyo3(signature = (s, /, fmt))]
     fn strptime(s: &str, fmt: &str) -> PyResult<Self> {
         Zoned::strptime(fmt, s)
+            .or_else(|_| {
+                jiff::fmt::strtime::parse(fmt, s).and_then(|tm| tm.to_zoned_with(bundled_tzdb()))
+            })
             .map(Self::from)
             .map_err(map_py_value_err)
     }
@@ -296,7 +299,8 @@ impl RyZoned {
     }
 
     fn in_tz(&self, tz: &str) -> PyResult<Self> {
-        self.0.in_tz(tz).map(Self::from).map_err(map_py_value_err)
+        let tz = crate::ry_timezone::get_time_zone(tz).map_err(map_py_value_err)?;
+        Ok(Self::from(self.0.with_time_zone(tz)))
     }
 
     fn astimezone(&self, tz: &str) -> PyResult<Self> {
