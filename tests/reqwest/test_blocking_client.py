@@ -388,12 +388,16 @@ class TestTimeout:
         text = text_future
         assert text == "".join([f"howdy partner {i}\n" for i in range(10)])
 
+    def _get_slow(self, url: str, client: ry.BlockingClient) -> str:
+        response = client.get(url)
+        return response.text()
+
     def test_client_timeout(self, server: ReqtestServer) -> None:
         url = server.url
         client = ry.BlockingClient(timeout=ry.Duration.from_secs_f64(0.1))
-        res = client.get(str(url) + "slow")
+        slow_url = str(url) + "slow"
         with pytest.raises(ry.ReqwestError):
-            _text = res.text()
+            _text = self._get_slow(slow_url, client)
 
 
 class TestCookies:
