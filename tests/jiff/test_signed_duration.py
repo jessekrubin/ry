@@ -282,7 +282,7 @@ class TestSignedDurationStrings:
         assert f"{sd}" == "PT2H30M"
         assert f"{sd:#}" == "2h 30m"
         with pytest.raises(TypeError):
-            assert sd.to_string(True) == "2h 30m"  # type: ignore[misc]  # noqa: FBT003  # ty:ignore[too-many-positional-arguments]
+            assert sd.to_string(True) == "2h 30m"  # type: ignore[call-arg]  # noqa: FBT003  # ty:ignore[too-many-positional-arguments]
 
     def test_invalid_format_specifier(self) -> None:
         sd = ry.SignedDuration.parse("PT2H30M")

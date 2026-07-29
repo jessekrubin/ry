@@ -13,7 +13,7 @@ HttpVersionLike: t.TypeAlias = t.Literal[
 ]
 # fmt: on
 
-_StandardHeader: t.TypeAlias = t.Literal[
+_TStandardHttpHeader: t.TypeAlias = t.Literal[
     "accept",
     "accept-charset",
     "accept-encoding",
@@ -97,7 +97,7 @@ _StandardHeader: t.TypeAlias = t.Literal[
     "x-xss-protection",
 ]
 
-_HeaderName: t.TypeAlias = _StandardHeader | str
+_HeaderName: t.TypeAlias = _TStandardHttpHeader | str
 _VT = t.TypeVar("_VT", bound=str | t.Sequence[str])
 
 @t.final

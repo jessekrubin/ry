@@ -267,7 +267,7 @@ class TestTimeSpanStrings:
         assert f"{s:#}" == "2mo 10d 2h 30m"
 
         with pytest.raises(TypeError):
-            assert s.to_string(True) == "2mo 10d 2h 30m"  # type: ignore[misc] # ty: ignore[too-many-positional-arguments] # noqa: FBT003
+            assert s.to_string(True) == "2mo 10d 2h 30m"  # type: ignore[call-arg] # ty: ignore[too-many-positional-arguments] # noqa: FBT003
 
     def test_invalid_format_specifier(self) -> None:
         s = ry.TimeSpan.parse("P2M10DT2H30M")

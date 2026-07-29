@@ -11,10 +11,10 @@ import ry
 from ry import Size
 
 if TYPE_CHECKING:
-    from ry.ryo3._size import FormatSizeBase, FormatSizeStyle
+    from ry.ryo3._size import _TFormatSizeBase, _TFormatSizeStyle
 
-_FORMAT_SIZE_BASES: list[FormatSizeBase] = [2, 10]
-_FORMAT_SIZE_STYLES: list[FormatSizeStyle] = [
+_FORMAT_SIZE_BASES: list[_TFormatSizeBase] = [2, 10]
+_FORMAT_SIZE_STYLES: list[_TFormatSizeStyle] = [
     "default",
     "abbreviated",
     "abbreviated-lowercase",
@@ -24,14 +24,14 @@ _FORMAT_SIZE_STYLES: list[FormatSizeStyle] = [
 
 
 class _FmtKwargs(t.TypedDict, total=False):
-    base: FormatSizeBase
-    style: FormatSizeStyle
+    base: _TFormatSizeBase
+    style: _TFormatSizeStyle
 
 
 @dataclasses.dataclass(frozen=True)
 class _FmtOptions:
-    base: FormatSizeBase | None = None
-    style: FormatSizeStyle | None = None
+    base: _TFormatSizeBase | None = None
+    style: _TFormatSizeStyle | None = None
 
     def as_kwargs(self) -> _FmtKwargs:
         kw: _FmtKwargs = {}
@@ -42,7 +42,7 @@ class _FmtOptions:
         return kw
 
     @property
-    def expected_style(self) -> FormatSizeStyle:
+    def expected_style(self) -> _TFormatSizeStyle:
         return self.style or "default"
 
     @property
