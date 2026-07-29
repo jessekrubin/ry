@@ -40,6 +40,7 @@ classifiers = [
 ]
 dynamic = [ "readme", "version" ]
 urls.Changelog = "https://github.com/jessekrubin/ry/blob/main/CHANGELOG.md"
+urls.Documentation = "https://ryo3.dev"
 urls.Homepage = "https://github.com/jessekrubin/ry"
 urls.Issues = "https://github.com/jessekrubin/ry/issues"
 urls.Source = "https://github.com/jessekrubin/ry"

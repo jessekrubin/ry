@@ -126,6 +126,7 @@ _(aka: questions that I have been asking myself)_
 | **Compression**    | **~**                                                                                               |
 | `brotli`           | [`ryo3-brotli`](https://github.com/jessekrubin/ry/tree/main/crates/ryo3-brotli)                     |
 | `flate2`           | [`ryo3-flate2`](https://github.com/jessekrubin/ry/tree/main/crates/ryo3-flate2)                     |
+| `lz4rip`           | [`ryo3-lz4rip`](https://github.com/jessekrubin/ry/tree/main/crates/ryo3-lz4rip)                     |
 | `zstd`             | [`ryo3-zstd`](https://github.com/jessekrubin/ry/tree/main/crates/ryo3-zstd)                         |
 | **Hashing**        | **~**                                                                                               |
 | `aws-lc-rs`        | [`ryo3-aws-lc`](https://github.com/jessekrubin/ry/tree/main/crates/ryo3-aws-lc)                     |
