@@ -1509,6 +1509,15 @@ def unreachable(msg: str | None = None) -> t.NoReturn:
     ------
     UnreachableError
         always
+
+    Examples
+    --------
+    >>> from ry import unreachable
+    >>> unreachable("This should never happen")
+    Traceback (most recent call last):
+        ...
+    ry.ryo3.UnreachableError: This should never happen
+
     """
 
 
@@ -1529,6 +1538,15 @@ def panic(msg: str | None = None) -> t.NoReturn:
     ------
     PanicError
         always
+
+    Examples
+    --------
+    >>> from ry import panic
+    >>> panic("This is a fatal error")
+    Traceback (most recent call last):
+        ...
+    ry.ryo3.PanicError: This is a fatal error
+
     """
 ```
 
@@ -1976,7 +1994,7 @@ HttpVersionLike: t.TypeAlias = t.Literal[
 ]
 # fmt: on
 
-_StandardHeader: t.TypeAlias = t.Literal[
+_TStandardHttpHeader: t.TypeAlias = t.Literal[
     "accept",
     "accept-charset",
     "accept-encoding",
@@ -2060,7 +2078,7 @@ _StandardHeader: t.TypeAlias = t.Literal[
     "x-xss-protection",
 ]
 
-_HeaderName: t.TypeAlias = _StandardHeader | str
+_HeaderName: t.TypeAlias = _TStandardHttpHeader | str
 _VT = t.TypeVar("_VT", bound=str | t.Sequence[str])
 
 
@@ -6351,8 +6369,8 @@ import typing as t
 
 from ry.protocols import FromStr, _Parse
 
-FormatSizeBase: t.TypeAlias = t.Literal[2, 10]  # default=2
-FormatSizeStyle: t.TypeAlias = t.Literal[  # default="default"
+_TFormatSizeBase: t.TypeAlias = t.Literal[2, 10]  # default=2
+_TFormatSizeStyle: t.TypeAlias = t.Literal[  # default="default"
     "default",
     "abbreviated",
     "abbreviated-lowercase",
@@ -6364,10 +6382,24 @@ FormatSizeStyle: t.TypeAlias = t.Literal[  # default="default"
 def fmt_size(
     n: int,
     *,
-    base: FormatSizeBase = 2,
-    style: FormatSizeStyle = "default",
+    base: _TFormatSizeBase = 2,
+    style: _TFormatSizeStyle = "default",
 ) -> str:
-    """Return human-readable string representation of bytes-size."""
+    """Return human-readable string representation of bytes-size.
+
+    Examples
+    --------
+    >>> from ry import fmt_size
+    >>> fmt_size(1000)
+    '1000 bytes'
+    >>> fmt_size(1024)
+    '1.00 KiB'
+    >>> fmt_size(1000, base=10)
+    '1.00 KB'
+    >>> fmt_size(1024, base=2)
+    '1.00 KiB'
+
+    """
 
 
 def parse_size(s: str) -> int:
@@ -6377,17 +6409,26 @@ def parse_size(s: str) -> int:
     ------
     ValueError
         If string is not a valid human-readable bytes-size string.
+
+    Examples
+    --------
+    >>> from ry import parse_size
+    >>> parse_size("1 KB")
+    1000
+    >>> parse_size("1 KiB")
+    1024
+
     """
 
 
 @t.final
 class SizeFormatter:
-    """Human-readable bytes-size formatter."""
+    """Human-readable bytes-size formatter.ihh"""
 
     def __new__(
         cls,
-        base: FormatSizeBase = 2,
-        style: FormatSizeStyle = "default",
+        base: _TFormatSizeBase = 2,
+        style: _TFormatSizeStyle = "default",
     ) -> t.Self:
         """Initialize human-readable bytes-size formatter."""
 
@@ -6398,17 +6439,17 @@ class SizeFormatter:
         """Return human-readable string representation of bytes-size."""
 
     @property
-    def base(self) -> FormatSizeBase:
+    def base(self) -> _TFormatSizeBase:
         """Return base used by formatter."""
 
     @property
-    def style(self) -> FormatSizeStyle:
+    def style(self) -> _TFormatSizeStyle:
         """Return style used by formatter."""
 
-    def with_base(self, base: FormatSizeBase) -> SizeFormatter:
+    def with_base(self, base: _TFormatSizeBase) -> SizeFormatter:
         """Return new `SizeFormatter` with specified base."""
 
-    def with_style(self, style: FormatSizeStyle) -> SizeFormatter:
+    def with_style(self, style: _TFormatSizeStyle) -> SizeFormatter:
         """Return new `SizeFormatter` with specified style."""
 
 
@@ -6422,8 +6463,8 @@ class Size(FromStr, _Parse):
     def format(
         self,
         *,
-        base: FormatSizeBase = 2,
-        style: FormatSizeStyle = "default",
+        base: _TFormatSizeBase = 2,
+        style: _TFormatSizeStyle = "default",
     ) -> str: ...
 
     # =========================================================================
@@ -8466,8 +8507,32 @@ class ULID(FromStr):
 """ryo3-unindent ~ types"""
 
 
-def unindent(s: str, /) -> str: ...
-def unindent_bytes(b: bytes, /) -> bytes: ...
+def unindent(s: str, /) -> str:
+    """Unindent a string.
+
+    Examples
+    --------
+    >>> import ry
+    >>> indented_str = '''
+    ...     indented'''
+    >>> ry.unindent(indented_str)
+    'indented'
+
+    """
+
+
+def unindent_bytes(b: bytes, /) -> bytes:
+    """Unindent a python bytes.
+
+    Examples
+    --------
+    >>> import ry
+    >>> indented_bytes = b'''
+    ...     indented'''
+    >>> ry.unindent_bytes(indented_bytes)
+    b'indented'
+
+    """
 ```
 
 <h2 id="ry.ryo3._url"><code>ry.ryo3._url</code></h2>

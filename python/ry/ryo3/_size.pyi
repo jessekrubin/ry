@@ -5,8 +5,8 @@ import typing as t
 
 from ry.protocols import FromStr, _Parse
 
-FormatSizeBase: t.TypeAlias = t.Literal[2, 10]  # default=2
-FormatSizeStyle: t.TypeAlias = t.Literal[  # default="default"
+_TFormatSizeBase: t.TypeAlias = t.Literal[2, 10]  # default=2
+_TFormatSizeStyle: t.TypeAlias = t.Literal[  # default="default"
     "default",
     "abbreviated",
     "abbreviated-lowercase",
@@ -17,10 +17,24 @@ FormatSizeStyle: t.TypeAlias = t.Literal[  # default="default"
 def fmt_size(
     n: int,
     *,
-    base: FormatSizeBase = 2,
-    style: FormatSizeStyle = "default",
+    base: _TFormatSizeBase = 2,
+    style: _TFormatSizeStyle = "default",
 ) -> str:
-    """Return human-readable string representation of bytes-size."""
+    """Return human-readable string representation of bytes-size.
+
+    Examples
+    --------
+    >>> from ry import fmt_size
+    >>> fmt_size(1000)
+    '1000 bytes'
+    >>> fmt_size(1024)
+    '1.00 KiB'
+    >>> fmt_size(1000, base=10)
+    '1.00 KB'
+    >>> fmt_size(1024, base=2)
+    '1.00 KiB'
+
+    """
 
 def parse_size(s: str) -> int:
     """Return integer representation of human-readable bytes-size string.
@@ -29,16 +43,25 @@ def parse_size(s: str) -> int:
     ------
     ValueError
         If string is not a valid human-readable bytes-size string.
+
+    Examples
+    --------
+    >>> from ry import parse_size
+    >>> parse_size("1 KB")
+    1000
+    >>> parse_size("1 KiB")
+    1024
+
     """
 
 @t.final
 class SizeFormatter:
-    """Human-readable bytes-size formatter."""
+    """Human-readable bytes-size formatter.ihh"""
 
     def __new__(
         cls,
-        base: FormatSizeBase = 2,
-        style: FormatSizeStyle = "default",
+        base: _TFormatSizeBase = 2,
+        style: _TFormatSizeStyle = "default",
     ) -> t.Self:
         """Initialize human-readable bytes-size formatter."""
 
@@ -49,16 +72,16 @@ class SizeFormatter:
         """Return human-readable string representation of bytes-size."""
 
     @property
-    def base(self) -> FormatSizeBase:
+    def base(self) -> _TFormatSizeBase:
         """Return base used by formatter."""
     @property
-    def style(self) -> FormatSizeStyle:
+    def style(self) -> _TFormatSizeStyle:
         """Return style used by formatter."""
 
-    def with_base(self, base: FormatSizeBase) -> SizeFormatter:
+    def with_base(self, base: _TFormatSizeBase) -> SizeFormatter:
         """Return new `SizeFormatter` with specified base."""
 
-    def with_style(self, style: FormatSizeStyle) -> SizeFormatter:
+    def with_style(self, style: _TFormatSizeStyle) -> SizeFormatter:
         """Return new `SizeFormatter` with specified style."""
 
 @t.final
@@ -71,8 +94,8 @@ class Size(FromStr, _Parse):
     def format(
         self,
         *,
-        base: FormatSizeBase = 2,
-        style: FormatSizeStyle = "default",
+        base: _TFormatSizeBase = 2,
+        style: _TFormatSizeStyle = "default",
     ) -> str: ...
 
     # =========================================================================
