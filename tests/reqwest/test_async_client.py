@@ -10,6 +10,7 @@ import ry
 
 if TYPE_CHECKING:
     from ry._types import Buffer
+    from ry.ryo3._http import HttpMethodLike
     from ry.ryo3._reqwest import RequestKwargs
 
     from .conftest import ReqtestServer
@@ -117,7 +118,6 @@ async def test_client_methods(
         "head",
         "options",
         "query",
-        "__call__",
     ],
     options: RequestKwargs,
     client_cls: type[TClient],
@@ -160,7 +160,7 @@ async def test_client_methods(
 async def test_form_data(
     server: ReqtestServer,
     client: TClient,
-    method: str,
+    method: HttpMethodLike,
     form_data: t.Any,
 ) -> None:
     url = server.url / "echo"

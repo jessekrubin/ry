@@ -35,7 +35,6 @@
 - [`ry.ryo3._size`](#ry.ryo3._size)
 - [`ry.ryo3._sqlformat`](#ry.ryo3._sqlformat)
 - [`ry.ryo3._std`](#ry.ryo3._std)
-- [`ry.ryo3._std_constants`](#ry.ryo3._std_constants)
 - [`ry.ryo3._tokio`](#ry.ryo3._tokio)
 - [`ry.ryo3._tokio_websockets`](#ry.ryo3._tokio_websockets)
 - [`ry.ryo3._twox_hash`](#ry.ryo3._twox_hash)
@@ -231,6 +230,42 @@ from ry.ryo3._sqlformat import SqlfmtQueryParams as SqlfmtQueryParams
 from ry.ryo3._sqlformat import SqlFormatter as SqlFormatter
 from ry.ryo3._sqlformat import sqlfmt as sqlfmt
 from ry.ryo3._sqlformat import sqlfmt_params as sqlfmt_params
+from ry.ryo3._std import I8_BITS as I8_BITS
+from ry.ryo3._std import I8_MAX as I8_MAX
+from ry.ryo3._std import I8_MIN as I8_MIN
+from ry.ryo3._std import I16_BITS as I16_BITS
+from ry.ryo3._std import I16_MAX as I16_MAX
+from ry.ryo3._std import I16_MIN as I16_MIN
+from ry.ryo3._std import I32_BITS as I32_BITS
+from ry.ryo3._std import I32_MAX as I32_MAX
+from ry.ryo3._std import I32_MIN as I32_MIN
+from ry.ryo3._std import I64_BITS as I64_BITS
+from ry.ryo3._std import I64_MAX as I64_MAX
+from ry.ryo3._std import I64_MIN as I64_MIN
+from ry.ryo3._std import I128_BITS as I128_BITS
+from ry.ryo3._std import I128_MAX as I128_MAX
+from ry.ryo3._std import I128_MIN as I128_MIN
+from ry.ryo3._std import ISIZE_BITS as ISIZE_BITS
+from ry.ryo3._std import ISIZE_MAX as ISIZE_MAX
+from ry.ryo3._std import ISIZE_MIN as ISIZE_MIN
+from ry.ryo3._std import U8_BITS as U8_BITS
+from ry.ryo3._std import U8_MAX as U8_MAX
+from ry.ryo3._std import U8_MIN as U8_MIN
+from ry.ryo3._std import U16_BITS as U16_BITS
+from ry.ryo3._std import U16_MAX as U16_MAX
+from ry.ryo3._std import U16_MIN as U16_MIN
+from ry.ryo3._std import U32_BITS as U32_BITS
+from ry.ryo3._std import U32_MAX as U32_MAX
+from ry.ryo3._std import U32_MIN as U32_MIN
+from ry.ryo3._std import U64_BITS as U64_BITS
+from ry.ryo3._std import U64_MAX as U64_MAX
+from ry.ryo3._std import U64_MIN as U64_MIN
+from ry.ryo3._std import U128_BITS as U128_BITS
+from ry.ryo3._std import U128_MAX as U128_MAX
+from ry.ryo3._std import U128_MIN as U128_MIN
+from ry.ryo3._std import USIZE_BITS as USIZE_BITS
+from ry.ryo3._std import USIZE_MAX as USIZE_MAX
+from ry.ryo3._std import USIZE_MIN as USIZE_MIN
 from ry.ryo3._std import DirEntry as DirEntry
 from ry.ryo3._std import Duration as Duration
 from ry.ryo3._std import FileReadStream as FileReadStream
@@ -275,42 +310,6 @@ from ry.ryo3._std import symlink_metadata as symlink_metadata
 from ry.ryo3._std import write as write
 from ry.ryo3._std import write_bytes as write_bytes
 from ry.ryo3._std import write_text as write_text
-from ry.ryo3._std_constants import I8_BITS as I8_BITS
-from ry.ryo3._std_constants import I8_MAX as I8_MAX
-from ry.ryo3._std_constants import I8_MIN as I8_MIN
-from ry.ryo3._std_constants import I16_BITS as I16_BITS
-from ry.ryo3._std_constants import I16_MAX as I16_MAX
-from ry.ryo3._std_constants import I16_MIN as I16_MIN
-from ry.ryo3._std_constants import I32_BITS as I32_BITS
-from ry.ryo3._std_constants import I32_MAX as I32_MAX
-from ry.ryo3._std_constants import I32_MIN as I32_MIN
-from ry.ryo3._std_constants import I64_BITS as I64_BITS
-from ry.ryo3._std_constants import I64_MAX as I64_MAX
-from ry.ryo3._std_constants import I64_MIN as I64_MIN
-from ry.ryo3._std_constants import I128_BITS as I128_BITS
-from ry.ryo3._std_constants import I128_MAX as I128_MAX
-from ry.ryo3._std_constants import I128_MIN as I128_MIN
-from ry.ryo3._std_constants import ISIZE_BITS as ISIZE_BITS
-from ry.ryo3._std_constants import ISIZE_MAX as ISIZE_MAX
-from ry.ryo3._std_constants import ISIZE_MIN as ISIZE_MIN
-from ry.ryo3._std_constants import U8_BITS as U8_BITS
-from ry.ryo3._std_constants import U8_MAX as U8_MAX
-from ry.ryo3._std_constants import U8_MIN as U8_MIN
-from ry.ryo3._std_constants import U16_BITS as U16_BITS
-from ry.ryo3._std_constants import U16_MAX as U16_MAX
-from ry.ryo3._std_constants import U16_MIN as U16_MIN
-from ry.ryo3._std_constants import U32_BITS as U32_BITS
-from ry.ryo3._std_constants import U32_MAX as U32_MAX
-from ry.ryo3._std_constants import U32_MIN as U32_MIN
-from ry.ryo3._std_constants import U64_BITS as U64_BITS
-from ry.ryo3._std_constants import U64_MAX as U64_MAX
-from ry.ryo3._std_constants import U64_MIN as U64_MIN
-from ry.ryo3._std_constants import U128_BITS as U128_BITS
-from ry.ryo3._std_constants import U128_MAX as U128_MAX
-from ry.ryo3._std_constants import U128_MIN as U128_MIN
-from ry.ryo3._std_constants import USIZE_BITS as USIZE_BITS
-from ry.ryo3._std_constants import USIZE_MAX as USIZE_MAX
-from ry.ryo3._std_constants import USIZE_MIN as USIZE_MIN
 from ry.ryo3._tokio import AsyncDirEntry as AsyncDirEntry
 from ry.ryo3._tokio import AsyncFile as AsyncFile
 from ry.ryo3._tokio import AsyncFileReadStream as AsyncFileReadStream
@@ -5724,7 +5723,6 @@ from ry.ryo3._http import Headers, HttpMethodLike, HttpStatus, HttpVersionLike
 from ry.ryo3._std import Duration, SocketAddr
 from ry.ryo3._url import URL
 
-_HttpMethod: t.TypeAlias = HttpMethodLike | str
 _Body: t.TypeAlias = (
     Buffer
     | t.Generator[Buffer]
@@ -5913,21 +5911,21 @@ class Client:
         self,
         url: URL | str,
         *,
-        method: _HttpMethod = "GET",
+        method: HttpMethodLike = "GET",
         **kwargs: Unpack[RequestKwargs],
     ) -> Response: ...
     def fetch_sync(
         self,
         url: URL | str,
         *,
-        method: _HttpMethod = "GET",
+        method: HttpMethodLike = "GET",
         **kwargs: Unpack[RequestKwargs],
     ) -> BlockingResponse: ...
     async def __call__(
         self,
         url: URL | str,
         *,
-        method: _HttpMethod = "GET",
+        method: HttpMethodLike = "GET",
         **kwargs: Unpack[RequestKwargs],
     ) -> Response: ...
 
@@ -5993,14 +5991,14 @@ class BlockingClient:
         self,
         url: URL | str,
         *,
-        method: _HttpMethod = "GET",
+        method: HttpMethodLike = "GET",
         **kwargs: Unpack[RequestKwargs],
     ) -> BlockingResponse: ...
     def __call__(
         self,
         url: URL | str,
         *,
-        method: _HttpMethod = "GET",
+        method: HttpMethodLike = "GET",
         **kwargs: Unpack[RequestKwargs],
     ) -> BlockingResponse: ...
 
@@ -6210,7 +6208,7 @@ class BlockingResponseStream:
 async def fetch(
     url: URL | str,
     *,
-    method: _HttpMethod = "GET",
+    method: HttpMethodLike = "GET",
     body: _Body | None = None,
     headers: Headers | dict[str, str] | None = None,
     query: dict[str, t.Any] | t.Sequence[tuple[str, t.Any]] | None = None,
@@ -6225,7 +6223,7 @@ async def fetch(
 def fetch_sync(
     url: URL | str,
     *,
-    method: _HttpMethod = "GET",
+    method: HttpMethodLike = "GET",
     body: _Body | None = None,
     headers: Headers | dict[str, str] | None = None,
     query: dict[str, t.Any] | t.Sequence[tuple[str, t.Any]] | None = None,
@@ -6774,6 +6772,65 @@ from ry.protocols import (
     _Parse,
 )
 from ry.ryo3._bytes import Bytes
+
+# =============================================================================
+# CONSTANTS
+# =============================================================================
+# u8
+U8_BITS: t.Literal[8]
+U8_MAX: t.Literal[255]
+U8_MIN: t.Literal[0]
+# i8
+I8_BITS: t.Literal[8]
+I8_MAX: t.Literal[127]
+I8_MIN: t.Literal[-128]
+# i16
+I16_BITS: t.Literal[16]
+I16_MAX: t.Literal[32_767]
+I16_MIN: t.Literal[-32_768]
+# u16
+U16_BITS: t.Literal[16]
+U16_MAX: t.Literal[65_535]
+U16_MIN: t.Literal[0]
+
+# u32
+U32_BITS: t.Literal[32]
+U32_MAX: t.Literal[4_294_967_295]  # noqa: PYI054
+U32_MIN: t.Literal[0]
+
+# i32
+I32_BITS: t.Literal[32]
+I32_MAX: t.Literal[2_147_483_647]  # noqa: PYI054
+I32_MIN: t.Literal[-2_147_483_648]  # noqa: PYI054
+
+# u64
+U64_BITS: t.Literal[64]
+U64_MAX: t.Literal[18_446_744_073_709_551_615]  # noqa: PYI054
+U64_MIN: t.Literal[0]
+
+# i64
+I64_BITS: t.Literal[64]
+I64_MAX: t.Literal[9_223_372_036_854_775_807]  # noqa: PYI054
+I64_MIN: t.Literal[-9_223_372_036_854_775_808]  # noqa: PYI054
+
+# u128
+U128_BITS: t.Literal[128]
+U128_MAX: t.Literal[340_282_366_920_938_463_463_374_607_431_768_211_455]  # noqa: PYI054
+U128_MIN: t.Literal[0]
+
+# i128
+I128_BITS: t.Literal[128]
+I128_MAX: t.Literal[170_141_183_460_469_231_731_687_303_715_884_105_727]  # noqa: PYI054
+I128_MIN: t.Literal[-170_141_183_460_469_231_731_687_303_715_884_105_728]  # noqa: PYI054
+
+# usize
+USIZE_BITS: t.Literal[32, 64]
+USIZE_MAX: t.Literal[4_294_967_295, 18_446_744_073_709_551_615]  # noqa: PYI054
+USIZE_MIN: t.Literal[0]
+# isize
+ISIZE_BITS: t.Literal[32, 64]
+ISIZE_MAX: t.Literal[2_147_483_647, 9_223_372_036_854_775_807]  # noqa: PYI054
+ISIZE_MIN: t.Literal[-2_147_483_648, -9_223_372_036_854_775_808]  # noqa: PYI054
 
 
 # =============================================================================
@@ -7701,71 +7758,6 @@ class SocketAddr(
     def ip(self) -> IpAddr: ...
     @property
     def port(self) -> int: ...
-```
-
-<h2 id="ry.ryo3._std_constants"><code>ry.ryo3._std_constants</code></h2>
-
-```python
-"""ryo3-std ~ numeric constants"""
-
-import typing as t
-
-# ruff: noqa: PYI054
-# u8
-U8_BITS: t.Literal[8]
-U8_MAX: t.Literal[255]
-U8_MIN: t.Literal[0]
-# i8
-I8_BITS: t.Literal[8]
-I8_MAX: t.Literal[127]
-I8_MIN: t.Literal[-128]
-# i16
-I16_BITS: t.Literal[16]
-I16_MAX: t.Literal[32_767]
-I16_MIN: t.Literal[-32_768]
-# u16
-U16_BITS: t.Literal[16]
-U16_MAX: t.Literal[65_535]
-U16_MIN: t.Literal[0]
-
-# u32
-U32_BITS: t.Literal[32]
-U32_MAX: t.Literal[4_294_967_295]
-U32_MIN: t.Literal[0]
-
-# i32
-I32_BITS: t.Literal[32]
-I32_MAX: t.Literal[2_147_483_647]
-I32_MIN: t.Literal[-2_147_483_648]
-
-# u64
-U64_BITS: t.Literal[64]
-U64_MAX: t.Literal[18_446_744_073_709_551_615]
-U64_MIN: t.Literal[0]
-
-# i64
-I64_BITS: t.Literal[64]
-I64_MAX: t.Literal[9_223_372_036_854_775_807]
-I64_MIN: t.Literal[-9_223_372_036_854_775_808]
-
-# u128
-U128_BITS: t.Literal[128]
-U128_MAX: t.Literal[340_282_366_920_938_463_463_374_607_431_768_211_455]
-U128_MIN: t.Literal[0]
-
-# i128
-I128_BITS: t.Literal[128]
-I128_MAX: t.Literal[170_141_183_460_469_231_731_687_303_715_884_105_727]
-I128_MIN: t.Literal[-170_141_183_460_469_231_731_687_303_715_884_105_728]
-
-# usize
-USIZE_BITS: t.Literal[32, 64]
-USIZE_MAX: t.Literal[4_294_967_295, 18_446_744_073_709_551_615]
-USIZE_MIN: t.Literal[0]
-# isize
-ISIZE_BITS: t.Literal[32, 64]
-ISIZE_MAX: t.Literal[2_147_483_647, 9_223_372_036_854_775_807]
-ISIZE_MIN: t.Literal[-2_147_483_648, -9_223_372_036_854_775_808]
 ```
 
 <h2 id="ry.ryo3._tokio"><code>ry.ryo3._tokio</code></h2>
