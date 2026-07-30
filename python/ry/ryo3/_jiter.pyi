@@ -8,11 +8,11 @@ from ry._types import Buffer
 # =============================================================================
 # JSON
 # =============================================================================
-JsonPrimitive: t.TypeAlias = None | bool | int | float | str
-JsonValue: t.TypeAlias = (
-    JsonPrimitive
-    | dict[str, JsonPrimitive | JsonValue]
-    | list[JsonPrimitive | JsonValue]
+_JsonPrimitive: t.TypeAlias = None | bool | int | float | str
+_JsonValue: t.TypeAlias = (
+    _JsonPrimitive
+    | dict[str, _JsonPrimitive | _JsonValue]
+    | list[_JsonPrimitive | _JsonValue]
 )
 
 def parse_json(
@@ -22,7 +22,7 @@ def parse_json(
     cache_mode: t.Literal[True, False, "all", "keys", "none"] = "all",
     partial_mode: t.Literal[True, False, "off", "on", "trailing-strings"] = False,
     catch_duplicate_keys: bool = False,
-) -> JsonValue: ...
+) -> _JsonValue: ...
 def parse_jsonl(
     data: Buffer | bytes | str,
     *,
@@ -30,7 +30,7 @@ def parse_jsonl(
     cache_mode: t.Literal[True, False, "all", "keys", "none"] = "all",
     partial_mode: t.Literal[True, False, "off", "on", "trailing-strings"] = False,
     catch_duplicate_keys: bool = False,
-) -> list[JsonValue]: ...
+) -> list[_JsonValue]: ...
 def read_json(
     p: str | PathLike[str],
     *,
@@ -39,6 +39,6 @@ def read_json(
     partial_mode: t.Literal[True, False, "off", "on", "trailing-strings"] = False,
     catch_duplicate_keys: bool = False,
     lines: bool = False,
-) -> JsonValue: ...
+) -> _JsonValue: ...
 def json_cache_clear() -> None: ...
 def json_cache_usage() -> int: ...

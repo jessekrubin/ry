@@ -2,13 +2,11 @@
 
 import typing as t
 
-Dialect: t.TypeAlias = t.Literal["generic", "postgresql", "sqlserver"]
-Indent: t.TypeAlias = t.Literal["tabs", "\t"] | int
-SqlfmtParamValue: t.TypeAlias = str | int | float | bool
+_SqlfmtParamValue: t.TypeAlias = str | int | float | bool
 _TSqlfmtParamValue_co = t.TypeVar(
-    "_TSqlfmtParamValue_co", bound=SqlfmtParamValue, covariant=True
+    "_TSqlfmtParamValue_co", bound=_SqlfmtParamValue, covariant=True
 )
-SqlfmtParamsLike: t.TypeAlias = (
+_SqlfmtParamsLike: t.TypeAlias = (
     dict[str, _TSqlfmtParamValue_co]
     | t.Sequence[tuple[str, _TSqlfmtParamValue_co]]
     | t.Sequence[_TSqlfmtParamValue_co]
@@ -17,16 +15,16 @@ SqlfmtParamsLike: t.TypeAlias = (
 @t.final
 class SqlfmtQueryParams:
     def __new__(
-        cls, params: SqlfmtParamsLike[_TSqlfmtParamValue_co] | None = None
+        cls, params: _SqlfmtParamsLike[_TSqlfmtParamValue_co] | None = None
     ) -> t.Self: ...
     def __len__(self) -> int: ...
 
 def sqlfmt_params(
-    params: SqlfmtParamsLike[_TSqlfmtParamValue_co] | SqlfmtQueryParams | None = None,
+    params: _SqlfmtParamsLike[_TSqlfmtParamValue_co] | SqlfmtQueryParams | None = None,
 ) -> SqlfmtQueryParams: ...
 def sqlfmt(
     sql: str,
-    params: SqlfmtParamsLike[_TSqlfmtParamValue_co] | SqlfmtQueryParams | None = None,
+    params: _SqlfmtParamsLike[_TSqlfmtParamValue_co] | SqlfmtQueryParams | None = None,
     *,
     indent: int | t.Literal["tabs", "\t"] = 2,
     uppercase: bool | None = None,
@@ -72,14 +70,14 @@ class SqlFormatter:
     def fmt(
         self,
         sql: str,
-        params: SqlfmtParamsLike[_TSqlfmtParamValue_co]
+        params: _SqlfmtParamsLike[_TSqlfmtParamValue_co]
         | SqlfmtQueryParams
         | None = None,
     ) -> str: ...
     def __call__(
         self,
         sql: str,
-        params: SqlfmtParamsLike[_TSqlfmtParamValue_co]
+        params: _SqlfmtParamsLike[_TSqlfmtParamValue_co]
         | SqlfmtQueryParams
         | None = None,
     ) -> str: ...

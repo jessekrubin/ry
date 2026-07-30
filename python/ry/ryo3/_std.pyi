@@ -229,7 +229,7 @@ def sleep(secs: float) -> float:
 # =============================================================================
 # STD::FS
 # =============================================================================
-FileTypeStr: t.TypeAlias = t.Literal[
+_FileTypeStr: t.TypeAlias = t.Literal[
     "file",
     "dir",
     "symlink",
@@ -246,7 +246,7 @@ FileTypeStr: t.TypeAlias = t.Literal[
 ]
 
 @t.final
-class FileType(ToPy[FileTypeStr]):
+class FileType(ToPy[_FileTypeStr]):
     def __new__(
         cls,
         t: t.Literal[
@@ -287,7 +287,7 @@ class FileType(ToPy[FileTypeStr]):
     def is_symlink_dir(self) -> bool: ...
     @property
     def is_symlink_file(self) -> bool: ...
-    def to_py(self) -> FileTypeStr: ...
+    def to_py(self) -> _FileTypeStr: ...
 
 @t.final
 class Permissions:
