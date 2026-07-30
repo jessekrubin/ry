@@ -148,9 +148,10 @@ impl RyDateDifference {
     }
 
     fn __getnewargs_ex__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
-        let args = PyTuple::empty(py).into_bound_py_any(py)?;
-        let kwargs = self.to_dict(py)?.into_bound_py_any(py)?;
-        PyTuple::new(py, vec![args, kwargs])
+        let args = PyTuple::new(py, vec![self.date])?.into_bound_py_any(py)?;
+        let kwargs = PyDict::new(py);
+        self.options.pydict_options(py, &kwargs)?;
+        PyTuple::new(py, vec![args, kwargs.into_bound_py_any(py)?])
     }
 
     fn __repr__(&self) -> PyAsciiString {
@@ -390,10 +391,12 @@ impl RyDateTimeDifference {
     }
 
     fn __getnewargs_ex__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
-        let args = PyTuple::empty(py).into_bound_py_any(py)?;
-        let kwargs = self.to_dict(py)?.into_bound_py_any(py)?;
-        PyTuple::new(py, vec![args, kwargs])
+        let args = PyTuple::new(py, vec![self.datetime])?.into_bound_py_any(py)?;
+        let kwargs = PyDict::new(py);
+        self.options.pydict_options(py, &kwargs)?;
+        PyTuple::new(py, vec![args, kwargs.into_bound_py_any(py)?])
     }
+
     fn __repr__(&self) -> PyAsciiString {
         format!("{self}").into()
     }
@@ -622,9 +625,10 @@ impl RyTimeDifference {
     }
 
     fn __getnewargs_ex__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
-        let args = PyTuple::empty(py).into_bound_py_any(py)?;
-        let kwargs = self.to_dict(py)?.into_bound_py_any(py)?;
-        PyTuple::new(py, vec![args, kwargs])
+        let args = PyTuple::new(py, vec![self.time])?.into_bound_py_any(py)?;
+        let kwargs = PyDict::new(py);
+        self.options.pydict_options(py, &kwargs)?;
+        PyTuple::new(py, vec![args, kwargs.into_bound_py_any(py)?])
     }
 
     fn __repr__(&self) -> PyAsciiString {
@@ -869,9 +873,10 @@ impl RyTimestampDifference {
     }
 
     fn __getnewargs_ex__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
-        let args = PyTuple::empty(py).into_bound_py_any(py)?;
-        let kwargs = self.to_dict(py)?.into_bound_py_any(py)?;
-        PyTuple::new(py, vec![args, kwargs])
+        let args = PyTuple::new(py, vec![self.timestamp])?.into_bound_py_any(py)?;
+        let kwargs = PyDict::new(py);
+        self.options.pydict_options(py, &kwargs)?;
+        PyTuple::new(py, vec![args, kwargs.into_bound_py_any(py)?])
     }
 
     fn __repr__(&self) -> PyAsciiString {
@@ -1100,9 +1105,10 @@ impl RyZonedDifference {
     }
 
     fn __getnewargs_ex__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
-        let args = PyTuple::empty(py).into_bound_py_any(py)?;
-        let kwargs = self.to_dict(py)?.into_bound_py_any(py)?;
-        PyTuple::new(py, vec![args, kwargs])
+        let args = PyTuple::new(py, vec![self.zoned.clone()])?.into_bound_py_any(py)?;
+        let kwargs = PyDict::new(py);
+        self.options.pydict_options(py, &kwargs)?;
+        PyTuple::new(py, vec![args, kwargs.into_bound_py_any(py)?])
     }
 
     fn __repr__(&self) -> PyAsciiString {
