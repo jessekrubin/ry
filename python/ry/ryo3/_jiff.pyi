@@ -26,7 +26,6 @@ _TTemporal = t.TypeVar(
 )
 _TObj = t.TypeVar("_TObj", Date, DateTime, Time, Timestamp, ZonedDateTime)
 _TUnit = t.TypeVar("_TUnit", bound=_Unit)
-_TDict = t.TypeVar("_TDict")
 _TzName: t.TypeAlias = TimezoneDbName | str
 
 # ==== TYPE-ALIASES ====
@@ -1975,33 +1974,33 @@ class Offset(
 # =============================================================================
 
 @t.type_check_only
-class _Difference(t.Generic[_TObj, _TDict]):
+class _Difference(t.Generic[_TObj, _TUnit]):
     def __new__(
         cls,
         obj: _TObj,
         *,
-        smallest: _Unit,
-        largest: _Unit | None = None,
+        smallest: _TUnit,
+        largest: _TUnit | None = None,
         mode: _RoundMode | None = None,
         increment: int | None = None,
     ) -> t.Self: ...
     def __eq__(self, other: object) -> bool: ...
     @property
-    def smallest(self) -> _Unit: ...
+    def smallest(self) -> _TUnit: ...
     @property
-    def largest(self) -> _Unit | None: ...
+    def largest(self) -> _TUnit | None: ...
     @property
     def mode(self) -> _RoundMode: ...
     @property
     def increment(self) -> int: ...
-    def _smallest(self, unit: _Unit) -> t.Self: ...
-    def _largest(self, unit: _Unit) -> t.Self: ...
+    def _smallest(self, unit: _TUnit) -> t.Self: ...
+    def _largest(self, unit: _TUnit) -> t.Self: ...
     def _mode(self, mode: _RoundMode) -> t.Self: ...
     def _increment(self, increment: int) -> t.Self: ...
-    def to_dict(self) -> _DifferenceDict: ...
+    def to_dict(self) -> _DifferenceDict[_TUnit]: ...
 
 @t.final
-class DateDifference(_Difference[Date, _DateDifferenceDict]):
+class DateDifference(_Difference[Date, _CalendarUnit]):
     def __new__(
         cls,
         date: Date,
@@ -2015,7 +2014,7 @@ class DateDifference(_Difference[Date, _DateDifferenceDict]):
     def date(self) -> Date: ...
 
 @t.final
-class DateTimeDifference(_Difference[DateTime, _DateTimeDifferenceDict]):
+class DateTimeDifference(_Difference[DateTime, _Unit]):
     def __new__(
         cls,
         datetime: DateTime,
@@ -2029,7 +2028,7 @@ class DateTimeDifference(_Difference[DateTime, _DateTimeDifferenceDict]):
     def datetime(self) -> DateTime: ...
 
 @t.final
-class TimeDifference(_Difference[Time, _TimeDifferenceDict]):
+class TimeDifference(_Difference[Time, _AbsoluteUnit]):
     def __new__(
         cls,
         time: Time,
@@ -2043,7 +2042,7 @@ class TimeDifference(_Difference[Time, _TimeDifferenceDict]):
     def time(self) -> Time: ...
 
 @t.final
-class TimestampDifference(_Difference[Timestamp, _TimestampDifferenceDict]):
+class TimestampDifference(_Difference[Timestamp, _AbsoluteUnit]):
     def __new__(
         cls,
         timestamp: Timestamp,
@@ -2057,7 +2056,7 @@ class TimestampDifference(_Difference[Timestamp, _TimestampDifferenceDict]):
     def timestamp(self) -> Timestamp: ...
 
 @t.final
-class ZonedDateTimeDifference(_Difference[ZonedDateTime, _ZonedDateTimeDifferenceDict]):
+class ZonedDateTimeDifference(_Difference[ZonedDateTime, _Unit]):
     def __new__(
         cls,
         zoned: ZonedDateTime,

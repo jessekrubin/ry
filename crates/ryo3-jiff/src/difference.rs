@@ -109,13 +109,14 @@ impl RyDateDifference {
     #[pyo3(
         signature = (
             date,
+            /,
             *,
             smallest = JiffUnit::DAY,
             largest = None,
             mode = JiffRoundMode::TRUNC,
             increment = 1
         ),
-        text_signature = "(date, *, smallest=\"day\", largest=None, mode=\"trunc\", increment=1)"
+        text_signature = "(date, /, *, smallest=\"day\", largest=None, mode=\"trunc\", increment=1)"
     )]
     #[must_use]
     #[expect(clippy::trivially_copy_pass_by_ref)]
@@ -351,13 +352,14 @@ impl RyDateTimeDifference {
     #[pyo3(
         signature = (
             datetime,
+            /,
             *,
             smallest = JiffUnit::NANOSECOND,
             largest = None,
             mode = JiffRoundMode::TRUNC,
             increment = 1
         ),
-        text_signature = "(datetime, *, smallest=\"nanosecond\", largest=None, mode=\"trunc\", increment=1)"
+        text_signature = "(datetime, /, *, smallest=\"nanosecond\", largest=None, mode=\"trunc\", increment=1)"
     )]
     #[must_use]
     fn py_new(
@@ -581,13 +583,14 @@ impl RyTimeDifference {
     #[pyo3(
         signature = (
             time,
+            /,
             *,
             smallest = JiffUnit::NANOSECOND,
             largest = None,
             mode = JiffRoundMode::TRUNC,
             increment = 1
         ),
-        text_signature = "(time, *, smallest=\"nanosecond\", largest=None, mode=\"trunc\", increment=1)"
+        text_signature = "(time, /, *, smallest=\"nanosecond\", largest=None, mode=\"trunc\", increment=1)"
     )]
     #[must_use]
     #[expect(clippy::trivially_copy_pass_by_ref)]
@@ -828,13 +831,14 @@ impl RyTimestampDifference {
     #[pyo3(
         signature = (
             timestamp,
+            /,
             *,
             smallest = JiffUnit::NANOSECOND,
             largest = None,
             mode = JiffRoundMode::TRUNC,
             increment = 1
         ),
-        text_signature = "(timestamp, *, smallest=\"nanosecond\", largest=None, mode=\"trunc\", increment=1)"
+        text_signature = "(timestamp, /, *, smallest=\"nanosecond\", largest=None, mode=\"trunc\", increment=1)"
     )]
     #[must_use]
     fn py_new(
@@ -1066,13 +1070,14 @@ impl RyZonedDifference {
     #[pyo3(
         signature = (
             zoned,
+            /,
             *,
             smallest = JiffUnit::NANOSECOND,
             largest = None,
             mode = JiffRoundMode::TRUNC,
             increment = 1
         ),
-        text_signature = "(zoned, *, smallest=\"nanosecond\", largest=None, mode=\"trunc\", increment=1)"
+        text_signature = "(zoned, /, *, smallest=\"nanosecond\", largest=None, mode=\"trunc\", increment=1)"
     )]
     #[must_use]
     fn py_new(

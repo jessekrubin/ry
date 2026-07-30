@@ -18,14 +18,11 @@ __all__ = (
     "TypedDict",
     "Unpack",
 )
-
 FsPathLike: TypeAlias = str | PathLike[str]
-
 # =============================================================================
 # OPEN MODES (CANONICAL)
 # =============================================================================
 # ry accepts the non-canonical modes, but they are mapped to the canonical ones]
-
 # fmt: off
 OpenTextModeUpdating: TypeAlias = Literal[
     "a+", "at+",
@@ -36,10 +33,10 @@ OpenTextModeUpdating: TypeAlias = Literal[
 OpenTextModeWriting: TypeAlias = Literal["a", "at", "w", "wt", "x", "xt"]
 OpenTextModeReading: TypeAlias = Literal["r", "rt"]
 OpenTextMode: TypeAlias = Literal[
-    "a","a+","at","at+",
-    "r","r+","rt","rt+",
-    "w","w+","wt","wt+",
-    "x","x+","xt","xt+"
+    "a", "a+", "at", "at+",
+    "r", "r+", "rt", "rt+",
+    "w", "w+", "wt", "wt+",
+    "x", "x+", "xt", "xt+"
 ]
 OpenBinaryModeUpdating: TypeAlias = Literal["ab+", "rb+", "wb+", "xb+"]
 OpenBinaryModeWriting: TypeAlias = Literal["ab", "wb", "xb"]
