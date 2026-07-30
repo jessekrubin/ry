@@ -99,6 +99,7 @@ async def test_get_query(server: ReqtestServer, client: TClient) -> None:
         ("patch", {}),
         ("head", {}),
         ("options", {}),
+        ("query", {}),
     ],
 )
 @pytest.mark.parametrize(
@@ -108,7 +109,15 @@ async def test_get_query(server: ReqtestServer, client: TClient) -> None:
 async def test_client_methods(
     server: ReqtestServer,
     method: t.Literal[
-        "get", "post", "put", "delete", "patch", "head", "options", "__call__"
+        "get",
+        "post",
+        "put",
+        "delete",
+        "patch",
+        "head",
+        "options",
+        "query",
+        "__call__",
     ],
     options: RequestKwargs,
     client_cls: type[TClient],

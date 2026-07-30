@@ -9,7 +9,8 @@ import ry
 from ry import Date, DateTime, Time, Timestamp, ZonedDateTime
 
 if t.TYPE_CHECKING:
-    from ry.ryo3 import JiffRoundMode, JiffUnit
+    from ry.ryo3._jiff import _RoundMode
+    from ry.ryo3._jiff import _Unit as JiffUnit
 
 DiffType: t.TypeAlias = (
     ry.TimeDifference
@@ -82,7 +83,7 @@ _DIFFERENCE_CLASSES: list[_DifferenceClasses] = [
 class _DifferenceOptions(t.TypedDict):
     largest: JiffUnit | None
     smallest: JiffUnit | None
-    mode: JiffRoundMode
+    mode: _RoundMode
 
 
 @pytest.fixture(params=[None, *_JIFF_UNITS])
@@ -99,7 +100,7 @@ def jiff_unit_largest(request: pytest.FixtureRequest) -> JiffUnit | None:
 def diff_opts(
     jiff_unit_smallest: JiffUnit | None,
     jiff_unit_largest: JiffUnit | None,
-    jiff_round_mode: JiffRoundMode,
+    jiff_round_mode: _RoundMode,
 ) -> _DifferenceOptions:
     return _DifferenceOptions(
         smallest=jiff_unit_smallest,

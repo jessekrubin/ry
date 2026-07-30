@@ -8,9 +8,7 @@ from types import TracebackType
 
 from ry._types import (
     Buffer,
-    DurationDict,
     FsPathLike,
-    MetadataDict,
 )
 from ry.protocols import FromStr, RyIterator, ToPy, ToPyTimeDelta, ToString, _Parse
 from ry.ryo3._bytes import Bytes
@@ -70,9 +68,9 @@ class Duration(FromStr, ToPyTimeDelta, ToPy[pydt.timedelta], ToString, _Parse):
     def from_pytimedelta(cls, delta: pydt.timedelta) -> t.Self: ...
     def to_pytimedelta(self) -> pydt.timedelta: ...
     def to_py(self) -> pydt.timedelta: ...
-    def to_dict(self) -> DurationDict: ...
+    def to_dict(self) -> _DurationDict: ...
     @classmethod
-    def from_dict(cls, d: DurationDict) -> t.Self: ...
+    def from_dict(cls, d: _DurationDict) -> t.Self: ...
 
     # =========================================================================
     # TO/FROM STRING(s)
@@ -167,6 +165,10 @@ class Duration(FromStr, ToPyTimeDelta, ToPy[pydt.timedelta], ToString, _Parse):
     def saturating_add(self, other: t.Self) -> t.Self: ...
     def saturating_mul(self, other: int) -> t.Self: ...
     def saturating_sub(self, other: t.Self) -> t.Self: ...
+
+class _DurationDict(t.TypedDict):
+    secs: int
+    nanos: int
 
 @t.final
 class Instant:
@@ -295,7 +297,7 @@ class Permissions:
     def __ne__(self, value: object) -> bool: ...
 
 @t.final
-class Metadata:
+class Metadata(ToPy[_MetadataDict]):
     def __new__(cls) -> t.NoReturn: ...
     @property
     def file_type(self) -> FileType: ...
@@ -319,7 +321,18 @@ class Metadata:
     def permissions(self) -> Permissions: ...
     @property
     def readonly(self) -> bool: ...
-    def to_py(self) -> MetadataDict: ...
+    def to_py(self) -> _MetadataDict: ...
+
+class _MetadataDict(t.TypedDict):
+    is_dir: bool
+    is_file: bool
+    is_symlink: bool
+    len: int
+    readonly: bool
+    file_type: t.Literal["file", "directory", "symlink"]
+    accessed: pydt.datetime
+    created: pydt.datetime
+    modified: pydt.datetime
 
 @t.final
 class DirEntry:

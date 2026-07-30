@@ -8,7 +8,7 @@ import pytest
 import ry
 
 if TYPE_CHECKING:
-    from ry.ryo3 import JiffRoundMode, JiffUnit
+    from ry.ryo3._jiff import _RoundMode, _Unit
 
 _JIFF_OBJECTS = [
     # date
@@ -78,8 +78,8 @@ def test_round_reprs(
         | ry.SignedDurationRound
         | ry.OffsetRound
     ],
-    jiff_unit: JiffUnit,
-    jiff_round_mode: JiffRoundMode,
+    jiff_unit: _Unit,
+    jiff_round_mode: _RoundMode,
 ) -> None:
     # TODO: fix tests so that these aren't possible...
     round_obj = cls(smallest=jiff_unit, mode=jiff_round_mode, increment=1)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]

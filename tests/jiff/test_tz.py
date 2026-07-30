@@ -4,9 +4,20 @@ import datetime as pydt
 
 import pydantic
 import pytest
+from typing_extensions import TypedDict
 
 import ry
-from ry._types import OffsetInfoDict
+
+
+class _OffsetDict(TypedDict):
+    seconds: int
+    fmt: str
+
+
+class _OffsetInfoDict(TypedDict):
+    offset: _OffsetDict
+    dst: bool
+    abbreviation: str
 
 
 def test_timezone_to_pytzinfo() -> None:
@@ -95,7 +106,7 @@ _TS_NOW = ry.Timestamp.now()
 
 @pytest.mark.parametrize("tzname", ry.TimeZoneDatabase().available())
 def test_offset_infos(tzname: str) -> None:
-    tadapt = pydantic.TypeAdapter(OffsetInfoDict)
+    tadapt = pydantic.TypeAdapter(_OffsetInfoDict)
 
     tz = ry.TimeZone(tzname)
 
