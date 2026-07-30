@@ -2004,6 +2004,7 @@ class DateDifference(_Difference[Date, _CalendarUnit]):
     def __new__(
         cls,
         date: Date,
+        /,
         *,
         smallest: _Unit = "day",
         largest: _Unit | None = None,
@@ -2018,6 +2019,7 @@ class DateTimeDifference(_Difference[DateTime, _Unit]):
     def __new__(
         cls,
         datetime: DateTime,
+        /,
         *,
         smallest: _Unit = "nanosecond",
         largest: _Unit | None = None,
@@ -2032,6 +2034,7 @@ class TimeDifference(_Difference[Time, _AbsoluteUnit]):
     def __new__(
         cls,
         time: Time,
+        /,
         *,
         smallest: _Unit = "nanosecond",
         largest: _Unit | None = None,
@@ -2046,6 +2049,7 @@ class TimestampDifference(_Difference[Timestamp, _AbsoluteUnit]):
     def __new__(
         cls,
         timestamp: Timestamp,
+        /,
         *,
         smallest: _Unit = "nanosecond",
         largest: _Unit | None = None,
@@ -2060,6 +2064,7 @@ class ZonedDateTimeDifference(_Difference[ZonedDateTime, _Unit]):
     def __new__(
         cls,
         zoned: ZonedDateTime,
+        /,
         *,
         smallest: _Unit = "nanosecond",
         largest: _Unit | None = None,
