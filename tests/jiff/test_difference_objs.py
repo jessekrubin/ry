@@ -134,7 +134,7 @@ def test_difference_obj(
     assert diff_ob.increment == 2
 
     expected_dict = {
-        diff_cls["dict_key"]: obj,
+        "temporal": obj,
         "smallest": diff_opts["smallest"]
         if diff_opts["smallest"] is not None
         else diff_cls["smallest_default"],

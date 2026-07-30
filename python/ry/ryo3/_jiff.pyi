@@ -24,7 +24,9 @@ _T = t.TypeVar("_T")
 _TTemporal = t.TypeVar(
     "_TTemporal", bound=ZonedDateTime | DateTime | Timestamp | Date | Time
 )
-_TObj = t.TypeVar("_TObj", Date, DateTime, Time, Timestamp, ZonedDateTime)
+_TObj = t.TypeVar(
+    "_TObj", Date, DateTime, Time, Timestamp, ZonedDateTime, SignedDuration, Offset
+)
 _TUnit = t.TypeVar("_TUnit", bound=_Unit)
 _TzName: t.TypeAlias = TimezoneDbName | str
 
@@ -1981,10 +1983,12 @@ class _Difference(t.Generic[_TObj, _TUnit]):
         *,
         smallest: _TUnit,
         largest: _TUnit | None = None,
-        mode: _RoundMode | None = None,
+        mode: _RoundMode = "trunc",
         increment: int | None = None,
     ) -> t.Self: ...
     def __eq__(self, other: object) -> bool: ...
+    @property
+    def temporal(self) -> _TObj: ...
     @property
     def smallest(self) -> _TUnit: ...
     @property
@@ -1997,7 +2001,7 @@ class _Difference(t.Generic[_TObj, _TUnit]):
     def _largest(self, unit: _TUnit) -> t.Self: ...
     def _mode(self, mode: _RoundMode) -> t.Self: ...
     def _increment(self, increment: int) -> t.Self: ...
-    def to_dict(self) -> _DifferenceDict[_TUnit]: ...
+    def to_dict(self) -> _DifferenceDict[_TObj, _TUnit]: ...
 
 @t.final
 class DateDifference(_Difference[Date, _CalendarUnit]):
@@ -2079,7 +2083,7 @@ class ZonedDateTimeDifference(_Difference[ZonedDateTime, _Unit]):
 # =============================================================================
 
 @t.type_check_only
-class _Round(t.Generic[_TUnit]):
+class _Round(t.Generic[_TObj, _TUnit]):
     def __eq__(self, other: object) -> bool: ...
     def _mode(self, mode: _RoundMode) -> t.Self: ...
     def _smallest(self, smallest: _TUnit) -> t.Self: ...
@@ -2097,9 +2101,10 @@ class _Round(t.Generic[_TUnit]):
         increment: int | None = None,
     ) -> t.Self: ...
     def to_dict(self) -> _RoundDict[_TUnit]: ...
+    def round(self, ob: _TObj) -> _TObj: ...
 
 @t.final
-class DateTimeRound(_Round[_RoundUnit]):
+class DateTimeRound(_Round[DateTime, _RoundUnit]):
     def __new__(
         cls,
         smallest: _AbsoluteUnit | t.Literal["day"] = "nanosecond",
@@ -2110,7 +2115,7 @@ class DateTimeRound(_Round[_RoundUnit]):
     def round(self, ob: DateTime) -> DateTime: ...
 
 @t.final
-class SignedDurationRound(_Round[_AbsoluteUnit]):
+class SignedDurationRound(_Round[SignedDuration, _AbsoluteUnit]):
     def __new__(
         cls,
         smallest: _AbsoluteUnit = "nanosecond",
@@ -2121,7 +2126,7 @@ class SignedDurationRound(_Round[_AbsoluteUnit]):
     def round(self, ob: SignedDuration) -> SignedDuration: ...
 
 @t.final
-class TimeRound(_Round[_AbsoluteUnit]):
+class TimeRound(_Round[Time, _AbsoluteUnit]):
     def __new__(
         cls,
         smallest: _AbsoluteUnit = "nanosecond",
@@ -2132,7 +2137,7 @@ class TimeRound(_Round[_AbsoluteUnit]):
     def round(self, ob: Time) -> Time: ...
 
 @t.final
-class TimestampRound(_Round[_AbsoluteUnit]):
+class TimestampRound(_Round[Timestamp, _AbsoluteUnit]):
     def __new__(
         cls,
         smallest: _AbsoluteUnit = "nanosecond",
@@ -2143,7 +2148,7 @@ class TimestampRound(_Round[_AbsoluteUnit]):
     def round(self, ob: Timestamp) -> Timestamp: ...
 
 @t.final
-class ZonedDateTimeRound(_Round[_AbsoluteUnit | t.Literal["day"]]):
+class ZonedDateTimeRound(_Round[ZonedDateTime, _AbsoluteUnit | t.Literal["day"]]):
     def __new__(
         cls,
         smallest: _AbsoluteUnit | t.Literal["day"] = "nanosecond",
@@ -2154,7 +2159,7 @@ class ZonedDateTimeRound(_Round[_AbsoluteUnit | t.Literal["day"]]):
     def round(self, ob: ZonedDateTime) -> ZonedDateTime: ...
 
 @t.final
-class OffsetRound(_Round[_OffsetUnit]):
+class OffsetRound(_Round[Offset, _OffsetUnit]):
     def __new__(
         cls,
         smallest: _OffsetUnit = "second",
@@ -2325,33 +2330,14 @@ class _ISOWeekDateDict(t.TypedDict):
     week: int
     weekday: int
 
-# -----------------------------------------------------------------------------
-# DIFFERENCE-TYPED-DICTS
-# -----------------------------------------------------------------------------
-
-class _DifferenceDict(t.TypedDict, t.Generic[_TUnit]):
+class _DifferenceDict(t.TypedDict, t.Generic[_TObj, _TUnit]):
     mode: _RoundMode
+    temporal: _TObj
     increment: int
     smallest: _TUnit
     largest: _TUnit | None
 
-class _DateDifferenceDict(_DifferenceDict[_CalendarUnit]): ...
-class _DateTimeDifferenceDict(_DifferenceDict[_Unit]): ...
-class _TimeDifferenceDict(_DifferenceDict[_AbsoluteUnit]): ...
-class _TimestampDifferenceDict(_DifferenceDict[_AbsoluteUnit]): ...
-class _ZonedDateTimeDifferenceDict(_DifferenceDict[_Unit]): ...
-
-# -----------------------------------------------------------------------------
-# ROUND-TYPED-DICTS
-# -----------------------------------------------------------------------------
 class _RoundDict(t.TypedDict, t.Generic[_TUnit]):
     smallest: _TUnit
     mode: _RoundMode
     increment: int
-
-class _DateTimeRoundDict(_RoundDict[_AbsoluteUnit | t.Literal["day"]]): ...
-class _OffsetRoundDict(_RoundDict[_OffsetUnit]): ...
-class _SignedDurationRoundDict(_RoundDict[_AbsoluteUnit]): ...
-class _TimeRoundDict(_RoundDict[_AbsoluteUnit]): ...
-class _TimestampRoundDict(_RoundDict[_AbsoluteUnit]): ...
-class _ZonedDateTimeRoundDict(_RoundDict[_AbsoluteUnit | t.Literal["day"]]): ...
