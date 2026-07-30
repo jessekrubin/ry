@@ -88,6 +88,7 @@ def test_get_query(server: ReqtestServer) -> None:
         ("patch", {}),
         ("head", {}),
         ("options", {}),
+        ("query", {}),
     ],
 )
 @pytest.mark.parametrize(
@@ -96,7 +97,9 @@ def test_get_query(server: ReqtestServer) -> None:
 )
 def test_blocking_client_methods(
     server: ReqtestServer,
-    method: t.Literal["get", "post", "put", "delete", "patch", "head", "options"],
+    method: t.Literal[
+        "get", "post", "put", "delete", "patch", "head", "options", "query"
+    ],
     options: RequestKwargs,
     *,
     use_cls_callable: bool,
@@ -115,7 +118,7 @@ def test_blocking_client_methods(
         assert response_data["method"].lower() == method
 
 
-@pytest.mark.parametrize("method", ["post", "put", "patch", "delete"])
+@pytest.mark.parametrize("method", ["post", "put", "patch", "delete", "query"])
 @pytest.mark.parametrize(
     "form_data",
     [
@@ -133,7 +136,11 @@ def test_blocking_client_methods(
         ],
     ],
 )
-def test_form_data(server: ReqtestServer, method: str, form_data: t.Any) -> None:
+def test_form_data(
+    server: ReqtestServer,
+    method: t.Literal["post", "put", "patch", "delete", "query"],
+    form_data: t.Any,
+) -> None:
     url = server.url / "echo"
     client = ry.BlockingClient()
     form_data = {
@@ -147,6 +154,7 @@ def test_form_data(server: ReqtestServer, method: str, form_data: t.Any) -> None
         method=method,
         form=form_data,
     )
+
     assert response.status_code == 200
     assert response.version == "HTTP/1.1"
     assert response.http_version == "HTTP/1.1"

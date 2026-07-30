@@ -6,10 +6,11 @@ import ry
 from ry._types import Buffer, Unpack
 from ry.ryo3._cookie import Cookie
 from ry.ryo3._encoding_rs import Encoding
-from ry.ryo3._http import Headers, HttpStatus, HttpVersionLike
+from ry.ryo3._http import Headers, HttpMethodLike, HttpStatus, HttpVersionLike
 from ry.ryo3._std import Duration, SocketAddr
 from ry.ryo3._url import URL
 
+_HttpMethod: t.TypeAlias = HttpMethodLike | str
 _Body: t.TypeAlias = (
     Buffer
     | t.Generator[Buffer]
@@ -166,14 +167,6 @@ class Client:
         **kwargs: Unpack[RequestKwargs],
     ) -> Response: ...
     async def delete(
-        self, url: URL | str, **kwargs: Unpack[RequestKwargs]
-    ) -> Response: ...
-    async def patch(
-        self,
-        url: URL | str,
-        **kwargs: Unpack[RequestKwargs],
-    ) -> Response: ...
-    async def options(
         self,
         url: URL | str,
         **kwargs: Unpack[RequestKwargs],
@@ -183,25 +176,40 @@ class Client:
         url: URL | str,
         **kwargs: Unpack[RequestKwargs],
     ) -> Response: ...
+    async def options(
+        self,
+        url: URL | str,
+        **kwargs: Unpack[RequestKwargs],
+    ) -> Response: ...
+    async def patch(
+        self,
+        url: URL | str,
+        **kwargs: Unpack[RequestKwargs],
+    ) -> Response: ...
+    async def query(
+        self,
+        url: URL | str,
+        **kwargs: Unpack[RequestKwargs],
+    ) -> Response: ...
     async def fetch(
         self,
         url: URL | str,
         *,
-        method: str = "GET",
+        method: _HttpMethod = "GET",
         **kwargs: Unpack[RequestKwargs],
     ) -> Response: ...
     def fetch_sync(
         self,
         url: URL | str,
         *,
-        method: str = "GET",
+        method: _HttpMethod = "GET",
         **kwargs: Unpack[RequestKwargs],
     ) -> BlockingResponse: ...
     async def __call__(
         self,
         url: URL | str,
         *,
-        method: str = "GET",
+        method: _HttpMethod = "GET",
         **kwargs: Unpack[RequestKwargs],
     ) -> Response: ...
 
@@ -260,6 +268,24 @@ class BlockingClient:
         _tls_cached_native_certs: bool = False,
     ) -> t.Self: ...
     def config(self) -> ClientConfig: ...
+
+    # ==== FETCH ====
+    def fetch(
+        self,
+        url: URL | str,
+        *,
+        method: _HttpMethod = "GET",
+        **kwargs: Unpack[RequestKwargs],
+    ) -> BlockingResponse: ...
+    def __call__(
+        self,
+        url: URL | str,
+        *,
+        method: _HttpMethod = "GET",
+        **kwargs: Unpack[RequestKwargs],
+    ) -> BlockingResponse: ...
+
+    # ==== HTTP METHODS ====
     def get(
         self,
         url: URL | str,
@@ -280,31 +306,24 @@ class BlockingClient:
         url: URL | str,
         **kwargs: Unpack[RequestKwargs],
     ) -> BlockingResponse: ...
-    def patch(
-        self,
-        url: URL | str,
-        **kwargs: Unpack[RequestKwargs],
-    ) -> BlockingResponse: ...
-    def options(
-        self, url: URL | str, **kwargs: Unpack[RequestKwargs]
-    ) -> BlockingResponse: ...
     def head(
         self,
         url: URL | str,
         **kwargs: Unpack[RequestKwargs],
     ) -> BlockingResponse: ...
-    def fetch(
+    def options(
         self,
         url: URL | str,
-        *,
-        method: str = "GET",
+        **kw: Unpack[RequestKwargs],
+    ) -> BlockingResponse: ...
+    def patch(
+        self,
+        url: URL | str,
         **kwargs: Unpack[RequestKwargs],
     ) -> BlockingResponse: ...
-    def __call__(
+    def query(
         self,
         url: URL | str,
-        *,
-        method: str = "GET",
         **kwargs: Unpack[RequestKwargs],
     ) -> BlockingResponse: ...
 
@@ -466,7 +485,7 @@ class BlockingResponseStream:
 async def fetch(
     url: URL | str,
     *,
-    method: str = "GET",
+    method: _HttpMethod = "GET",
     body: _Body | None = None,
     headers: Headers | dict[str, str] | None = None,
     query: dict[str, t.Any] | t.Sequence[tuple[str, t.Any]] | None = None,
@@ -481,7 +500,7 @@ async def fetch(
 def fetch_sync(
     url: URL | str,
     *,
-    method: str = "GET",
+    method: _HttpMethod = "GET",
     body: _Body | None = None,
     headers: Headers | dict[str, str] | None = None,
     query: dict[str, t.Any] | t.Sequence[tuple[str, t.Any]] | None = None,
