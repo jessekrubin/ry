@@ -31,6 +31,7 @@ impl<'py> IntoPyObject<'py> for &PyHttpMethod {
             http::Method::CONNECT => Ok(intern!(py, "CONNECT")),
             http::Method::PATCH => Ok(intern!(py, "PATCH")),
             http::Method::TRACE => Ok(intern!(py, "TRACE")),
+            http::Method::QUERY => Ok(intern!(py, "QUERY")),
             _ => py_value_err!("UNSUPPORTED HTTP METHOD"),
         }?;
         let b = s.as_borrowed();
@@ -48,7 +49,7 @@ impl<'py> IntoPyObject<'py> for PyHttpMethod {
     }
 }
 
-const HTTP_METHOD_STRINGS: &str = "'GET'/'get', 'POST'/'post', 'PUT'/'put', 'DELETE'/'delete', 'HEAD'/'head', 'OPTIONS'/'options', 'CONNECT'/'connect', 'PATCH'/'patch', 'TRACE'/'trace'";
+const HTTP_METHOD_STRINGS: &str = "'GET'/'get', 'POST'/'post', 'PUT'/'put', 'DELETE'/'delete', 'HEAD'/'head', 'OPTIONS'/'options', 'CONNECT'/'connect', 'PATCH'/'patch', 'TRACE'/'trace', 'QUERY'/'query'";
 
 impl<'py> FromPyObject<'_, 'py> for PyHttpMethod {
     type Error = pyo3::PyErr;
@@ -65,6 +66,7 @@ impl<'py> FromPyObject<'_, 'py> for PyHttpMethod {
                 "CONNECT" | "connect" => Ok(Self(http::Method::CONNECT)),
                 "PATCH" | "patch" => Ok(Self(http::Method::PATCH)),
                 "TRACE" | "trace" => Ok(Self(http::Method::TRACE)),
+                "QUERY" | "query" => Ok(Self(http::Method::QUERY)),
                 _ => py_value_err!("Invalid HTTP method: {s} (options: {HTTP_METHOD_STRINGS})"),
             }
         } else {
