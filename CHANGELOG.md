@@ -13,6 +13,8 @@
   - added docstrings
 - `ryo3-jiff`
   - update to latest jiff and fix error msg changes that occured
+- `ryo3-http`
+  - update to `v1.5.x` with new `Query` http method
 
 ---
 

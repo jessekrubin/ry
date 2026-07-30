@@ -130,7 +130,7 @@ async def test_client_methods(
 
 
 @pytest.mark.anyio
-@pytest.mark.parametrize("method", ["post", "put", "patch", "delete"])
+@pytest.mark.parametrize("method", ["post", "put", "patch", "delete", "query"])
 @pytest.mark.parametrize(
     "form_data",
     [

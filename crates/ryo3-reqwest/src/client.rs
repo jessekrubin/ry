@@ -256,16 +256,6 @@ impl RyClient {
     }
 
     #[pyo3(signature = (url, **kwargs))]
-    async fn patch(
-        &self,
-        url: UrlLike,
-        kwargs: Option<ReqwestKwargs>,
-        #[pyo3(cancel_handle)] cancel: CancelHandle,
-    ) -> PyResult<RyResponse> {
-        self.request(url, Method::PATCH, kwargs, cancel).await
-    }
-
-    #[pyo3(signature = (url, **kwargs))]
     async fn delete(
         &self,
         url: UrlLike,
@@ -293,6 +283,26 @@ impl RyClient {
         #[pyo3(cancel_handle)] cancel: CancelHandle,
     ) -> PyResult<RyResponse> {
         self.request(url, Method::OPTIONS, kwargs, cancel).await
+    }
+
+    #[pyo3(signature = (url, **kwargs))]
+    async fn patch(
+        &self,
+        url: UrlLike,
+        kwargs: Option<ReqwestKwargs>,
+        #[pyo3(cancel_handle)] cancel: CancelHandle,
+    ) -> PyResult<RyResponse> {
+        self.request(url, Method::PATCH, kwargs, cancel).await
+    }
+
+    #[pyo3(signature = (url, **kwargs))]
+    async fn query(
+        &self,
+        url: UrlLike,
+        kwargs: Option<ReqwestKwargs>,
+        #[pyo3(cancel_handle)] cancel: CancelHandle,
+    ) -> PyResult<RyResponse> {
+        self.request(url, Method::QUERY, kwargs, cancel).await
     }
 
     #[pyo3(
@@ -443,6 +453,16 @@ impl RyClient {
         self.request(py, url, Method::PATCH, kwargs)
     }
 
+    #[pyo3(signature = (url, **kwargs))]
+    fn query<'py>(
+        &self,
+        py: Python<'py>,
+        url: UrlLike,
+        kwargs: Option<ReqwestKwargs>,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        self.request(py, url, Method::QUERY, kwargs)
+    }
+
     #[pyo3(
         signature = (url, *, method = PyHttpMethod::GET, **kwargs),
         text_signature = "($self, url, *, method=\"GET\", **kwargs)"
@@ -551,16 +571,6 @@ impl RyBlockingClient {
     }
 
     #[pyo3(signature = (url, **kwargs))]
-    pub(crate) fn patch(
-        &self,
-        py: Python<'_>,
-        url: UrlLike,
-        kwargs: Option<BlockingReqwestKwargs>,
-    ) -> PyResult<RyBlockingResponse> {
-        py.detach(|| self.request_sync(url, Method::PATCH, kwargs))
-    }
-
-    #[pyo3(signature = (url, **kwargs))]
     pub(crate) fn delete(
         &self,
         py: Python<'_>,
@@ -588,6 +598,26 @@ impl RyBlockingClient {
         kwargs: Option<BlockingReqwestKwargs>,
     ) -> PyResult<RyBlockingResponse> {
         py.detach(|| self.request_sync(url, Method::OPTIONS, kwargs))
+    }
+
+    #[pyo3(signature = (url, **kwargs))]
+    pub(crate) fn patch(
+        &self,
+        py: Python<'_>,
+        url: UrlLike,
+        kwargs: Option<BlockingReqwestKwargs>,
+    ) -> PyResult<RyBlockingResponse> {
+        py.detach(|| self.request_sync(url, Method::PATCH, kwargs))
+    }
+
+    #[pyo3(signature = (url, **kwargs))]
+    pub(crate) fn query(
+        &self,
+        py: Python<'_>,
+        url: UrlLike,
+        kwargs: Option<BlockingReqwestKwargs>,
+    ) -> PyResult<RyBlockingResponse> {
+        py.detach(|| self.request_sync(url, Method::QUERY, kwargs))
     }
 
     #[pyo3(
