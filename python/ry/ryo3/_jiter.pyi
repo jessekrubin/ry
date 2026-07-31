@@ -8,7 +8,7 @@ from ry._types import Buffer
 # =============================================================================
 # JSON
 # =============================================================================
-_JsonPrimitive: t.TypeAlias = None | bool | int | float | str
+_JsonPrimitive: t.TypeAlias = bool | int | float | str | None
 _JsonValue: t.TypeAlias = (
     _JsonPrimitive
     | dict[str, _JsonPrimitive | _JsonValue]
