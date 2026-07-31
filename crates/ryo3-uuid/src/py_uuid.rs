@@ -531,7 +531,7 @@ pub fn getnode(py: Python<'_>) -> PyResult<u64> {
 #[pyfunction(signature = (node = None, clock_seq = None))]
 #[expect(unused_variables)]
 pub fn uuid1(node: Option<u64>, clock_seq: Option<u16>) -> PyResult<PyUuid> {
-    pytodo!("UUID1 is not implemented yet")
+    pytodo!("UUID1 is not implemented yet");
 }
 
 #[pyfunction]
@@ -582,7 +582,7 @@ pub fn uuid6(py: Python<'_>, node: Option<u64>, clock_seq: Option<u16>) -> PyRes
     let node_arr = node.to_be_bytes();
     let node_id: &[u8; 6] = &node_arr[2..8].try_into().expect("no-way-jose");
     if let Some(_clock_seq) = clock_seq {
-        pytodo!("uuid6 with clock_seq is not implemented yet")
+        pytodo!("uuid6 with clock_seq is not implemented yet");
     }
     Ok(uuid::Uuid::now_v6(node_id).into())
 }

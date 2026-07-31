@@ -341,7 +341,9 @@ impl PyAsyncFile {
 
     #[expect(clippy::unused_self)]
     fn isatty<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
-        future_into_py::<_, Py<PyAny>>(py, async move { pytodo!("isatty() not implemented") })
+        future_into_py::<_, Py<PyAny>>(py, async move {
+            pytodo!("isatty() not implemented");
+        })
     }
 
     fn flush<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
@@ -612,7 +614,7 @@ impl PyAsyncFile {
 
     #[expect(clippy::unused_async)]
     async fn isatty(&self) -> PyResult<()> {
-        pytodo!("isatty() not implemented")
+        pytodo!("isatty() not implemented");
     }
 
     async fn flush(&self) -> PyResult<()> {

@@ -402,7 +402,7 @@ impl PyFsPath {
     #[pyo3(signature = (mode = None, exist_ok = true))]
     fn touch(&self, py: Python<'_>, mode: Option<u32>, exist_ok: bool) -> PyResult<bool> {
         if mode.is_some() {
-            pytodo!("touch - mode parameter not implemented yet")
+            pytodo!("touch - mode parameter not implemented yet");
         }
         let path = self.path();
         let exists = path.exists();

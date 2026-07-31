@@ -254,12 +254,12 @@ impl RyTimeZone {
     // ===============
     #[expect(clippy::unused_self)]
     fn to_ambiguous_timestamp(&self) -> PyResult<()> {
-        pytodo!()
+        pytodo!();
     }
 
     #[expect(clippy::unused_self)]
     fn to_ambiguous_zoned(&self) -> PyResult<()> {
-        pytodo!()
+        pytodo!();
     }
 
     #[pyo3(signature = (timestamp, /, limit = None))]

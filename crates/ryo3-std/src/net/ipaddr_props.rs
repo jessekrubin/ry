@@ -37,7 +37,7 @@ pub(crate) trait IpAddrProps {
     fn is_shared(&self) -> bool;
 
     fn is_global(&self) -> PyResult<bool> {
-        pytodo!()
+        pytodo!();
     }
 }
 
