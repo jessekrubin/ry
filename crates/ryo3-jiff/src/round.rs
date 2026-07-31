@@ -447,13 +447,14 @@ impl RyTimeRound {
         self.options.increment
     }
 
-    #[expect(clippy::trivially_copy_pass_by_ref)]
+    #[expect(clippy::trivially_copy_pass_by_ref, reason = "python arg")]
     pub(crate) fn round(&self, ob: &RyTime) -> PyResult<RyTime> {
         ob.0.round(self.jiff_round)
             .map(RyTime::from)
             .map_err(|e| py_value_error!("Error rounding Time: {}", e))
     }
 
+    #[expect(clippy::trivially_copy_pass_by_ref, reason = "python arg")]
     fn __call__(&self, ob: &RyTime) -> PyResult<RyTime> {
         self.round(ob)
     }
@@ -804,13 +805,14 @@ impl RyOffsetRound {
         self.options.increment
     }
 
-    #[expect(clippy::trivially_copy_pass_by_ref)]
+    #[expect(clippy::trivially_copy_pass_by_ref, reason = "python arg")]
     pub(crate) fn round(&self, ob: &RyOffset) -> PyResult<RyOffset> {
         ob.0.round(self.jiff_round)
             .map(RyOffset::from)
             .map_err(|e| py_value_error!("Error rounding Offset: {}", e))
     }
 
+    #[expect(clippy::trivially_copy_pass_by_ref, reason = "python arg")]
     fn __call__(&self, ob: &RyOffset) -> PyResult<RyOffset> {
         self.round(ob)
     }
