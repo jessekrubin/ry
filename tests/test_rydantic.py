@@ -1583,7 +1583,7 @@ class TestHttpStatus:
             RyHttpStatusModel(status=99)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
 
     @pytest.mark.parametrize("value", ["200", None, complex(1, 2)])
-    def test_http_status_pydantic_fails_type(self, value: str | None | complex) -> None:
+    def test_http_status_pydantic_fails_type(self, value: str | complex | None) -> None:
         with pytest.raises(pydantic.ValidationError):
             RyHttpStatusModel(status=value)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
 
