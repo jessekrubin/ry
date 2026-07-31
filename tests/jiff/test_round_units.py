@@ -5,9 +5,9 @@ from typing import TYPE_CHECKING
 import ry
 
 if TYPE_CHECKING:
-    from ry.ryo3._jiff import JiffRoundMode, JiffUnit
+    from ry.ryo3._jiff import _RoundMode, _Unit
 
-_JIFF_UNITS: tuple[JiffUnit, ...] = (
+_JIFF_UNITS: tuple[_Unit, ...] = (
     "nanosecond",
     "microsecond",
     "millisecond",
@@ -19,7 +19,7 @@ _JIFF_UNITS: tuple[JiffUnit, ...] = (
     "year",
 )
 
-_JIFF_ROUND_MODES: tuple[JiffRoundMode, ...] = (
+_JIFF_ROUND_MODES: tuple[_RoundMode, ...] = (
     "ceil",
     "floor",
     "expand",

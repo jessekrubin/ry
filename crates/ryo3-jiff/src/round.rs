@@ -215,6 +215,10 @@ impl RyDateTimeRound {
             .map(RyDateTime::from)
             .map_err(|e| py_value_error!("Error rounding DateTime: {}", e))
     }
+
+    fn __call__(&self, ob: &RyDateTime) -> PyResult<RyDateTime> {
+        self.round(ob)
+    }
 }
 
 impl Display for RyDateTimeRound {
@@ -332,6 +336,10 @@ impl RySignedDurationRound {
             .map(RySignedDuration::from)
             .map_err(|e| py_value_error!("Error rounding SignedDuration: {}", e))
     }
+
+    fn __call__(&self, ob: &RySignedDuration) -> PyResult<RySignedDuration> {
+        self.round(ob)
+    }
 }
 
 impl Display for RySignedDurationRound {
@@ -439,11 +447,16 @@ impl RyTimeRound {
         self.options.increment
     }
 
-    #[expect(clippy::trivially_copy_pass_by_ref)]
+    #[expect(clippy::trivially_copy_pass_by_ref, reason = "python arg")]
     pub(crate) fn round(&self, ob: &RyTime) -> PyResult<RyTime> {
         ob.0.round(self.jiff_round)
             .map(RyTime::from)
             .map_err(|e| py_value_error!("Error rounding Time: {}", e))
+    }
+
+    #[expect(clippy::trivially_copy_pass_by_ref, reason = "python arg")]
+    fn __call__(&self, ob: &RyTime) -> PyResult<RyTime> {
+        self.round(ob)
     }
 }
 
@@ -557,6 +570,10 @@ impl RyTimestampRound {
         ob.0.round(self.jiff_round)
             .map(RyTimestamp::from)
             .map_err(|e| py_value_error!("Error rounding Timestamp: {}", e))
+    }
+
+    fn __call__(&self, ob: &RyTimestamp) -> PyResult<RyTimestamp> {
+        self.round(ob)
     }
 }
 
@@ -677,6 +694,10 @@ impl RyZonedDateTimeRound {
             .map(RyZoned::from)
             .map_err(|e| py_value_error!("Error rounding ZonedDateTime: {}", e))
     }
+
+    fn __call__(&self, ob: &RyZoned) -> PyResult<RyZoned> {
+        self.round(ob)
+    }
 }
 
 impl Display for RyZonedDateTimeRound {
@@ -784,11 +805,16 @@ impl RyOffsetRound {
         self.options.increment
     }
 
-    #[expect(clippy::trivially_copy_pass_by_ref)]
+    #[expect(clippy::trivially_copy_pass_by_ref, reason = "python arg")]
     pub(crate) fn round(&self, ob: &RyOffset) -> PyResult<RyOffset> {
         ob.0.round(self.jiff_round)
             .map(RyOffset::from)
             .map_err(|e| py_value_error!("Error rounding Offset: {}", e))
+    }
+
+    #[expect(clippy::trivially_copy_pass_by_ref, reason = "python arg")]
+    fn __call__(&self, ob: &RyOffset) -> PyResult<RyOffset> {
+        self.round(ob)
     }
 }
 

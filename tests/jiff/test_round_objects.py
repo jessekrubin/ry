@@ -8,7 +8,7 @@ import pytest
 import ry
 
 if TYPE_CHECKING:
-    from ry.ryo3 import JiffRoundMode, JiffUnit
+    from ry.ryo3._jiff import _RoundMode, _Unit
 
 _ROUND_CLASSES = (
     ry.DateTimeRound,
@@ -31,8 +31,8 @@ RoundType: TypeAlias = (
 @pytest.mark.parametrize("cls", _ROUND_CLASSES)
 def test_round_getters(
     cls: type[RoundType],
-    jiff_unit: JiffUnit,
-    jiff_round_mode: JiffRoundMode,
+    jiff_unit: _Unit,
+    jiff_round_mode: _RoundMode,
 ) -> None:
     round_obj = cls(smallest=jiff_unit, mode=jiff_round_mode, increment=2)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
     assert round_obj.smallest == jiff_unit
@@ -43,8 +43,8 @@ def test_round_getters(
 @pytest.mark.parametrize("cls", _ROUND_CLASSES)
 def test_round_obj_to_dict(
     cls: type[RoundType],
-    jiff_unit: JiffUnit,
-    jiff_round_mode: JiffRoundMode,
+    jiff_unit: _Unit,
+    jiff_round_mode: _RoundMode,
 ) -> None:
     round_obj = cls(smallest=jiff_unit, mode=jiff_round_mode, increment=2)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
     round_dict = round_obj.to_dict()
@@ -58,8 +58,8 @@ def test_round_obj_to_dict(
 @pytest.mark.parametrize("cls", _ROUND_CLASSES)
 def test_round_pickling(
     cls: type[RoundType],
-    jiff_unit: JiffUnit,
-    jiff_round_mode: JiffRoundMode,
+    jiff_unit: _Unit,
+    jiff_round_mode: _RoundMode,
 ) -> None:
     round_obj = cls(smallest=jiff_unit, mode=jiff_round_mode, increment=2)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
     pickled = pickle.dumps(round_obj)
@@ -70,8 +70,8 @@ def test_round_pickling(
 @pytest.mark.parametrize("cls", _ROUND_CLASSES)
 def test_round_replace(
     cls: type[RoundType],
-    jiff_unit: JiffUnit,
-    jiff_round_mode: JiffRoundMode,
+    jiff_unit: _Unit,
+    jiff_round_mode: _RoundMode,
 ) -> None:
     round_obj = cls()
 

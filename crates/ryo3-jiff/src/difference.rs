@@ -109,13 +109,14 @@ impl RyDateDifference {
     #[pyo3(
         signature = (
             date,
+            /,
             *,
             smallest = JiffUnit::DAY,
             largest = None,
             mode = JiffRoundMode::TRUNC,
             increment = 1
         ),
-        text_signature = "(date, *, smallest=\"day\", largest=None, mode=\"trunc\", increment=1)"
+        text_signature = "(date, /, *, smallest=\"day\", largest=None, mode=\"trunc\", increment=1)"
     )]
     #[must_use]
     #[expect(clippy::trivially_copy_pass_by_ref)]
@@ -147,9 +148,10 @@ impl RyDateDifference {
     }
 
     fn __getnewargs_ex__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
-        let args = PyTuple::empty(py).into_bound_py_any(py)?;
-        let kwargs = self.to_dict(py)?.into_bound_py_any(py)?;
-        PyTuple::new(py, vec![args, kwargs])
+        let args = PyTuple::new(py, vec![self.date])?.into_bound_py_any(py)?;
+        let kwargs = PyDict::new(py);
+        self.options.pydict_options(py, &kwargs)?;
+        PyTuple::new(py, vec![args, kwargs.into_bound_py_any(py)?])
     }
 
     fn __repr__(&self) -> PyAsciiString {
@@ -157,16 +159,17 @@ impl RyDateDifference {
     }
 
     fn __eq__(&self, other: &Self) -> bool {
-        self.date == other.date
-            && self.options.smallest == other.options.smallest
-            && self.options.largest == other.options.largest
-            && self.options.mode == other.options.mode
-            && self.options.increment == other.options.increment
+        self.date == other.date && self.options == other.options
+    }
+
+    #[getter]
+    fn temporal(&self) -> RyDate {
+        self.date
     }
 
     #[getter]
     fn date(&self) -> RyDate {
-        self.date
+        self.temporal()
     }
 
     #[getter]
@@ -252,7 +255,7 @@ impl RyDateDifference {
     #[expect(clippy::wrong_self_convention)]
     fn to_dict<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
         let dict = PyDict::new(py);
-        dict.set_item(crate::interns::date(py), self.date)?;
+        dict.set_item(crate::interns::temporal(py), self.date)?;
         self.options.pydict_options(py, &dict)?;
         Ok(dict)
     }
@@ -351,13 +354,14 @@ impl RyDateTimeDifference {
     #[pyo3(
         signature = (
             datetime,
+            /,
             *,
             smallest = JiffUnit::NANOSECOND,
             largest = None,
             mode = JiffRoundMode::TRUNC,
             increment = 1
         ),
-        text_signature = "(datetime, *, smallest=\"nanosecond\", largest=None, mode=\"trunc\", increment=1)"
+        text_signature = "(datetime, /, *, smallest=\"nanosecond\", largest=None, mode=\"trunc\", increment=1)"
     )]
     #[must_use]
     fn py_new(
@@ -388,10 +392,12 @@ impl RyDateTimeDifference {
     }
 
     fn __getnewargs_ex__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
-        let args = PyTuple::empty(py).into_bound_py_any(py)?;
-        let kwargs = self.to_dict(py)?.into_bound_py_any(py)?;
-        PyTuple::new(py, vec![args, kwargs])
+        let args = PyTuple::new(py, vec![self.datetime])?.into_bound_py_any(py)?;
+        let kwargs = PyDict::new(py);
+        self.options.pydict_options(py, &kwargs)?;
+        PyTuple::new(py, vec![args, kwargs.into_bound_py_any(py)?])
     }
+
     fn __repr__(&self) -> PyAsciiString {
         format!("{self}").into()
     }
@@ -401,8 +407,13 @@ impl RyDateTimeDifference {
     }
 
     #[getter]
-    fn datetime(&self) -> RyDateTime {
+    fn temporal(&self) -> RyDateTime {
         self.datetime
+    }
+
+    #[getter]
+    fn datetime(&self) -> RyDateTime {
+        self.temporal()
     }
 
     #[getter]
@@ -488,7 +499,7 @@ impl RyDateTimeDifference {
     #[expect(clippy::wrong_self_convention)]
     fn to_dict<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
         let dict = PyDict::new(py);
-        dict.set_item(crate::interns::datetime(py), self.datetime)?;
+        dict.set_item(crate::interns::temporal(py), self.datetime)?;
         self.options.pydict_options(py, &dict)?;
         Ok(dict)
     }
@@ -581,13 +592,14 @@ impl RyTimeDifference {
     #[pyo3(
         signature = (
             time,
+            /,
             *,
             smallest = JiffUnit::NANOSECOND,
             largest = None,
             mode = JiffRoundMode::TRUNC,
             increment = 1
         ),
-        text_signature = "(time, *, smallest=\"nanosecond\", largest=None, mode=\"trunc\", increment=1)"
+        text_signature = "(time, /, *, smallest=\"nanosecond\", largest=None, mode=\"trunc\", increment=1)"
     )]
     #[must_use]
     #[expect(clippy::trivially_copy_pass_by_ref)]
@@ -619,9 +631,10 @@ impl RyTimeDifference {
     }
 
     fn __getnewargs_ex__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
-        let args = PyTuple::empty(py).into_bound_py_any(py)?;
-        let kwargs = self.to_dict(py)?.into_bound_py_any(py)?;
-        PyTuple::new(py, vec![args, kwargs])
+        let args = PyTuple::new(py, vec![self.time])?.into_bound_py_any(py)?;
+        let kwargs = PyDict::new(py);
+        self.options.pydict_options(py, &kwargs)?;
+        PyTuple::new(py, vec![args, kwargs.into_bound_py_any(py)?])
     }
 
     fn __repr__(&self) -> PyAsciiString {
@@ -629,16 +642,17 @@ impl RyTimeDifference {
     }
 
     fn __eq__(&self, other: &Self) -> bool {
-        self.time == other.time
-            && self.options.smallest == other.options.smallest
-            && self.options.largest == other.options.largest
-            && self.options.mode == other.options.mode
-            && self.options.increment == other.options.increment
+        self.time == other.time && self.options == other.options
+    }
+
+    #[getter]
+    fn temporal(&self) -> RyTime {
+        self.time
     }
 
     #[getter]
     fn time(&self) -> RyTime {
-        self.time
+        self.temporal()
     }
 
     #[getter]
@@ -726,7 +740,7 @@ impl RyTimeDifference {
     #[expect(clippy::wrong_self_convention)]
     fn to_dict<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
         let dict = PyDict::new(py);
-        dict.set_item(crate::interns::time(py), self.time)?;
+        dict.set_item(crate::interns::temporal(py), self.time)?;
         self.options.pydict_options(py, &dict)?;
         Ok(dict)
     }
@@ -828,13 +842,14 @@ impl RyTimestampDifference {
     #[pyo3(
         signature = (
             timestamp,
+            /,
             *,
             smallest = JiffUnit::NANOSECOND,
             largest = None,
             mode = JiffRoundMode::TRUNC,
             increment = 1
         ),
-        text_signature = "(timestamp, *, smallest=\"nanosecond\", largest=None, mode=\"trunc\", increment=1)"
+        text_signature = "(timestamp, /, *, smallest=\"nanosecond\", largest=None, mode=\"trunc\", increment=1)"
     )]
     #[must_use]
     fn py_new(
@@ -865,9 +880,10 @@ impl RyTimestampDifference {
     }
 
     fn __getnewargs_ex__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
-        let args = PyTuple::empty(py).into_bound_py_any(py)?;
-        let kwargs = self.to_dict(py)?.into_bound_py_any(py)?;
-        PyTuple::new(py, vec![args, kwargs])
+        let args = PyTuple::new(py, vec![self.timestamp])?.into_bound_py_any(py)?;
+        let kwargs = PyDict::new(py);
+        self.options.pydict_options(py, &kwargs)?;
+        PyTuple::new(py, vec![args, kwargs.into_bound_py_any(py)?])
     }
 
     fn __repr__(&self) -> PyAsciiString {
@@ -875,16 +891,17 @@ impl RyTimestampDifference {
     }
 
     fn __eq__(&self, other: &Self) -> bool {
-        self.timestamp == other.timestamp
-            && self.options.smallest == other.options.smallest
-            && self.options.largest == other.options.largest
-            && self.options.mode == other.options.mode
-            && self.options.increment == other.options.increment
+        self.timestamp == other.timestamp && self.options == other.options
+    }
+
+    #[getter]
+    fn temporal(&self) -> RyTimestamp {
+        self.timestamp
     }
 
     #[getter]
     fn timestamp(&self) -> RyTimestamp {
-        self.timestamp
+        self.temporal()
     }
 
     #[getter]
@@ -970,7 +987,7 @@ impl RyTimestampDifference {
     #[expect(clippy::wrong_self_convention)]
     fn to_dict<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
         let dict = PyDict::new(py);
-        dict.set_item(crate::interns::timestamp(py), self.timestamp)?;
+        dict.set_item(crate::interns::temporal(py), self.timestamp)?;
         self.options.pydict_options(py, &dict)?;
         Ok(dict)
     }
@@ -1066,13 +1083,14 @@ impl RyZonedDifference {
     #[pyo3(
         signature = (
             zoned,
+            /,
             *,
             smallest = JiffUnit::NANOSECOND,
             largest = None,
             mode = JiffRoundMode::TRUNC,
             increment = 1
         ),
-        text_signature = "(zoned, *, smallest=\"nanosecond\", largest=None, mode=\"trunc\", increment=1)"
+        text_signature = "(zoned, /, *, smallest=\"nanosecond\", largest=None, mode=\"trunc\", increment=1)"
     )]
     #[must_use]
     fn py_new(
@@ -1095,9 +1113,10 @@ impl RyZonedDifference {
     }
 
     fn __getnewargs_ex__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
-        let args = PyTuple::empty(py).into_bound_py_any(py)?;
-        let kwargs = self.to_dict(py)?.into_bound_py_any(py)?;
-        PyTuple::new(py, vec![args, kwargs])
+        let args = PyTuple::new(py, vec![self.zoned.clone()])?.into_bound_py_any(py)?;
+        let kwargs = PyDict::new(py);
+        self.options.pydict_options(py, &kwargs)?;
+        PyTuple::new(py, vec![args, kwargs.into_bound_py_any(py)?])
     }
 
     fn __repr__(&self) -> PyAsciiString {
@@ -1105,11 +1124,12 @@ impl RyZonedDifference {
     }
 
     fn __eq__(&self, other: &Self) -> bool {
-        self.zoned == other.zoned
-            && self.options.smallest == other.options.smallest
-            && self.options.largest == other.options.largest
-            && self.options.mode == other.options.mode
-            && self.options.increment == other.options.increment
+        self.zoned == other.zoned && self.options == other.options
+    }
+
+    #[getter]
+    fn temporal(&self) -> RyZoned {
+        self.zoned.clone()
     }
 
     #[getter]
@@ -1191,7 +1211,7 @@ impl RyZonedDifference {
 
     fn to_dict<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
         let dict = PyDict::new(py);
-        dict.set_item(crate::interns::zoned(py), self.zoned.clone())?;
+        dict.set_item(crate::interns::temporal(py), self.zoned.clone())?;
         self.options.pydict_options(py, &dict)?;
         Ok(dict)
     }

@@ -15,6 +15,11 @@
   - update to latest jiff and fix error msg changes that occured
 - `ryo3-http`
   - update to `v1.5.x` with new `Query` http method
+- `ryo3-reqwest`
+  - added request client query method(s)/support
+- type-annotations
+  - moved all typed-dicts for jiff module in to `ry.ryo3._jiff.pyi` type
+    annotation(s) file
 
 ---
 

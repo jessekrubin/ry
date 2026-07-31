@@ -23,7 +23,7 @@ from .strategies import (
 )
 
 if t.TYPE_CHECKING:
-    from ry.ryo3._jiff import JiffRoundMode, JiffUnit
+    from ry.ryo3._jiff import _RoundMode, _Unit
 
 
 @given(date_tuple_strategy)
@@ -95,7 +95,7 @@ def test_datetime_difference(dt1: ry.DateTime, dt2: ry.DateTime) -> None:
     st.integers(min_value=1, max_value=1000),
 )
 def test_datetime_rounding(
-    dt: ry.DateTime, unit: JiffUnit, mode: JiffRoundMode, increment: int
+    dt: ry.DateTime, unit: _Unit, mode: _RoundMode, increment: int
 ) -> None:
     """Test that rounding a datetime with various options works correctly"""
     if unit in ("year", "month", "week"):

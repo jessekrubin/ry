@@ -96,7 +96,7 @@ def test_regex_repr_with_options(kwargs: dict[str, t.Any]) -> None:
     ],
 )
 def test_regex_repr_line_terminator(
-    line_terminator: None | int | bytes,
+    line_terminator: int | bytes | None,
 ) -> None:
     re = ry.Regex(r"\w", line_terminator=line_terminator)
     repr_str = repr(re)

@@ -10,6 +10,7 @@ import ry
 
 if TYPE_CHECKING:
     from ry._types import Buffer
+    from ry.ryo3._http import HttpMethodLike
     from ry.ryo3._reqwest import RequestKwargs
 
     from .conftest import ReqtestServer
@@ -99,6 +100,7 @@ async def test_get_query(server: ReqtestServer, client: TClient) -> None:
         ("patch", {}),
         ("head", {}),
         ("options", {}),
+        ("query", {}),
     ],
 )
 @pytest.mark.parametrize(
@@ -108,7 +110,14 @@ async def test_get_query(server: ReqtestServer, client: TClient) -> None:
 async def test_client_methods(
     server: ReqtestServer,
     method: t.Literal[
-        "get", "post", "put", "delete", "patch", "head", "options", "__call__"
+        "get",
+        "post",
+        "put",
+        "delete",
+        "patch",
+        "head",
+        "options",
+        "query",
     ],
     options: RequestKwargs,
     client_cls: type[TClient],
@@ -151,7 +160,7 @@ async def test_client_methods(
 async def test_form_data(
     server: ReqtestServer,
     client: TClient,
-    method: str,
+    method: HttpMethodLike,
     form_data: t.Any,
 ) -> None:
     url = server.url / "echo"

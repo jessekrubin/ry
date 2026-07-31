@@ -24,11 +24,8 @@ macro_rules! unpaid_intern {
 }
 
 // struct-keys
+unpaid_intern!(temporal);
 unpaid_intern!(timestamp);
-unpaid_intern!(date);
-unpaid_intern!(time);
-unpaid_intern!(datetime);
-unpaid_intern!(zoned);
 
 // singular duration(s)
 unpaid_intern!(year);

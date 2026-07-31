@@ -4,7 +4,7 @@ import typing as t
 
 from ry._types import Buffer
 from ry.ryo3._bytes import Bytes
-from ry.ryo3._jiter import JsonValue
+from ry.ryo3._jiter import _JsonValue
 
 def minify(buf: Buffer | str, /) -> Bytes:
     """Return minified json data (remove whitespace, newlines)
@@ -119,7 +119,7 @@ def loads(
     cache_mode: t.Literal[True, False, "all", "keys", "none"] = "all",
     partial_mode: t.Literal[True, False, "off", "on", "trailing-strings"] = False,
     catch_duplicate_keys: bool = False,
-) -> JsonValue: ...
+) -> _JsonValue: ...
 def parse(
     data: Buffer | bytes | str,
     *,
@@ -127,6 +127,6 @@ def parse(
     cache_mode: t.Literal[True, False, "all", "keys", "none"] = "all",
     partial_mode: t.Literal[True, False, "off", "on", "trailing-strings"] = False,
     catch_duplicate_keys: bool = False,
-) -> JsonValue: ...
+) -> _JsonValue: ...
 def cache_clear() -> None: ...
 def cache_usage() -> int: ...

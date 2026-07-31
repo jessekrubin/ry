@@ -4,11 +4,7 @@ from __future__ import annotations
 
 import sys
 from os import PathLike
-from typing import TYPE_CHECKING, Literal, TypeAlias
-
-if TYPE_CHECKING:
-    import datetime as pydt
-
+from typing import Literal, TypeAlias
 
 if sys.version_info >= (3, 12):  # pragma: no cover
     from collections.abc import Buffer
@@ -18,275 +14,15 @@ else:  # pragma: no cover
 
 __all__ = (
     "Buffer",
-    "DateDifferenceTypedDict",
-    "DateTimeDifferenceTypedDict",
-    "DateTimeRoundTypedDict",
-    "DateTimeTypedDict",
-    "DateTimeTypedDict",
-    "DateTypedDict",
-    "DateTypedDict",
-    "DurationDict",
     "FsPathLike",
-    "ISOWeekDateTypedDict",
-    "JiffRoundMode",
-    "JiffUnit",
-    "MetadataDict",
-    "OffsetInfoDict",
-    "OffsetRoundTypedDict",
-    "SignedDurationRoundTypedDict",
-    "TimeDifferenceTypedDict",
-    "TimeRoundTypedDict",
-    "TimeSpanTypedDict",
-    "TimeTypedDict",
-    "TimestampDifferenceTypedDict",
-    "TimestampRoundTypedDict",
-    "TimestampTypedDict",
+    "TypedDict",
     "Unpack",
-    "ZonedDateTimeDifferenceTypedDict",
-    "ZonedDateTimeRoundTypedDict",
 )
-
 FsPathLike: TypeAlias = str | PathLike[str]
-
-
-# =============================================================================
-# STD
-# =============================================================================
-class DurationDict(TypedDict):
-    secs: int
-    nanos: int
-
-
-class MetadataDict(TypedDict):
-    is_dir: bool
-    is_file: bool
-    is_symlink: bool
-    len: int
-    readonly: bool
-    file_type: Literal["file", "directory", "symlink"]
-    accessed: pydt.datetime
-    created: pydt.datetime
-    modified: pydt.datetime
-
-
-# =============================================================================
-# JIFF
-# =============================================================================
-JiffUnit: TypeAlias = Literal[
-    # __CALENDAR__
-    "year",  # 9
-    "month",  # 8
-    "day",  # 6
-    # __EXACT__
-    "hour",  # 5
-    "minute",  # 4
-    "second",  # 3
-    "millisecond",  # 2
-    "microsecond",  # 1
-    "nanosecond",  # 0
-]
-# fmt: off
-JiffRoundMode: TypeAlias = Literal[
-    "ceil",   "half-ceil",
-    "expand", "half-expand",
-    "floor",  "half-floor",
-    "trunc",  "half-trunc",
-              "half-even",
-]
-# fmt: on
-
-
-class DateTypedDict(TypedDict):
-    year: int
-    month: int
-    day: int
-
-
-class TimeTypedDict(TypedDict):
-    hour: int
-    minute: int
-    second: int
-    nanosecond: int
-
-
-class DateTimeTypedDict(TypedDict):
-    year: int
-    month: int
-    day: int
-    hour: int
-    minute: int
-    second: int
-    nanosecond: int
-
-
-class ZonedDateTimeTypedDict(TypedDict):
-    year: int
-    month: int
-    day: int
-    hour: int
-    minute: int
-    second: int
-    nanosecond: int
-    tz: str
-
-
-class TimestampTypedDict(TypedDict):
-    second: int
-    nanosecond: int
-
-
-class SignedDurationTypedDict(TypedDict):
-    secs: int
-    nanos: int
-
-
-class TimeSpanTypedDict(TypedDict, total=False):
-    """Timespan TypedDict
-
-    Examples
-    --------
-    >>> import ry
-    >>> ts = ry.timespan(years=1, months=2, weeks=3)
-    >>> ts.to_dict()
-    {'years': 1, 'months': 2, 'weeks': 3}
-    >>> {**ts}
-    {'years': 1, 'months': 2, 'weeks': 3}
-
-    """
-
-    years: int
-    months: int
-    weeks: int
-    days: int
-    hours: int
-    minutes: int
-    seconds: int
-    milliseconds: int
-    microseconds: int
-    nanoseconds: int
-
-
-class TimeZoneDict(TypedDict):
-    tz: str
-
-
-class OffsetTypedDict(TypedDict):
-    seconds: int
-    fmt: str
-
-
-class OffsetInfoDict(TypedDict):
-    offset: OffsetTypedDict
-    dst: bool
-    abbreviation: str
-
-
-class ISOWeekDateTypedDict(TypedDict):
-    year: int
-    week: int
-    weekday: int
-
-
-# -----------------------------------------------------------------------------
-# JIFF ROUND
-# -----------------------------------------------------------------------------
-class DateTimeRoundTypedDict(TypedDict):
-    smallest: Literal[
-        "day", "hour", "minute", "second", "millisecond", "microsecond", "nanosecond"
-    ]
-    mode: JiffRoundMode
-    increment: int
-
-
-class SignedDurationRoundTypedDict(TypedDict):
-    smallest: Literal[
-        "hour", "minute", "second", "millisecond", "microsecond", "nanosecond"
-    ]
-    mode: JiffRoundMode
-    increment: int
-
-
-class TimeRoundTypedDict(TypedDict):
-    smallest: Literal[
-        "hour", "minute", "second", "millisecond", "microsecond", "nanosecond"
-    ]
-    mode: JiffRoundMode
-    increment: int
-
-
-class TimestampRoundTypedDict(TypedDict):
-    smallest: Literal[
-        "hour", "minute", "second", "millisecond", "microsecond", "nanosecond"
-    ]
-    mode: JiffRoundMode
-    increment: int
-
-
-class ZonedDateTimeRoundTypedDict(TypedDict):
-    smallest: Literal[
-        "day", "hour", "minute", "second", "millisecond", "microsecond", "nanosecond"
-    ]
-    mode: JiffRoundMode
-    increment: int
-
-
-class OffsetRoundTypedDict(TypedDict):
-    smallest: Literal["second", "minute", "hour"]
-    mode: JiffRoundMode
-    increment: int
-
-
-# -----------------------------------------------------------------------------
-# JIFF DIFFERENCE
-# -----------------------------------------------------------------------------
-class _DifferenceTypedDict(TypedDict):
-    mode: JiffRoundMode
-    increment: int
-
-
-DateDifferenceUnit: TypeAlias = Literal["month", "year", "day"]
-
-
-class DateDifferenceTypedDict(_DifferenceTypedDict):
-    smallest: DateDifferenceUnit
-    largest: DateDifferenceUnit | None
-
-
-class DateTimeDifferenceTypedDict(_DifferenceTypedDict):
-    smallest: JiffUnit
-    largest: JiffUnit | None
-
-
-TimeDifferenceUnit: TypeAlias = Literal[
-    "hour", "minute", "second", "millisecond", "microsecond", "nanosecond"
-]
-
-
-class TimeDifferenceTypedDict(_DifferenceTypedDict):
-    smallest: TimeDifferenceUnit
-    largest: TimeDifferenceUnit | None
-
-
-class ZonedDateTimeDifferenceTypedDict(_DifferenceTypedDict):
-    smallest: JiffUnit
-    largest: JiffUnit | None
-
-
-TimeStampDifferenceUnit: TypeAlias = Literal[
-    "hour", "minute", "second", "millisecond", "microsecond", "nanosecond"
-]
-
-
-class TimestampDifferenceTypedDict(_DifferenceTypedDict):
-    smallest: TimeStampDifferenceUnit
-    largest: TimeStampDifferenceUnit | None
-
-
 # =============================================================================
 # OPEN MODES (CANONICAL)
 # =============================================================================
 # ry accepts the non-canonical modes, but they are mapped to the canonical ones]
-
 # fmt: off
 OpenTextModeUpdating: TypeAlias = Literal[
     "a+", "at+",
@@ -297,10 +33,10 @@ OpenTextModeUpdating: TypeAlias = Literal[
 OpenTextModeWriting: TypeAlias = Literal["a", "at", "w", "wt", "x", "xt"]
 OpenTextModeReading: TypeAlias = Literal["r", "rt"]
 OpenTextMode: TypeAlias = Literal[
-    "a","a+","at","at+",
-    "r","r+","rt","rt+",
-    "w","w+","wt","wt+",
-    "x","x+","xt","xt+"
+    "a", "a+", "at", "at+",
+    "r", "r+", "rt", "rt+",
+    "w", "w+", "wt", "wt+",
+    "x", "x+", "xt", "xt+"
 ]
 OpenBinaryModeUpdating: TypeAlias = Literal["ab+", "rb+", "wb+", "xb+"]
 OpenBinaryModeWriting: TypeAlias = Literal["ab", "wb", "xb"]
