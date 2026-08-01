@@ -2,13 +2,15 @@ use std::io::SeekFrom;
 use std::path::PathBuf;
 use std::sync::Arc;
 
+#[cfg(feature = "experimental-async")]
+use pyo3::coroutine::CancelHandle;
 use pyo3::intern;
 use pyo3::prelude::*;
 use ryo3_bytes::RyBytes;
 use ryo3_core::types::{PyOpenMode, PyOpenOptions};
 use ryo3_macro_rules::{py_io_error, py_runtime_err, py_stop_async_iteration_err, pytodo};
 #[cfg(feature = "experimental-async")]
-use ryo3_tokio_rt::on_tokio_py;
+use ryo3_tokio_rt::on_tokio_py_cancel;
 use ryo3_tokio_rt::{future_into_py, get_tokio_runtime};
 use tokio::fs::File;
 use tokio::io::{AsyncBufReadExt, AsyncReadExt, AsyncSeekExt, AsyncWriteExt, BufStream};
@@ -597,12 +599,15 @@ impl PyAsyncFile {
         })
     }
 
-    async fn close(&self) -> PyResult<()> {
+    async fn close(&self, #[pyo3(cancel_handle)] cancel: CancelHandle) -> PyResult<()> {
         let inner = Arc::clone(&self.inner);
-        on_tokio_py(async move {
-            let mut locked = inner.lock().await;
-            locked.close().await
-        })
+        on_tokio_py_cancel(
+            async move {
+                let mut locked = inner.lock().await;
+                locked.close().await
+            },
+            cancel,
+        )
         .await
     }
 
@@ -617,50 +622,70 @@ impl PyAsyncFile {
         pytodo!("isatty() not implemented");
     }
 
-    async fn flush(&self) -> PyResult<()> {
+    async fn flush(&self, #[pyo3(cancel_handle)] cancel: CancelHandle) -> PyResult<()> {
         let inner = Arc::clone(&self.inner);
-        on_tokio_py(async move {
-            let mut locked = inner.lock().await;
-            locked.flush().await
-        })
+        on_tokio_py_cancel(
+            async move {
+                let mut locked = inner.lock().await;
+                locked.flush().await
+            },
+            cancel,
+        )
         .await
     }
 
-    async fn open(&self) -> PyResult<()> {
+    async fn open(&self, #[pyo3(cancel_handle)] cancel: CancelHandle) -> PyResult<()> {
         let inner = Arc::clone(&self.inner);
-        on_tokio_py(async move {
-            let mut locked = inner.lock().await;
-            locked.open().await
-        })
+        on_tokio_py_cancel(
+            async move {
+                let mut locked = inner.lock().await;
+                locked.open().await
+            },
+            cancel,
+        )
         .await
     }
 
     #[pyo3(signature = (size = 1, /))]
-    async fn peek(&self, size: usize) -> PyResult<RyBytes> {
+    async fn peek(
+        &self,
+        size: usize,
+        #[pyo3(cancel_handle)] cancel: CancelHandle,
+    ) -> PyResult<RyBytes> {
         let inner = Arc::clone(&self.inner);
-        let bvec = on_tokio_py(async move {
-            let mut locked = inner.lock().await;
-            locked.peek(size).await
-        })
+        let bvec = on_tokio_py_cancel(
+            async move {
+                let mut locked = inner.lock().await;
+                locked.peek(size).await
+            },
+            cancel,
+        )
         .await?;
         Ok(RyBytes::from(bvec))
     }
 
     #[pyo3(signature = (size = None, /))]
-    async fn read(&self, size: Option<usize>) -> PyResult<RyBytes> {
+    async fn read(
+        &self,
+        size: Option<usize>,
+        #[pyo3(cancel_handle)] cancel: CancelHandle,
+    ) -> PyResult<RyBytes> {
         let inner = Arc::clone(&self.inner);
-        on_tokio_py(async move {
-            let mut file = inner.lock().await;
-            if let Some(s) = size {
-                let mut buf = vec![0u8; s];
-                let n = file.read(&mut buf).await?;
-                buf.truncate(n);
-                Ok(RyBytes::from(buf))
-            } else {
-                let r = file.read_all().await?;
-                Ok(RyBytes::from(r))
-            }
-        })
+        on_tokio_py_cancel(
+            async move {
+                let mut file = inner.lock().await;
+                if let Some(s) = size {
+                    let mut buf = vec![0u8; s];
+                    let n = file.read(&mut buf).await?;
+                    buf.truncate(n);
+                    Ok(RyBytes::from(buf))
+                } else {
+                    let r = file.read_all().await?;
+                    Ok(RyBytes::from(r))
+                }
+            },
+            cancel,
+        )
         .await
     }
 
@@ -668,27 +693,37 @@ impl PyAsyncFile {
         self.props.readable
     }
 
-    async fn readall(&self) -> PyResult<RyBytes> {
+    async fn readall(&self, #[pyo3(cancel_handle)] cancel: CancelHandle) -> PyResult<RyBytes> {
         let inner = Arc::clone(&self.inner);
-        on_tokio_py(async move {
-            let mut file = inner.lock().await;
-            let r = file.read_all().await?;
-            Ok(RyBytes::from(r))
-        })
+        on_tokio_py_cancel(
+            async move {
+                let mut file = inner.lock().await;
+                let r = file.read_all().await?;
+                Ok(RyBytes::from(r))
+            },
+            cancel,
+        )
         .await
     }
 
     #[pyo3(signature = (size = None, /))]
-    async fn readline(&self, size: Option<usize>) -> PyResult<Option<RyBytes>> {
+    async fn readline(
+        &self,
+        size: Option<usize>,
+        #[pyo3(cancel_handle)] cancel: CancelHandle,
+    ) -> PyResult<Option<RyBytes>> {
         let inner = Arc::clone(&self.inner);
-        on_tokio_py(async move {
-            let mut locked = inner.lock().await;
-            let line = locked.readline(size).await?;
-            match line {
-                Some(line) => Ok(Some(RyBytes::from(line))),
-                None => Ok(None),
-            }
-        })
+        on_tokio_py_cancel(
+            async move {
+                let mut locked = inner.lock().await;
+                let line = locked.readline(size).await?;
+                match line {
+                    Some(line) => Ok(Some(RyBytes::from(line))),
+                    None => Ok(None),
+                }
+            },
+            cancel,
+        )
         .await
     }
 
@@ -698,32 +733,42 @@ impl PyAsyncFile {
     /// lines will be read if the total size (in bytes/characters) of all
     /// lines so far exceeds hint.
     #[pyo3(signature = (hint = None, /))]
-    async fn readlines(&self, hint: Option<usize>) -> PyResult<Vec<RyBytes>> {
+    async fn readlines(
+        &self,
+        hint: Option<usize>,
+        #[pyo3(cancel_handle)] cancel: CancelHandle,
+    ) -> PyResult<Vec<RyBytes>> {
         let inner = Arc::clone(&self.inner);
         if let Some(hint) = hint {
-            on_tokio_py(async move {
-                let mut locked = inner.lock().await;
-                let mut lines = Vec::new();
-                let mut total_size = 0;
-                while let Ok(Some(line)) = locked.readline(None).await {
-                    total_size += line.len();
-                    lines.push(RyBytes::from(line));
-                    if total_size > hint {
-                        break;
+            on_tokio_py_cancel(
+                async move {
+                    let mut locked = inner.lock().await;
+                    let mut lines = Vec::new();
+                    let mut total_size = 0;
+                    while let Ok(Some(line)) = locked.readline(None).await {
+                        total_size += line.len();
+                        lines.push(RyBytes::from(line));
+                        if total_size > hint {
+                            break;
+                        }
                     }
-                }
-                Ok(lines)
-            })
+                    Ok(lines)
+                },
+                cancel,
+            )
             .await
         } else {
-            on_tokio_py(async move {
-                let mut locked = inner.lock().await;
-                let mut lines = Vec::new();
-                while let Ok(Some(line)) = locked.readline(None).await {
-                    lines.push(RyBytes::from(line));
-                }
-                Ok(lines)
-            })
+            on_tokio_py_cancel(
+                async move {
+                    let mut locked = inner.lock().await;
+                    let mut lines = Vec::new();
+                    while let Ok(Some(line)) = locked.readline(None).await {
+                        lines.push(RyBytes::from(line));
+                    }
+                    Ok(lines)
+                },
+                cancel,
+            )
             .await
         }
     }
@@ -732,7 +777,12 @@ impl PyAsyncFile {
         signature = (offset, whence = 0, /),
         text_signature = "(self, offset, whence=os.SEEK_SET, /)")
     ]
-    async fn seek(&self, offset: i64, whence: usize) -> PyResult<u64> {
+    async fn seek(
+        &self,
+        offset: i64,
+        whence: usize,
+        #[pyo3(cancel_handle)] cancel: CancelHandle,
+    ) -> PyResult<u64> {
         let pos = match whence {
             0 => {
                 let offset = offset
@@ -747,10 +797,13 @@ impl PyAsyncFile {
             }
         };
         let inner = Arc::clone(&self.inner);
-        on_tokio_py(async move {
-            let mut locked = inner.lock().await;
-            locked.seek(pos).await
-        })
+        on_tokio_py_cancel(
+            async move {
+                let mut locked = inner.lock().await;
+                locked.seek(pos).await
+            },
+            cancel,
+        )
         .await
     }
 
@@ -759,33 +812,50 @@ impl PyAsyncFile {
         self.props.seekable
     }
 
-    async fn tell(&self) -> PyResult<u64> {
+    async fn tell(&self, #[pyo3(cancel_handle)] cancel: CancelHandle) -> PyResult<u64> {
         let inner = Arc::clone(&self.inner);
-        on_tokio_py(async move {
-            let mut locked = inner.lock().await;
-            locked.tell().await
-        })
+        on_tokio_py_cancel(
+            async move {
+                let mut locked = inner.lock().await;
+                locked.tell().await
+            },
+            cancel,
+        )
         .await
     }
 
     #[pyo3(signature = (pos = None, /))]
-    async fn truncate(&self, pos: Option<u64>) -> PyResult<u64> {
+    async fn truncate(
+        &self,
+        pos: Option<u64>,
+        #[pyo3(cancel_handle)] cancel: CancelHandle,
+    ) -> PyResult<u64> {
         let inner = Arc::clone(&self.inner);
-        let size = on_tokio_py(async move {
-            let mut locked = inner.lock().await;
-            locked.truncate(pos).await
-        })
+        let size = on_tokio_py_cancel(
+            async move {
+                let mut locked = inner.lock().await;
+                locked.truncate(pos).await
+            },
+            cancel,
+        )
         .await?;
         Ok(size)
     }
 
     #[pyo3(signature = (buffer, /))]
-    async fn write(&self, buffer: RyBytes) -> PyResult<usize> {
+    async fn write(
+        &self,
+        buffer: RyBytes,
+        #[pyo3(cancel_handle)] cancel: CancelHandle,
+    ) -> PyResult<usize> {
         let inner = Arc::clone(&self.inner);
-        let written = on_tokio_py(async move {
-            let mut locked = inner.lock().await;
-            locked.write(buffer.as_ref()).await
-        })
+        let written = on_tokio_py_cancel(
+            async move {
+                let mut locked = inner.lock().await;
+                locked.write(buffer.as_ref()).await
+            },
+            cancel,
+        )
         .await?;
         Ok(written)
     }

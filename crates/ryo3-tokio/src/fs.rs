@@ -14,10 +14,12 @@ mod async_file_read_stream;
 pub use async_file::PyAsyncFile;
 pub use async_file_read_stream::PyAsyncFileReadStream;
 mod async_read_dir;
+#[cfg(feature = "experimental-async")]
+use pyo3::coroutine::CancelHandle;
 #[cfg(not(feature = "experimental-async"))]
 use ryo3_tokio_rt::future_into_py;
 #[cfg(feature = "experimental-async")]
-use ryo3_tokio_rt::on_tokio_py;
+use ryo3_tokio_rt::on_tokio_py_cancel;
 
 #[cfg(not(feature = "experimental-async"))]
 #[pyfunction]
@@ -32,13 +34,19 @@ pub fn canonicalize_async(py: Python<'_>, path: PathBuf) -> PyResult<Bound<'_, P
 
 #[cfg(feature = "experimental-async")]
 #[pyfunction]
-pub async fn canonicalize_async(path: PathBuf) -> PyResult<std::ffi::OsString> {
-    on_tokio_py(async move {
-        tokio::fs::canonicalize(path)
-            .await
-            .map(Into::into)
-            .map_err(PyErr::from)
-    })
+pub async fn canonicalize_async(
+    path: PathBuf,
+    #[pyo3(cancel_handle)] cancel: CancelHandle,
+) -> PyResult<std::ffi::OsString> {
+    on_tokio_py_cancel(
+        async move {
+            tokio::fs::canonicalize(path)
+                .await
+                .map(Into::into)
+                .map_err(PyErr::from)
+        },
+        cancel,
+    )
     .await
 }
 
@@ -52,8 +60,16 @@ pub fn copy_async(py: Python<'_>, from: PathBuf, to: PathBuf) -> PyResult<Bound<
 
 #[cfg(feature = "experimental-async")]
 #[pyfunction]
-pub async fn copy_async(from: PathBuf, to: PathBuf) -> PyResult<u64> {
-    on_tokio_py(async move { tokio::fs::copy(from, to).await.map_err(PyErr::from) }).await
+pub async fn copy_async(
+    from: PathBuf,
+    to: PathBuf,
+    #[pyo3(cancel_handle)] cancel: CancelHandle,
+) -> PyResult<u64> {
+    on_tokio_py_cancel(
+        async move { tokio::fs::copy(from, to).await.map_err(PyErr::from) },
+        cancel,
+    )
+    .await
 }
 
 #[cfg(not(feature = "experimental-async"))]
@@ -66,8 +82,15 @@ pub fn create_dir_async(py: Python<'_>, path: PathBuf) -> PyResult<Bound<'_, PyA
 
 #[cfg(feature = "experimental-async")]
 #[pyfunction]
-pub async fn create_dir_async(path: PathBuf) -> PyResult<()> {
-    on_tokio_py(async move { tokio::fs::create_dir(path).await.map_err(PyErr::from) }).await
+pub async fn create_dir_async(
+    path: PathBuf,
+    #[pyo3(cancel_handle)] cancel: CancelHandle,
+) -> PyResult<()> {
+    on_tokio_py_cancel(
+        async move { tokio::fs::create_dir(path).await.map_err(PyErr::from) },
+        cancel,
+    )
+    .await
 }
 
 #[cfg(not(feature = "experimental-async"))]
@@ -80,8 +103,15 @@ pub fn create_dir_all_async(py: Python<'_>, path: PathBuf) -> PyResult<Bound<'_,
 
 #[cfg(feature = "experimental-async")]
 #[pyfunction]
-pub async fn create_dir_all_async(path: PathBuf) -> PyResult<()> {
-    on_tokio_py(async move { tokio::fs::create_dir_all(path).await.map_err(PyErr::from) }).await
+pub async fn create_dir_all_async(
+    path: PathBuf,
+    #[pyo3(cancel_handle)] cancel: CancelHandle,
+) -> PyResult<()> {
+    on_tokio_py_cancel(
+        async move { tokio::fs::create_dir_all(path).await.map_err(PyErr::from) },
+        cancel,
+    )
+    .await
 }
 
 #[cfg(not(feature = "experimental-async"))]
@@ -94,8 +124,16 @@ pub fn hard_link_async(py: Python<'_>, from: PathBuf, to: PathBuf) -> PyResult<B
 
 #[cfg(feature = "experimental-async")]
 #[pyfunction]
-pub async fn hard_link_async(from: PathBuf, to: PathBuf) -> PyResult<()> {
-    on_tokio_py(async move { tokio::fs::hard_link(from, to).await.map_err(PyErr::from) }).await
+pub async fn hard_link_async(
+    from: PathBuf,
+    to: PathBuf,
+    #[pyo3(cancel_handle)] cancel: CancelHandle,
+) -> PyResult<()> {
+    on_tokio_py_cancel(
+        async move { tokio::fs::hard_link(from, to).await.map_err(PyErr::from) },
+        cancel,
+    )
+    .await
 }
 
 #[cfg(not(feature = "experimental-async"))]
@@ -111,13 +149,19 @@ pub fn metadata_async(py: Python<'_>, path: PathBuf) -> PyResult<Bound<'_, PyAny
 
 #[cfg(feature = "experimental-async")]
 #[pyfunction]
-pub async fn metadata_async(path: PathBuf) -> PyResult<PyMetadata> {
-    on_tokio_py(async move {
-        tokio::fs::metadata(path)
-            .await
-            .map(PyMetadata::from)
-            .map_err(PyErr::from)
-    })
+pub async fn metadata_async(
+    path: PathBuf,
+    #[pyo3(cancel_handle)] cancel: CancelHandle,
+) -> PyResult<PyMetadata> {
+    on_tokio_py_cancel(
+        async move {
+            tokio::fs::metadata(path)
+                .await
+                .map(PyMetadata::from)
+                .map_err(PyErr::from)
+        },
+        cancel,
+    )
     .await
 }
 
@@ -134,13 +178,19 @@ pub fn read_async(py: Python<'_>, path: PathBuf) -> PyResult<Bound<'_, PyAny>> {
 
 #[cfg(feature = "experimental-async")]
 #[pyfunction]
-pub async fn read_async(path: PathBuf) -> PyResult<RyBytes> {
-    on_tokio_py(async move {
-        tokio::fs::read(path)
-            .await
-            .map(RyBytes::from)
-            .map_err(PyErr::from)
-    })
+pub async fn read_async(
+    path: PathBuf,
+    #[pyo3(cancel_handle)] cancel: CancelHandle,
+) -> PyResult<RyBytes> {
+    on_tokio_py_cancel(
+        async move {
+            tokio::fs::read(path)
+                .await
+                .map(RyBytes::from)
+                .map_err(PyErr::from)
+        },
+        cancel,
+    )
     .await
 }
 
@@ -155,11 +205,17 @@ pub fn read_dir_async(py: Python<'_>, path: PathBuf) -> PyResult<Bound<'_, PyAny
 
 #[cfg(feature = "experimental-async")]
 #[pyfunction]
-pub async fn read_dir_async(path: PathBuf) -> PyResult<PyAsyncReadDir> {
-    on_tokio_py(async move {
-        let readdir = tokio::fs::read_dir(path).await.map_err(PyErr::from)?;
-        Ok(PyAsyncReadDir::from(readdir))
-    })
+pub async fn read_dir_async(
+    path: PathBuf,
+    #[pyo3(cancel_handle)] cancel: CancelHandle,
+) -> PyResult<PyAsyncReadDir> {
+    on_tokio_py_cancel(
+        async move {
+            let readdir = tokio::fs::read_dir(path).await.map_err(PyErr::from)?;
+            Ok(PyAsyncReadDir::from(readdir))
+        },
+        cancel,
+    )
     .await
 }
 
@@ -176,13 +232,19 @@ pub fn read_link_async(py: Python<'_>, path: PathBuf) -> PyResult<Bound<'_, PyAn
 
 #[cfg(feature = "experimental-async")]
 #[pyfunction]
-pub async fn read_link_async(path: PathBuf) -> PyResult<std::ffi::OsString> {
-    on_tokio_py(async move {
-        tokio::fs::read_link(path)
-            .await
-            .map(Into::into)
-            .map_err(PyErr::from)
-    })
+pub async fn read_link_async(
+    path: PathBuf,
+    #[pyo3(cancel_handle)] cancel: CancelHandle,
+) -> PyResult<std::ffi::OsString> {
+    on_tokio_py_cancel(
+        async move {
+            tokio::fs::read_link(path)
+                .await
+                .map(Into::into)
+                .map_err(PyErr::from)
+        },
+        cancel,
+    )
     .await
 }
 
@@ -196,8 +258,15 @@ pub fn read_to_string_async(py: Python<'_>, path: PathBuf) -> PyResult<Bound<'_,
 
 #[cfg(feature = "experimental-async")]
 #[pyfunction]
-pub async fn read_to_string_async(path: PathBuf) -> PyResult<String> {
-    on_tokio_py(async move { tokio::fs::read_to_string(path).await.map_err(PyErr::from) }).await
+pub async fn read_to_string_async(
+    path: PathBuf,
+    #[pyo3(cancel_handle)] cancel: CancelHandle,
+) -> PyResult<String> {
+    on_tokio_py_cancel(
+        async move { tokio::fs::read_to_string(path).await.map_err(PyErr::from) },
+        cancel,
+    )
+    .await
 }
 
 #[cfg(not(feature = "experimental-async"))]
@@ -210,8 +279,15 @@ pub fn remove_dir_async(py: Python<'_>, path: PathBuf) -> PyResult<Bound<'_, PyA
 
 #[cfg(feature = "experimental-async")]
 #[pyfunction]
-pub async fn remove_dir_async(path: PathBuf) -> PyResult<()> {
-    on_tokio_py(async move { tokio::fs::remove_dir(path).await.map_err(PyErr::from) }).await
+pub async fn remove_dir_async(
+    path: PathBuf,
+    #[pyo3(cancel_handle)] cancel: CancelHandle,
+) -> PyResult<()> {
+    on_tokio_py_cancel(
+        async move { tokio::fs::remove_dir(path).await.map_err(PyErr::from) },
+        cancel,
+    )
+    .await
 }
 
 #[cfg(not(feature = "experimental-async"))]
@@ -224,8 +300,15 @@ pub fn remove_dir_all_async(py: Python<'_>, path: PathBuf) -> PyResult<Bound<'_,
 
 #[cfg(feature = "experimental-async")]
 #[pyfunction]
-pub async fn remove_dir_all_async(path: PathBuf) -> PyResult<()> {
-    on_tokio_py(async move { tokio::fs::remove_dir_all(path).await.map_err(PyErr::from) }).await
+pub async fn remove_dir_all_async(
+    path: PathBuf,
+    #[pyo3(cancel_handle)] cancel: CancelHandle,
+) -> PyResult<()> {
+    on_tokio_py_cancel(
+        async move { tokio::fs::remove_dir_all(path).await.map_err(PyErr::from) },
+        cancel,
+    )
+    .await
 }
 
 #[cfg(not(feature = "experimental-async"))]
@@ -238,8 +321,15 @@ pub fn remove_file_async(py: Python<'_>, path: PathBuf) -> PyResult<Bound<'_, Py
 
 #[cfg(feature = "experimental-async")]
 #[pyfunction]
-pub async fn remove_file_async(path: PathBuf) -> PyResult<()> {
-    on_tokio_py(async move { tokio::fs::remove_file(path).await.map_err(PyErr::from) }).await
+pub async fn remove_file_async(
+    path: PathBuf,
+    #[pyo3(cancel_handle)] cancel: CancelHandle,
+) -> PyResult<()> {
+    on_tokio_py_cancel(
+        async move { tokio::fs::remove_file(path).await.map_err(PyErr::from) },
+        cancel,
+    )
+    .await
 }
 
 #[cfg(not(feature = "experimental-async"))]
@@ -252,8 +342,16 @@ pub fn rename_async(py: Python<'_>, from: PathBuf, to: PathBuf) -> PyResult<Boun
 
 #[cfg(feature = "experimental-async")]
 #[pyfunction]
-pub async fn rename_async(from: PathBuf, to: PathBuf) -> PyResult<()> {
-    on_tokio_py(async move { tokio::fs::rename(from, to).await.map_err(PyErr::from) }).await
+pub async fn rename_async(
+    from: PathBuf,
+    to: PathBuf,
+    #[pyo3(cancel_handle)] cancel: CancelHandle,
+) -> PyResult<()> {
+    on_tokio_py_cancel(
+        async move { tokio::fs::rename(from, to).await.map_err(PyErr::from) },
+        cancel,
+    )
+    .await
 }
 
 #[cfg(not(feature = "experimental-async"))]
@@ -266,8 +364,15 @@ pub fn try_exists_async(py: Python<'_>, path: PathBuf) -> PyResult<Bound<'_, PyA
 
 #[cfg(feature = "experimental-async")]
 #[pyfunction]
-pub async fn try_exists_async(path: PathBuf) -> PyResult<bool> {
-    on_tokio_py(async move { tokio::fs::try_exists(path).await.map_err(PyErr::from) }).await
+pub async fn try_exists_async(
+    path: PathBuf,
+    #[pyo3(cancel_handle)] cancel: CancelHandle,
+) -> PyResult<bool> {
+    on_tokio_py_cancel(
+        async move { tokio::fs::try_exists(path).await.map_err(PyErr::from) },
+        cancel,
+    )
+    .await
 }
 
 #[cfg(not(feature = "experimental-async"))]
@@ -280,8 +385,15 @@ pub fn exists_async(py: Python<'_>, path: PathBuf) -> PyResult<Bound<'_, PyAny>>
 
 #[cfg(feature = "experimental-async")]
 #[pyfunction]
-pub async fn exists_async(path: PathBuf) -> PyResult<bool> {
-    on_tokio_py(async move { tokio::fs::try_exists(path).await.map_err(PyErr::from) }).await
+pub async fn exists_async(
+    path: PathBuf,
+    #[pyo3(cancel_handle)] cancel: CancelHandle,
+) -> PyResult<bool> {
+    on_tokio_py_cancel(
+        async move { tokio::fs::try_exists(path).await.map_err(PyErr::from) },
+        cancel,
+    )
+    .await
 }
 
 #[cfg(not(feature = "experimental-async"))]
@@ -299,15 +411,22 @@ pub fn write_async(py: Python<'_>, path: PathBuf, buf: RyBytes) -> PyResult<Boun
 
 #[cfg(feature = "experimental-async")]
 #[pyfunction]
-pub async fn write_async(path: PathBuf, buf: RyBytes) -> PyResult<usize> {
-    on_tokio_py(async move {
-        let bref: &[u8] = buf.as_ref();
-        let len = bref.len();
-        tokio::fs::write(path, buf)
-            .await
-            .map(|()| len)
-            .map_err(PyErr::from)
-    })
+pub async fn write_async(
+    path: PathBuf,
+    buf: RyBytes,
+    #[pyo3(cancel_handle)] cancel: CancelHandle,
+) -> PyResult<usize> {
+    on_tokio_py_cancel(
+        async move {
+            let bref: &[u8] = buf.as_ref();
+            let len = bref.len();
+            tokio::fs::write(path, buf)
+                .await
+                .map(|()| len)
+                .map_err(PyErr::from)
+        },
+        cancel,
+    )
     .await
 }
 
@@ -328,13 +447,20 @@ pub fn write_string_async(
 
 #[cfg(feature = "experimental-async")]
 #[pyfunction]
-pub async fn write_string_async(path: PathBuf, s: PyBackedStr) -> PyResult<usize> {
-    on_tokio_py(async move {
-        let nbytes = s.len();
+pub async fn write_string_async(
+    path: PathBuf,
+    s: PyBackedStr,
+    #[pyo3(cancel_handle)] cancel: CancelHandle,
+) -> PyResult<usize> {
+    on_tokio_py_cancel(
+        async move {
+            let nbytes = s.len();
 
-        tokio::fs::write(path, s).await.map_err(PyErr::from)?;
-        Ok(nbytes)
-    })
+            tokio::fs::write(path, s).await.map_err(PyErr::from)?;
+            Ok(nbytes)
+        },
+        cancel,
+    )
     .await
 }
 

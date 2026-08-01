@@ -3,13 +3,19 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use futures_util::{SinkExt, StreamExt};
+#[cfg(feature = "experimental-async")]
+use pyo3::coroutine::CancelHandle;
 use pyo3::exceptions::PyStopAsyncIteration;
+#[cfg(feature = "experimental-async")]
+use pyo3::exceptions::asyncio::CancelledError;
 use pyo3::prelude::*;
 use ryo3_core::sync::RyMutex;
 use ryo3_http::{PyHeaders, PyHeadersLike, PyHttpStatus};
 use ryo3_macro_rules::py_runtime_err;
 use ryo3_std::time::{PyDuration, PyTimeout};
 use ryo3_tokio_rt::future_into_py;
+#[cfg(feature = "experimental-async")]
+use ryo3_tokio_rt::{on_tokio_py, on_tokio_py_cancel};
 use tokio::sync::Mutex;
 use tokio_websockets::{ClientBuilder, Config, Limits, Message};
 
@@ -200,10 +206,6 @@ impl PyWebSocket {
                 }
             }
 
-            // if cfg.frame_size == 0 {
-            //     return py_value_err!("frame_size must be non-zero");
-            // }
-
             let config = Config::default()
                 .frame_size(cfg.frame_size.get())
                 .flush_threshold(cfg.flush_threshold.get());
@@ -372,6 +374,16 @@ impl PyWebSocket {
         }
     }
 
+    #[cfg(feature = "experimental-async")]
+    #[inline]
+    async fn recv_required(&self, timeout: Option<Duration>) -> PyResult<PyWsMessage> {
+        if let Some(msg) = self.recv_msg(timeout).await? {
+            Ok(msg)
+        } else {
+            py_runtime_err!("websocket closed")
+        }
+    }
+
     #[inline]
     async fn send(&self, message: Message) -> PyResult<()> {
         let conn = self.get_connected()?;
@@ -408,19 +420,32 @@ impl PyWebSocket {
             return Ok(());
         };
 
-        if should_send_close {
-            let mut writer = conn.writer.lock().await;
-            match writer.send(message).await {
-                Ok(()) | Err(tokio_websockets::Error::AlreadyClosed) => {}
-                Err(err) => {
-                    drop(writer);
-                    self.close_current_connection(&conn);
-                    return Err(map_ws_err(err));
+        let result = async {
+            if should_send_close {
+                let mut writer = conn.writer.lock().await;
+                match writer.send(message).await {
+                    Ok(()) | Err(tokio_websockets::Error::AlreadyClosed) => {}
+                    Err(err) => return Err(map_ws_err(err)),
                 }
             }
-        }
 
-        self.finalize_close_conn(&conn).await
+            self.finalize_close_conn(&conn).await
+        }
+        .await;
+        self.close_current_connection(&conn);
+        result
+    }
+
+    // if still closing, the close-op was interrupted (which sucks), so fuckit
+    // ws is closed; this showed up in some tests i was running w/ a dgi server
+    // i am doing for my job
+    #[inline]
+    #[cfg(feature = "experimental-async")]
+    fn finish_closing_state(&self) {
+        let mut state = self.0.state.py_lock();
+        if let WebSocketState::Closing(conn) = &*state {
+            *state = conn.clone().into_closed();
+        }
     }
 
     #[inline]
@@ -578,44 +603,89 @@ impl PyWebSocket {
     }
 
     #[pyo3(signature = (timeout = None))]
-    async fn recv(&self, timeout: Option<PyTimeout>) -> PyResult<PyWsMessage> {
-        if let Some(msg) = self.recv_msg(timeout.map(Into::into)).await? {
-            Ok(msg)
-        } else {
-            py_runtime_err!("websocket closed")
-        }
+    async fn recv(
+        &self,
+        timeout: Option<PyTimeout>,
+        #[pyo3(cancel_handle)] cancel: CancelHandle,
+    ) -> PyResult<PyWsMessage> {
+        let this = self.clone();
+        on_tokio_py_cancel(
+            async move { this.recv_required(timeout.map(Into::into)).await },
+            cancel,
+        )
+        .await
     }
 
     #[pyo3(signature = (timeout = None))]
-    async fn receive(&self, timeout: Option<PyTimeout>) -> PyResult<PyWsMessage> {
-        self.recv(timeout).await
+    async fn receive(
+        &self,
+        timeout: Option<PyTimeout>,
+        #[pyo3(cancel_handle)] cancel: CancelHandle,
+    ) -> PyResult<PyWsMessage> {
+        let this = self.clone();
+        on_tokio_py_cancel(
+            async move { this.recv_required(timeout.map(Into::into)).await },
+            cancel,
+        )
+        .await
     }
 
     #[pyo3(name = "send")]
-    async fn py_send(&self, message: PyMessageLike) -> PyResult<()> {
+    async fn py_send(
+        &self,
+        message: PyMessageLike,
+        #[pyo3(cancel_handle)] cancel: CancelHandle,
+    ) -> PyResult<()> {
         let message = Message::from(message);
-        self.send(message).await
+        let this = self.clone();
+        on_tokio_py_cancel(async move { this.send(message).await }, cancel).await
     }
 
     #[pyo3(
         signature = (code = PyWsCloseCode::NORMAL_CLOSURE, reason = None),
         text_signature = "(self, code=1_000, reason=None)"
     )]
-    async fn close(&self, code: PyWsCloseCode, reason: Option<PyWsCloseReason>) -> PyResult<()> {
+    async fn close(
+        &self,
+        code: PyWsCloseCode,
+        reason: Option<PyWsCloseReason>,
+        #[pyo3(cancel_handle)] mut cancel: CancelHandle,
+    ) -> PyResult<()> {
         let pymsg = PyWsMessage::close(code, reason)?;
-        self.close_with(pymsg.into()).await
+        let this = self.clone();
+        on_tokio_py(async move {
+            let result = tokio::select! {
+                result = this.close_with(pymsg.into()) => result,
+                _ = cancel.cancelled() => {
+                    Err(CancelledError::new_err("WebSocket close was cancelled"))
+                }
+            };
+            this.finish_closing_state();
+            result
+        })
+        .await
     }
 
     #[pyo3(signature = (payload = None))]
-    async fn ping(&self, payload: Option<PyPingPayload>) -> PyResult<()> {
+    async fn ping(
+        &self,
+        payload: Option<PyPingPayload>,
+        #[pyo3(cancel_handle)] cancel: CancelHandle,
+    ) -> PyResult<()> {
         let payload = payload.unwrap_or_default().into();
-        self.send(payload).await
+        let this = self.clone();
+        on_tokio_py_cancel(async move { this.send(payload).await }, cancel).await
     }
 
     #[pyo3(signature = (payload = None))]
-    async fn pong(&self, payload: Option<PyPongPayload>) -> PyResult<()> {
+    async fn pong(
+        &self,
+        payload: Option<PyPongPayload>,
+        #[pyo3(cancel_handle)] cancel: CancelHandle,
+    ) -> PyResult<()> {
         let payload = payload.unwrap_or_default().into();
-        self.send(payload).await
+        let this = self.clone();
+        on_tokio_py_cancel(async move { this.send(payload).await }, cancel).await
     }
 }
 

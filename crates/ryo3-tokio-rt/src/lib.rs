@@ -88,9 +88,31 @@ where
 {
     get_ry_tokio_runtime().py_spawn(fut).await?
 }
-// use pyo3::coroutine::CancelHandle;
 /// Execute future w/ tokio rt and listen for cancellation via the provided
 /// `pyo3::coroutine::CancelHandle`.
+///
+/// This is the orig version that AFAICT when benchmarking a ton of cancels
+/// is slower than spanwning a task, selecting the cancel/task and then
+/// finally, manually nuking that taks...
+///
+/// ```rust,ignore
+/// #[cfg(feature = "experimental-async")]
+/// #[inline]
+/// pub async fn on_tokio_py_cancel<F, T>(
+///     fut: F,
+///     mut cancel: ::pyo3::coroutine::CancelHandle,
+/// ) -> pyo3::PyResult<T>
+/// where
+///     F: Future<Output = pyo3::PyResult<T>> + Send + 'static,
+///     T: Send + 'static,
+/// {
+///     use pyo3::exceptions::asyncio::CancelledError;
+///     tokio::select! {
+///         res = on_tokio_py(fut) => res,
+///         _ = cancel.cancelled() => Err(CancelledError::new_err("Operation was cancelled")),
+///     }
+/// }
+/// ```
 #[cfg(feature = "experimental-async")]
 #[inline]
 pub async fn on_tokio_py_cancel<F, T>(
@@ -102,9 +124,13 @@ where
     T: Send + 'static,
 {
     use pyo3::exceptions::asyncio::CancelledError;
+    let mut task = get_ry_tokio_runtime().py_spawn(fut);
     tokio::select! {
-        res = on_tokio_py(fut) => res,
-        _ = cancel.cancelled() => Err(CancelledError::new_err("Operation was cancelled")),
+        result = &mut task => result?,
+        _ = cancel.cancelled() => {
+            task.0.abort();
+            Err(CancelledError::new_err("Operation was cancelled"))
+        }
     }
 }
 

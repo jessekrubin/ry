@@ -1,8 +1,10 @@
+#[cfg(feature = "experimental-async")]
+use pyo3::coroutine::CancelHandle;
 use pyo3::prelude::*;
 #[cfg(not(feature = "experimental-async"))]
 use ryo3_tokio_rt::future_into_py;
 #[cfg(feature = "experimental-async")]
-use ryo3_tokio_rt::on_tokio_py;
+use ryo3_tokio_rt::on_tokio_py_cancel;
 
 async fn sleep_impl(secs: f64) {
     let dur = std::time::Duration::from_secs_f64(secs);
@@ -29,21 +31,27 @@ pub fn sleep_async(py: Python, secs: f64) -> PyResult<Bound<PyAny>> {
 
 #[cfg(feature = "experimental-async")]
 #[pyfunction]
-pub async fn asleep(secs: f64) -> PyResult<f64> {
-    on_tokio_py(async move {
-        sleep_impl(secs).await;
-        Ok(secs)
-    })
+pub async fn asleep(secs: f64, #[pyo3(cancel_handle)] cancel: CancelHandle) -> PyResult<f64> {
+    on_tokio_py_cancel(
+        async move {
+            sleep_impl(secs).await;
+            Ok(secs)
+        },
+        cancel,
+    )
     .await
 }
 
 #[cfg(feature = "experimental-async")]
 #[pyfunction]
-pub async fn sleep_async(secs: f64) -> PyResult<f64> {
-    on_tokio_py(async move {
-        sleep_impl(secs).await;
-        Ok(secs)
-    })
+pub async fn sleep_async(secs: f64, #[pyo3(cancel_handle)] cancel: CancelHandle) -> PyResult<f64> {
+    on_tokio_py_cancel(
+        async move {
+            sleep_impl(secs).await;
+            Ok(secs)
+        },
+        cancel,
+    )
     .await
 }
 
