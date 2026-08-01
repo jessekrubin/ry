@@ -150,7 +150,7 @@ impl<'py, const BLOCKING: bool> FromPyObject<'_, 'py> for ReqwestKwargs<BLOCKING
                 PyReqwestBody::Form(url_encoded_form)
             }
             (None, None, None, Some(_multipart)) => {
-                pytodo!("multipart not implemented (yet)")
+                pytodo!("multipart not implemented (yet)");
             }
             (None, None, None, None) => PyReqwestBody::None,
         };

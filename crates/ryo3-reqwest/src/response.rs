@@ -167,7 +167,7 @@ impl From<reqwest::Response> for RyBlockingResponse {
 impl RyResponse {
     #[new]
     fn py_new() -> PyResult<Self> {
-        pytodo!("Response::new")
+        pytodo!("Response::new");
     }
 
     fn __repr__(&self) -> String {
@@ -355,7 +355,7 @@ impl RyResponse {
 impl RyResponse {
     #[new]
     fn py_new() -> PyResult<Self> {
-        pytodo!("Response::new")
+        pytodo!("Response::new");
     }
 
     fn __repr__(&self) -> String {
@@ -572,7 +572,7 @@ impl std::fmt::Display for RyResponse {
 impl RyBlockingResponse {
     #[new]
     fn py_new() -> PyResult<Self> {
-        pytodo!("BlockingResponse::new")
+        pytodo!("BlockingResponse::new");
     }
 
     fn __repr__(&self) -> String {
