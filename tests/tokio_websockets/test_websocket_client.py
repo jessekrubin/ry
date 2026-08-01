@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import typing as t
 
 import pytest
@@ -110,6 +111,32 @@ async def test_websocket_send_parse_json(websocket_server: WsTestServer) -> None
     assert msg1.is_text
     assert msg1.data == '{"data":123}'
     assert msg1.json() == {"data": 123}
+
+
+@pytest.mark.skipif(
+    not ry.__pyo3_experimental_async__,
+    reason="coroutine cancel requires `experimental-async` feat",
+)
+async def test_cancelled_recv_releases_underlying_conn_thingy(
+    websocket_server: WsTestServer,
+) -> None:
+    """test that we dont get in bad state w/ cancel"""
+    if not ry.__pyo3_experimental_async__:
+        pytest.skip("native coroutine cancellation requires experimental-async")
+
+    ws = ry.websocket(websocket_server.url("/echo"))
+    await ws
+    recv_task = asyncio.create_task(ws.recv())
+    await asyncio.sleep(0)
+    recv_task.cancel()
+
+    with pytest.raises(asyncio.CancelledError):
+        await recv_task
+
+    await ws.send("still-open")
+    msg = await asyncio.wait_for(ws.recv(), timeout=1)
+    assert msg.data == "still-open"
+    await ws.close()
 
 
 @pytest.mark.xfail(

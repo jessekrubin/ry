@@ -4,12 +4,14 @@ use std::path::PathBuf;
 use std::pin::Pin;
 use std::sync::Arc;
 
+#[cfg(feature = "experimental-async")]
+use pyo3::coroutine::CancelHandle;
 use pyo3::prelude::*;
 use ryo3_macro_rules::py_stop_async_iteration_err;
 use ryo3_std::fs::PyMetadata;
 use ryo3_tokio_rt::future_into_py;
 #[cfg(feature = "experimental-async")]
-use ryo3_tokio_rt::on_tokio_py;
+use ryo3_tokio_rt::on_tokio_py_cancel;
 use tokio::fs::ReadDir;
 use tokio::sync::Mutex;
 
@@ -108,37 +110,50 @@ impl PyAsyncReadDir {
         })
     }
 
-    async fn collect(&self) -> PyResult<Vec<PyAsyncDirEntry>> {
+    async fn collect(
+        &self,
+        #[pyo3(cancel_handle)] cancel: CancelHandle,
+    ) -> PyResult<Vec<PyAsyncDirEntry>> {
         let stream = self.stream.clone();
-        on_tokio_py(async move {
-            let mut guard = stream.lock().await;
-            let mut entries = Vec::new();
-            while let Some(entry) = guard.as_mut().next_entry().await? {
-                let pde = PyAsyncDirEntry::from(entry);
-                entries.push(pde);
-            }
-            Ok(entries)
-        })
+        on_tokio_py_cancel(
+            async move {
+                let mut guard = stream.lock().await;
+                let mut entries = Vec::new();
+                while let Some(entry) = guard.as_mut().next_entry().await? {
+                    let pde = PyAsyncDirEntry::from(entry);
+                    entries.push(pde);
+                }
+                Ok(entries)
+            },
+            cancel,
+        )
         .await
     }
 
-    async fn take(&self, n: u32) -> PyResult<Vec<PyAsyncDirEntry>> {
+    async fn take(
+        &self,
+        n: u32,
+        #[pyo3(cancel_handle)] cancel: CancelHandle,
+    ) -> PyResult<Vec<PyAsyncDirEntry>> {
         let stream = self.stream.clone();
-        on_tokio_py(async move {
-            let mut guard = stream.lock().await;
-            let mut entries = Vec::new();
-            for _ in 0..n {
-                match guard.as_mut().next_entry().await {
-                    Ok(Some(entry)) => {
-                        let pde = PyAsyncDirEntry::from(entry);
-                        entries.push(pde);
+        on_tokio_py_cancel(
+            async move {
+                let mut guard = stream.lock().await;
+                let mut entries = Vec::new();
+                for _ in 0..n {
+                    match guard.as_mut().next_entry().await {
+                        Ok(Some(entry)) => {
+                            let pde = PyAsyncDirEntry::from(entry);
+                            entries.push(pde);
+                        }
+                        Ok(None) => break,
+                        Err(e) => return Err(PyErr::from(e)),
                     }
-                    Ok(None) => break,
-                    Err(e) => return Err(PyErr::from(e)),
                 }
-            }
-            Ok(entries)
-        })
+                Ok(entries)
+            },
+            cancel,
+        )
         .await
     }
 }
@@ -215,21 +230,30 @@ impl PyAsyncDirEntry {
         self.0.file_name()
     }
 
-    async fn file_type(&self) -> PyResult<ryo3_std::fs::PyFileType> {
+    async fn file_type(
+        &self,
+        #[pyo3(cancel_handle)] cancel: CancelHandle,
+    ) -> PyResult<ryo3_std::fs::PyFileType> {
         let inner = self.0.clone();
-        on_tokio_py(async move {
-            let file_type = inner.file_type().await?;
-            Ok(ryo3_std::fs::PyFileType::from(file_type))
-        })
+        on_tokio_py_cancel(
+            async move {
+                let file_type = inner.file_type().await?;
+                Ok(ryo3_std::fs::PyFileType::from(file_type))
+            },
+            cancel,
+        )
         .await
     }
 
-    async fn metadata(&self) -> PyResult<PyMetadata> {
+    async fn metadata(&self, #[pyo3(cancel_handle)] cancel: CancelHandle) -> PyResult<PyMetadata> {
         let inner = self.0.clone();
-        on_tokio_py(async move {
-            let metadata = inner.metadata().await?;
-            Ok(PyMetadata::from(metadata))
-        })
+        on_tokio_py_cancel(
+            async move {
+                let metadata = inner.metadata().await?;
+                Ok(PyMetadata::from(metadata))
+            },
+            cancel,
+        )
         .await
     }
 }

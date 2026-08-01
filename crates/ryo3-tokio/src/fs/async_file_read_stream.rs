@@ -7,12 +7,14 @@ use std::path::PathBuf;
 use std::sync::Arc;
 
 use bytes::{Bytes, BytesMut};
+#[cfg(feature = "experimental-async")]
+use pyo3::coroutine::CancelHandle;
 use pyo3::prelude::*;
 use ryo3_bytes::RyBytes;
 use ryo3_macro_rules::{py_io_error, py_stop_async_iteration_err, py_value_err};
 use ryo3_tokio_rt::future_into_py;
 #[cfg(feature = "experimental-async")]
-use ryo3_tokio_rt::{on_tokio, on_tokio_py};
+use ryo3_tokio_rt::on_tokio_py_cancel;
 use tokio::fs::File;
 use tokio::io::{AsyncRead, AsyncReadExt, AsyncSeek, AsyncSeekExt, BufReader, SeekFrom};
 use tokio::sync::Mutex;
@@ -378,47 +380,59 @@ impl PyAsyncFileReadStream {
     }
 
     #[pyo3(signature = (n = 1))]
-    async fn take(&self, n: usize) -> PyResult<Vec<RyBytes>> {
+    async fn take(
+        &self,
+        n: usize,
+        #[pyo3(cancel_handle)] cancel: CancelHandle,
+    ) -> PyResult<Vec<RyBytes>> {
         let inner = self.inner.clone();
-        let vbytes = on_tokio(async move {
-            let mut guard = inner.lock().await;
-            guard.ensure_open().await.map_err(|e| map_open_error(&e))?;
-            let mut result = Vec::with_capacity(n);
-            for _ in 0..n {
-                match guard.next_chunk().await {
-                    Ok(Some(b)) => result.push(RyBytes::from(b)),
-                    Ok(None) => break,
-                    Err(e) => return Err(e),
+        on_tokio_py_cancel(
+            async move {
+                let mut guard = inner.lock().await;
+                guard.ensure_open().await.map_err(|e| map_open_error(&e))?;
+                let mut result = Vec::with_capacity(n);
+                for _ in 0..n {
+                    match guard.next_chunk().await {
+                        Ok(Some(b)) => result.push(RyBytes::from(b)),
+                        Ok(None) => break,
+                        Err(e) => return Err(e.into()),
+                    }
                 }
-            }
-            Ok(result)
-        })
-        .await??;
-        Ok(vbytes)
-    }
-
-    async fn collect(&self) -> PyResult<Vec<RyBytes>> {
-        let inner = self.inner.clone();
-        on_tokio_py(async move {
-            let mut guard = inner.lock().await;
-            guard.ensure_open().await.map_err(|e| map_open_error(&e))?;
-            let mut result = Vec::new();
-            while let Ok(Some(b)) = guard.next_chunk().await {
-                result.push(RyBytes::from(b));
-            }
-            Ok::<_, PyErr>(result)
-        })
+                Ok(result)
+            },
+            cancel,
+        )
         .await
     }
 
-    async fn close(&self) -> PyResult<()> {
+    async fn collect(&self, #[pyo3(cancel_handle)] cancel: CancelHandle) -> PyResult<Vec<RyBytes>> {
+        let inner = self.inner.clone();
+        on_tokio_py_cancel(
+            async move {
+                let mut guard = inner.lock().await;
+                guard.ensure_open().await.map_err(|e| map_open_error(&e))?;
+                let mut result = Vec::new();
+                while let Ok(Some(b)) = guard.next_chunk().await {
+                    result.push(RyBytes::from(b));
+                }
+                Ok::<_, PyErr>(result)
+            },
+            cancel,
+        )
+        .await
+    }
+
+    async fn close(&self, #[pyo3(cancel_handle)] cancel: CancelHandle) -> PyResult<()> {
         let inner = self.inner.clone();
         let options = self.options.clone();
-        on_tokio_py(async move {
-            let mut guard = inner.lock().await;
-            *guard = AsyncFileReadStreamWrapper::Closed(options);
-            Ok::<_, PyErr>(())
-        })
+        on_tokio_py_cancel(
+            async move {
+                let mut guard = inner.lock().await;
+                *guard = AsyncFileReadStreamWrapper::Closed(options);
+                Ok::<_, PyErr>(())
+            },
+            cancel,
+        )
         .await
     }
 

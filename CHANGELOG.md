@@ -7,7 +7,7 @@
 
 ---
 
-## v0.0.99 [unreleased]
+## v0.0.99 [2026-07-31]
 
 - `ryo3-dirs`
   - added docstrings
@@ -20,6 +20,10 @@
 - type-annotations
   - moved all typed-dicts for jiff module in to `ry.ryo3._jiff.pyi` type
     annotation(s) file
+- `cancel_handle`
+  - added `CancelHandle` support for `ryo3-tokio`, `ryo3-tokio-websockets`
+  - `ryo3-tokio-rt`: refactored `on_tokio_py_cancel` to spawn task w/ manual
+    abort which appears faster and less memory intensive
 
 ---
 
