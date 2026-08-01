@@ -7,7 +7,7 @@
 
 ---
 
-## v0.0.99 [unreleased]
+## v0.0.99 [2026-07-31]
 
 - `ryo3-dirs`
   - added docstrings
