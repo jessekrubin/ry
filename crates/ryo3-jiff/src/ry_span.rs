@@ -594,6 +594,36 @@ impl RySpan {
     // PROPERTIES
     // ========================================================================
     #[getter]
+    fn is_absolute(&self) -> bool {
+        self.0.get_years() > 0
+            || self.0.get_months() > 0
+            || self.0.get_weeks() > 0
+            || self.0.get_days() > 0
+            || self.0.get_hours() > 0
+            || self.0.get_minutes() > 0
+            || self.0.get_seconds() > 0
+            || self.0.get_milliseconds() > 0
+            || self.0.get_microseconds() > 0
+            || self.0.get_nanoseconds() > 0
+    }
+
+    #[getter]
+    fn is_calendar(&self) -> bool {
+        self.0.get_years() != 0
+            || self.0.get_months() != 0
+            || self.0.get_weeks() != 0
+            || self.0.get_days() != 0
+    }
+
+    #[getter]
+    fn is_exact(&self) -> bool {
+        self.0.get_years() == 0
+            && self.0.get_months() == 0
+            && self.0.get_weeks() == 0
+            && self.0.get_days() == 0
+    }
+
+    #[getter]
     fn is_negative(&self) -> bool {
         self.0.is_negative()
     }

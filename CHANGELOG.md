@@ -7,6 +7,17 @@
 
 ---
 
+## v0.0.100 [unreleased]
+
+- `ryo3-jiff`
+  - `ry.TimeSpan`
+    - property `is_absolute`; is the timespan composed of only positive/0 units
+    - property `is_calendar`; `True` if the timespan contains any calendar units
+    - property `is_exact`; `True` if the timespan contains NO calendar units
+  - type annotations changed `_AbsoluteUnit` to `_ExactUnit`
+
+---
+
 ## v0.0.99 [2026-07-31]
 
 - `ryo3-dirs`

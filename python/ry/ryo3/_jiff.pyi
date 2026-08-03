@@ -32,14 +32,14 @@ _TzName: t.TypeAlias = TimezoneDbName | str
 
 # ==== TYPE-ALIASES ====
 # fmt: off
-_AbsoluteUnit: t.TypeAlias = t.Literal[
+_ExactUnit: t.TypeAlias = t.Literal[
     "hour", "minute", "second",
     "millisecond", "microsecond", "nanosecond"
 ]
 _CalendarUnit: t.TypeAlias = t.Literal["year", "month", "week", "day"]
-_Unit: t.TypeAlias = _CalendarUnit | _AbsoluteUnit
+_Unit: t.TypeAlias = _CalendarUnit | _ExactUnit
 _OffsetUnit: t.TypeAlias = t.Literal["hour", "minute", "second"]
-_RoundUnit: t.TypeAlias =  t.Literal["day"] | _AbsoluteUnit
+_RoundUnit: t.TypeAlias =  t.Literal["day"] | _ExactUnit
 _RoundMode: t.TypeAlias = t.Literal[
     "ceil",   "half-ceil",
     "expand", "half-expand",
@@ -433,7 +433,7 @@ class Time(
     ) -> t.Self: ...
     def round(
         self,
-        smallest: _AbsoluteUnit = "nanosecond",
+        smallest: _ExactUnit = "nanosecond",
         *,
         mode: _RoundMode = "half-expand",
         increment: int = 1,
@@ -653,7 +653,7 @@ class DateTime(
     ) -> t.Self: ...
     def round(
         self,
-        smallest: _AbsoluteUnit | t.Literal["day"] = "nanosecond",
+        smallest: _ExactUnit | t.Literal["day"] = "nanosecond",
         *,
         mode: _RoundMode = "half-expand",
         increment: int = 1,
@@ -980,7 +980,7 @@ class SignedDuration(
     def to_timespan(self) -> TimeSpan: ...
     def round(
         self,
-        smallest: _AbsoluteUnit = "nanosecond",
+        smallest: _ExactUnit = "nanosecond",
         *,
         mode: _RoundMode = "half-expand",
         increment: int = 1,
@@ -1062,6 +1062,12 @@ class TimeSpan(
     # =========================================================================
     # PROPERTIES
     # =========================================================================
+    @property
+    def is_calendar(self) -> bool:
+        """`True` if contains calendar units (years, months, weeks, days)"""
+    @property
+    def is_exact(self) -> bool:
+        """`True` if contains only exact units (hours, minutes, seconds, milliseconds, microseconds, nanoseconds)"""
     @property
     def is_positive(self) -> bool: ...
     @property
@@ -1458,8 +1464,8 @@ class Timestamp(
         self,
         other: Timestamp | ZonedDateTime,
         *,
-        smallest: _AbsoluteUnit = "nanosecond",
-        largest: _AbsoluteUnit | None = None,
+        smallest: _ExactUnit = "nanosecond",
+        largest: _ExactUnit | None = None,
         mode: _RoundMode = "trunc",
         increment: int = 1,
     ) -> TimeSpan: ...
@@ -1467,8 +1473,8 @@ class Timestamp(
         self,
         other: Timestamp | ZonedDateTime,
         *,
-        smallest: _AbsoluteUnit = "nanosecond",
-        largest: _AbsoluteUnit | None = None,
+        smallest: _ExactUnit = "nanosecond",
+        largest: _ExactUnit | None = None,
         mode: _RoundMode = "trunc",
         increment: int = 1,
     ) -> TimeSpan: ...
@@ -1476,7 +1482,7 @@ class Timestamp(
     def duration_until(self, other: t.Self) -> SignedDuration: ...
     def round(
         self,
-        smallest: _AbsoluteUnit = "nanosecond",
+        smallest: _ExactUnit = "nanosecond",
         *,
         mode: _RoundMode = "half-expand",
         increment: int = 1,
@@ -1727,7 +1733,7 @@ class ZonedDateTime(
     ) -> t.Self: ...
     def round(
         self,
-        smallest: _AbsoluteUnit | t.Literal["day"] = "nanosecond",
+        smallest: _ExactUnit | t.Literal["day"] = "nanosecond",
         *,
         mode: _RoundMode = "half-expand",
         increment: int = 1,
@@ -2034,7 +2040,7 @@ class DateTimeDifference(_Difference[DateTime, _Unit]):
     def datetime(self) -> DateTime: ...
 
 @t.final
-class TimeDifference(_Difference[Time, _AbsoluteUnit]):
+class TimeDifference(_Difference[Time, _ExactUnit]):
     def __new__(
         cls,
         time: Time,
@@ -2049,7 +2055,7 @@ class TimeDifference(_Difference[Time, _AbsoluteUnit]):
     def time(self) -> Time: ...
 
 @t.final
-class TimestampDifference(_Difference[Timestamp, _AbsoluteUnit]):
+class TimestampDifference(_Difference[Timestamp, _ExactUnit]):
     def __new__(
         cls,
         timestamp: Timestamp,
@@ -2108,7 +2114,7 @@ class _Round(t.Generic[_TObj, _TUnit]):
 class DateTimeRound(_Round[DateTime, _RoundUnit]):
     def __new__(
         cls,
-        smallest: _AbsoluteUnit | t.Literal["day"] = "nanosecond",
+        smallest: _ExactUnit | t.Literal["day"] = "nanosecond",
         *,
         mode: _RoundMode = "half-expand",
         increment: int = 1,
@@ -2116,10 +2122,10 @@ class DateTimeRound(_Round[DateTime, _RoundUnit]):
     def round(self, ob: DateTime) -> DateTime: ...
 
 @t.final
-class SignedDurationRound(_Round[SignedDuration, _AbsoluteUnit]):
+class SignedDurationRound(_Round[SignedDuration, _ExactUnit]):
     def __new__(
         cls,
-        smallest: _AbsoluteUnit = "nanosecond",
+        smallest: _ExactUnit = "nanosecond",
         *,
         mode: _RoundMode = "half-expand",
         increment: int = 1,
@@ -2127,10 +2133,10 @@ class SignedDurationRound(_Round[SignedDuration, _AbsoluteUnit]):
     def round(self, ob: SignedDuration) -> SignedDuration: ...
 
 @t.final
-class TimeRound(_Round[Time, _AbsoluteUnit]):
+class TimeRound(_Round[Time, _ExactUnit]):
     def __new__(
         cls,
-        smallest: _AbsoluteUnit = "nanosecond",
+        smallest: _ExactUnit = "nanosecond",
         *,
         mode: _RoundMode = "half-expand",
         increment: int = 1,
@@ -2138,10 +2144,10 @@ class TimeRound(_Round[Time, _AbsoluteUnit]):
     def round(self, ob: Time) -> Time: ...
 
 @t.final
-class TimestampRound(_Round[Timestamp, _AbsoluteUnit]):
+class TimestampRound(_Round[Timestamp, _ExactUnit]):
     def __new__(
         cls,
-        smallest: _AbsoluteUnit = "nanosecond",
+        smallest: _ExactUnit = "nanosecond",
         *,
         mode: _RoundMode = "half-expand",
         increment: int = 1,
@@ -2149,10 +2155,10 @@ class TimestampRound(_Round[Timestamp, _AbsoluteUnit]):
     def round(self, ob: Timestamp) -> Timestamp: ...
 
 @t.final
-class ZonedDateTimeRound(_Round[ZonedDateTime, _AbsoluteUnit | t.Literal["day"]]):
+class ZonedDateTimeRound(_Round[ZonedDateTime, _ExactUnit | t.Literal["day"]]):
     def __new__(
         cls,
-        smallest: _AbsoluteUnit | t.Literal["day"] = "nanosecond",
+        smallest: _ExactUnit | t.Literal["day"] = "nanosecond",
         *,
         mode: _RoundMode = "half-expand",
         increment: int = 1,
