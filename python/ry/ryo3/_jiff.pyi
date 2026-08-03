@@ -924,6 +924,8 @@ class SignedDuration(
     # PROPERTIES
     # =========================================================================
     @property
+    def is_absolute(self) -> bool: ...
+    @property
     def is_negative(self) -> bool: ...
     @property
     def is_positive(self) -> bool: ...
@@ -1072,6 +1074,8 @@ class TimeSpan(
     # =========================================================================
     # PROPERTIES
     # =========================================================================
+    @property
+    def is_absolute(self) -> bool: ...
     @property
     def is_calendar(self) -> bool:
         """`True` if contains calendar units (years, months, weeks, days)"""
