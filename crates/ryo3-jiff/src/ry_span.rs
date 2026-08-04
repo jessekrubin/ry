@@ -228,8 +228,14 @@ impl RySpan {
         }
     }
 
-    fn friendly(&self) -> String {
-        format!("{:#}", self.0)
+    #[pyo3(
+        signature = (designator = crate::fmt::friendly::printer::PyDesignator::default()),
+        text_signature = "(self, designator=\"compact\")"
+    )]
+    fn friendly(&self, designator: crate::fmt::friendly::printer::PyDesignator) -> String {
+        jiff::fmt::friendly::SpanPrinter::new()
+            .designator(designator.into())
+            .span_to_string(&self.0)
     }
 
     fn __eq__(&self, other: &Self) -> bool {
@@ -253,12 +259,18 @@ impl RySpan {
     }
 
     #[inline]
-    fn __abs__(&self) -> Self {
-        Self(self.0.abs())
+    fn __abs__(slf: PyRef<'_, Self>) -> PyResult<Bound<'_, Self>> {
+        Self::abs(slf)
     }
 
-    fn abs(&self) -> Self {
-        Self(self.0.abs())
+    #[inline]
+    fn abs(slf: PyRef<'_, Self>) -> PyResult<Bound<'_, Self>> {
+        let py = slf.py();
+        if slf.0.signum() >= 0 {
+            slf.into_pyobject_or_pyerr(py)
+        } else {
+            Self(slf.0.abs()).into_pyobject(py)
+        }
     }
 
     fn __invert__(&self) -> Self {
@@ -593,6 +605,36 @@ impl RySpan {
     // ========================================================================
     // PROPERTIES
     // ========================================================================
+    #[getter]
+    fn is_absolute(&self) -> bool {
+        self.0.get_years() > 0
+            || self.0.get_months() > 0
+            || self.0.get_weeks() > 0
+            || self.0.get_days() > 0
+            || self.0.get_hours() > 0
+            || self.0.get_minutes() > 0
+            || self.0.get_seconds() > 0
+            || self.0.get_milliseconds() > 0
+            || self.0.get_microseconds() > 0
+            || self.0.get_nanoseconds() > 0
+    }
+
+    #[getter]
+    fn is_calendar(&self) -> bool {
+        self.0.get_years() != 0
+            || self.0.get_months() != 0
+            || self.0.get_weeks() != 0
+            || self.0.get_days() != 0
+    }
+
+    #[getter]
+    fn is_exact(&self) -> bool {
+        self.0.get_years() == 0
+            && self.0.get_months() == 0
+            && self.0.get_weeks() == 0
+            && self.0.get_days() == 0
+    }
+
     #[getter]
     fn is_negative(&self) -> bool {
         self.0.is_negative()

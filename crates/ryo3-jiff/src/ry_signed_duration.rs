@@ -144,6 +144,15 @@ impl RySignedDuration {
         Self(SignedDuration::from_nanos(1))
     }
 
+    // ========================================================================
+    // PROPERTIES
+    // ========================================================================
+
+    #[getter]
+    fn is_absolute(&self) -> bool {
+        !(self.0.is_negative())
+    }
+
     #[getter]
     fn secs(&self) -> i64 {
         self.0.as_secs()
@@ -222,12 +231,19 @@ impl RySignedDuration {
             .map_err(map_py_overflow_err)
     }
 
-    fn __abs__(&self) -> Self {
-        Self(self.0.abs())
+    #[inline]
+    fn __abs__(slf: PyRef<'_, Self>) -> PyResult<Bound<'_, Self>> {
+        Self::abs(slf)
     }
 
-    fn abs(&self) -> Self {
-        self.__abs__()
+    #[inline]
+    fn abs(slf: PyRef<'_, Self>) -> PyResult<Bound<'_, Self>> {
+        let py = slf.py();
+        if slf.0.is_negative() {
+            Self(slf.0.abs()).into_pyobject(py)
+        } else {
+            slf.into_pyobject_or_pyerr(py)
+        }
     }
 
     fn unsigned_abs(&self) -> PyDuration {
@@ -261,8 +277,14 @@ impl RySignedDuration {
         }
     }
 
-    fn friendly(&self) -> String {
-        format!("{:#}", self.0)
+    #[pyo3(
+        signature = (designator = crate::fmt::friendly::printer::PyDesignator::default()),
+        text_signature = "(self, designator=\"compact\")"
+    )]
+    fn friendly(&self, designator: crate::fmt::friendly::printer::PyDesignator) -> String {
+        jiff::fmt::friendly::SpanPrinter::new()
+            .designator(designator.into())
+            .duration_to_string(&self.0)
     }
 
     fn __float__(&self) -> f64 {
