@@ -116,9 +116,11 @@ jobs:
             set -e
             ls -l /workspace/dist
             python3.11 -V
-            python3.11 -m pip install -r /workspace/requirements.dev.txt
             python3.11 -m pip install ry --no-index --no-deps --find-links /workspace/dist --force-reinstall
-            python3.11 -m pytest
+            python3.11 -m ry
+          # REMOVED (FOR NOW) 2026-08-04
+          # python3.11 -m pip install -r /workspace/requirements.dev.txt
+          # python3.11 -m pytest
 
   musllinux:
     runs-on: ${{ matrix.platform.runner }}

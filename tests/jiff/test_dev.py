@@ -1,10 +1,6 @@
 from __future__ import annotations
 
-from hypothesis import strategies as st
-
 import ry.dev as ry
-
-timedelta_strategy = st.timedeltas()
 
 
 def test_version() -> None:
