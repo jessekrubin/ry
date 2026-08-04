@@ -196,6 +196,23 @@ class TestTimeSpanProperties:
         microseconds=5_000,
         nanoseconds=5_000_000,
     )
+    exact_ts = ry.TimeSpan(
+        hours=2,
+        minutes=3,
+        seconds=4,
+        milliseconds=5,
+        microseconds=5_000,
+        nanoseconds=5_000_000,
+    )
+
+    def test_is_exact(self) -> None:
+        assert not self.ts.is_exact
+        assert self.exact_ts.is_exact
+
+    def test_is_absolute(self) -> None:
+        assert self.ts.is_absolute
+        assert self.exact_ts.is_absolute
+        assert not ry.TimeSpan(days=-1).is_absolute
 
     def test_is_positive(self) -> None:
         assert self.ts.is_positive
