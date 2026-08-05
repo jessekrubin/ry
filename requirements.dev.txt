@@ -52,8 +52,10 @@ sortedcontainers==2.4.0
     # via hypothesis
 typing-extensions==4.16.0
     # via
+    #   anyio
     #   pydantic
     #   pydantic-core
+    #   pytest-asyncio
     #   typing-inspection
 typing-inspection==0.4.2
     # via pydantic
@@ -61,5 +63,5 @@ tzdata==2026.3
     # via -r requirements.dev.in
 uvicorn==0.51.0
     # via -r requirements.dev.in
-websockets==16.1
+websockets==17.0.1
     # via -r requirements.dev.in
