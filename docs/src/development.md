@@ -18,11 +18,12 @@
 
 - clone repo
 - install `just` (`cargo install just`)
-- create a virtual env (using ye olde `venv` or `uv` or dare I say `conda`) -- I
-  am still working out the kinks of using `uv` with maturin
-- install the dev-requirements (`pip install -r requirements.dev.txt`)
+- install the development dependencies (`uv sync`)
 - run `just dev` to build and test the library
 - run `just fmt` to format the python and rust code
+
+`requirements.dev.txt` is used in ci/cd for jobs that run tests and install with
+ye olde `pip`
 
 ## style guide
 
@@ -155,9 +156,10 @@ def bruff_func() -> str: ...
 - to see all tasks run `just` or `just --list` (our default task echos the list
   of tasks)
 
-just-recipes `just -l` (ca. 2026-04-10):
+just-recipes `just -l` (ca. 2026-08-05):
 
 ```txt
+$ just -l
 Available recipes:
     bench                       # benchmark ry python package
     build                       # build
