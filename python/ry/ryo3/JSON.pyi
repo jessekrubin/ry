@@ -1,4 +1,11 @@
-"""ry.ryo3.JSON"""
+"""ry.ryo3.JSON.
+
+``stringify`` and ``dumps`` accept ``numpy=True`` to serialize exact NumPy
+scalars and C-contiguous, native-endian arrays on CPython. Supported dtypes are
+bool, signed/unsigned 8/16/32/64-bit integers, float32, and float64. NumPy is
+not imported or inspected unless this option is enabled. Callers must not mutate
+an array concurrently while it is being serialized.
+"""
 
 import typing as t
 
@@ -80,6 +87,7 @@ def stringify(
     fmt: bool = False,
     sort_keys: bool = False,
     append_newline: bool = False,
+    numpy: bool = False,
     pybytes: t.Literal[True],
 ) -> bytes: ...
 @t.overload
@@ -90,6 +98,7 @@ def stringify(
     fmt: bool = False,
     sort_keys: bool = False,
     append_newline: bool = False,
+    numpy: bool = False,
     pybytes: t.Literal[False] = False,
 ) -> Bytes: ...
 @t.overload
@@ -100,6 +109,7 @@ def dumps(
     fmt: bool = False,
     sort_keys: bool = False,
     append_newline: bool = False,
+    numpy: bool = False,
     pybytes: t.Literal[True],
 ) -> bytes: ...
 @t.overload
@@ -110,6 +120,7 @@ def dumps(
     fmt: bool = False,
     sort_keys: bool = False,
     append_newline: bool = False,
+    numpy: bool = False,
     pybytes: t.Literal[False] = False,
 ) -> Bytes: ...
 def loads(

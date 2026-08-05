@@ -13,6 +13,7 @@ where
 {
     pub(crate) default: Option<&'py Bound<'py, PyAny>>,
     pub(crate) typeref: &'py PyTypeCache,
+    pub(crate) numpy: bool,
     _target: PhantomData<T>,
 }
 
@@ -24,6 +25,19 @@ where
         Self {
             default,
             typeref,
+            numpy: false,
+            _target: PhantomData,
+        }
+    }
+
+    pub(crate) fn new_with_numpy(
+        default: Option<&'py Bound<'py, PyAny>>,
+        typeref: &'py PyTypeCache,
+    ) -> Self {
+        Self {
+            default,
+            typeref,
+            numpy: true,
             _target: PhantomData,
         }
     }

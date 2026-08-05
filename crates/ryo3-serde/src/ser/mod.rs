@@ -1,6 +1,7 @@
 //! Serialize python objects
 mod context;
 pub(crate) mod dataclass;
+pub mod numpy;
 pub(crate) mod py_serialize;
 #[expect(clippy::inline_always)]
 pub(crate) mod py_types;

@@ -9,6 +9,11 @@
 
 ## v0.0.100 [unreleased]
 
+- `ry.JSON.stringify()` / `ry.JSON.dumps()`
+  - added opt-in `numpy=True` serialization for exact NumPy scalars and
+    C-contiguous, native-endian ndarrays on CPython
+  - supports bool, signed/unsigned 8/16/32/64-bit integers, and float32/float64;
+    NumPy is not imported or probed unless explicitly enabled
 - `ryo3-jiff`
   - `ry.TimeSpan`
     - property `is_absolute`; is the timespan composed of only positive/0 units

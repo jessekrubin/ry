@@ -2197,6 +2197,7 @@ dependencies = [
  "ryo3-core",
  "ryo3-jiter",
  "ryo3-serde",
+ "serde",
  "serde-transcode",
  "serde_json",
 ]
@@ -2226,6 +2227,13 @@ dependencies = [
  "pyo3",
  "ryo3-bytes",
  "ryo3-core",
+]
+
+[[package]]
+name = "ryo3-numpy"
+version = "0.0.100"
+dependencies = [
+ "pyo3",
 ]
 
 [[package]]
@@ -2303,6 +2311,7 @@ dependencies = [
  "ryo3-core",
  "ryo3-http",
  "ryo3-jiff",
+ "ryo3-numpy",
  "ryo3-std",
  "ryo3-ulid",
  "ryo3-url",
