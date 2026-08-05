@@ -53,6 +53,7 @@ dev = [
   "ipython>=9.5.0",
   "maturin>=1.13.3",
   "mypy",
+  "numpy>=1.26; implementation_name=='cpython'",
   "orjson==3.11.4; implementation_name=='cpython'",
   "prek>=0.4.6",
   "pydantic>=2.11.7",

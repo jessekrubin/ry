@@ -33,7 +33,6 @@ impl<'a, 'py> PyAnySerializer<'a, 'py> {
         let ctx = PySerializeContext::new(default, typeref);
         Self { obj, ctx, depth: 0 }
     }
-
     #[must_use]
     pub(crate) fn new_with_depth(
         obj: Borrowed<'a, 'py, PyAny>,
@@ -41,6 +40,16 @@ impl<'a, 'py> PyAnySerializer<'a, 'py> {
         depth: Depth,
     ) -> Self {
         Self { obj, ctx, depth }
+    }
+    pub fn new_numpy(
+        obj: Borrowed<'a, 'py, PyAny>,
+        default: Option<&'py Bound<'py, PyAny>>,
+    ) -> PyResult<Self> {
+        let py = obj.py();
+        let typeref = PyTypeCache::cached(py);
+        ryo3_numpy::NumpyTypeCache::cached(py)?;
+        let ctx = PySerializeContext::new_with_numpy(default, typeref);
+        Ok(Self { obj, ctx, depth: 0 })
     }
 }
 

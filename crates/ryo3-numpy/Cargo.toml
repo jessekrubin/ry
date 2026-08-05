@@ -1,5 +1,5 @@
 [package]
-name = "ryo3-json"
+name = "ryo3-numpy"
 version.workspace = true
 authors.workspace = true
 categories.workspace = true
@@ -10,17 +10,10 @@ homepage.workspace = true
 keywords.workspace = true
 license.workspace = true
 repository.workspace = true
-description = "json ~ rust-python-json"
+description = "ryo3-numpy: numpy integration, types and utils"
 
 [dependencies]
 pyo3 = { workspace = true, features = [] }
-ryo3-bytes = { workspace = true }
-ryo3-core = { workspace = true }
-ryo3-jiter = { workspace = true }
-ryo3-serde = { workspace = true }
-serde.workspace = true
-serde-transcode.workspace = true
-serde_json.workspace = true
 
 [lints]
 workspace = true

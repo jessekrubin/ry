@@ -284,15 +284,17 @@ impl PyTypeCache {
         // Ordered by how much (i (jesse)) use them
         py_obj_ptr_feat!(self, ptr, "ryo3-std", ry_duration, PyDuration);
 
+        py_obj_ptr_feat!(self, ptr, "ryo3-uuid", ry_uuid, RyUuid);
+
+        py_obj_ptr_feat!(self, ptr, "ryo3-url", ry_url, RyUrl);
+
         py_obj_ptr_feat!(self, ptr, "ryo3-jiff", ry_signed_duration, RySignedDuration);
         py_obj_ptr_feat!(self, ptr, "ryo3-jiff", ry_zoned, RyZoned);
-        py_obj_ptr_feat!(self, ptr, "ryo3-jiff", ry_timespan, RyTimeSpan);
         py_obj_ptr_feat!(self, ptr, "ryo3-jiff", ry_timestamp, RyTimestamp);
         py_obj_ptr_feat!(self, ptr, "ryo3-jiff", ry_date, RyDate);
         py_obj_ptr_feat!(self, ptr, "ryo3-jiff", ry_datetime, RyDateTime);
         py_obj_ptr_feat!(self, ptr, "ryo3-jiff", ry_time, RyTime);
-
-        py_obj_ptr_feat!(self, ptr, "ryo3-url", ry_url, RyUrl);
+        py_obj_ptr_feat!(self, ptr, "ryo3-jiff", ry_timespan, RyTimeSpan);
 
         py_obj_ptr_feat!(self, ptr, "ryo3-std", ry_ip_addr, PyIpAddr);
         py_obj_ptr_feat!(self, ptr, "ryo3-std", ry_ipv4_addr, PyIpv4Addr);
@@ -300,8 +302,6 @@ impl PyTypeCache {
         py_obj_ptr_feat!(self, ptr, "ryo3-std", ry_socket_addr, PySocketAddr);
         py_obj_ptr_feat!(self, ptr, "ryo3-std", ry_socket_addr_v4, PySocketAddrV4);
         py_obj_ptr_feat!(self, ptr, "ryo3-std", ry_socket_addr_v6, PySocketAddrV6);
-
-        py_obj_ptr_feat!(self, ptr, "ryo3-uuid", ry_uuid, RyUuid);
 
         py_obj_ptr_feat!(self, ptr, "ryo3-http", ry_http_status, RyHttpStatus);
         py_obj_ptr_feat!(self, ptr, "ryo3-http", ry_headers, RyHeaders);

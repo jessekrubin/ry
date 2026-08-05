@@ -6,6 +6,7 @@ use crate::any_repr::any_repr;
 use crate::errors::pyerr2sererr;
 use crate::ser::PySerializeContext;
 use crate::ser::dataclass::is_dataclass;
+use crate::ser::numpy::PyNumpySerializer;
 use crate::ser::py_types::{
     PyDataclassSerializer, PyEnumSerializer, PyMappingSerializer, PySequenceSerializer,
     PyStrSubclassSerializer,
@@ -35,6 +36,15 @@ impl Serialize for PyUnknownSerializer<'_, '_> {
     where
         S: Serializer,
     {
+        if self.ctx.numpy {
+            let numpy_types =
+                ryo3_numpy::NumpyTypeCache::cached(self.obj.py()).map_err(pyerr2sererr)?;
+            if let Some(numpy_type) = numpy_types.obtype(self.obj.get_type_ptr() as usize) {
+                return PyNumpySerializer::new(self.obj, numpy_type, self.depth)
+                    .serialize(serializer);
+            }
+        }
+
         if let Ok(pystr_subclass) = self.obj.cast::<PyString>() {
             PyStrSubclassSerializer::new(pystr_subclass).serialize(serializer)
         } else if self.ctx.typeref.is_enum(self.obj) {

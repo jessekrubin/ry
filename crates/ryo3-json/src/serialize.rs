@@ -3,6 +3,7 @@ use pyo3::exceptions::{PyRecursionError, PyTypeError};
 use pyo3::prelude::*;
 use ryo3_bytes::RyBytes;
 use ryo3_serde::PyAnySerializer;
+use serde::Serialize;
 
 fn map_serde_json_err<E: std::fmt::Display>(e: E) -> PyErr {
     if e.to_string().starts_with("recursion") {
@@ -57,6 +58,33 @@ impl<'py> JsonSerializer<'py> {
         Ok(())
     }
 
+    fn serialize_value_to_vec<T: Serialize>(&self, value: &T) -> PyResult<Vec<u8>> {
+        let mut bytes: Vec<u8> = Vec::with_capacity(4096);
+        if self.opts.sort_keys {
+            // TODO: This is a very hacky way of handling sorting the keys...
+            //       ideally this would be part of the serialization process
+            //       I think
+            let value = serde_json::to_value(value).map_err(map_serde_json_err)?;
+            if self.opts.fmt {
+                serde_json::to_writer_pretty(&mut bytes, &value).map_err(map_serde_json_err)?;
+            } else {
+                serde_json::to_writer(&mut bytes, &value).map_err(map_serde_json_err)?;
+            }
+        } else {
+            // 4k seeeems is a reasonable default size for JSON serialization?
+            if self.opts.fmt {
+                serde_json::to_writer_pretty(&mut bytes, value).map_err(map_serde_json_err)?;
+            } else {
+                serde_json::to_writer(&mut bytes, value).map_err(map_serde_json_err)?;
+            }
+        }
+
+        if self.opts.append_newline {
+            bytes.push(b'\n');
+        }
+        Ok(bytes)
+    }
+
     pub(crate) fn serialize_to_vec(&self, obj: &Bound<'py, PyAny>) -> PyResult<Vec<u8>> {
         let s = PyAnySerializer::new(obj.as_borrowed(), self.default);
         let mut bytes: Vec<u8> = Vec::with_capacity(4096);
@@ -83,6 +111,11 @@ impl<'py> JsonSerializer<'py> {
             bytes.push(b'\n');
         }
         Ok(bytes)
+    }
+
+    fn serialize_numpy_to_vec(&self, obj: &Bound<'py, PyAny>) -> PyResult<Vec<u8>> {
+        let value = PyAnySerializer::new_numpy(obj.as_borrowed(), self.default)?;
+        self.serialize_value_to_vec(&value)
     }
 }
 
@@ -121,7 +154,11 @@ impl<'py> JsonSerializer<'py> {
 // stringify_fn!(dumps);
 // ```
 
-#[expect(clippy::fn_params_excessive_bools, reason = "python kwargs")]
+#[expect(
+    clippy::fn_params_excessive_bools,
+    clippy::too_many_arguments,
+    reason = "python kwargs"
+)]
 #[pyfunction(
     signature=(
         obj,
@@ -130,6 +167,7 @@ impl<'py> JsonSerializer<'py> {
         fmt = false,
         sort_keys = false,
         append_newline = false,
+        numpy = false,
         pybytes = false
     )
 )]
@@ -140,6 +178,7 @@ pub fn stringify<'py>(
     fmt: bool,
     sort_keys: bool,
     append_newline: bool,
+    numpy: bool,
     pybytes: bool,
 ) -> PyResult<Bound<'py, PyAny>> {
     let serializer = JsonSerializer::new(
@@ -150,7 +189,12 @@ pub fn stringify<'py>(
             append_newline,
         },
     )?;
-    serializer.serialize_to_vec(obj).map(|v| {
+    let bytes = if numpy {
+        serializer.serialize_numpy_to_vec(obj)
+    } else {
+        serializer.serialize_to_vec(obj)
+    };
+    bytes.map(|v| {
         if pybytes {
             pyo3::types::PyBytes::new(py, &v).into_bound_py_any(py)
         } else {
@@ -168,7 +212,11 @@ pub fn to_vec(obj: &Bound<'_, PyAny>) -> PyResult<Vec<u8>> {
     .serialize_to_vec(obj)
 }
 
-#[expect(clippy::fn_params_excessive_bools, reason = "python kwargs")]
+#[expect(
+    clippy::fn_params_excessive_bools,
+    clippy::too_many_arguments,
+    reason = "python kwargs"
+)]
 #[pyfunction(
     signature=(
         obj,
@@ -177,6 +225,7 @@ pub fn to_vec(obj: &Bound<'_, PyAny>) -> PyResult<Vec<u8>> {
         fmt = false,
         sort_keys = false,
         append_newline = false,
+        numpy = false,
         pybytes = false
     )
 )]
@@ -187,7 +236,17 @@ pub fn dumps<'py>(
     fmt: bool,
     sort_keys: bool,
     append_newline: bool,
+    numpy: bool,
     pybytes: bool,
 ) -> PyResult<Bound<'py, PyAny>> {
-    stringify(py, obj, default, fmt, sort_keys, append_newline, pybytes)
+    stringify(
+        py,
+        obj,
+        default,
+        fmt,
+        sort_keys,
+        append_newline,
+        numpy,
+        pybytes,
+    )
 }

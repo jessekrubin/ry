@@ -7,10 +7,26 @@ use crate::ob_type_cache::PyTypeCache;
 pub(crate) struct PySerializeContext<'py> {
     pub(crate) default: Option<&'py Bound<'py, PyAny>>,
     pub(crate) typeref: &'py PyTypeCache,
+    pub(crate) numpy: bool,
 }
 
 impl<'py> PySerializeContext<'py> {
     pub(crate) fn new(default: Option<&'py Bound<'py, PyAny>>, typeref: &'py PyTypeCache) -> Self {
-        Self { default, typeref }
+        Self {
+            default,
+            typeref,
+            numpy: false,
+        }
+    }
+
+    pub(crate) fn new_with_numpy(
+        default: Option<&'py Bound<'py, PyAny>>,
+        typeref: &'py PyTypeCache,
+    ) -> Self {
+        Self {
+            default,
+            typeref,
+            numpy: true,
+        }
     }
 }

@@ -44,7 +44,7 @@ pub fn orjson_default<'py>(
     obj: &Bound<'py, PyAny>,
 ) -> PyResult<Bound<'py, PyAny>> {
     // serialize (MAKING SURE IT IS A PYBYTES) and make an `orjson.Fragment`
-    crate::serialize::stringify(py, obj, None, false, false, false, true)
+    crate::serialize::stringify(py, obj, None, false, false, false, false, true)
         .map_err(|e| PyImportError::new_err(format!("Failed to serialize with orjson: {e}")))
         .and_then(|v| fragment(py, v))
 }
