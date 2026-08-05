@@ -18,7 +18,7 @@ iniconfig==2.3.0
     # via pytest
 maturin==1.14.1
     # via -r requirements.dev.in
-orjson==3.11.4
+orjson==3.11.9
     # via -r requirements.dev.in
 packaging==26.2
     # via pytest
