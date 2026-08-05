@@ -39,6 +39,7 @@ impl std::fmt::Display for RyDateSeries {
         )
     }
 }
+
 #[pyclass(name = "DateTimeSeries", frozen, immutable_type, skip_from_py_object)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyDateTimeSeries {
@@ -181,8 +182,8 @@ macro_rules! impl_py_series_pymethods(
                 Self::try_from((start, period))
             }
 
-            fn __repr__(&self) -> String {
-                format!("{self}")
+            fn __repr__(&self) -> ryo3_core::PyAsciiString {
+                format!("{self}").into()
             }
 
             fn __iter__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {

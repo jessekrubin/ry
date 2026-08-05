@@ -797,7 +797,6 @@ class TimeZone(
         Offset(hours=-5)
 
         """
-
     def to_offset(self, timestamp: Timestamp) -> Offset: ...
     def to_timestamp(self, datetime: DateTime) -> Timestamp: ...
     def to_zoned(self, datetime: DateTime) -> ZonedDateTime: ...
@@ -827,6 +826,30 @@ class SignedDuration(
     ToPy[pydt.timedelta],
     _Parse,
 ):
+    """signed duration of time represented as seconds and nanoseconds
+
+    Examples
+    --------
+    >>> import ry
+    >>> ry.SignedDuration.MIN
+    SignedDuration(secs=-9223372036854775808, nanos=-999999999)
+    >>> ry.SignedDuration.MAX
+    SignedDuration(secs=9223372036854775807, nanos=999999999)
+    >>> ry.SignedDuration.ZERO
+    SignedDuration(secs=0, nanos=0)
+    >>> ry.SignedDuration.NANOSECOND
+    SignedDuration(secs=0, nanos=1)
+    >>> ry.SignedDuration.MILLISECOND
+    SignedDuration(secs=0, nanos=1000000)
+    >>> ry.SignedDuration.SECOND
+    SignedDuration(secs=1, nanos=0)
+    >>> ry.SignedDuration.MINUTE
+    SignedDuration(secs=60, nanos=0)
+    >>> ry.SignedDuration.HOUR
+    SignedDuration(secs=3600, nanos=0)
+
+    """
+
     MIN: t.Final[SignedDuration]
     MAX: t.Final[SignedDuration]
     ZERO: t.Final[SignedDuration]
@@ -887,7 +910,38 @@ class SignedDuration(
         designator: t.Literal[
             "compact", "human", "human-time", "short", "verbose"
         ] = "compact",
-    ) -> str: ...
+    ) -> str:
+        """Return friendly string representation
+
+        Parameters
+        ----------
+        designator : str, optional
+            The designator to use for the friendly string representation.
+            Options are "compact", "human", "human-time", "short", and "verbose".
+            Default is "compact".
+
+        Examples
+        --------
+        >>> import ry
+        >>> span = ry.SignedDuration(
+        ...     secs=93790, nanos=10000000
+        ... )  # 1 day, 2 hours, 30 minutes, 10 seconds, and 10 milliseconds
+        >>> span
+        SignedDuration(secs=93790, nanos=10000000)
+        >>> f"{span}"  # isoformat
+        'PT26H3M10.01S'
+        >>> f"{span:#}"  # '#' in format spec is friendly
+        '26h 3m 10s 10ms'
+        >>> span.friendly()  # default 'compact'
+        '26h 3m 10s 10ms'
+        >>> span.friendly("human")
+        '26h 3m 10s 10ms'
+        >>> span.friendly("short")
+        '26hrs 3mins 10secs 10msecs'
+        >>> span.friendly("verbose")
+        '26hours 3minutes 10seconds 10milliseconds'
+
+        """
 
     # =========================================================================
     # PYTHON CONVERSIONS
@@ -1050,7 +1104,32 @@ class TimeSpan(
         designator: t.Literal[
             "compact", "human", "human-time", "short", "verbose"
         ] = "compact",
-    ) -> str: ...
+    ) -> str:
+        """Return friendly string representation of the TimeSpan.
+
+        Parameters
+        ----------
+        designator : str, optional
+            The designator to use for the friendly string representation.
+            Options are "compact", "human", "human-time", "short", and "verbose".
+            Default is "compact".
+
+        Examples
+        --------
+        >>> import ry
+        >>> span = ry.TimeSpan(days=1, hours=2, minutes=30, seconds=10)
+        >>> span
+        TimeSpan(days=1, hours=2, minutes=30, seconds=10)
+        >>> span.friendly()  # default 'compact'
+        '1d 2h 30m 10s'
+        >>> span.friendly("human")
+        '1d 2h 30m 10s'
+        >>> span.friendly("short")
+        '1day 2hrs 30mins 10secs'
+        >>> span.friendly("verbose")
+        '1day 2hours 30minutes 10seconds'
+
+        """
     def repr_full(self) -> str: ...
 
     # =========================================================================
