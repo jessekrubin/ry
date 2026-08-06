@@ -40,8 +40,7 @@ impl Serialize for PyUnknownSerializer<'_, '_> {
             let numpy_types =
                 ryo3_numpy::NumpyTypeCache::cached(self.obj.py()).map_err(pyerr2sererr)?;
             if let Some(numpy_type) = numpy_types.obtype(self.obj.get_type_ptr() as usize) {
-                return PyNumpySerializer::new(self.obj, numpy_type, self.depth)
-                    .serialize(serializer);
+                return PyNumpySerializer::new(self.obj, numpy_type).serialize(serializer);
             }
         }
 
