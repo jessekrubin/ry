@@ -26,6 +26,9 @@
     - `abs()` and `abs(duration)` now return the same immutable instance when
       the duration is already non-negative
   - type annotations changed `_AbsoluteUnit` to `_ExactUnit`
+- `ryo3-core`
+  - cleaner handling of weird possible UB in `ryo3_core::pystring_ascii_new`
+    as pointed out in [jiter/261](https://github.com/pydantic/jiter/issues/261)
 
 ---
 

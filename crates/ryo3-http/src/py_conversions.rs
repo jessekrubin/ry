@@ -320,7 +320,10 @@ impl<'py> IntoPyObject<'py> for &PyHttpHeaderValueRef<'_> {
         if let Ok(s) = self.0.to_str() {
             // WENODIS: the header value ref IS "visible-ascii" so we
             // can safely ascii-string-ify it (according to their docs)
-            Ok(ryo3_core::pystring_fast_new_ascii(py, s).into_any())
+            #[expect(unsafe_code)]
+            unsafe {
+                Ok(ryo3_core::pystring_fast_new_ascii(py, s).into_any())
+            }
         } else {
             Ok(PyBytes::new(py, self.0.as_bytes()).into_any())
         }

@@ -70,6 +70,20 @@ ci:
     cargo clippy --all-targets --features mimalloc -- -D warnings
     cargo test
 
+# ci with python version target
+ci-python-target PYTHON TARGET:
+    PYO3_PYTHON="$(uv python find {{ PYTHON }})" \
+    CARGO_TARGET_DIR="target/{{ TARGET }}" \
+    just ci
+
+# ci with pypy target
+ci-pypy:
+    just ci-python-target pypy@3.11 ci-pypy
+
+# ci with cpython target
+ci-cpython VERSION:
+    just ci-python-target cpython@{{ VERSION }} ci-cpython
+
 # ===========================================================================
 # FMT ~ FMT ~ FMT ~ FMT ~ FMT ~ FMT ~ FMT ~ FMT ~ FMT ~ FMT ~ FMT ~ FMT ~ FMT
 # ===========================================================================

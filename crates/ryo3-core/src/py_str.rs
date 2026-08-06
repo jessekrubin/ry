@@ -7,12 +7,36 @@ use pyo3::types::PyString;
 
 pub struct PyAsciiStr<'s>(&'s str);
 
+impl<'a> PyAsciiStr<'a> {
+    /// creates a new `PyAsciiStr` from an ASCII string.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `s` is not ASCII.
+    #[inline]
+    #[must_use]
+    pub fn new(s: &'a str) -> Self {
+        assert!(s.is_ascii(), "PyAsciiStr(ing) must be ascii only: {s:?}");
+        Self(s)
+    }
+
+    /// # Safety
+    ///
+    /// `s` must be ASCII only (will debug-assert)
+    #[expect(unsafe_code)]
+    #[inline]
+    #[must_use]
+    pub unsafe fn new_unchecked(s: &'a str) -> Self {
+        debug_assert!(s.is_ascii(), "PyAsciiStr(ing) must be ascii only: {s:?}");
+        Self(s)
+    }
+}
+
 impl<'py> IntoPyObject<'py> for PyAsciiStr<'_> {
     type Target = pyo3::types::PyString;
     type Output = Bound<'py, Self::Target>;
     type Error = std::convert::Infallible;
 
-    #[cfg_attr(not(any(PyPy, GraalPy, Py_LIMITED_API)), expect(unsafe_code))]
     #[inline]
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
         debug_assert!(
@@ -22,11 +46,17 @@ impl<'py> IntoPyObject<'py> for PyAsciiStr<'_> {
         );
         #[cfg(not(any(PyPy, GraalPy, Py_LIMITED_API)))]
         {
-            unsafe { Ok(pystring_ascii_new(py, self.0)) }
+            #[expect(unsafe_code)]
+            unsafe {
+                Ok(pystring_ascii_new(py, self.0))
+            }
         }
         #[cfg(any(PyPy, GraalPy, Py_LIMITED_API))]
         {
-            Ok(pystring_ascii_new(py, self.0))
+            #[expect(unsafe_code)]
+            unsafe {
+                Ok(pystring_ascii_new(py, self.0))
+            }
         }
     }
 }
@@ -39,15 +69,41 @@ impl<'s> From<&'s str> for PyAsciiStr<'s> {
     }
 }
 
-impl From<String> for PyAsciiString {
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyAsciiString(String);
+
+impl PyAsciiString {
+    /// creates a new `PyAsciiString` from an ASCII string.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `s` is not ASCII.
     #[inline]
-    fn from(s: String) -> Self {
+    #[must_use]
+    pub fn new(s: String) -> Self {
+        assert!(s.is_ascii(), "PyAsciiString must be ascii only: {s:?}");
+        Self(s)
+    }
+
+    /// # Safety
+    ///
+    /// `s` must be ASCII only (will debug-assert)
+    #[expect(unsafe_code)]
+    #[inline]
+    #[must_use]
+    pub unsafe fn new_unchecked(s: String) -> Self {
         debug_assert!(s.is_ascii(), "PyAsciiString must be ascii only: {s:?}");
         Self(s)
     }
 }
 
-pub struct PyAsciiString(String);
+impl From<String> for PyAsciiString {
+    #[inline]
+    #[expect(unsafe_code)]
+    fn from(s: String) -> Self {
+        unsafe { Self::new_unchecked(s) }
+    }
+}
 
 impl<'py> IntoPyObject<'py> for &PyAsciiString {
     type Target = pyo3::types::PyString;
@@ -75,21 +131,20 @@ impl<'py> IntoPyObject<'py> for PyAsciiString {
 ///
 /// # Safety
 ///
-/// Ascii only (as jiter ppl describe)
+/// If `ascii_only` is true, `s` must be ASCII only.
 #[must_use]
 #[inline]
-pub fn pystring_fast_new<'py>(py: Python<'py>, s: &str, ascii_only: bool) -> Bound<'py, PyString> {
-    if ascii_only {
-        #[expect(unsafe_code)]
-        #[cfg(not(any(PyPy, GraalPy, Py_LIMITED_API)))]
-        unsafe {
-            pystring_ascii_new(py, s)
-        }
+#[expect(unsafe_code)]
+pub unsafe fn pystring_fast_new<'py>(
+    py: Python<'py>,
+    s: &str,
+    ascii_only: bool,
+) -> Bound<'py, PyString> {
+    debug_assert!(!ascii_only || s.is_ascii());
 
-        #[cfg(any(PyPy, GraalPy, Py_LIMITED_API))]
-        {
-            pystring_ascii_new(py, s)
-        }
+    if ascii_only {
+        // SAFETY: required by this function's contract.
+        unsafe { pystring_ascii_new(py, s) }
     } else {
         PyString::new(py, s)
     }
@@ -102,17 +157,12 @@ pub fn pystring_fast_new<'py>(py: Python<'py>, s: &str, ascii_only: bool) -> Bou
 /// `s` must be ASCII only (will debug-assert)
 #[inline]
 #[must_use]
-pub fn pystring_fast_new_ascii<'py>(py: Python<'py>, s: &str) -> Bound<'py, PyString> {
+#[expect(unsafe_code)]
+pub unsafe fn pystring_fast_new_ascii<'py>(py: Python<'py>, s: &str) -> Bound<'py, PyString> {
     debug_assert!(s.is_ascii(), "pystring_fast_new_ascii expects ASCII");
-    #[cfg(not(any(PyPy, GraalPy, Py_LIMITED_API)))]
-    #[expect(unsafe_code)]
-    unsafe {
-        pystring_ascii_new(py, s)
-    }
-    #[cfg(any(PyPy, GraalPy, Py_LIMITED_API))]
-    {
-        pystring_ascii_new(py, s)
-    }
+
+    // SAFETY: required by this function's contract.
+    unsafe { pystring_ascii_new(py, s) }
 }
 
 /// Creates a new `PyString` from an ASCII string.
@@ -120,14 +170,20 @@ pub fn pystring_fast_new_ascii<'py>(py: Python<'py>, s: &str) -> Bound<'py, PySt
 /// # Safety
 ///
 /// `s` must be ASCII only
-#[cfg(not(any(PyPy, GraalPy, Py_LIMITED_API)))]
-#[expect(unsafe_code, clippy::cast_possible_wrap)]
+#[expect(unsafe_code)]
 #[inline]
 #[must_use]
 pub unsafe fn pystring_ascii_new<'py>(py: Python<'py>, s: &str) -> Bound<'py, PyString> {
+    #[cfg(not(any(PyPy, GraalPy, Py_LIMITED_API)))]
     unsafe {
-        let ptr = pyo3::ffi::PyUnicode_New(s.len() as isize, 127);
-        // see https://github.com/pydantic/jiter/pull/72#discussion_r1545485907
+        let ptr = pyo3::ffi::PyUnicode_New(s.len().cast_signed(), 127);
+        // convert the pointer BEFORE using the Unicode macros.
+        // this handles allocation failure how `PyString::new` does, w/ a
+        // panic on OOM and not doing ptr shenanigans on NULL.
+        // REF: https://github.com/pydantic/jiter/issues/261
+        let string: Bound<'py, PyString> = Bound::from_owned_ptr(py, ptr).cast_into_unchecked();
+        let ptr = string.as_ptr();
+        // REF: https://github.com/pydantic/jiter/pull/72#discussion_r1545485907
         debug_assert_eq!(
             pyo3::ffi::PyUnicode_KIND(ptr),
             pyo3::ffi::PyUnicode_1BYTE_KIND
@@ -135,15 +191,12 @@ pub unsafe fn pystring_ascii_new<'py>(py: Python<'py>, s: &str) -> Bound<'py, Py
         let data_ptr = pyo3::ffi::PyUnicode_DATA(ptr).cast();
         core::ptr::copy_nonoverlapping(s.as_ptr(), data_ptr, s.len());
         core::ptr::write(data_ptr.add(s.len()), 0);
-        Bound::from_owned_ptr(py, ptr).cast_into_unchecked()
+        string
     }
-}
-
-#[cfg(any(PyPy, GraalPy, Py_LIMITED_API))]
-#[must_use]
-#[inline]
-pub fn pystring_ascii_new<'py>(py: Python<'py>, s: &str) -> Bound<'py, PyString> {
-    PyString::new(py, s)
+    #[cfg(any(PyPy, GraalPy, Py_LIMITED_API))]
+    {
+        PyString::new(py, s)
+    }
 }
 
 #[cfg(not(any(PyPy, GraalPy, Py_LIMITED_API)))]
@@ -242,7 +295,7 @@ unsafe fn pyunicode_to_str_via_ffi<'a>(ob: Borrowed<'a, '_, PyString>) -> Option
         } else {
             Some(core::str::from_utf8_unchecked(core::slice::from_raw_parts(
                 ptr,
-                size as usize,
+                size.cast_unsigned(),
             )))
         }
     }
