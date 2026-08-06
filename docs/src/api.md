@@ -2305,14 +2305,14 @@ _TzName: t.TypeAlias = TimezoneDbName | str
 
 # ==== TYPE-ALIASES ====
 # fmt: off
-_AbsoluteUnit: t.TypeAlias = t.Literal[
+_ExactUnit: t.TypeAlias = t.Literal[
     "hour", "minute", "second",
     "millisecond", "microsecond", "nanosecond"
 ]
 _CalendarUnit: t.TypeAlias = t.Literal["year", "month", "week", "day"]
-_Unit: t.TypeAlias = _CalendarUnit | _AbsoluteUnit
+_Unit: t.TypeAlias = _CalendarUnit | _ExactUnit
 _OffsetUnit: t.TypeAlias = t.Literal["hour", "minute", "second"]
-_RoundUnit: t.TypeAlias =  t.Literal["day"] | _AbsoluteUnit
+_RoundUnit: t.TypeAlias =  t.Literal["day"] | _ExactUnit
 _RoundMode: t.TypeAlias = t.Literal[
     "ceil",   "half-ceil",
     "expand", "half-expand",
@@ -2708,7 +2708,7 @@ class Time(
     ) -> t.Self: ...
     def round(
         self,
-        smallest: _AbsoluteUnit = "nanosecond",
+        smallest: _ExactUnit = "nanosecond",
         *,
         mode: _RoundMode = "half-expand",
         increment: int = 1,
@@ -2949,7 +2949,7 @@ class DateTime(
     ) -> t.Self: ...
     def round(
         self,
-        smallest: _AbsoluteUnit | t.Literal["day"] = "nanosecond",
+        smallest: _ExactUnit | t.Literal["day"] = "nanosecond",
         *,
         mode: _RoundMode = "half-expand",
         increment: int = 1,
@@ -3126,6 +3126,30 @@ class SignedDuration(
     ToPy[pydt.timedelta],
     _Parse,
 ):
+    """signed duration of time represented as seconds and nanoseconds
+
+    Examples
+    --------
+    >>> import ry
+    >>> ry.SignedDuration.MIN
+    SignedDuration(secs=-9223372036854775808, nanos=-999999999)
+    >>> ry.SignedDuration.MAX
+    SignedDuration(secs=9223372036854775807, nanos=999999999)
+    >>> ry.SignedDuration.ZERO
+    SignedDuration(secs=0, nanos=0)
+    >>> ry.SignedDuration.NANOSECOND
+    SignedDuration(secs=0, nanos=1)
+    >>> ry.SignedDuration.MILLISECOND
+    SignedDuration(secs=0, nanos=1000000)
+    >>> ry.SignedDuration.SECOND
+    SignedDuration(secs=1, nanos=0)
+    >>> ry.SignedDuration.MINUTE
+    SignedDuration(secs=60, nanos=0)
+    >>> ry.SignedDuration.HOUR
+    SignedDuration(secs=3600, nanos=0)
+
+    """
+
     MIN: t.Final[SignedDuration]
     MAX: t.Final[SignedDuration]
     ZERO: t.Final[SignedDuration]
@@ -3181,7 +3205,43 @@ class SignedDuration(
     @classmethod
     def fromisoformat(cls, s: str) -> t.Self: ...
     def to_string(self, *, friendly: bool = False) -> str: ...
-    def friendly(self) -> str: ...
+    def friendly(
+        self,
+        designator: t.Literal[
+            "compact", "human", "human-time", "short", "verbose"
+        ] = "compact",
+    ) -> str:
+        """Return friendly string representation
+
+        Parameters
+        ----------
+        designator : str, optional
+            The designator to use for the friendly string representation.
+            Options are "compact", "human", "human-time", "short", and "verbose".
+            Default is "compact".
+
+        Examples
+        --------
+        >>> import ry
+        >>> span = ry.SignedDuration(
+        ...     secs=93790, nanos=10000000
+        ... )  # 1 day, 2 hours, 30 minutes, 10 seconds, and 10 milliseconds
+        >>> span
+        SignedDuration(secs=93790, nanos=10000000)
+        >>> f"{span}"  # isoformat
+        'PT26H3M10.01S'
+        >>> f"{span:#}"  # '#' in format spec is friendly
+        '26h 3m 10s 10ms'
+        >>> span.friendly()  # default 'compact'
+        '26h 3m 10s 10ms'
+        >>> span.friendly("human")
+        '26h 3m 10s 10ms'
+        >>> span.friendly("short")
+        '26hrs 3mins 10secs 10msecs'
+        >>> span.friendly("verbose")
+        '26hours 3minutes 10seconds 10milliseconds'
+
+        """
 
     # =========================================================================
     # PYTHON CONVERSIONS
@@ -3217,6 +3277,8 @@ class SignedDuration(
     # =========================================================================
     # PROPERTIES
     # =========================================================================
+    @property
+    def is_absolute(self) -> bool: ...
     @property
     def is_negative(self) -> bool: ...
     @property
@@ -3280,7 +3342,7 @@ class SignedDuration(
     def to_timespan(self) -> TimeSpan: ...
     def round(
         self,
-        smallest: _AbsoluteUnit = "nanosecond",
+        smallest: _ExactUnit = "nanosecond",
         *,
         mode: _RoundMode = "half-expand",
         increment: int = 1,
@@ -3341,7 +3403,38 @@ class TimeSpan(
     # =========================================================================
     def isoformat(self) -> str: ...
     def to_string(self, *, friendly: bool = False) -> str: ...
-    def friendly(self) -> str: ...
+    def friendly(
+        self,
+        designator: t.Literal[
+            "compact", "human", "human-time", "short", "verbose"
+        ] = "compact",
+    ) -> str:
+        """Return friendly string representation of the TimeSpan.
+
+        Parameters
+        ----------
+        designator : str, optional
+            The designator to use for the friendly string representation.
+            Options are "compact", "human", "human-time", "short", and "verbose".
+            Default is "compact".
+
+        Examples
+        --------
+        >>> import ry
+        >>> span = ry.TimeSpan(days=1, hours=2, minutes=30, seconds=10)
+        >>> span
+        TimeSpan(days=1, hours=2, minutes=30, seconds=10)
+        >>> span.friendly()  # default 'compact'
+        '1d 2h 30m 10s'
+        >>> span.friendly("human")
+        '1d 2h 30m 10s'
+        >>> span.friendly("short")
+        '1day 2hrs 30mins 10secs'
+        >>> span.friendly("verbose")
+        '1day 2hours 30minutes 10seconds'
+
+        """
+
     def repr_full(self) -> str: ...
 
     # =========================================================================
@@ -3365,6 +3458,16 @@ class TimeSpan(
     # =========================================================================
     # PROPERTIES
     # =========================================================================
+    @property
+    def is_absolute(self) -> bool: ...
+    @property
+    def is_calendar(self) -> bool:
+        """`True` if contains calendar units (years, months, weeks, days)"""
+
+    @property
+    def is_exact(self) -> bool:
+        """`True` if contains only exact units (hours, minutes, seconds, milliseconds, microseconds, nanoseconds)"""
+
     @property
     def is_positive(self) -> bool: ...
     @property
@@ -3765,8 +3868,8 @@ class Timestamp(
         self,
         other: Timestamp | ZonedDateTime,
         *,
-        smallest: _AbsoluteUnit = "nanosecond",
-        largest: _AbsoluteUnit | None = None,
+        smallest: _ExactUnit = "nanosecond",
+        largest: _ExactUnit | None = None,
         mode: _RoundMode = "trunc",
         increment: int = 1,
     ) -> TimeSpan: ...
@@ -3774,8 +3877,8 @@ class Timestamp(
         self,
         other: Timestamp | ZonedDateTime,
         *,
-        smallest: _AbsoluteUnit = "nanosecond",
-        largest: _AbsoluteUnit | None = None,
+        smallest: _ExactUnit = "nanosecond",
+        largest: _ExactUnit | None = None,
         mode: _RoundMode = "trunc",
         increment: int = 1,
     ) -> TimeSpan: ...
@@ -3783,7 +3886,7 @@ class Timestamp(
     def duration_until(self, other: t.Self) -> SignedDuration: ...
     def round(
         self,
-        smallest: _AbsoluteUnit = "nanosecond",
+        smallest: _ExactUnit = "nanosecond",
         *,
         mode: _RoundMode = "half-expand",
         increment: int = 1,
@@ -4035,7 +4138,7 @@ class ZonedDateTime(
     ) -> t.Self: ...
     def round(
         self,
-        smallest: _AbsoluteUnit | t.Literal["day"] = "nanosecond",
+        smallest: _ExactUnit | t.Literal["day"] = "nanosecond",
         *,
         mode: _RoundMode = "half-expand",
         increment: int = 1,
@@ -4350,7 +4453,7 @@ class DateTimeDifference(_Difference[DateTime, _Unit]):
 
 
 @t.final
-class TimeDifference(_Difference[Time, _AbsoluteUnit]):
+class TimeDifference(_Difference[Time, _ExactUnit]):
     def __new__(
         cls,
         time: Time,
@@ -4366,7 +4469,7 @@ class TimeDifference(_Difference[Time, _AbsoluteUnit]):
 
 
 @t.final
-class TimestampDifference(_Difference[Timestamp, _AbsoluteUnit]):
+class TimestampDifference(_Difference[Timestamp, _ExactUnit]):
     def __new__(
         cls,
         timestamp: Timestamp,
@@ -4429,7 +4532,7 @@ class _Round(t.Generic[_TObj, _TUnit]):
 class DateTimeRound(_Round[DateTime, _RoundUnit]):
     def __new__(
         cls,
-        smallest: _AbsoluteUnit | t.Literal["day"] = "nanosecond",
+        smallest: _ExactUnit | t.Literal["day"] = "nanosecond",
         *,
         mode: _RoundMode = "half-expand",
         increment: int = 1,
@@ -4438,10 +4541,10 @@ class DateTimeRound(_Round[DateTime, _RoundUnit]):
 
 
 @t.final
-class SignedDurationRound(_Round[SignedDuration, _AbsoluteUnit]):
+class SignedDurationRound(_Round[SignedDuration, _ExactUnit]):
     def __new__(
         cls,
-        smallest: _AbsoluteUnit = "nanosecond",
+        smallest: _ExactUnit = "nanosecond",
         *,
         mode: _RoundMode = "half-expand",
         increment: int = 1,
@@ -4450,10 +4553,10 @@ class SignedDurationRound(_Round[SignedDuration, _AbsoluteUnit]):
 
 
 @t.final
-class TimeRound(_Round[Time, _AbsoluteUnit]):
+class TimeRound(_Round[Time, _ExactUnit]):
     def __new__(
         cls,
-        smallest: _AbsoluteUnit = "nanosecond",
+        smallest: _ExactUnit = "nanosecond",
         *,
         mode: _RoundMode = "half-expand",
         increment: int = 1,
@@ -4462,10 +4565,10 @@ class TimeRound(_Round[Time, _AbsoluteUnit]):
 
 
 @t.final
-class TimestampRound(_Round[Timestamp, _AbsoluteUnit]):
+class TimestampRound(_Round[Timestamp, _ExactUnit]):
     def __new__(
         cls,
-        smallest: _AbsoluteUnit = "nanosecond",
+        smallest: _ExactUnit = "nanosecond",
         *,
         mode: _RoundMode = "half-expand",
         increment: int = 1,
@@ -4474,10 +4577,10 @@ class TimestampRound(_Round[Timestamp, _AbsoluteUnit]):
 
 
 @t.final
-class ZonedDateTimeRound(_Round[ZonedDateTime, _AbsoluteUnit | t.Literal["day"]]):
+class ZonedDateTimeRound(_Round[ZonedDateTime, _ExactUnit | t.Literal["day"]]):
     def __new__(
         cls,
-        smallest: _AbsoluteUnit | t.Literal["day"] = "nanosecond",
+        smallest: _ExactUnit | t.Literal["day"] = "nanosecond",
         *,
         mode: _RoundMode = "half-expand",
         increment: int = 1,
@@ -5621,12 +5724,13 @@ import orjson
 def orjson_default(obj: t.Any) -> orjson.Fragment:
     """Fn to be used with `orjson.dumps` to serialize ry-compatible types
 
-    Example:
-        >>> import orjson
-        >>> from ry import orjson_default, Date
-        >>> data = {"key": "value", "date": Date(2023, 10, 1)}
-        >>> orjson.dumps(data, default=orjson_default)
-        b'{"key":"value","date":"2023-10-01"}'
+    Examples
+    --------
+    >>> import orjson
+    >>> from ry import orjson_default, Date
+    >>> data = {"key": "value", "date": Date(2023, 10, 1)}
+    >>> orjson.dumps(data, default=orjson_default)
+    b'{"key":"value","date":"2023-10-01"}'
 
     """
 ```

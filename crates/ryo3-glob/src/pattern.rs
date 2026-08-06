@@ -4,7 +4,6 @@ use glob::MatchOptions;
 use pyo3::IntoPyObjectExt;
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyString, PyTuple};
-use ryo3_core::PyAsciiString;
 use ryo3_core::macros::{py_type_err, py_value_error};
 
 #[pyclass(name = "GlobPattern", frozen, immutable_type, skip_from_py_object)]
@@ -112,8 +111,8 @@ impl PyGlobPattern {
         self.pattern.to_string()
     }
 
-    fn __repr__(&self) -> PyAsciiString {
-        format!("{self}").into()
+    fn __repr__(&self) -> String {
+        format!("{self}")
     }
 
     #[staticmethod]

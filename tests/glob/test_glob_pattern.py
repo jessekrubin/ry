@@ -40,6 +40,11 @@ def test_pattern_type() -> None:
     assert not pattern(ry.FsPath("FILE.PY"))
 
 
+def test_glob_pattern_unicode_repr() -> None:
+    pattern = ry.GlobPattern("café*")
+    assert repr(pattern) == 'GlobPattern("café*")'
+
+
 def test_escape() -> None:
     """Test glob pattern escape"""
     s = "_[_]_?_*_!_"

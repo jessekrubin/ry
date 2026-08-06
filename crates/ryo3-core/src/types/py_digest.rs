@@ -5,6 +5,16 @@ use crate::py_str::pystring_fast_new_ascii;
 
 const HEX_CHARS_LOWER: &[u8; 16] = b"0123456789abcdef";
 
+#[inline]
+fn pystring_hex_new<'py>(py: Python<'py>, s: &str) -> Bound<'py, PyString> {
+    // SAFETY: every caller passes output produced exclusively from
+    // `HEX_CHARS_LOWER`.
+    #[expect(unsafe_code)]
+    unsafe {
+        pystring_fast_new_ascii(py, s)
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct PyDigest<T>(T);
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -150,7 +160,7 @@ fn pystring_hex_digest<'py, const N: usize>(
         }
         #[expect(unsafe_code)]
         let s = unsafe { std::str::from_utf8_unchecked(&out) };
-        pystring_fast_new_ascii(py, s)
+        pystring_hex_new(py, s)
     }
 }
 
@@ -164,7 +174,7 @@ impl<'py> IntoPyObject<'py> for PyHexDigest<u32> {
         let bytes = encode_hex::<4, 8>(self.0.to_be_bytes());
         #[expect(unsafe_code)]
         let s = unsafe { std::str::from_utf8_unchecked(&bytes) };
-        Ok(pystring_fast_new_ascii(py, s))
+        Ok(pystring_hex_new(py, s))
     }
 }
 
@@ -178,7 +188,7 @@ impl<'py> IntoPyObject<'py> for PyHexDigest<u64> {
         let bytes = encode_hex::<8, 16>(self.0.to_be_bytes());
         #[expect(unsafe_code)]
         let s = unsafe { std::str::from_utf8_unchecked(&bytes) };
-        Ok(pystring_fast_new_ascii(py, s))
+        Ok(pystring_hex_new(py, s))
     }
 }
 
@@ -192,7 +202,7 @@ impl<'py> IntoPyObject<'py> for PyHexDigest<u128> {
         let bytes = encode_hex::<16, 32>(self.0.to_be_bytes());
         #[expect(unsafe_code)]
         let s = unsafe { std::str::from_utf8_unchecked(&bytes) };
-        Ok(pystring_fast_new_ascii(py, s))
+        Ok(pystring_hex_new(py, s))
     }
 }
 
@@ -211,7 +221,7 @@ macro_rules! impl_into_py_object_for_bytes_digest {
                 let bytes = encode_hex_ref::<$size, $hex_size>(&self.0);
                 #[expect(unsafe_code)]
                 let s = unsafe { std::str::from_utf8_unchecked(&bytes) };
-                Ok(pystring_fast_new_ascii(py, s))
+                Ok(pystring_hex_new(py, s))
             }
         }
     };
