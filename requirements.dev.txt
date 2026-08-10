@@ -10,7 +10,7 @@ coverage==7.15.2
     # via pytest-cov
 h11==0.16.0
     # via uvicorn
-hypothesis==6.165.0
+hypothesis==6.165.2
     # via -r requirements.dev.in
 idna==3.18
     # via anyio
