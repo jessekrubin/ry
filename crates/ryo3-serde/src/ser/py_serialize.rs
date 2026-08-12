@@ -8,7 +8,6 @@ use serde::ser::{Serialize, Serializer};
 
 use crate::ob_type::PyObType;
 use crate::ob_type_cache::PyTypeCache;
-use crate::ser::PySerializeContext;
 use crate::ser::py_types::{
     PyBoolSerializer, PyBytesLikeSerializer, PyDateSerializer, PyDateTimeSerializer,
     PyDictSerializer, PyFloatSerializer, PyFrozenSetSerializer, PyIntSerializer, PyListSerializer,
@@ -17,34 +16,68 @@ use crate::ser::py_types::{
 };
 #[cfg(feature = "ry")]
 use crate::ser::ry_types;
-use crate::{Depth, MAX_DEPTH, serde_err_recursion};
+use crate::ser::{PySerializeContext, PySerializeTarget, SerdeTarget};
+use crate::{Depth, JsonTarget, MAX_DEPTH, serde_err_recursion};
 
-pub struct PyAnySerializer<'a, 'py> {
+pub struct PyAnySerializer<'a, 'py, T = SerdeTarget>
+where
+    T: PySerializeTarget,
+{
     pub(crate) obj: Borrowed<'a, 'py, PyAny>,
-    pub(crate) ctx: PySerializeContext<'py>,
+    pub(crate) ctx: PySerializeContext<'py, T>,
     pub(crate) depth: Depth,
 }
 
-impl<'a, 'py> PyAnySerializer<'a, 'py> {
+impl<'a, 'py, T> PyAnySerializer<'a, 'py, T>
+where
+    T: PySerializeTarget,
+{
+    #[inline]
     #[must_use]
-    pub fn new(obj: Borrowed<'a, 'py, PyAny>, default: Option<&'py Bound<'py, PyAny>>) -> Self {
+    pub fn with_target(
+        obj: Borrowed<'a, 'py, PyAny>,
+        default: Option<&'py Bound<'py, PyAny>>,
+    ) -> Self {
         let py = obj.py();
         let typeref = PyTypeCache::cached(py);
-        let ctx = PySerializeContext::new(default, typeref);
+        let ctx = PySerializeContext::<T>::new(default, typeref);
         Self { obj, ctx, depth: 0 }
     }
 
+    #[inline]
     #[must_use]
     pub(crate) fn new_with_depth(
         obj: Borrowed<'a, 'py, PyAny>,
-        ctx: PySerializeContext<'py>,
+        ctx: PySerializeContext<'py, T>,
         depth: Depth,
     ) -> Self {
         Self { obj, ctx, depth }
     }
 }
 
-impl Serialize for PyAnySerializer<'_, '_> {
+impl<'a, 'py> PyAnySerializer<'a, 'py, SerdeTarget> {
+    #[inline]
+    #[must_use]
+    pub fn new(obj: Borrowed<'a, 'py, PyAny>, default: Option<&'py Bound<'py, PyAny>>) -> Self {
+        Self::with_target(obj, default)
+    }
+}
+
+impl<'a, 'py> PyAnySerializer<'a, 'py, JsonTarget> {
+    #[inline]
+    #[must_use]
+    pub fn new_json(
+        obj: Borrowed<'a, 'py, PyAny>,
+        default: Option<&'py Bound<'py, PyAny>>,
+    ) -> Self {
+        Self::with_target(obj, default)
+    }
+}
+
+impl<T> Serialize for PyAnySerializer<'_, '_, T>
+where
+    T: PySerializeTarget,
+{
     #[expect(clippy::too_many_lines)]
     #[inline]
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
@@ -83,7 +116,7 @@ impl Serialize for PyAnySerializer<'_, '_> {
                 PyTimeDeltaSerializer::new_unchecked(self.obj).serialize(serializer)
             }
             PyObType::Bytes | PyObType::ByteArray | PyObType::MemoryView => {
-                PyBytesLikeSerializer::new(self.obj).serialize(serializer)
+                PyBytesLikeSerializer::<T>::new(self.obj).serialize(serializer)
             }
             PyObType::PyUuid => PyUuidSerializer::new(self.obj).serialize(serializer),
             // ------------------------------------------------------------

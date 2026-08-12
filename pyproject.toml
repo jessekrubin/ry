@@ -169,6 +169,7 @@ report.precision = 2
 [tool.rumdl]
 disable = [ "MD033" ]
 exclude = []
-MD013.code_blocks = false
+MD013.code-blocks = false
+MD013.code-spans = false
 per-file-ignores."README.md" = [ "MD036" ]
 per-file-ignores."docs/src/index.md" = [ "MD041" ]

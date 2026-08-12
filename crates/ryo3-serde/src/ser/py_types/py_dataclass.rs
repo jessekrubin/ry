@@ -5,21 +5,27 @@ use pyo3::{Bound, intern};
 use serde::ser::{Error as SerError, Serialize, SerializeMap, Serializer};
 
 use crate::errors::pyerr2sererr;
-use crate::ser::PySerializeContext;
 use crate::ser::dataclass::dataclass_fields;
 use crate::ser::py_types::PyDictSerializer;
+use crate::ser::{PySerializeContext, PySerializeTarget, SerdeTarget};
 use crate::{Depth, MAX_DEPTH, PyAnySerializer, serde_err, serde_err_recursion};
 
-pub(crate) struct PyDataclassSerializer<'a, 'py> {
-    ctx: PySerializeContext<'py>,
+pub(crate) struct PyDataclassSerializer<'a, 'py, T = SerdeTarget>
+where
+    T: PySerializeTarget,
+{
+    ctx: PySerializeContext<'py, T>,
     obj: Borrowed<'a, 'py, PyAny>,
     depth: Depth,
 }
 
-impl<'a, 'py> PyDataclassSerializer<'a, 'py> {
+impl<'a, 'py, T> PyDataclassSerializer<'a, 'py, T>
+where
+    T: PySerializeTarget,
+{
     pub(crate) fn new(
         obj: Borrowed<'a, 'py, PyAny>,
-        ctx: PySerializeContext<'py>,
+        ctx: PySerializeContext<'py, T>,
         depth: Depth,
     ) -> Self {
         Self { ctx, obj, depth }
@@ -34,7 +40,10 @@ fn get_field_marker(py: Python<'_>) -> PyResult<&Bound<'_, PyAny>> {
     DC_FIELD_MARKER.import(py, "dataclasses", "_FIELD")
 }
 
-impl Serialize for PyDataclassSerializer<'_, '_> {
+impl<T> Serialize for PyDataclassSerializer<'_, '_, T>
+where
+    T: PySerializeTarget,
+{
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,

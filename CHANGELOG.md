@@ -29,6 +29,8 @@
 - `ryo3-core`
   - handle possible UB in `ryo3_core::pystring_ascii_new` as pointed out in
     [jiter/261](https://github.com/pydantic/jiter/issues/261)
+- `ryo3-serde`
+  - added serialization target for future serializer specific optimizations
 
 ---
 

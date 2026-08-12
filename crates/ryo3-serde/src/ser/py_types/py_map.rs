@@ -5,7 +5,6 @@ use serde::ser::{Serialize, SerializeMap, Serializer};
 use crate::constants::{Depth, MAX_DEPTH};
 use crate::errors::pyerr2sererr;
 use crate::ob_type::PyObType;
-use crate::ser::PySerializeContext;
 use crate::ser::py_types::{
     PyBoolSerializer, PyBytesLikeSerializer, PyDateSerializer, PyDateTimeSerializer,
     PyFloatSerializer, PyFrozenSetSerializer, PyIntSerializer, PyListSerializer,
@@ -22,19 +21,26 @@ use crate::ser::py_types::{
     feature = "ryo3-std"
 ))]
 use crate::ser::ry_types;
+use crate::ser::{PySerializeContext, PySerializeTarget, SerdeTarget};
 use crate::serde_err_recursion;
 
-pub(crate) struct PyDictSerializer<'a, 'py> {
-    ctx: PySerializeContext<'py>,
+pub(crate) struct PyDictSerializer<'a, 'py, T = SerdeTarget>
+where
+    T: PySerializeTarget,
+{
+    ctx: PySerializeContext<'py, T>,
     pub(crate) obj: Borrowed<'a, 'py, PyDict>,
     pub(crate) depth: Depth,
 }
 
-impl<'a, 'py> PyDictSerializer<'a, 'py> {
+impl<'a, 'py, T> PyDictSerializer<'a, 'py, T>
+where
+    T: PySerializeTarget,
+{
     #[inline]
     pub(crate) fn new(
         obj: Borrowed<'a, 'py, PyDict>,
-        ctx: PySerializeContext<'py>,
+        ctx: PySerializeContext<'py, T>,
         depth: Depth,
     ) -> Self {
         Self { ctx, obj, depth }
@@ -43,7 +49,7 @@ impl<'a, 'py> PyDictSerializer<'a, 'py> {
     #[inline]
     pub(crate) fn new_unchecked(
         obj: Borrowed<'a, 'py, PyAny>,
-        ctx: PySerializeContext<'py>,
+        ctx: PySerializeContext<'py, T>,
         depth: Depth,
     ) -> Self {
         #[expect(unsafe_code)]
@@ -119,7 +125,7 @@ macro_rules! serialize_map_value {
                 $map.serialize_value(&PyTimeDeltaSerializer::new_unchecked($value))?;
             }
             PyObType::Bytes | PyObType::ByteArray | PyObType::MemoryView => {
-                $map.serialize_value(&PyBytesLikeSerializer::new($value))?;
+                $map.serialize_value(&PyBytesLikeSerializer::<T>::new($value))?;
             }
             PyObType::PyUuid => {
                 $map.serialize_value(&PyUuidSerializer::new($value))?;
@@ -266,7 +272,10 @@ macro_rules! serialize_map_value {
 //         m.end()
 //     }
 // }
-impl Serialize for PyDictSerializer<'_, '_> {
+impl<T> Serialize for PyDictSerializer<'_, '_, T>
+where
+    T: PySerializeTarget,
+{
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
@@ -332,23 +341,32 @@ impl Serialize for PyDictSerializer<'_, '_> {
 }
 
 // pub(crate) use serialize_map_value;
-pub(crate) struct PyMappingSerializer<'a, 'py> {
-    ctx: PySerializeContext<'py>,
+pub(crate) struct PyMappingSerializer<'a, 'py, T = SerdeTarget>
+where
+    T: PySerializeTarget,
+{
+    ctx: PySerializeContext<'py, T>,
     obj: Borrowed<'a, 'py, PyMapping>,
     depth: Depth,
 }
 
-impl<'a, 'py> PyMappingSerializer<'a, 'py> {
+impl<'a, 'py, T> PyMappingSerializer<'a, 'py, T>
+where
+    T: PySerializeTarget,
+{
     pub(crate) fn new_with_depth(
         obj: Borrowed<'a, 'py, PyMapping>,
-        ctx: PySerializeContext<'py>,
+        ctx: PySerializeContext<'py, T>,
         depth: Depth,
     ) -> Self {
         Self { ctx, obj, depth }
     }
 }
 
-impl Serialize for PyMappingSerializer<'_, '_> {
+impl<T> Serialize for PyMappingSerializer<'_, '_, T>
+where
+    T: PySerializeTarget,
+{
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,

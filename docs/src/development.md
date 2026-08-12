@@ -71,7 +71,7 @@ ye olde `pip`
 
 ### Example for copy-pasta
 
-**rust code**
+#### rust deprecation eg
 
 ```rust
 #[pymethods]
@@ -107,7 +107,7 @@ fn bruff_func() -> String {
 }
 ```
 
-**python stub code**
+#### python stub deprecation eg
 
 ```python
 if sys.version_info >= (3, 13):
