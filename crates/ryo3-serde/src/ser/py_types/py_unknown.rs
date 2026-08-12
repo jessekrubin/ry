@@ -4,32 +4,41 @@ use serde::ser::{Serialize, Serializer};
 
 use crate::any_repr::any_repr;
 use crate::errors::pyerr2sererr;
-use crate::ser::PySerializeContext;
 use crate::ser::dataclass::is_dataclass;
 use crate::ser::py_types::{
     PyDataclassSerializer, PyEnumSerializer, PyMappingSerializer, PySequenceSerializer,
     PyStrSubclassSerializer,
 };
+use crate::ser::{PySerializeContext, PySerializeTarget, SerdeTarget};
 use crate::{Depth, PyAnySerializer, serde_err};
 
-pub(crate) struct PyUnknownSerializer<'a, 'py> {
-    pub(crate) ctx: PySerializeContext<'py>,
+pub(crate) struct PyUnknownSerializer<'a, 'py, T = SerdeTarget>
+where
+    T: PySerializeTarget,
+{
+    pub(crate) ctx: PySerializeContext<'py, T>,
     obj: Borrowed<'a, 'py, PyAny>,
     pub(crate) depth: Depth,
 }
 
-impl<'a, 'py> PyUnknownSerializer<'a, 'py> {
+impl<'a, 'py, T> PyUnknownSerializer<'a, 'py, T>
+where
+    T: PySerializeTarget,
+{
     #[inline]
     pub(crate) fn new(
         obj: Borrowed<'a, 'py, PyAny>,
-        ctx: PySerializeContext<'py>,
+        ctx: PySerializeContext<'py, T>,
         depth: Depth,
     ) -> Self {
         Self { ctx, obj, depth }
     }
 }
 
-impl Serialize for PyUnknownSerializer<'_, '_> {
+impl<T> Serialize for PyUnknownSerializer<'_, '_, T>
+where
+    T: PySerializeTarget,
+{
     #[inline]
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where

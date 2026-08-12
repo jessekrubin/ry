@@ -5,7 +5,6 @@ use serde::ser::{Serialize, SerializeSeq, SerializeTuple, Serializer};
 use crate::constants::{Depth, MAX_DEPTH};
 use crate::errors::pyerr2sererr;
 use crate::ob_type::PyObType;
-use crate::ser::PySerializeContext;
 use crate::ser::py_types::{
     PyBoolSerializer, PyBytesLikeSerializer, PyDateSerializer, PyDateTimeSerializer,
     PyDictSerializer, PyFloatSerializer, PyIntSerializer, PyNoneSerializer, PyStrSerializer,
@@ -20,6 +19,7 @@ use crate::ser::py_types::{
     feature = "ryo3-std"
 ))]
 use crate::ser::ry_types;
+use crate::ser::{PySerializeContext, PySerializeTarget, SerdeTarget};
 use crate::serde_err_recursion;
 
 macro_rules! serialize_seq_element {
@@ -88,7 +88,7 @@ macro_rules! serialize_seq_element {
                 $seq.serialize_element(&PyTimeDeltaSerializer::new_unchecked($element))?;
             }
             PyObType::Bytes | PyObType::ByteArray | PyObType::MemoryView => {
-                $seq.serialize_element(&PyBytesLikeSerializer::new($element))?;
+                $seq.serialize_element(&PyBytesLikeSerializer::<T>::new($element))?;
             }
             PyObType::PyUuid => {
                 $seq.serialize_element(&PyUuidSerializer::new($element))?;
@@ -207,17 +207,23 @@ macro_rules! serialize_seq_element {
 // ----------------------------------------------------------------------------
 // PyList
 // ----------------------------------------------------------------------------
-pub(crate) struct PyListSerializer<'a, 'py> {
-    pub(crate) ctx: PySerializeContext<'py>,
+pub(crate) struct PyListSerializer<'a, 'py, T = SerdeTarget>
+where
+    T: PySerializeTarget,
+{
+    pub(crate) ctx: PySerializeContext<'py, T>,
     pub(crate) obj: Borrowed<'a, 'py, PyList>,
     pub(crate) depth: Depth,
 }
 
-impl<'a, 'py> PyListSerializer<'a, 'py> {
+impl<'a, 'py, T> PyListSerializer<'a, 'py, T>
+where
+    T: PySerializeTarget,
+{
     #[inline]
     pub(crate) fn new(
         obj: Borrowed<'a, 'py, PyList>,
-        ctx: PySerializeContext<'py>,
+        ctx: PySerializeContext<'py, T>,
         depth: Depth,
     ) -> Self {
         Self { ctx, obj, depth }
@@ -226,7 +232,7 @@ impl<'a, 'py> PyListSerializer<'a, 'py> {
     #[inline]
     pub(crate) fn new_unchecked(
         obj: Borrowed<'a, 'py, PyAny>,
-        ctx: PySerializeContext<'py>,
+        ctx: PySerializeContext<'py, T>,
         depth: Depth,
     ) -> Self {
         #[expect(unsafe_code)]
@@ -235,7 +241,10 @@ impl<'a, 'py> PyListSerializer<'a, 'py> {
     }
 }
 
-impl Serialize for PyListSerializer<'_, '_> {
+impl<T> Serialize for PyListSerializer<'_, '_, T>
+where
+    T: PySerializeTarget,
+{
     #[inline]
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -273,17 +282,23 @@ impl Serialize for PyListSerializer<'_, '_> {
 // ----------------------------------------------------------------------------
 // PyTuple
 // ----------------------------------------------------------------------------
-pub(crate) struct PyTupleSerializer<'a, 'py> {
+pub(crate) struct PyTupleSerializer<'a, 'py, T = SerdeTarget>
+where
+    T: PySerializeTarget,
+{
     pub(crate) obj: Borrowed<'a, 'py, PyTuple>,
-    pub(crate) ctx: PySerializeContext<'py>,
+    pub(crate) ctx: PySerializeContext<'py, T>,
     pub(crate) depth: Depth,
 }
 
-impl<'a, 'py> PyTupleSerializer<'a, 'py> {
+impl<'a, 'py, T> PyTupleSerializer<'a, 'py, T>
+where
+    T: PySerializeTarget,
+{
     #[inline]
     pub(crate) fn new(
         obj: Borrowed<'a, 'py, PyTuple>,
-        ctx: PySerializeContext<'py>,
+        ctx: PySerializeContext<'py, T>,
         depth: Depth,
     ) -> Self {
         Self { obj, ctx, depth }
@@ -292,7 +307,7 @@ impl<'a, 'py> PyTupleSerializer<'a, 'py> {
     #[inline]
     pub(crate) fn new_unchecked(
         obj: Borrowed<'a, 'py, PyAny>,
-        ctx: PySerializeContext<'py>,
+        ctx: PySerializeContext<'py, T>,
         depth: Depth,
     ) -> Self {
         #[expect(unsafe_code)]
@@ -300,7 +315,10 @@ impl<'a, 'py> PyTupleSerializer<'a, 'py> {
         Self::new(obj, ctx, depth)
     }
 }
-impl Serialize for PyTupleSerializer<'_, '_> {
+impl<T> Serialize for PyTupleSerializer<'_, '_, T>
+where
+    T: PySerializeTarget,
+{
     #[inline]
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -337,17 +355,23 @@ impl Serialize for PyTupleSerializer<'_, '_> {
 // ----------------------------------------------------------------------------
 // PySet
 // ----------------------------------------------------------------------------
-pub(crate) struct PySetSerializer<'a, 'py> {
-    pub(crate) ctx: PySerializeContext<'py>,
+pub(crate) struct PySetSerializer<'a, 'py, T = SerdeTarget>
+where
+    T: PySerializeTarget,
+{
+    pub(crate) ctx: PySerializeContext<'py, T>,
     pub(crate) obj: Borrowed<'a, 'py, PySet>,
     pub(crate) depth: Depth,
 }
 
-impl<'a, 'py> PySetSerializer<'a, 'py> {
+impl<'a, 'py, T> PySetSerializer<'a, 'py, T>
+where
+    T: PySerializeTarget,
+{
     #[inline]
     pub(crate) fn new(
         obj: Borrowed<'a, 'py, PySet>,
-        ctx: PySerializeContext<'py>,
+        ctx: PySerializeContext<'py, T>,
         depth: Depth,
     ) -> Self {
         Self { ctx, obj, depth }
@@ -356,7 +380,7 @@ impl<'a, 'py> PySetSerializer<'a, 'py> {
     #[inline]
     pub(crate) fn new_unchecked(
         obj: Borrowed<'a, 'py, PyAny>,
-        ctx: PySerializeContext<'py>,
+        ctx: PySerializeContext<'py, T>,
         depth: Depth,
     ) -> Self {
         #[expect(unsafe_code)]
@@ -365,7 +389,10 @@ impl<'a, 'py> PySetSerializer<'a, 'py> {
     }
 }
 
-impl Serialize for PySetSerializer<'_, '_> {
+impl<T> Serialize for PySetSerializer<'_, '_, T>
+where
+    T: PySerializeTarget,
+{
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
@@ -387,17 +414,23 @@ impl Serialize for PySetSerializer<'_, '_> {
 // ----------------------------------------------------------------------------
 // PyFrozenSet
 // ----------------------------------------------------------------------------
-pub(crate) struct PyFrozenSetSerializer<'a, 'py> {
-    pub(crate) ctx: PySerializeContext<'py>,
+pub(crate) struct PyFrozenSetSerializer<'a, 'py, T = SerdeTarget>
+where
+    T: PySerializeTarget,
+{
+    pub(crate) ctx: PySerializeContext<'py, T>,
     pub(crate) obj: Borrowed<'a, 'py, PyFrozenSet>,
     pub(crate) depth: Depth,
 }
 
-impl<'a, 'py> PyFrozenSetSerializer<'a, 'py> {
+impl<'a, 'py, T> PyFrozenSetSerializer<'a, 'py, T>
+where
+    T: PySerializeTarget,
+{
     #[inline]
     pub(crate) fn new(
         obj: Borrowed<'a, 'py, PyFrozenSet>,
-        ctx: PySerializeContext<'py>,
+        ctx: PySerializeContext<'py, T>,
         depth: Depth,
     ) -> Self {
         Self { ctx, obj, depth }
@@ -406,7 +439,7 @@ impl<'a, 'py> PyFrozenSetSerializer<'a, 'py> {
     #[inline]
     pub(crate) fn new_unchecked(
         obj: Borrowed<'a, 'py, PyAny>,
-        ctx: PySerializeContext<'py>,
+        ctx: PySerializeContext<'py, T>,
         depth: Depth,
     ) -> Self {
         #[expect(unsafe_code)]
@@ -415,7 +448,10 @@ impl<'a, 'py> PyFrozenSetSerializer<'a, 'py> {
     }
 }
 
-impl Serialize for PyFrozenSetSerializer<'_, '_> {
+impl<T> Serialize for PyFrozenSetSerializer<'_, '_, T>
+where
+    T: PySerializeTarget,
+{
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
@@ -438,23 +474,32 @@ impl Serialize for PyFrozenSetSerializer<'_, '_> {
 // PySequence
 // ----------------------------------------------------------------------------
 
-pub(crate) struct PySequenceSerializer<'a, 'py> {
-    ctx: PySerializeContext<'py>,
+pub(crate) struct PySequenceSerializer<'a, 'py, T = SerdeTarget>
+where
+    T: PySerializeTarget,
+{
+    ctx: PySerializeContext<'py, T>,
     obj: Borrowed<'a, 'py, PySequence>,
     depth: Depth,
 }
 
-impl<'a, 'py> PySequenceSerializer<'a, 'py> {
+impl<'a, 'py, T> PySequenceSerializer<'a, 'py, T>
+where
+    T: PySerializeTarget,
+{
     pub(crate) fn new_with_depth(
         obj: Borrowed<'a, 'py, PySequence>,
-        ctx: PySerializeContext<'py>,
+        ctx: PySerializeContext<'py, T>,
         depth: Depth,
     ) -> Self {
         Self { ctx, obj, depth }
     }
 }
 
-impl Serialize for PySequenceSerializer<'_, '_> {
+impl<T> Serialize for PySequenceSerializer<'_, '_, T>
+where
+    T: PySerializeTarget,
+{
     #[inline]
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where

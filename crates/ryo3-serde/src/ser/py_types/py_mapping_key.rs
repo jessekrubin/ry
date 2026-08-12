@@ -3,23 +3,32 @@ use serde::ser::{Serialize, Serializer};
 
 use crate::any_repr::any_repr;
 use crate::ob_type::PyObType;
-use crate::ser::PySerializeContext;
 use crate::ser::py_types::{PyBoolSerializer, PyStrSerializer};
+use crate::ser::{PySerializeContext, PySerializeTarget, SerdeTarget};
 use crate::serde_err;
 
-pub(crate) struct PyMappingKeySerializer<'a, 'py> {
-    pub(crate) ctx: PySerializeContext<'py>,
+pub(crate) struct PyMappingKeySerializer<'a, 'py, T = SerdeTarget>
+where
+    T: PySerializeTarget,
+{
+    pub(crate) ctx: PySerializeContext<'py, T>,
     obj: Borrowed<'a, 'py, PyAny>,
 }
 
-impl<'a, 'py> PyMappingKeySerializer<'a, 'py> {
+impl<'a, 'py, T> PyMappingKeySerializer<'a, 'py, T>
+where
+    T: PySerializeTarget,
+{
     #[inline]
-    pub(crate) fn new(ctx: PySerializeContext<'py>, obj: Borrowed<'a, 'py, PyAny>) -> Self {
+    pub(crate) fn new(ctx: PySerializeContext<'py, T>, obj: Borrowed<'a, 'py, PyAny>) -> Self {
         Self { ctx, obj }
     }
 }
 
-impl Serialize for PyMappingKeySerializer<'_, '_> {
+impl<T> Serialize for PyMappingKeySerializer<'_, '_, T>
+where
+    T: PySerializeTarget,
+{
     #[inline]
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
