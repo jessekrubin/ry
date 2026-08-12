@@ -71,6 +71,7 @@ jobs:
       - name: Build wheels
         uses: PyO3/maturin-action@e83996d129638aa358a18fbd1dfb82f0b0fb5d3b # v1
         with:
+          maturin-version: v1.14.1
           target: ${{ matrix.platform.target }}
           args: --out dist --interpreter 3.11 3.12 3.13 3.14 3.14t pypy3.11 --profile ${{ env.CARGO_PROFILE }} --features ${{ matrix.platform.features }}
           sccache: ${{ !startsWith(github.ref, 'refs/tags/') }}
@@ -149,6 +150,7 @@ jobs:
       - name: Build wheels
         uses: PyO3/maturin-action@e83996d129638aa358a18fbd1dfb82f0b0fb5d3b # v1
         with:
+          maturin-version: v1.14.1
           target: ${{ matrix.platform.target }}
           args: --out dist --interpreter 3.11 3.12 3.13 3.14 3.14t pypy3.11 --profile ${{ env.CARGO_PROFILE }}
           sccache: ${{ !startsWith(github.ref, 'refs/tags/') }}
@@ -226,6 +228,7 @@ jobs:
       - name: Build wheels
         uses: PyO3/maturin-action@e83996d129638aa358a18fbd1dfb82f0b0fb5d3b # v1
         with:
+          maturin-version: v1.14.1
           target: ${{ matrix.platform.target }}
           args: --out dist --profile ${{ env.CARGO_PROFILE }} --interpreter 3.11 3.12 3.13 3.14 --features "mimalloc"
           sccache: ${{ !startsWith(github.ref, 'refs/tags/') }}
@@ -268,6 +271,7 @@ jobs:
       - name: Build wheels
         uses: PyO3/maturin-action@e83996d129638aa358a18fbd1dfb82f0b0fb5d3b # v1
         with:
+          maturin-version: v1.14.1
           target: ${{ matrix.platform.target }}
           args: --out dist --interpreter 3.11 3.12 3.13 3.14 3.14t pypy3.11 --profile ${{ env.CARGO_PROFILE }} --features "mimalloc"
           sccache: ${{ !startsWith(github.ref, 'refs/tags/') }}
@@ -292,6 +296,7 @@ jobs:
       - name: Build sdist
         uses: PyO3/maturin-action@e83996d129638aa358a18fbd1dfb82f0b0fb5d3b # v1
         with:
+          maturin-version: v1.14.1
           command: sdist
           args: --out dist
       - name: Upload sdist
@@ -349,16 +354,6 @@ jobs:
         uses: actions/attest-build-provenance@0f67c3f4856b2e3261c31976d6725780e5e4c373 # v4
         with:
           subject-path: "wheels-*/*"
-
-      # - name: Publish 2 PyPI
-      #   if: ${{ startsWith(github.ref, 'refs/tags/v') }}
-      #   uses: PyO3/maturin-action@e83996d129638aa358a18fbd1dfb82f0b0fb5d3b # v1
-      #   env:
-      #     MATURIN_PYPI_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
-      #   with:
-      #     command: upload
-      #     args: --non-interactive --skip-existing wheels-*/*
-
       - name: Publish 2 PyPI (--dryrun)
         run: uv publish --dry-run --trusted-publishing automatic 'wheels-*/*'
         env:
