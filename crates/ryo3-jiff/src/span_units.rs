@@ -66,17 +66,48 @@ impl<'py> IntoPyObject<'py> for SpanUnit {
 pub(crate) struct SpanUnits(u16);
 
 impl SpanUnits {
+    pub(crate) const ALL: Self = SpanUnits(
+        SpanUnit::Years as u16
+            | SpanUnit::Months as u16
+            | SpanUnit::Weeks as u16
+            | SpanUnit::Days as u16
+            | SpanUnit::Hours as u16
+            | SpanUnit::Minutes as u16
+            | SpanUnit::Seconds as u16
+            | SpanUnit::Milliseconds as u16
+            | SpanUnit::Microseconds as u16
+            | SpanUnit::Nanoseconds as u16,
+    );
+
+    pub(crate) const EXACT_MAX: Self = Self(
+        SpanUnit::Hours as u16
+            | SpanUnit::Minutes as u16
+            | SpanUnit::Seconds as u16
+            | SpanUnit::Milliseconds as u16
+            | SpanUnit::Microseconds as u16
+            | SpanUnit::Nanoseconds as u16,
+    );
+
+    pub(crate) const fn new() -> Self {
+        Self(0)
+    }
+
     #[expect(
         clippy::cast_possible_truncation,
         reason = "wenodis: cant fail bc there are only 10 span units"
     )]
-    pub(crate) fn count(self) -> u8 {
+    pub(crate) const fn count(self) -> u8 {
         self.0.count_ones() as u8
     }
 
-    pub(crate) fn with_unit(mut self, unit: SpanUnit) -> Self {
+    pub(crate) const fn with_unit(mut self, unit: SpanUnit) -> Self {
         self.0 |= unit as u16;
         self
+    }
+
+    /// Return `true` if the span units are exact (not years/months/weeks/days)
+    pub(crate) const fn is_exact(self) -> bool {
+        (self.0 & Self::EXACT_MAX.0) == self.0
     }
 }
 
