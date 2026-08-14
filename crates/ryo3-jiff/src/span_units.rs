@@ -62,6 +62,7 @@ impl<'py> IntoPyObject<'py> for SpanUnit {
 }
 
 /// bit flags for wot span units a span has
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
 pub(crate) struct SpanUnits(u16);
 
 impl SpanUnits {
@@ -69,8 +70,13 @@ impl SpanUnits {
         clippy::cast_possible_truncation,
         reason = "wenodis: cant fail bc there are only 10 span units"
     )]
-    pub(crate) fn count(&self) -> u8 {
+    pub(crate) fn count(self) -> u8 {
         self.0.count_ones() as u8
+    }
+
+    pub(crate) fn with_unit(mut self, unit: SpanUnit) -> Self {
+        self.0 |= unit as u16;
+        self
     }
 }
 

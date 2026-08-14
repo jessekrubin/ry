@@ -3,6 +3,8 @@ use pyo3::ffi;
 use pyo3::prelude::*;
 use pyo3::types::{PyAny, PyDict};
 
+// use crate::{PyCastExactOpt, pystr_read_fast_opt};
+
 // ----------------------------------------------------------------------------
 // DICT
 // ----------------------------------------------------------------------------
@@ -86,3 +88,29 @@ impl ExactSizeIterator for BorrowedDictIter<'_, '_> {
         self.remaining
     }
 }
+
+// KWARGS TBD
+
+// pub struct KwargsIter<'a, 'py> {
+//     dict_iter: BorrowedDictIter<'a, 'py>,
+// }
+
+// impl<'a, 'py> KwargsIter<'a, 'py> {
+//     #[must_use]
+//     pub fn new(dict: Borrowed<'a, 'py, PyDict>) -> Self {
+//         Self {
+//             dict_iter: BorrowedDictIter::new(dict),
+//         }
+//     }
+// }
+
+// impl<'a, 'py> Iterator for KwargsIter<'a, 'py> {
+//     type Item = (&'a str, Borrowed<'a, 'py, PyAny>);
+
+//     fn next(&mut self) -> Option<Self::Item> {
+//         let (key, val) = self.dict_iter.next()?;
+//         let pys = key.cast_exact_opt::<pyo3::types::PyString>()?;
+//         let key_str = unsafe { pystr_read_fast_opt(pys) }?;
+//         Some((key_str, val))
+//     }
+// }
