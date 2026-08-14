@@ -200,7 +200,7 @@ impl RyTimestamp {
     fn add(
         &self,
         other: Option<Spanish>,
-        hours: i64,
+        hours: i32,
         minutes: i64,
         seconds: i64,
         milliseconds: i64,
@@ -254,7 +254,7 @@ impl RyTimestamp {
     fn sub(
         &self,
         other: Option<TemporalSubInput<Self>>,
-        hours: i64,
+        hours: i32,
         minutes: i64,
         seconds: i64,
         milliseconds: i64,
