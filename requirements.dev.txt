@@ -16,7 +16,7 @@ idna==3.18
     # via anyio
 iniconfig==2.3.0
     # via pytest
-maturin==1.14.1
+maturin==1.15.0
     # via -r requirements.dev.in
 orjson==3.11.4
     # via -r requirements.dev.in
