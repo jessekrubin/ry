@@ -1971,6 +1971,7 @@ dependencies = [
  "ryo3-bzip2",
  "ryo3-cookie",
  "ryo3-core",
+ "ryo3-crc32fast",
  "ryo3-dev",
  "ryo3-dirs",
  "ryo3-flate2",
@@ -2062,6 +2063,16 @@ dependencies = [
  "pyo3",
  "pyo3-build-config",
  "ryo3-macro-rules",
+]
+
+[[package]]
+name = "ryo3-crc32fast"
+version = "0.0.100"
+dependencies = [
+ "crc32fast",
+ "pyo3",
+ "ryo3-bytes",
+ "ryo3-core",
 ]
 
 [[package]]

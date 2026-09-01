@@ -33,6 +33,7 @@ from ry.ryo3._bzip2 import bzip2 as bzip2
 from ry.ryo3._bzip2 import bzip2_decode as bzip2_decode
 from ry.ryo3._bzip2 import bzip2_encode as bzip2_encode
 from ry.ryo3._cookie import Cookie as Cookie
+from ry.ryo3._crc32fast import crc32 as crc32
 from ry.ryo3._dirs import audio_dir as audio_dir
 from ry.ryo3._dirs import cache_dir as cache_dir
 from ry.ryo3._dirs import config_dir as config_dir
