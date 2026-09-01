@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import hashlib
-import typing as t
 import zlib
 from typing import TYPE_CHECKING
 
@@ -83,60 +81,52 @@ _BYTES = [
     ("10mib", random_bytes(1024 * 1024 * 10)),
 ]
 _HASHERS = [
-    ("crc32", ry.crc32, _PyCrc32),
+    ("crc32fast", ry.crc32),
+    ("zlib-rs", ry.crc32_zlib_rs),
+    ("zlib-rs-fold", ry.crc32_zlib_rs_fold),
+    ("python-zlib", _PyCrc32),
 ]
-_RY_HASHERS = [(name, "ry", cls) for name, cls, _ in _HASHERS]
-_PY_HASHERS = [(name, "py", cls) for name, _, cls in _HASHERS]
 
 
-@pytest.mark.benchmark(group="crc32fast")
 @pytest.mark.parametrize("id_data", _BYTES, ids=lambda id_data: id_data[0])
-@pytest.mark.parametrize(
-    "impl", [*_RY_HASHERS, *_PY_HASHERS], ids=lambda impl: f"{impl[0]}-{impl[1]}"
-)
+@pytest.mark.parametrize("impl", _HASHERS, ids=lambda impl: impl[0])
 def test_bench_crc32fast_hasher(
-    benchmark: BenchmarkFixture, id_data: tuple[str, bytes], impl: tuple[str, str, type]
+    benchmark: BenchmarkFixture, id_data: tuple[str, bytes], impl: tuple[str, type]
 ) -> None:
     name, data = id_data
-    benchmark.group = impl[0] + "-" + name
+    benchmark.group = f"crc32-hasher-{name}"
 
     def _fn() -> None:
-        h = impl[2]()
+        h = impl[1]()
         h.update(data)
         h.digest()
 
     benchmark(_fn)
 
 
-@pytest.mark.benchmark(group="crc32fast")
 @pytest.mark.parametrize("id_data", _BYTES, ids=lambda id_data: id_data[0])
-@pytest.mark.parametrize(
-    "impl", [*_RY_HASHERS, *_PY_HASHERS], ids=lambda impl: f"{impl[0]}-{impl[1]}"
-)
+@pytest.mark.parametrize("impl", _HASHERS, ids=lambda impl: impl[0])
 def test_bench_crc32fast_oneshot_bytes(
-    benchmark: BenchmarkFixture, id_data: tuple[str, bytes], impl: tuple[str, str, type]
+    benchmark: BenchmarkFixture, id_data: tuple[str, bytes], impl: tuple[str, type]
 ) -> None:
     name, data = id_data
-    benchmark.group = impl[0] + "-" + name
+    benchmark.group = f"crc32-oneshot-bytes-{name}"
 
     def _fn() -> None:
-        impl[2].oneshot(data)
+        impl[1].oneshot(data)
 
     benchmark(_fn)
 
 
-@pytest.mark.benchmark(group="crc32fast")
 @pytest.mark.parametrize("id_data", _BYTES, ids=lambda id_data: id_data[0])
-@pytest.mark.parametrize(
-    "impl", [*_RY_HASHERS, *_PY_HASHERS], ids=lambda impl: f"{impl[0]}-{impl[1]}"
-)
+@pytest.mark.parametrize("impl", _HASHERS, ids=lambda impl: impl[0])
 def test_bench_crc32fast_oneshot_int(
-    benchmark: BenchmarkFixture, id_data: tuple[str, bytes], impl: tuple[str, str, type]
+    benchmark: BenchmarkFixture, id_data: tuple[str, bytes], impl: tuple[str, type]
 ) -> None:
     name, data = id_data
-    benchmark.group = impl[0] + "-" + name
+    benchmark.group = f"crc32-oneshot-int-{name}"
 
     def _fn() -> None:
-        impl[2].oneshot_int(data)
+        impl[1].oneshot_int(data)
 
     benchmark(_fn)
