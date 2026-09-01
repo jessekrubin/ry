@@ -103,7 +103,7 @@ def test_bench_crc32fast_oneshot_bytes(
     benchmark.group = f"crc32-oneshot-bytes-{name}"
 
     def _fn() -> None:
-        impl[1].oneshot(data)
+        impl[1].oneshot(data)  # ty: ignore[unresolved-attribute]
 
     benchmark(_fn)
 
@@ -117,6 +117,6 @@ def test_bench_crc32fast_oneshot_int(
     benchmark.group = f"crc32-oneshot-int-{name}"
 
     def _fn() -> None:
-        impl[1].oneshot_int(data)
+        impl[1].oneshot_int(data)  # ty: ignore[unresolved-attribute]
 
     benchmark(_fn)
