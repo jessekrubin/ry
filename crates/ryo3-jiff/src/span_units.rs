@@ -1,6 +1,8 @@
 use jiff::Span;
 use pyo3::prelude::*;
 
+use crate::RySpan;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum SpanUnit {
     Years = 1 << 0,
@@ -67,32 +69,6 @@ impl<'py> IntoPyObject<'py> for SpanUnit {
 pub(crate) struct SpanUnitsMask(u16);
 
 impl SpanUnitsMask {
-    pub(crate) const ALL: Self = SpanUnitsMask(
-        SpanUnit::Years as u16
-            | SpanUnit::Months as u16
-            | SpanUnit::Weeks as u16
-            | SpanUnit::Days as u16
-            | SpanUnit::Hours as u16
-            | SpanUnit::Minutes as u16
-            | SpanUnit::Seconds as u16
-            | SpanUnit::Milliseconds as u16
-            | SpanUnit::Microseconds as u16
-            | SpanUnit::Nanoseconds as u16,
-    );
-
-    pub(crate) const EXACT_MAX: Self = Self(
-        SpanUnit::Hours as u16
-            | SpanUnit::Minutes as u16
-            | SpanUnit::Seconds as u16
-            | SpanUnit::Milliseconds as u16
-            | SpanUnit::Microseconds as u16
-            | SpanUnit::Nanoseconds as u16,
-    );
-
-    pub(crate) const fn new() -> Self {
-        Self(0)
-    }
-
     #[expect(
         clippy::cast_possible_truncation,
         reason = "wenodis: cant fail bc there are only 10 span units"
@@ -104,11 +80,6 @@ impl SpanUnitsMask {
     pub(crate) const fn with_unit(mut self, unit: SpanUnit) -> Self {
         self.0 |= unit as u16;
         self
-    }
-
-    /// Return `true` if the span units are exact (not years/months/weeks/days)
-    pub(crate) const fn is_exact(self) -> bool {
-        (self.0 & Self::EXACT_MAX.0) == self.0
     }
 }
 
@@ -197,5 +168,11 @@ impl From<&Span> for SpanUnitsMask {
             units |= SpanUnit::Nanoseconds as u16;
         }
         Self(units)
+    }
+}
+
+impl From<&RySpan> for SpanUnitsMask {
+    fn from(span: &RySpan) -> Self {
+        span.inner().into()
     }
 }

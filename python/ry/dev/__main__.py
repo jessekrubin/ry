@@ -51,7 +51,7 @@ def _main() -> None:
         ]
         if rich is not None:
             ipython_argv.extend(["--ext", "rich"])
-        IPython.start_ipython(argv=ipython_argv, user_ns=local)  # type: ignore[no-untyped-call]
+        IPython.start_ipython(argv=ipython_argv, user_ns=local)
         return
     except ImportError:
         ...

@@ -86,23 +86,24 @@ pub fn utcnow() -> RyZoned {
 
 #[expect(clippy::too_many_arguments)]
 pub(crate) fn span(
-    years: i64,
-    months: i64,
-    weeks: i64,
-    days: i64,
-    hours: i64,
+    years: i16,
+    months: i32,
+    weeks: i32,
+    days: i32,
+    hours: i32,
     minutes: i64,
     seconds: i64,
     milliseconds: i64,
     microseconds: i64,
     nanoseconds: i64,
 ) -> PyResult<jiff::Span> {
-    fn apply_if_nonzero(
+    fn apply_if_nonzero<V: Into<i64>>(
         span: Span,
-        value: i64,
+        value: V,
         method: impl FnOnce(Span, i64) -> Result<Span, jiff::Error>,
         name: &str,
     ) -> Result<Span, PyErr> {
+        let value = value.into();
         if value != 0 {
             method(span, value).map_err(|e| py_overflow_error!("span-overflow: {name}: {e}"))
         } else {
@@ -142,11 +143,11 @@ pub(crate) fn span(
     )
 )]
 pub fn timespan(
-    years: i64,
-    months: i64,
-    weeks: i64,
-    days: i64,
-    hours: i64,
+    years: i16,
+    months: i32,
+    weeks: i32,
+    days: i32,
+    hours: i32,
     minutes: i64,
     seconds: i64,
     milliseconds: i64,

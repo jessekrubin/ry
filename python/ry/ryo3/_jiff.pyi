@@ -1221,9 +1221,41 @@ class TimeSpan(
     # =========================================================================
     # ARITHMETIC METHODS
     # =========================================================================
-    def add(self, other: _TimeSpanArithmetic) -> t.Self: ...
+    @t.overload
+    def add(self, other: _TimeSpanArithmetic, /) -> t.Self: ...
+    @t.overload
+    def add(
+        self,
+        *,
+        years: int | None = None,
+        months: int | None = None,
+        weeks: int | None = None,
+        days: int | None = None,
+        hours: int | None = None,
+        minutes: int | None = None,
+        seconds: int | None = None,
+        milliseconds: int | None = None,
+        microseconds: int | None = None,
+        nanoseconds: int | None = None,
+    ) -> t.Self: ...
     def mul(self, other: int) -> t.Self: ...
-    def sub(self, other: _TimeSpanArithmetic) -> t.Self: ...
+    @t.overload
+    def sub(self, other: _TimeSpanArithmetic, /) -> t.Self: ...
+    @t.overload
+    def sub(
+        self,
+        *,
+        years: int | None = None,
+        months: int | None = None,
+        weeks: int | None = None,
+        days: int | None = None,
+        hours: int | None = None,
+        minutes: int | None = None,
+        seconds: int | None = None,
+        milliseconds: int | None = None,
+        microseconds: int | None = None,
+        nanoseconds: int | None = None,
+    ) -> t.Self: ...
 
     # =========================================================================
     # INSTANCE METHODS
