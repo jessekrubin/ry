@@ -13,6 +13,7 @@ use ryo3_core::macros::py_type_err;
 use ryo3_core::sync::RyMutex;
 use ryo3_core::types::{PyDigest, PyHexDigest};
 
+const CRC32_SEED_DEFAULT: u32 = 0;
 const HASHLIB_GIL_MINSIZE: usize = 2048;
 
 // ============================================================================
@@ -182,7 +183,7 @@ pub struct Crc32Seed(u32);
 
 impl Default for Crc32Seed {
     fn default() -> Self {
-        Self(0)
+        Self(CRC32_SEED_DEFAULT)
     }
 }
 
