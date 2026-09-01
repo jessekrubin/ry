@@ -370,6 +370,45 @@ class TestSpanAdd:
         span2 = ry.timespan(hours=2)
         assert span1.add(span2) == ry.timespan(days=3, hours=1)
 
+    def test_add_with_keyword_units(self) -> None:
+        span = ry.timespan(days=2, hours=23)
+        assert span.add(hours=2) == ry.timespan(days=3, hours=1)
+
+    def test_sub_with_keyword_units(self) -> None:
+        span = ry.timespan(days=3, hours=1)
+        assert span.sub(hours=2) == ry.timespan(days=2, hours=23)
+
+    def test_add_with_zero_keyword_units(self) -> None:
+        span = ry.timespan(days=2, hours=23)
+        assert span.add(hours=0) == span
+
+    def test_sub_with_zero_keyword_units(self) -> None:
+        span = ry.timespan(days=3, hours=1)
+        assert span.sub(hours=0) == span
+
+    def test_add_with_keyword_calendar_units_requires_relative(self) -> None:
+        span = ry.timespan(months=1, days=15)
+        with pytest.raises(OverflowError):
+            span.add(days=15)
+
+    def test_add_rejects_positional_and_keyword_units(self) -> None:
+        span = ry.timespan(days=2, hours=23)
+        other = ry.timespan(hours=2)
+        with pytest.raises(
+            TypeError,
+            match="add\\(\\) accepts either a span-like object or keyword units, not both",
+        ):
+            span.add(other, hours=2)  # type: ignore[call-overload]  # ty: ignore[no-matching-overload]
+
+    def test_sub_rejects_positional_and_keyword_units(self) -> None:
+        span = ry.timespan(days=3, hours=1)
+        other = ry.timespan(hours=2)
+        with pytest.raises(
+            TypeError,
+            match="sub\\(\\) accepts either a span-like object or keyword units, not both",
+        ):
+            span.sub(other, hours=2)  # type: ignore[call-overload]  # ty: ignore[no-matching-overload]
+
     def test_checked_add_with_relative_datetime(self) -> None:
         span1 = ry.timespan(months=1, days=15)
         span2 = ry.timespan(days=15)

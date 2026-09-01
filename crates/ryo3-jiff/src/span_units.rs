@@ -1,6 +1,8 @@
 use jiff::Span;
 use pyo3::prelude::*;
 
+use crate::RySpan;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum SpanUnit {
     Years = 1 << 0,
@@ -45,7 +47,7 @@ impl<'py> IntoPyObject<'py> for SpanUnit {
 
     #[inline]
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
-        let s = match self {
+        let unit_pystr = match self {
             Self::Years => crate::interns::years(py),
             Self::Months => crate::interns::months(py),
             Self::Weeks => crate::interns::weeks(py),
@@ -56,21 +58,28 @@ impl<'py> IntoPyObject<'py> for SpanUnit {
             Self::Milliseconds => crate::interns::milliseconds(py),
             Self::Microseconds => crate::interns::microseconds(py),
             Self::Nanoseconds => crate::interns::nanoseconds(py),
-        };
-        Ok(s.as_borrowed())
+        }
+        .as_borrowed();
+        Ok(unit_pystr)
     }
 }
 
 /// bit flags for wot span units a span has
-pub(crate) struct SpanUnits(u16);
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
+pub(crate) struct SpanUnitsMask(u16);
 
-impl SpanUnits {
+impl SpanUnitsMask {
     #[expect(
         clippy::cast_possible_truncation,
         reason = "wenodis: cant fail bc there are only 10 span units"
     )]
-    pub(crate) fn count(&self) -> u8 {
+    pub(crate) const fn count(self) -> u8 {
         self.0.count_ones() as u8
+    }
+
+    pub(crate) const fn with_unit(mut self, unit: SpanUnit) -> Self {
+        self.0 |= unit as u16;
+        self
     }
 }
 
@@ -107,7 +116,7 @@ impl Iterator for SpanUnitsIter {
     }
 }
 
-impl IntoIterator for SpanUnits {
+impl IntoIterator for SpanUnitsMask {
     type Item = SpanUnit;
     type IntoIter = SpanUnitsIter;
 
@@ -125,7 +134,7 @@ impl ExactSizeIterator for SpanUnitsIter {
     }
 }
 
-impl From<&Span> for SpanUnits {
+impl From<&Span> for SpanUnitsMask {
     fn from(span: &Span) -> Self {
         let mut units = 0;
         if span.get_years() != 0 {
@@ -159,5 +168,11 @@ impl From<&Span> for SpanUnits {
             units |= SpanUnit::Nanoseconds as u16;
         }
         Self(units)
+    }
+}
+
+impl From<&RySpan> for SpanUnitsMask {
+    fn from(span: &RySpan) -> Self {
+        span.inner().into()
     }
 }

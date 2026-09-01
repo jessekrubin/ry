@@ -12,8 +12,9 @@ use ryo3_core::{PyAsciiString, PyCastExactOpt, map_py_overflow_err, map_py_value
 
 use crate::py_temporal_like::PyTemporalArg;
 use crate::ry_signed_duration::RySignedDuration;
-use crate::span_units::{SpanUnit, SpanUnits};
+use crate::span_units::{SpanUnit, SpanUnitsMask};
 use crate::spanish::Spanish;
+use crate::util::SpanKwargs;
 use crate::{
     JiffRoundMode, JiffSpan, JiffUnit, RyDate, RyDateTime, RyTime, RyTimestamp, RyZoned, constants,
     timespan,
@@ -32,6 +33,10 @@ use crate::{
 pub struct RySpan(pub(crate) Span);
 
 impl RySpan {
+    pub(crate) fn inner(&self) -> &Span {
+        &self.0
+    }
+
     fn max_jiff_span() -> Span {
         Span::new()
             .years(constants::SPAN_YEARS_MAX)
@@ -89,11 +94,11 @@ impl RySpan {
         )
     )]
     fn py_new(
-        years: i64,
-        months: i64,
-        weeks: i64,
-        days: i64,
-        hours: i64,
+        years: i16,
+        months: i32,
+        weeks: i32,
+        days: i32,
+        hours: i32,
         minutes: i64,
         seconds: i64,
         milliseconds: i64,
@@ -152,11 +157,11 @@ impl RySpan {
         if self.0.is_zero() {
             return Ok(PyTuple::empty(py));
         }
-        PyTuple::new(py, SpanUnits::from(&self.0))
+        PyTuple::new(py, SpanUnitsMask::from(&self.0))
     }
 
     fn __len__(&self) -> usize {
-        usize::from(SpanUnits::from(&self.0).count())
+        usize::from(SpanUnitsMask::from(&self.0).count())
     }
 
     fn __contains__(&self, key: &str) -> bool {
@@ -330,38 +335,28 @@ impl RySpan {
     )]
     fn replace(
         &self,
-        years: Option<i64>,
-        months: Option<i64>,
-        weeks: Option<i64>,
-        days: Option<i64>,
-        hours: Option<i64>,
+        years: Option<i16>,
+        months: Option<i32>,
+        weeks: Option<i32>,
+        days: Option<i32>,
+        hours: Option<i32>,
         minutes: Option<i64>,
         seconds: Option<i64>,
         milliseconds: Option<i64>,
         microseconds: Option<i64>,
         nanoseconds: Option<i64>,
     ) -> PyResult<Self> {
-        let years = years.unwrap_or_else(|| i64::from(self.0.get_years()));
-        let months = months.unwrap_or_else(|| i64::from(self.0.get_months()));
-        let weeks = weeks.unwrap_or_else(|| i64::from(self.0.get_weeks()));
-        let days = days.unwrap_or_else(|| i64::from(self.0.get_days()));
-        let hours = hours.unwrap_or_else(|| i64::from(self.0.get_hours()));
-        let minutes = minutes.unwrap_or_else(|| self.0.get_minutes());
-        let seconds = seconds.unwrap_or_else(|| self.0.get_seconds());
-        let milliseconds = milliseconds.unwrap_or_else(|| self.0.get_milliseconds());
-        let microseconds = microseconds.unwrap_or_else(|| self.0.get_microseconds());
-        let nanoseconds = nanoseconds.unwrap_or_else(|| self.0.get_nanoseconds());
         Self::py_new(
-            years,
-            months,
-            weeks,
-            days,
-            hours,
-            minutes,
-            seconds,
-            milliseconds,
-            microseconds,
-            nanoseconds,
+            years.unwrap_or_else(|| self.0.get_years()),
+            months.unwrap_or_else(|| self.0.get_months()),
+            weeks.unwrap_or_else(|| self.0.get_weeks()),
+            days.unwrap_or_else(|| self.0.get_days()),
+            hours.unwrap_or_else(|| self.0.get_hours()),
+            minutes.unwrap_or_else(|| self.0.get_minutes()),
+            seconds.unwrap_or_else(|| self.0.get_seconds()),
+            milliseconds.unwrap_or_else(|| self.0.get_milliseconds()),
+            microseconds.unwrap_or_else(|| self.0.get_microseconds()),
+            nanoseconds.unwrap_or_else(|| self.0.get_nanoseconds()),
         )
     }
 
@@ -523,12 +518,68 @@ impl RySpan {
         other.add_span(py, self)
     }
 
+    #[expect(clippy::too_many_arguments, reason = "python kwargs")]
+    #[pyo3(
+        signature = (
+            other = None,
+            /, *,
+            years = None,
+            months = None,
+            weeks = None,
+            days = None,
+            hours = None,
+            minutes = None,
+            seconds = None,
+            milliseconds = None,
+            microseconds = None,
+            nanoseconds = None
+        )
+    )]
     fn add<'py>(
         &self,
         py: Python<'py>,
-        other: SpanAddTarget<'_, 'py>,
+        other: Option<SpanAddTarget<'_, 'py>>,
+        // **KWARG ONLY
+        years: Option<i16>,
+        months: Option<i32>,
+        weeks: Option<i32>,
+        days: Option<i32>,
+        hours: Option<i32>,
+        minutes: Option<i64>,
+        seconds: Option<i64>,
+        milliseconds: Option<i64>,
+        microseconds: Option<i64>,
+        nanoseconds: Option<i64>,
     ) -> PyResult<Bound<'py, PyAny>> {
-        other.add_span(py, self)
+        let kwargs = SpanKwargs::new()
+            .years_opt(years)
+            .months_opt(months)
+            .weeks_opt(weeks)
+            .days_opt(days)
+            .hours_opt(hours)
+            .minutes_opt(minutes)
+            .seconds_opt(seconds)
+            .milliseconds_opt(milliseconds)
+            .microseconds_opt(microseconds)
+            .nanoseconds_opt(nanoseconds);
+        match (other, kwargs.is_empty()) {
+            (Some(other), true) => other.add_span(py, self),
+            (None, false) => {
+                let span = kwargs.build()?;
+                let span_arithmetic = SpanArithmetic::from(span).days_are_24_hours();
+                self.0
+                    .checked_add(span_arithmetic)
+                    .map(Self::from)
+                    .map_err(map_py_overflow_err)?
+                    .into_bound_py_any(py)
+            }
+            (None, true) => {
+                py_type_err!("add() missing required argument: 'other' or keyword units")
+            }
+            (Some(_), false) => {
+                py_type_err!("add() accepts either a span-like object or keyword units, not both")
+            }
+        }
     }
 
     #[expect(clippy::needless_pass_by_value)]
@@ -540,13 +591,66 @@ impl RySpan {
             .map_err(map_py_overflow_err)
     }
 
-    #[expect(clippy::needless_pass_by_value)]
-    fn sub(&self, other: IntoSpanArithmetic) -> PyResult<Self> {
-        let span_arithmetic: SpanArithmetic = (&other).into();
-        self.0
-            .checked_sub(span_arithmetic)
-            .map(Self::from)
-            .map_err(map_py_overflow_err)
+    #[expect(clippy::too_many_arguments, reason = "python kwargs")]
+    #[pyo3(
+        signature = (
+            other = None,
+            /, *,
+            years = None,
+            months = None,
+            weeks = None,
+            days = None,
+            hours = None,
+            minutes = None,
+            seconds = None,
+            milliseconds = None,
+            microseconds = None,
+            nanoseconds = None
+        )
+    )]
+    fn sub(
+        &self,
+        other: Option<IntoSpanArithmetic>,
+        // **KWARG ONLY
+        years: Option<i16>,
+        months: Option<i32>,
+        weeks: Option<i32>,
+        days: Option<i32>,
+        hours: Option<i32>,
+        minutes: Option<i64>,
+        seconds: Option<i64>,
+        milliseconds: Option<i64>,
+        microseconds: Option<i64>,
+        nanoseconds: Option<i64>,
+    ) -> PyResult<Self> {
+        let kwargs = SpanKwargs::new()
+            .years_opt(years)
+            .months_opt(months)
+            .weeks_opt(weeks)
+            .days_opt(days)
+            .hours_opt(hours)
+            .minutes_opt(minutes)
+            .seconds_opt(seconds)
+            .milliseconds_opt(milliseconds)
+            .microseconds_opt(microseconds)
+            .nanoseconds_opt(nanoseconds);
+        match (other, kwargs.is_empty()) {
+            (Some(other), true) => self.__sub__(other),
+            (None, false) => {
+                let span = kwargs.build()?;
+                let span_arithmetic = SpanArithmetic::from(span).days_are_24_hours();
+                self.0
+                    .checked_sub(span_arithmetic)
+                    .map(Self::from)
+                    .map_err(map_py_overflow_err)
+            }
+            (None, true) => {
+                py_type_err!("sub() missing required argument: 'other' or keyword units")
+            }
+            (Some(_), false) => {
+                py_type_err!("sub() accepts either a span-like object or keyword units, not both")
+            }
+        }
     }
 
     fn __mul__(&self, other: i64) -> PyResult<Self> {
