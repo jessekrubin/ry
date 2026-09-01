@@ -398,7 +398,7 @@ class TestSpanAdd:
             TypeError,
             match="add\\(\\) accepts either a span-like object or keyword units, not both",
         ):
-            span.add(other, hours=2)  # type: ignore[call-overload]
+            span.add(other, hours=2)  # type: ignore[call-overload]  # ty: ignore[no-matching-overload]
 
     def test_sub_rejects_positional_and_keyword_units(self) -> None:
         span = ry.timespan(days=3, hours=1)
@@ -407,7 +407,7 @@ class TestSpanAdd:
             TypeError,
             match="sub\\(\\) accepts either a span-like object or keyword units, not both",
         ):
-            span.sub(other, hours=2)  # type: ignore[call-overload]
+            span.sub(other, hours=2)  # type: ignore[call-overload]  # ty: ignore[no-matching-overload]
 
     def test_checked_add_with_relative_datetime(self) -> None:
         span1 = ry.timespan(months=1, days=15)
