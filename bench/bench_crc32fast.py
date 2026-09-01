@@ -13,14 +13,6 @@ if TYPE_CHECKING:
     from ry.ryo3._bytes import ReadableBuffer
 
 
-# class _HasherInfo(t.TypedDict):
-#     name: str
-#     py_hasher: t.Any
-#     ry_hasher: t.Any
-#     block_size: int
-#     digest_size: int
-
-
 class _PyCrc32:
     """A ry-like python impl of crc32 using zlib"""
 
@@ -82,8 +74,6 @@ _BYTES = [
 ]
 _HASHERS = [
     ("crc32fast", ry.crc32),
-    ("zlib-rs", ry.crc32_zlib_rs),
-    ("zlib-rs-fold", ry.crc32_zlib_rs_fold),
     ("python-zlib", _PyCrc32),
 ]
 
