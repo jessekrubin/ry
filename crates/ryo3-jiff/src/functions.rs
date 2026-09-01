@@ -85,6 +85,7 @@ pub fn utcnow() -> RyZoned {
 }
 
 #[expect(clippy::too_many_arguments)]
+#[inline]
 pub(crate) fn span(
     years: i16,
     months: i32,
@@ -97,31 +98,26 @@ pub(crate) fn span(
     microseconds: i64,
     nanoseconds: i64,
 ) -> PyResult<jiff::Span> {
-    fn apply_if_nonzero<V: Into<i64>>(
-        span: Span,
-        value: V,
-        method: impl FnOnce(Span, i64) -> Result<Span, jiff::Error>,
-        name: &str,
-    ) -> Result<Span, PyErr> {
-        let value = value.into();
-        if value != 0 {
-            method(span, value).map_err(|e| py_overflow_error!("span-overflow: {name}: {e}"))
-        } else {
-            Ok(span)
-        }
+    macro_rules! apply_if_nonzero {
+        ($span:ident, $value:ident, $method:ident, $name:literal) => {
+            if $value != 0 {
+                $span = $span
+                    .$method($value)
+                    .map_err(|e| py_overflow_error!("span-overflow ({}): {e}", $name))?;
+            }
+        };
     }
-
-    let span = Span::new();
-    let span = apply_if_nonzero(span, years, Span::try_years, "years")?;
-    let span = apply_if_nonzero(span, months, Span::try_months, "months")?;
-    let span = apply_if_nonzero(span, weeks, Span::try_weeks, "weeks")?;
-    let span = apply_if_nonzero(span, days, Span::try_days, "days")?;
-    let span = apply_if_nonzero(span, hours, Span::try_hours, "hours")?;
-    let span = apply_if_nonzero(span, minutes, Span::try_minutes, "minutes")?;
-    let span = apply_if_nonzero(span, seconds, Span::try_seconds, "seconds")?;
-    let span = apply_if_nonzero(span, milliseconds, Span::try_milliseconds, "milliseconds")?;
-    let span = apply_if_nonzero(span, microseconds, Span::try_microseconds, "microseconds")?;
-    let span = apply_if_nonzero(span, nanoseconds, Span::try_nanoseconds, "nanoseconds")?;
+    let mut span = Span::new();
+    apply_if_nonzero!(span, years, try_years, "years");
+    apply_if_nonzero!(span, months, try_months, "months");
+    apply_if_nonzero!(span, weeks, try_weeks, "weeks");
+    apply_if_nonzero!(span, days, try_days, "days");
+    apply_if_nonzero!(span, hours, try_hours, "hours");
+    apply_if_nonzero!(span, minutes, try_minutes, "minutes");
+    apply_if_nonzero!(span, seconds, try_seconds, "seconds");
+    apply_if_nonzero!(span, milliseconds, try_milliseconds, "milliseconds");
+    apply_if_nonzero!(span, microseconds, try_microseconds, "microseconds");
+    apply_if_nonzero!(span, nanoseconds, try_nanoseconds, "nanoseconds");
     Ok(span)
 }
 

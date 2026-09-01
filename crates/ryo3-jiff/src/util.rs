@@ -1,6 +1,7 @@
+use pyo3::prelude::*;
+
 use crate::functions::span;
 use crate::span_units::{SpanUnit, SpanUnitsMask};
-use pyo3::prelude::*;
 
 /// `SpanKwargs` struct used to build a `jiff::Span` from keyword arguments
 ///

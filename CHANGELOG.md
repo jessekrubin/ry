@@ -18,7 +18,8 @@
       `"short"`, and `"verbose"`; defaults to `"compact"`
     - `__abs__()` and `abs()` now return the same immutable instance when the
       span is already non-negative
-    - `add`/`sub` now accept kwargs OR `other` positional arg; if both given err, if neither given, err
+    - `add`/`sub` now accept kwargs OR `other` positional arg; if both given
+      err, if neither given, err
   - `ry.SignedDuration`
     - added property `is_absolute`; `True` when the duration is non-negative
     - `friendly()` also now accepts the designator `"compact"`, `"human"`,
