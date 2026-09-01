@@ -140,11 +140,11 @@ class TestLz4Frame:
         with pytest.raises(
             ValueError, match="Invalid FrameInfo key: block_szie"
         ):  # typos:ignore
-            ry.lz4_compress(_10X_10Y, frame_info={"block_szie": "auto"})  # type: ignore[arg-type] # typos:ignore
+            ry.lz4_compress(_10X_10Y, frame_info={"block_szie": "auto"})  # type: ignore[arg-type] # typos:ignore  # ty: ignore[invalid-argument-type, invalid-key]
 
     def test_frame_info_invalid_block_size(self) -> None:
         with pytest.raises(ValueError, match="Invalid block-size"):
-            ry.lz4_compress(_10X_10Y, frame_info={"block_size": "max-9000kb"})  # type: ignore[arg-type]
+            ry.lz4_compress(_10X_10Y, frame_info={"block_size": "max-9000kb"})  # type: ignore[arg-type]  # ty: ignore[invalid-argument-type]
 
     def test_frame_decompress_wtf_is_this(self) -> None:
         with pytest.raises(OSError, match="wrong magic number"):
@@ -232,4 +232,4 @@ class TestLz4TrainDict:
 
     def test_train_dict_not_iterable(self) -> None:
         with pytest.raises(TypeError):
-            ry.lz4_train_dict(123, 2048)  # type: ignore[arg-type]
+            ry.lz4_train_dict(123, 2048)  # type: ignore[arg-type]  # ty: ignore[invalid-argument-type]

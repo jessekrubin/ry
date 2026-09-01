@@ -14,26 +14,26 @@ lz4 = pytest.importorskip("lz4")
 
 class TestLz4PythonInterop:
     def test_frame_stores_content_size_by_default(self) -> None:
-        import lz4.frame
+        import lz4.frame  # ty: ignore[unresolved-import]
 
         compressed = ry.lz4_compress(_JSONISH)
         frame_info = lz4.frame.get_frame_info(bytes(compressed))
         assert frame_info["content_size"] == len(_JSONISH)
 
     def test_frame_interop_python_lz4_decompresses_ours(self) -> None:
-        import lz4.frame
+        import lz4.frame  # ty: ignore[unresolved-import]
 
         compressed = ry.lz4_compress(_JSONISH)
         assert lz4.frame.decompress(bytes(compressed)) == _JSONISH
 
     def test_frame_interop_we_decompress_python_lz4(self) -> None:
-        import lz4.frame
+        import lz4.frame  # ty: ignore[unresolved-import]
 
         compressed = lz4.frame.compress(_JSONISH)
         assert ry.lz4_decompress(compressed) == _JSONISH
 
     def test_block_interop_python_lz4(self) -> None:
-        import lz4.block
+        import lz4.block  # ty: ignore[unresolved-import]
 
         # size=True matches python-lz4's default (store_size=True) u32-le prefix
         prefixed = ry.lz4_compress_block(_JSONISH, size=True)
@@ -41,7 +41,7 @@ class TestLz4PythonInterop:
         assert ry.lz4_decompress_block(lz4.block.compress(_JSONISH)) == _JSONISH
 
     def test_block_interop_python_lz4_raw(self) -> None:
-        import lz4.block
+        import lz4.block  # ty: ignore[unresolved-import]
 
         compressed = ry.lz4_compress_block(_JSONISH, size=False)
         assert (

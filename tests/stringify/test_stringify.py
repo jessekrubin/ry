@@ -16,7 +16,7 @@ try:
 
     _ORJSON_INSTALLED = True
 except ImportError:
-    orjson = None  # type: ignore[assignment]  # ty:ignore[invalid-assignment]
+    orjson = None  # type: ignore[assignment]
 
 pytest_mark_skip_orjson = pytest.mark.skipif(
     not _ORJSON_INSTALLED,

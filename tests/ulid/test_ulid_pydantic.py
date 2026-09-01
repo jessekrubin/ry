@@ -35,13 +35,13 @@ class TestUlidPydantic:
             ulid: ULID | None = None
 
         for value in [ulid, str(ulid), int(ulid), bytes(ulid)]:
-            model = Model(ulid=value)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
+            model = Model(ulid=value)  # type: ignore[arg-type]
             assert isinstance(model.ulid, ULID)
             assert model.ulid == ulid
 
         for value in [b"not-enough", "not-enough"]:
             with pytest.raises(ValidationError):
-                Model(ulid=value)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
+                Model(ulid=value)  # type: ignore[arg-type]
 
         model = Model(ulid=ulid)
         model_dict = model.model_dump()
