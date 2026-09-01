@@ -4,7 +4,7 @@ use pyo3::prelude::*;
 // use ryo3_core::py_dict::KwargsIter;
 // use ryo3_macro_rules::py_type_err;
 use crate::functions::span;
-use crate::span_units::{SpanUnit, SpanUnits};
+use crate::span_units::{SpanUnit, SpanUnitsMask};
 
 // #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 // pub(crate) struct SpanKwargs1 {
@@ -49,7 +49,7 @@ use crate::span_units::{SpanUnit, SpanUnits};
 
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub(crate) struct SpanKwargs {
-    units: SpanUnits,
+    units: SpanUnitsMask,
 
     years: i16,
     months: i32,

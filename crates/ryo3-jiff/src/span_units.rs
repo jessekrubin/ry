@@ -45,7 +45,7 @@ impl<'py> IntoPyObject<'py> for SpanUnit {
 
     #[inline]
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
-        let s = match self {
+        let unit_pystr = match self {
             Self::Years => crate::interns::years(py),
             Self::Months => crate::interns::months(py),
             Self::Weeks => crate::interns::weeks(py),
@@ -56,17 +56,18 @@ impl<'py> IntoPyObject<'py> for SpanUnit {
             Self::Milliseconds => crate::interns::milliseconds(py),
             Self::Microseconds => crate::interns::microseconds(py),
             Self::Nanoseconds => crate::interns::nanoseconds(py),
-        };
-        Ok(s.as_borrowed())
+        }
+        .as_borrowed();
+        Ok(unit_pystr)
     }
 }
 
 /// bit flags for wot span units a span has
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
-pub(crate) struct SpanUnits(u16);
+pub(crate) struct SpanUnitsMask(u16);
 
-impl SpanUnits {
-    pub(crate) const ALL: Self = SpanUnits(
+impl SpanUnitsMask {
+    pub(crate) const ALL: Self = SpanUnitsMask(
         SpanUnit::Years as u16
             | SpanUnit::Months as u16
             | SpanUnit::Weeks as u16
@@ -144,7 +145,7 @@ impl Iterator for SpanUnitsIter {
     }
 }
 
-impl IntoIterator for SpanUnits {
+impl IntoIterator for SpanUnitsMask {
     type Item = SpanUnit;
     type IntoIter = SpanUnitsIter;
 
@@ -162,7 +163,7 @@ impl ExactSizeIterator for SpanUnitsIter {
     }
 }
 
-impl From<&Span> for SpanUnits {
+impl From<&Span> for SpanUnitsMask {
     fn from(span: &Span) -> Self {
         let mut units = 0;
         if span.get_years() != 0 {

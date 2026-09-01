@@ -12,7 +12,7 @@ use ryo3_core::{PyAsciiString, PyCastExactOpt, map_py_overflow_err, map_py_value
 
 use crate::py_temporal_like::PyTemporalArg;
 use crate::ry_signed_duration::RySignedDuration;
-use crate::span_units::{SpanUnit, SpanUnits};
+use crate::span_units::{SpanUnit, SpanUnitsMask};
 use crate::spanish::Spanish;
 use crate::util::SpanKwargs;
 use crate::{
@@ -153,11 +153,11 @@ impl RySpan {
         if self.0.is_zero() {
             return Ok(PyTuple::empty(py));
         }
-        PyTuple::new(py, SpanUnits::from(&self.0))
+        PyTuple::new(py, SpanUnitsMask::from(&self.0))
     }
 
     fn __len__(&self) -> usize {
-        usize::from(SpanUnits::from(&self.0).count())
+        usize::from(SpanUnitsMask::from(&self.0).count())
     }
 
     fn __contains__(&self, key: &str) -> bool {
@@ -524,12 +524,67 @@ impl RySpan {
         other.add_span(py, self)
     }
 
+    #[pyo3(
+        signature = (
+            other = None,
+            /, *,
+            years = None,
+            months = None,
+            weeks = None,
+            days = None,
+            hours = None,
+            minutes = None,
+            seconds = None,
+            milliseconds = None,
+            microseconds = None,
+            nanoseconds = None
+        )
+    )]
     fn add<'py>(
         &self,
         py: Python<'py>,
-        other: SpanAddTarget<'_, 'py>,
+        other: Option<SpanAddTarget<'_, 'py>>,
+        // **KWARG ONLY
+        years: Option<i16>,
+        months: Option<i32>,
+        weeks: Option<i32>,
+        days: Option<i32>,
+        hours: Option<i32>,
+        minutes: Option<i64>,
+        seconds: Option<i64>,
+        milliseconds: Option<i64>,
+        microseconds: Option<i64>,
+        nanoseconds: Option<i64>,
     ) -> PyResult<Bound<'py, PyAny>> {
-        other.add_span(py, self)
+        let kwargs = SpanKwargs::new()
+            .years(years.unwrap_or(0))
+            .months(months.unwrap_or(0))
+            .weeks(weeks.unwrap_or(0))
+            .days(days.unwrap_or(0))
+            .hours(hours.unwrap_or(0))
+            .minutes(minutes.unwrap_or(0))
+            .seconds(seconds.unwrap_or(0))
+            .milliseconds(milliseconds.unwrap_or(0))
+            .microseconds(microseconds.unwrap_or(0))
+            .nanoseconds(nanoseconds.unwrap_or(0));
+        match (other, kwargs.has_units()) {
+            (Some(other), false) => other.add_span(py, self),
+            (None, true) => {
+                let span = kwargs.build()?;
+                let span_arithmetic = SpanArithmetic::from(span).days_are_24_hours();
+                self.0
+                    .checked_add(span_arithmetic)
+                    .map(Self::from)
+                    .map_err(map_py_overflow_err)?
+                    .into_bound_py_any(py)
+            }
+            (None, false) => {
+                py_type_err!("add() missing required argument: 'other' or keyword units")
+            }
+            (Some(_), true) => {
+                py_type_err!("add() accepts either a span-like object or keyword units, not both")
+            }
+        }
     }
 
     #[expect(clippy::needless_pass_by_value)]
@@ -561,6 +616,7 @@ impl RySpan {
     fn sub(
         &self,
         other: Option<IntoSpanArithmetic>,
+        // **KWARG ONLY
         years: Option<i16>,
         months: Option<i32>,
         weeks: Option<i32>,
@@ -572,16 +628,6 @@ impl RySpan {
         microseconds: Option<i64>,
         nanoseconds: Option<i64>,
     ) -> PyResult<Self> {
-        // let has_kwargs = years.is_some()
-        //     || months.is_some()
-        //     || weeks.is_some()
-        //     || days.is_some()
-        //     || hours.is_some()
-        //     || minutes.is_some()
-        //     || seconds.is_some()
-        //     || milliseconds.is_some()
-        //     || microseconds.is_some()
-        //     || nanoseconds.is_some();
         let kwargs = SpanKwargs::new()
             .years(years.unwrap_or(0))
             .months(months.unwrap_or(0))
