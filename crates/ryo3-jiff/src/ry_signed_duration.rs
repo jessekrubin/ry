@@ -321,12 +321,116 @@ impl RySignedDuration {
         other.add_signed_duration(self)
     }
 
+    #[expect(clippy::too_many_arguments, reason = "python kwargs")]
+    #[pyo3(
+        signature = (
+            other = None,
+            /, *,
+            hours = None,
+            minutes = None,
+            seconds = None,
+            milliseconds = None,
+            microseconds = None,
+            nanoseconds = None
+        )
+    )]
+    fn add(
+        &self,
+        other: Option<maths::SignedDurationAddTarget<'_, '_>>,
+        // **KWARG ONLY
+        hours: Option<i64>,
+        minutes: Option<i64>,
+        seconds: Option<i64>,
+        milliseconds: Option<i64>,
+        microseconds: Option<i64>,
+        nanoseconds: Option<i64>,
+    ) -> PyResult<maths::PySignedDurationAddOutput> {
+        use maths::PySignedDurationAdd;
+        let kw = maths::SignedDurationArithmeticKwargs::new()
+            .hours_opt(hours)
+            .minutes_opt(minutes)
+            .seconds_opt(seconds)
+            .milliseconds_opt(milliseconds)
+            .microseconds_opt(microseconds)
+            .nanoseconds_opt(nanoseconds);
+        match (other, !kw.is_empty()) {
+            (Some(other), false) => other.add_signed_duration(self),
+            (None, true) => {
+                let duration = kw.to_signed_duration()?;
+                self.0
+                    .checked_add(duration)
+                    .map(Self::from)
+                    .map(maths::PySignedDurationAddOutput::SignedDuration)
+                    .ok_or_else(|| py_overflow_error!())
+            }
+            (None, false) => {
+                py_type_err!("add() missing required argument: 'other' or keyword units")
+            }
+            (Some(_), true) => {
+                py_type_err!("add() accepts either a span-like object or keyword units, not both")
+            }
+        }
+    }
+
     fn __radd__(
         &self,
         other: maths::SignedDurationAddTarget<'_, '_>,
     ) -> PyResult<maths::PySignedDurationAddOutput> {
         use maths::PySignedDurationAdd;
         other.add_signed_duration(self)
+    }
+
+    #[expect(clippy::too_many_arguments, reason = "python kwargs")]
+    #[pyo3(
+        signature = (
+            other = None,
+            /, *,
+            hours = None,
+            minutes = None,
+            seconds = None,
+            milliseconds = None,
+            microseconds = None,
+            nanoseconds = None
+        )
+    )]
+    fn sub(
+        &self,
+        other: Option<maths::SignedDurationSubTarget<'_, '_>>,
+        // **KWARG ONLY
+        hours: Option<i64>,
+        minutes: Option<i64>,
+        seconds: Option<i64>,
+        milliseconds: Option<i64>,
+        microseconds: Option<i64>,
+        nanoseconds: Option<i64>,
+    ) -> PyResult<Self> {
+        use maths::PySignedDurationSub;
+
+        let kw = maths::SignedDurationArithmeticKwargs::new()
+            .hours_opt(hours)
+            .minutes_opt(minutes)
+            .seconds_opt(seconds)
+            .milliseconds_opt(milliseconds)
+            .microseconds_opt(microseconds)
+            .nanoseconds_opt(nanoseconds);
+        match (other, !kw.is_empty()) {
+            (Some(other), false) => other.sub_signed_duration(self),
+            (None, true) => {
+                let duration = kw.to_signed_duration()?;
+                self.0
+                    .checked_sub(duration)
+                    .map(Self::from)
+                    .ok_or_else(|| py_overflow_error!())
+            }
+            (None, false) => {
+                py_type_err!("sub() missing required argument: 'other' or keyword units")
+            }
+            (Some(_), true) => {
+                py_type_err!(
+                    "sub() accepts either a duration-like object or keyword units, not both"
+                )
+            }
+        }
     }
 
     fn __sub__(&self, other: maths::SignedDurationSubTarget<'_, '_>) -> PyResult<Self> {
@@ -640,10 +744,10 @@ impl RySignedDuration {
     // ========================================================================
     #[pyo3(
         signature = (
-            smallest=JiffUnit::NANOSECOND,
+            smallest = JiffUnit::NANOSECOND,
             *,
-            mode=JiffRoundMode::HALF_EXPAND,
-            increment=1,
+            mode = JiffRoundMode::HALF_EXPAND,
+            increment = 1,
         ),
         text_signature = "(self, smallest=\"nanosecond\", *, mode=\"half-expand\", increment=1)",
     )]
@@ -761,6 +865,108 @@ mod maths {
     use super::RySignedDuration;
     use crate::py_temporal_like::PyTemporalArg;
     use crate::{RyDate, RyDateTime, RyTime, RyTimestamp, RyZoned};
+
+    // ========================================================================
+    // ARITHMETIC KWARGS - ADD/SUB KWARGS
+    // ========================================================================
+    #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+    pub(crate) enum ExactUnit {
+        Hours = 1 << 0,
+        Minutes = 1 << 1,
+        Seconds = 1 << 2,
+        Milliseconds = 1 << 3,
+        Microseconds = 1 << 4,
+        Nanoseconds = 1 << 5,
+    }
+
+    #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
+    pub(crate) struct ExactUnitMask(u8);
+
+    impl ExactUnitMask {
+        #[expect(
+            clippy::cast_possible_truncation,
+            reason = "wenodis: cant fail bc there are only 10 span units"
+        )]
+        pub(crate) const fn count(self) -> u8 {
+            self.0.count_ones() as u8
+        }
+
+        pub(crate) const fn with_unit(mut self, unit: ExactUnit) -> Self {
+            self.0 |= unit as u8;
+            self
+        }
+    }
+
+    #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+    pub(crate) struct SignedDurationArithmeticKwargs {
+        mask: ExactUnitMask,
+        hours: i64,
+        minutes: i64,
+        seconds: i64,
+        milliseconds: i64,
+        microseconds: i64,
+        nanoseconds: i64,
+    }
+    macro_rules! kw_builder {
+        ($field:ident, $field_opt:ident, $unit:ident, $itype:ty) => {
+            #[inline]
+            pub(crate) const fn $field_opt(mut self, value: Option<$itype>) -> Self {
+                if let Some(value) = value {
+                    self.mask = self.mask.with_unit(ExactUnit::$unit);
+                    self.$field = value;
+                }
+                self
+            }
+        };
+    }
+    impl SignedDurationArithmeticKwargs {
+        pub(crate) fn new() -> Self {
+            Self::default()
+        }
+
+        #[inline]
+        pub(crate) const fn is_empty(&self) -> bool {
+            self.mask.count() == 0
+        }
+
+        #[inline]
+        pub(crate) const fn is_zero(&self) -> bool {
+            self.hours == 0
+                && self.minutes == 0
+                && self.seconds == 0
+                && self.milliseconds == 0
+                && self.microseconds == 0
+                && self.nanoseconds == 0
+        }
+
+        kw_builder!(hours, hours_opt, Hours, i64);
+        kw_builder!(minutes, minutes_opt, Minutes, i64);
+        kw_builder!(seconds, seconds_opt, Seconds, i64);
+        kw_builder!(milliseconds, milliseconds_opt, Milliseconds, i64);
+        kw_builder!(microseconds, microseconds_opt, Microseconds, i64);
+        kw_builder!(nanoseconds, nanoseconds_opt, Nanoseconds, i64);
+
+        pub(super) fn to_signed_duration(self) -> PyResult<SignedDuration> {
+            if self.is_zero() {
+                return Ok(SignedDuration::ZERO);
+            }
+
+            SignedDuration::try_from_hours(self.hours)
+                .and_then(|sd| {
+                    SignedDuration::try_from_mins(self.minutes)
+                        .and_then(|mins| sd.checked_add(mins))
+                })
+                .and_then(|sd| sd.checked_add(SignedDuration::from_secs(self.seconds)))
+                .and_then(|sd| sd.checked_add(SignedDuration::from_millis(self.milliseconds)))
+                .and_then(|sd| sd.checked_add(SignedDuration::from_micros(self.microseconds)))
+                .and_then(|sd| sd.checked_add(SignedDuration::from_nanos(self.nanoseconds)))
+                .ok_or_else(|| {
+                    py_overflow_error!(
+                        "overflow occurred while computing SignedDuration from kwargs"
+                    )
+                })
+        }
+    }
 
     // ========================================================================
     // ADD

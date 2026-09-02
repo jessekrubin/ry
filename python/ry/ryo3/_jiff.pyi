@@ -1039,6 +1039,34 @@ class SignedDuration(
     def saturating_sub(self, other: t.Self) -> t.Self: ...
     def signum(self) -> t.Literal[-1, 0, 1]: ...
     def to_timespan(self) -> TimeSpan: ...
+    @t.overload
+    def add(self, other: t.Self | Duration | pydt.timedelta, /) -> t.Self: ...
+    @t.overload
+    def add(self, other: _TTemporal, /) -> _TTemporal: ...
+    @t.overload
+    def add(
+        self,
+        *,
+        hours: int | None = None,
+        minutes: int | None = None,
+        seconds: int | None = None,
+        milliseconds: int | None = None,
+        microseconds: int | None = None,
+        nanoseconds: int | None = None,
+    ) -> t.Self: ...
+    @t.overload
+    def sub(self, other: t.Self | Duration | pydt.timedelta, /) -> t.Self: ...
+    @t.overload
+    def sub(
+        self,
+        *,
+        hours: int | None = None,
+        minutes: int | None = None,
+        seconds: int | None = None,
+        milliseconds: int | None = None,
+        microseconds: int | None = None,
+        nanoseconds: int | None = None,
+    ) -> t.Self: ...
     def round(
         self,
         smallest: _ExactUnit = "nanosecond",

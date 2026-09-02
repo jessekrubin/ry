@@ -255,7 +255,7 @@ impl RyDateTime {
         match (other, !spkw.is_zero()) {
             (Some(o), false) => self.__add__(o),
             (None, true) => {
-                let span = spkw.build()?;
+                let span = spkw.build_span()?;
                 self.0
                     .checked_add(span)
                     .map(Self::from)
@@ -321,7 +321,7 @@ impl RyDateTime {
         match (other, !spkw.is_zero()) {
             (Some(o), false) => Ok(self.__sub__(o)),
             (None, true) => {
-                let span = spkw.build()?;
+                let span = spkw.build_span()?;
                 Ok(self.checked_sub(span).into())
             }
             (Some(_), true) => {

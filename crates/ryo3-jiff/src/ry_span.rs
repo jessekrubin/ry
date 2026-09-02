@@ -565,7 +565,7 @@ impl RySpan {
         match (other, kwargs.is_empty()) {
             (Some(other), true) => other.add_span(py, self),
             (None, false) => {
-                let span = kwargs.build()?;
+                let span = kwargs.build_span()?;
                 let span_arithmetic = SpanArithmetic::from(span).days_are_24_hours();
                 self.0
                     .checked_add(span_arithmetic)
@@ -637,7 +637,7 @@ impl RySpan {
         match (other, kwargs.is_empty()) {
             (Some(other), true) => self.__sub__(other),
             (None, false) => {
-                let span = kwargs.build()?;
+                let span = kwargs.build_span()?;
                 let span_arithmetic = SpanArithmetic::from(span).days_are_24_hours();
                 self.0
                     .checked_sub(span_arithmetic)
