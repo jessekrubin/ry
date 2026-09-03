@@ -581,6 +581,15 @@ impl RySignedDuration {
         self.0.signum()
     }
 
+    #[pyo3(signature = (*, secs = None, nanos = None))]
+    fn replace(&self, secs: Option<i64>, nanos: Option<i32>) -> PyResult<Self> {
+        Self::py_new(
+            secs.unwrap_or(self.0.as_secs()),
+            nanos.unwrap_or(self.0.subsec_nanos()),
+        )
+    }
+
+    // --RETURN SAME INST VERSION--
     // fn replace(
     //     slf: PyRef<'_, Self>,
     //     secs: Option<i64>,

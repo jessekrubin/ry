@@ -894,6 +894,19 @@ class SignedDuration(
     def abs(self) -> t.Self: ...
     def unsigned_abs(self) -> Duration: ...
     def __richcmp__(self, other: t.Self, op: int) -> bool: ...
+    def replace(self, secs: int | None = None, nanos: int | None = None) -> t.Self:
+        """Return duration with parts replaced
+
+
+        Examples
+        --------
+        >>> from ry import SignedDuration
+        >>> d = SignedDuration(5, 500_000_000)  # 5.5 seconds
+        >>> d.replace(secs=10)  # 10.5 seconds
+        SignedDuration(secs=10, nanos=500000000)
+
+        """
+
     # =========================================================================
     # EQUIV
     # =========================================================================

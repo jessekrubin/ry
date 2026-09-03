@@ -6,13 +6,14 @@ use pyo3::prelude::*;
 use super::{PyDuration, PyInstant};
 
 #[pyfunction]
-pub fn sleep(py: Python<'_>, secs: f64) -> PyResult<f64> {
+#[pyo3(signature = (secs, interval = 100))]
+pub fn sleep(py: Python<'_>, secs: f64, interval: u64) -> PyResult<f64> {
     if secs < 0.0 {
         Err(PyValueError::new_err("sleep ~ secs must be >= 0."))
     } else {
         let returned = secs;
         let py_duration = PyDuration::try_from_secs_f64(secs)?;
-        py_duration.sleep(py, 10)?;
+        py_duration.sleep(py, interval)?;
         Ok(returned)
     }
 }
