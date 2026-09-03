@@ -207,6 +207,7 @@ mypy:
     uv run mypy python/ry tests/ examples/ scripts/
 
 # run pytest
+
 # run ty typechecker
 ty *ARGS:
     uv run ty check {{ ARGS }}
