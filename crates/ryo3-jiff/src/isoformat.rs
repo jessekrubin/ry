@@ -115,7 +115,7 @@ impl PyIsoFormat for RyOffset {
 
 impl PyIsoFormat for RySignedDuration {
     fn isoformat(&self) -> PyAsciiString {
-        crate::constants::SPAN_PRINTER
+        crate::constants::SPAN_PRINTER_TEMPORAL
             .duration_to_string(&self.0)
             .into()
     }
@@ -123,7 +123,7 @@ impl PyIsoFormat for RySignedDuration {
 
 impl PyIsoFormat for RySpan {
     fn isoformat(&self) -> PyAsciiString {
-        crate::constants::SPAN_PRINTER
+        crate::constants::SPAN_PRINTER_TEMPORAL
             .span_to_string(&self.0)
             .into()
     }

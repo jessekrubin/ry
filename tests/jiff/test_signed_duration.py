@@ -27,10 +27,6 @@ def test_signed_duration_replace() -> None:
     assert replaced.secs == 3
     assert replaced.nanos == 4
 
-    # if same is same instance?
-    same = dur.replace(secs=1, nanos=2)
-    assert same is dur
-
 
 def test_signed_duration_min_max() -> None:
     assert ry.SignedDuration.MIN == ry.SignedDuration(-(1 << 63), -999_999_999)

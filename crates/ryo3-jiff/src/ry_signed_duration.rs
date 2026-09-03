@@ -14,7 +14,9 @@ use ryo3_macro_rules::{
 };
 use ryo3_std::time::PyDuration;
 
-use crate::constants::{MINS_PER_HOUR, NANOS_PER_SEC, SECS_PER_MINUTE, SPAN_PRINTER};
+use crate::constants::{
+    MINUTES_PER_HOUR, NANOSECONDS_PER_SECOND, SECONDS_PER_MINUTE, SPAN_PRINTER_FRIENDLY,
+};
 use crate::pydatetime_conversions::signed_duration_from_pyobject;
 use crate::round::RySignedDurationRound;
 use crate::ry_span::RySpan;
@@ -59,8 +61,8 @@ impl RySignedDuration {
     #[pyo3(signature = (secs = 0, nanos = 0))]
     pub fn py_new(secs: i64, nanos: i32) -> PyResult<Self> {
         #[expect(clippy::cast_lossless)]
-        if !(-NANOS_PER_SEC < nanos && nanos < NANOS_PER_SEC) {
-            let addsecs = nanos / NANOS_PER_SEC;
+        if !(-NANOSECONDS_PER_SECOND < nanos && nanos < NANOSECONDS_PER_SECOND) {
+            let addsecs = nanos / NANOSECONDS_PER_SECOND;
             secs.checked_add(addsecs as i64).ok_or_else(|| {
                 py_overflow_error!("nanoseconds overflowed seconds in PySignedDuration::new")
             })?;
@@ -264,7 +266,7 @@ impl RySignedDuration {
     #[pyo3(signature = (*, friendly = false), name = "to_string")]
     fn py_to_string(&self, friendly: bool) -> String {
         if friendly {
-            SPAN_PRINTER.duration_to_string(&self.0)
+            SPAN_PRINTER_FRIENDLY.duration_to_string(&self.0)
         } else {
             self.0.to_string()
         }
@@ -292,8 +294,8 @@ impl RySignedDuration {
         !self.0.is_zero()
     }
 
-    fn __str__(&self) -> String {
-        self.0.to_string()
+    fn __str__(&self) -> PyAsciiString {
+        self.0.to_string().into()
     }
 
     fn __repr__(&self) -> PyAsciiString {
@@ -515,9 +517,9 @@ impl RySignedDuration {
     // =========
     #[staticmethod]
     fn from_hours(hours: i64) -> PyResult<Self> {
-        const MIN_HOUR: i64 = i64::MIN / (SECS_PER_MINUTE * MINS_PER_HOUR);
+        const MIN_HOUR: i64 = i64::MIN / (SECONDS_PER_MINUTE * MINUTES_PER_HOUR);
         // OK because (SECS_PER_MINUTE*MINS_PER_HOUR)!={-1,0}.
-        const MAX_HOUR: i64 = i64::MAX / (SECS_PER_MINUTE * MINS_PER_HOUR);
+        const MAX_HOUR: i64 = i64::MAX / (SECONDS_PER_MINUTE * MINUTES_PER_HOUR);
         if (MIN_HOUR..=MAX_HOUR).contains(&hours) {
             Ok(Self(SignedDuration::from_hours(hours)))
         } else {
@@ -539,8 +541,8 @@ impl RySignedDuration {
 
     #[staticmethod]
     fn from_mins(mins: i64) -> PyResult<Self> {
-        const MIN_MINUTE: i64 = i64::MIN / SECS_PER_MINUTE;
-        const MAX_MINUTE: i64 = i64::MAX / SECS_PER_MINUTE;
+        const MIN_MINUTE: i64 = i64::MIN / SECONDS_PER_MINUTE;
+        const MAX_MINUTE: i64 = i64::MAX / SECONDS_PER_MINUTE;
         if (MIN_MINUTE..=MAX_MINUTE).contains(&mins) {
             Ok(Self(SignedDuration::from_mins(mins)))
         } else {
