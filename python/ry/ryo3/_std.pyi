@@ -208,6 +208,36 @@ class Duration(FromStr, ToPyTimeDelta, ToPy[pydt.timedelta], ToString, _Parse):
     def checked_div(self, other: int) -> t.Self | None: ...
     def checked_mul(self, other: float) -> t.Self | None: ...
     def checked_sub(self, other: t.Self) -> t.Self | None: ...
+    @t.overload
+    def add(self, other: t.Self | pydt.timedelta, /) -> t.Self: ...
+    @t.overload
+    def add(
+        self,
+        *,
+        weeks: int | None = None,
+        days: int | None = None,
+        hours: int | None = None,
+        minutes: int | None = None,
+        seconds: int | None = None,
+        milliseconds: int | None = None,
+        microseconds: int | None = None,
+        nanoseconds: int | None = None,
+    ) -> t.Self: ...
+    @t.overload
+    def sub(self, other: t.Self | pydt.timedelta, /) -> t.Self: ...
+    @t.overload
+    def sub(
+        self,
+        *,
+        weeks: int | None = None,
+        days: int | None = None,
+        hours: int | None = None,
+        minutes: int | None = None,
+        seconds: int | None = None,
+        milliseconds: int | None = None,
+        microseconds: int | None = None,
+        nanoseconds: int | None = None,
+    ) -> t.Self: ...
     def div_duration_f32(self, other: t.Self) -> float: ...
     def div_duration_f64(self, other: t.Self) -> float: ...
     def div_f32(self, n: float) -> t.Self: ...

@@ -108,6 +108,61 @@ class TestDurationArithmetic:
         assert isinstance(result_right, ry.Duration)
         assert result == result_right
 
+    def test_add_with_kwargs(self) -> None:
+        dur = ry.Duration(1, 123)
+        expected = (
+            dur
+            + ry.Duration.from_weeks(1)
+            + ry.Duration.from_days(2)
+            + ry.Duration.from_hours(3)
+            + ry.Duration.from_mins(4)
+            + ry.Duration.from_secs(5)
+            + ry.Duration.from_millis(6)
+            + ry.Duration.from_micros(7)
+            + ry.Duration.from_nanos(8)
+        )
+        added = dur.add(
+            weeks=1,
+            days=2,
+            hours=3,
+            minutes=4,
+            seconds=5,
+            milliseconds=6,
+            microseconds=7,
+            nanoseconds=8,
+        )
+        assert added == expected
+
+    def test_add_rejects_negative_kwargs(self) -> None:
+        dur = ry.Duration.from_secs(10)
+        with pytest.raises((OverflowError, TypeError)):
+            dur.add(seconds=-3)
+
+    def test_add_with_zero_kwargs(self) -> None:
+        dur = ry.Duration(1, 123)
+        assert dur.add(hours=0) == dur
+
+    def test_add_rejects_positional_and_kwargs(self) -> None:
+        dur = ry.Duration(1, 0)
+        other = ry.Duration(2, 0)
+        with pytest.raises(
+            TypeError,
+            match="add\\(\\) accepts either a duration-like object or keyword units, not both",
+        ):
+            dur.add(other, seconds=1)  # type: ignore[call-overload]  # ty: ignore[no-matching-overload]
+
+    def test_add_requires_positional_or_kwargs(self) -> None:
+        dur = ry.Duration(1, 0)
+        with pytest.raises(
+            TypeError,
+            match="add\\(\\) missing required argument: 'other' or keyword units",
+        ):
+            dur.add()
+
+    def test_add_with_kwargs_overflow(self) -> None:
+        with pytest.raises(OverflowError):
+            ry.Duration.MAX.add(nanoseconds=1)
+
     # =========================================================================
     # SUBTRACTION
     # =========================================================================
@@ -159,6 +214,59 @@ class TestDurationArithmetic:
         result = right - left
 
         assert result == ry.Duration(7, 0)
+
+    def test_sub_with_kwargs(self) -> None:
+        dur = (
+            ry.Duration.from_weeks(1)
+            + ry.Duration.from_days(2)
+            + ry.Duration.from_hours(3)
+            + ry.Duration.from_mins(4)
+            + ry.Duration.from_secs(6)
+            + ry.Duration.from_millis(6)
+            + ry.Duration.from_micros(7)
+            + ry.Duration.from_nanos(8)
+        )
+        subbed = dur.sub(
+            weeks=1,
+            days=2,
+            hours=3,
+            minutes=4,
+            seconds=5,
+            milliseconds=6,
+            microseconds=7,
+            nanoseconds=8,
+        )
+        assert subbed == ry.Duration(1, 0)
+
+    def test_sub_rejects_negative_kwargs(self) -> None:
+        dur = ry.Duration.from_secs(10)
+        with pytest.raises((OverflowError, TypeError)):
+            dur.sub(seconds=-3)
+
+    def test_sub_with_zero_kwargs(self) -> None:
+        dur = ry.Duration(1, 123)
+        assert dur.sub(hours=0) == dur
+
+    def test_sub_rejects_positional_and_kwargs(self) -> None:
+        dur = ry.Duration(1, 0)
+        other = ry.Duration(2, 0)
+        with pytest.raises(
+            TypeError,
+            match="sub\\(\\) accepts either a duration-like object or keyword units, not both",
+        ):
+            dur.sub(other, seconds=1)  # type: ignore[call-overload]  # ty: ignore[no-matching-overload]
+
+    def test_sub_requires_positional_or_kwargs(self) -> None:
+        dur = ry.Duration(1, 0)
+        with pytest.raises(
+            TypeError,
+            match="sub\\(\\) missing required argument: 'other' or keyword units",
+        ):
+            dur.sub()
+
+    def test_sub_with_kwargs_underflow(self) -> None:
+        with pytest.raises(OverflowError):
+            ry.Duration.ZERO.sub(nanoseconds=1)
 
     # =========================================================================
     # DIVISION

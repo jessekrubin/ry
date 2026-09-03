@@ -122,6 +122,75 @@ impl PyDuration {
     }
 }
 
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+struct DurationArithmeticKwargs {
+    mask: u8,
+    hours: u64,
+    minutes: u64,
+    seconds: u64,
+    milliseconds: u64,
+    microseconds: u64,
+    nanoseconds: u64,
+}
+
+macro_rules! duration_kw_builder {
+    ($field:ident, $field_opt:ident, $bit:expr) => {
+        #[inline]
+        const fn $field_opt(mut self, value: Option<u64>) -> Self {
+            if let Some(value) = value {
+                self.mask |= 1 << $bit;
+                self.$field = value;
+            }
+            self
+        }
+    };
+}
+
+impl DurationArithmeticKwargs {
+    const fn new() -> Self {
+        Self {
+            mask: 0,
+            hours: 0,
+            minutes: 0,
+            seconds: 0,
+            milliseconds: 0,
+            microseconds: 0,
+            nanoseconds: 0,
+        }
+    }
+
+    #[inline]
+    const fn is_empty(&self) -> bool {
+        self.mask == 0
+    }
+
+    duration_kw_builder!(hours, hours_opt, 2);
+    duration_kw_builder!(minutes, minutes_opt, 3);
+    duration_kw_builder!(seconds, seconds_opt, 4);
+    duration_kw_builder!(milliseconds, milliseconds_opt, 5);
+    duration_kw_builder!(microseconds, microseconds_opt, 6);
+    duration_kw_builder!(nanoseconds, nanoseconds_opt, 7);
+
+    fn to_duration(self) -> PyResult<Duration> {
+        let total_seconds_hours = self
+            .hours
+            .checked_mul(SECS_PER_MINUTE * MINS_PER_HOUR)
+            .ok_or_else(|| py_overflow_error!("overflow in Duration kwargs: hours"))?;
+
+        let total_seconds_minutes = self
+            .minutes
+            .checked_mul(SECS_PER_MINUTE)
+            .ok_or_else(|| py_overflow_error!("overflow in Duration kwargs: minutes"))?;
+
+        let total_seconds = total_seconds_hours
+            .checked_add(total_seconds_minutes)
+            .and_then(|s| s.checked_add(self.seconds))
+            .ok_or_else(|| py_overflow_error!("overflow in Duration kwargs: total seconds"))?;
+
+        todo!("tbd")
+    }
+}
+
 #[pymethods]
 #[expect(clippy::needless_pass_by_value)]
 impl PyDuration {
@@ -281,6 +350,104 @@ impl PyDuration {
             .checked_sub(self.0)
             .map(Self::from)
             .ok_or_else(|| py_overflow_error!("overflow in Duration subtraction"))
+    }
+
+    #[expect(clippy::too_many_arguments, reason = "python kwargs")]
+    #[pyo3(
+        signature = (
+            other = None,
+            /, *,
+            hours = None,
+            minutes = None,
+            seconds = None,
+            milliseconds = None,
+            microseconds = None,
+            nanoseconds = None
+        )
+    )]
+    fn add(
+        &self,
+        other: Option<DurationLike>,
+        // **KWARG ONLY
+        hours: Option<u64>,
+        minutes: Option<u64>,
+        seconds: Option<u64>,
+        milliseconds: Option<u64>,
+        microseconds: Option<u64>,
+        nanoseconds: Option<u64>,
+    ) -> PyResult<Self> {
+        let kwargs = DurationArithmeticKwargs::new()
+            .hours_opt(hours)
+            .minutes_opt(minutes)
+            .seconds_opt(seconds)
+            .milliseconds_opt(milliseconds)
+            .microseconds_opt(microseconds)
+            .nanoseconds_opt(nanoseconds);
+        match (other, !kwargs.is_empty()) {
+            (Some(other), false) => self.__add__(other),
+            (None, true) => self
+                .0
+                .checked_add(kwargs.to_duration()?)
+                .map(Self::from)
+                .ok_or_else(|| py_overflow_error!("overflow in Duration addition")),
+            (None, false) => {
+                py_type_err!("add() missing required argument: 'other' or keyword units")
+            }
+            (Some(_), true) => {
+                py_type_err!(
+                    "add() accepts either a duration-like object or keyword units, not both"
+                )
+            }
+        }
+    }
+
+    #[expect(clippy::too_many_arguments, reason = "python kwargs")]
+    #[pyo3(
+        signature = (
+            other = None,
+            /, *,
+            hours = None,
+            minutes = None,
+            seconds = None,
+            milliseconds = None,
+            microseconds = None,
+            nanoseconds = None
+        )
+    )]
+    fn sub(
+        &self,
+        other: Option<DurationLike>,
+        // **KWARG ONLY
+        hours: Option<u64>,
+        minutes: Option<u64>,
+        seconds: Option<u64>,
+        milliseconds: Option<u64>,
+        microseconds: Option<u64>,
+        nanoseconds: Option<u64>,
+    ) -> PyResult<Self> {
+        let kwargs = DurationArithmeticKwargs::new()
+            .hours_opt(hours)
+            .minutes_opt(minutes)
+            .seconds_opt(seconds)
+            .milliseconds_opt(milliseconds)
+            .microseconds_opt(microseconds)
+            .nanoseconds_opt(nanoseconds);
+        match (other, !kwargs.is_empty()) {
+            (Some(other), false) => self.__sub__(other),
+            (None, true) => self
+                .0
+                .checked_sub(kwargs.to_duration()?)
+                .map(Self::from)
+                .ok_or_else(|| py_overflow_error!("overflow in Duration subtraction")),
+            (None, false) => {
+                py_type_err!("sub() missing required argument: 'other' or keyword units")
+            }
+            (Some(_), true) => {
+                py_type_err!(
+                    "sub() accepts either a duration-like object or keyword units, not both"
+                )
+            }
+        }
     }
 
     fn __truediv__(
