@@ -14,18 +14,11 @@ use ryo3_macro_rules::{
 };
 use ryo3_std::time::PyDuration;
 
+use crate::constants::{MINS_PER_HOUR, NANOS_PER_SEC, SECS_PER_MINUTE, SPAN_PRINTER};
 use crate::pydatetime_conversions::signed_duration_from_pyobject;
 use crate::round::RySignedDurationRound;
 use crate::ry_span::RySpan;
 use crate::{JiffRoundMode, JiffUnit};
-
-const NANOS_PER_SEC: i32 = 1_000_000_000;
-// const NANOS_PER_MILLI: i32 = 1_000_000;
-// const NANOS_PER_MICRO: i32 = 1_000;
-// const MILLIS_PER_SEC: i64 = 1_000;
-// const MICROS_PER_SEC: i64 = 1_000_000;
-const SECS_PER_MINUTE: i64 = 60;
-const MINS_PER_HOUR: i64 = 60;
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize), serde(transparent))]
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
@@ -271,7 +264,7 @@ impl RySignedDuration {
     #[pyo3(signature = (*, friendly = false), name = "to_string")]
     fn py_to_string(&self, friendly: bool) -> String {
         if friendly {
-            format!("{:#}", self.0)
+            SPAN_PRINTER.duration_to_string(&self.0)
         } else {
             self.0.to_string()
         }
@@ -583,6 +576,33 @@ impl RySignedDuration {
         Self::py_try_from_secs_f64(secs)
     }
 
+    /// Return 1 if positive, -1 if negative, 0 if zero
+    fn signum(&self) -> i8 {
+        self.0.signum()
+    }
+
+    // fn replace(
+    //     slf: PyRef<'_, Self>,
+    //     secs: Option<i64>,
+    //     nanos: Option<i32>,
+    // ) -> PyResult<Bound<'_, Self>> {
+    //     match (secs, nanos) {
+    //         (Some(secs), Some(nanos)) => {
+    //             Self::py_new(secs, nanos)?.into_pyobject_or_pyerr(slf.py())
+    //         }
+    //         (Some(secs), None) => {
+    //             Self::py_new(secs, slf.0.subsec_nanos())?.into_pyobject_or_pyerr(slf.py())
+    //         }
+    //         (None, Some(nanos)) => {
+    //             Self::py_new(slf.0.as_secs(), nanos)?.into_pyobject_or_pyerr(slf.py())
+    //         }
+    //         (None, None) => {
+    //             let py = slf.py();
+    //             slf.into_pyobject_or_pyerr(py)
+    //         }
+    //     }
+    // }
+
     // =======
     // AS NUMS
     // =======
@@ -735,10 +755,6 @@ impl RySignedDuration {
         Self::from(self.0.saturating_sub(other.0))
     }
 
-    fn signum(&self) -> i8 {
-        self.0.signum()
-    }
-
     // ========================================================================
     // ROUND
     // ========================================================================
@@ -769,6 +785,9 @@ impl RySignedDuration {
             .map_err(map_py_value_err)
     }
 
+    // ========================================================================
+    // EXTRACT
+    // ========================================================================
     #[staticmethod]
     fn from_any<'py>(value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, Self>> {
         let py = value.py();

@@ -25,7 +25,7 @@ pub use crate::series::{
 };
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    // classes
+    // classes/structs
     m.add_class::<RyDate>()?;
     m.add_class::<RyDateTime>()?;
     m.add_class::<RyISOWeekDate>()?;

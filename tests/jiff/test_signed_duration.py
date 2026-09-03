@@ -21,6 +21,17 @@ _SECS_PER_MINUTE: int = 60
 _MINS_PER_HOUR: int = 60
 
 
+def test_signed_duration_replace() -> None:
+    dur = ry.SignedDuration(1, 2)
+    replaced = dur.replace(secs=3, nanos=4)
+    assert replaced.secs == 3
+    assert replaced.nanos == 4
+
+    # if same is same instance?
+    same = dur.replace(secs=1, nanos=2)
+    assert same is dur
+
+
 def test_signed_duration_min_max() -> None:
     assert ry.SignedDuration.MIN == ry.SignedDuration(-(1 << 63), -999_999_999)
     assert ry.SignedDuration.MAX == ry.SignedDuration((1 << 63) - 1, 999_999_999)

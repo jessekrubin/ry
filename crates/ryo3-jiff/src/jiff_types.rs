@@ -3,8 +3,10 @@ use std::ops::Deref;
 
 #[derive(Debug, Clone, Copy)]
 pub struct JiffDate(pub jiff::civil::Date);
+
 #[derive(Debug, Clone, Copy)]
 pub struct JiffTime(pub jiff::civil::Time);
+
 #[derive(Debug, Clone, Copy)]
 pub struct JiffDateTime(pub jiff::civil::DateTime);
 
@@ -19,6 +21,7 @@ pub struct JiffZonedRef<'a>(pub &'a jiff::Zoned);
 
 #[derive(Debug, Clone, Copy)]
 pub struct JiffSpan(pub jiff::Span);
+
 #[derive(Clone, Eq, PartialEq)]
 pub struct JiffTimeZone(pub jiff::tz::TimeZone);
 
@@ -27,48 +30,28 @@ pub struct JiffTimeZoneRef<'a>(pub &'a jiff::tz::TimeZone);
 
 #[derive(Clone, Copy, Debug)]
 pub struct JiffOffset(pub jiff::tz::Offset);
+
 #[derive(Clone, Copy, Debug)]
 pub struct JiffSignedDuration(pub jiff::SignedDuration);
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, PartialOrd, Ord)]
 pub struct JiffUnit(pub(crate) jiff::Unit);
 
-impl JiffUnit {
-    pub const YEAR: Self = Self(jiff::Unit::Year);
-    pub const MONTH: Self = Self(jiff::Unit::Month);
-    pub const WEEK: Self = Self(jiff::Unit::Week);
-    pub const DAY: Self = Self(jiff::Unit::Day);
-    pub const HOUR: Self = Self(jiff::Unit::Hour);
-    pub const MINUTE: Self = Self(jiff::Unit::Minute);
-    pub const SECOND: Self = Self(jiff::Unit::Second);
-    pub const MILLISECOND: Self = Self(jiff::Unit::Millisecond);
-    pub const MICROSECOND: Self = Self(jiff::Unit::Microsecond);
-    pub const NANOSECOND: Self = Self(jiff::Unit::Nanosecond);
-}
-
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub struct JiffRoundMode(pub(crate) jiff::RoundMode);
 
-impl JiffRoundMode {
-    pub const CEIL: Self = Self(jiff::RoundMode::Ceil);
-    pub const FLOOR: Self = Self(jiff::RoundMode::Floor);
-    pub const EXPAND: Self = Self(jiff::RoundMode::Expand);
-    pub const TRUNC: Self = Self(jiff::RoundMode::Trunc);
-    pub const HALF_CEIL: Self = Self(jiff::RoundMode::HalfCeil);
-    pub const HALF_FLOOR: Self = Self(jiff::RoundMode::HalfFloor);
-    pub const HALF_EXPAND: Self = Self(jiff::RoundMode::HalfExpand);
-    pub const HALF_TRUNC: Self = Self(jiff::RoundMode::HalfTrunc);
-    pub const HALF_EVEN: Self = Self(jiff::RoundMode::HalfEven);
-}
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct JiffWeekday(pub(crate) jiff::civil::Weekday);
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct JiffEra(pub(crate) jiff::civil::Era);
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct JiffEraYear(pub(crate) (i16, jiff::civil::Era));
+
 #[derive(Debug, Clone, Copy)]
-pub struct JiffTzDisambiguation(pub jiff::tz::Disambiguation);
+pub struct JiffTzDisambiguation(jiff::tz::Disambiguation);
+
 #[derive(Debug, Clone, Copy)]
 pub struct JiffTzOffsetConflict(pub jiff::tz::OffsetConflict);
 
@@ -106,6 +89,12 @@ impl From<jiff::civil::Era> for JiffEra {
 impl From<jiff::tz::Disambiguation> for JiffTzDisambiguation {
     fn from(value: jiff::tz::Disambiguation) -> Self {
         Self(value)
+    }
+}
+
+impl From<JiffTzDisambiguation> for jiff::tz::Disambiguation {
+    fn from(value: JiffTzDisambiguation) -> Self {
+        value.0
     }
 }
 
@@ -177,12 +166,6 @@ impl From<jiff::tz::OffsetConflict> for JiffTzOffsetConflict {
 
 // ============================================================================
 
-impl From<JiffDate> for jiff::civil::Date {
-    fn from(val: JiffDate) -> Self {
-        val.0
-    }
-}
-
 impl From<JiffTime> for jiff::civil::Time {
     fn from(val: JiffTime) -> Self {
         val.0
@@ -247,6 +230,17 @@ impl From<JiffWeekday> for jiff::civil::Weekday {
 // JIFF UNIT
 // ============================================================================
 impl JiffUnit {
+    pub const YEAR: Self = Self(jiff::Unit::Year);
+    pub const MONTH: Self = Self(jiff::Unit::Month);
+    pub const WEEK: Self = Self(jiff::Unit::Week);
+    pub const DAY: Self = Self(jiff::Unit::Day);
+    pub const HOUR: Self = Self(jiff::Unit::Hour);
+    pub const MINUTE: Self = Self(jiff::Unit::Minute);
+    pub const SECOND: Self = Self(jiff::Unit::Second);
+    pub const MILLISECOND: Self = Self(jiff::Unit::Millisecond);
+    pub const MICROSECOND: Self = Self(jiff::Unit::Microsecond);
+    pub const NANOSECOND: Self = Self(jiff::Unit::Nanosecond);
+
     #[must_use]
     pub fn static_str(self) -> &'static str {
         match self.0 {
@@ -266,8 +260,7 @@ impl JiffUnit {
 
 impl Display for JiffUnit {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let s = self.static_str();
-        write!(f, "{s}")
+        write!(f, "{}", self.static_str())
     }
 }
 
@@ -282,6 +275,16 @@ impl Deref for JiffUnit {
 // ROUND MODE
 // ============================================================================
 impl JiffRoundMode {
+    pub const CEIL: Self = Self(jiff::RoundMode::Ceil);
+    pub const FLOOR: Self = Self(jiff::RoundMode::Floor);
+    pub const EXPAND: Self = Self(jiff::RoundMode::Expand);
+    pub const TRUNC: Self = Self(jiff::RoundMode::Trunc);
+    pub const HALF_CEIL: Self = Self(jiff::RoundMode::HalfCeil);
+    pub const HALF_FLOOR: Self = Self(jiff::RoundMode::HalfFloor);
+    pub const HALF_EXPAND: Self = Self(jiff::RoundMode::HalfExpand);
+    pub const HALF_TRUNC: Self = Self(jiff::RoundMode::HalfTrunc);
+    pub const HALF_EVEN: Self = Self(jiff::RoundMode::HalfEven);
+
     fn static_str(self) -> &'static str {
         match self.0 {
             jiff::RoundMode::Ceil => "ceil",
@@ -293,7 +296,7 @@ impl JiffRoundMode {
             jiff::RoundMode::HalfExpand => "half-expand",
             jiff::RoundMode::HalfTrunc => "half-trunc",
             jiff::RoundMode::HalfEven => "half-even",
-            _ => "round_unknown",
+            _ => "round-unknown",
         }
     }
 }
@@ -332,7 +335,6 @@ impl JiffWeekday {
 
 impl Display for JiffWeekday {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let s = self.static_str();
-        write!(f, "{s}")
+        write!(f, "{}", self.static_str())
     }
 }

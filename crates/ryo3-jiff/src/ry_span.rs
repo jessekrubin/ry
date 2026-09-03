@@ -917,7 +917,7 @@ impl RySpan {
     #[staticmethod]
     fn from_any<'py>(value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, Self>> {
         let py = value.py();
-        if let Ok(val) = value.cast_exact::<Self>() {
+        if let Some(val) = value.cast_exact_opt::<Self>() {
             Ok(val.as_borrowed().into_bound())
         } else if let Ok(pystr) = value.cast::<pyo3::types::PyString>() {
             let s = pystr.extract::<&str>()?;
@@ -925,12 +925,12 @@ impl RySpan {
         } else if let Ok(pybytes) = value.cast::<pyo3::types::PyBytes>() {
             let s = String::from_utf8_lossy(pybytes.as_bytes());
             Self::from_str(&s).map(|dt| dt.into_pyobject(py))?
-        } else if let Ok(v) = value.cast_exact::<PyFloat>() {
+        } else if let Some(v) = value.cast_exact_opt::<PyFloat>() {
             let f = v.extract::<f64>()?;
             let sd = RySignedDuration::py_try_from_secs_f64(f)?;
             let span = jiff::Span::try_from(sd.0).map_err(map_py_overflow_err)?;
             Self::from(span).into_pyobject(py)
-        } else if let Ok(v) = value.cast_exact::<PyInt>() {
+        } else if let Some(v) = value.cast_exact_opt::<PyInt>() {
             let i = v.extract::<i64>()?;
             let sd = SignedDuration::from_secs(i);
             Span::try_from(sd)
@@ -1234,7 +1234,7 @@ impl_span_add_for_borrowed!(RyTimestamp);
 
 impl<'a, 'py> SpanAdd<'a, 'py> for PyTemporalArg<'a, 'py> {
     type Target = PyAny;
-    type Output = Bound<'py, PyAny>;
+    type Output = Bound<'py, Self::Target>;
     fn add_span(self, py: Python<'py>, span: &RySpan) -> PyResult<Self::Output> {
         match self {
             Self::Date(date) => date.add_span(py, span).map(Bound::into_any),
@@ -1261,7 +1261,7 @@ impl<'a, 'py> SpanAdd<'a, 'py> for IntoSpanArithmetic<'a, 'py> {
 
 impl<'a, 'py> SpanAdd<'a, 'py> for SpanAddTarget<'a, 'py> {
     type Target = PyAny;
-    type Output = Bound<'py, PyAny>;
+    type Output = Bound<'py, Self::Target>;
 
     fn add_span(self, py: Python<'py>, span: &RySpan) -> PyResult<Self::Output> {
         match self {

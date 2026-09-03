@@ -4,6 +4,11 @@ pub(crate) static DATETIME_PARSER: DateTimeParser = DateTimeParser::new();
 pub(crate) static SPAN_PARSER: SpanParser = SpanParser::new();
 pub(crate) static SPAN_PRINTER: SpanPrinter = SpanPrinter::new();
 
+// UNITS
+pub(crate) const NANOS_PER_SEC: i32 = 1_000_000_000;
+pub(crate) const SECS_PER_MINUTE: i64 = 60;
+pub(crate) const MINS_PER_HOUR: i64 = 60;
+
 // SPAN-RANGES
 // span-years
 pub(crate) const SPAN_YEARS_MAX: i16 = 19_998;

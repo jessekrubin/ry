@@ -765,7 +765,7 @@ impl RyZoned {
             builder = builder.offset_conflict(offset_conflict.0);
         }
         if let Some(disambiguation) = disambiguation {
-            builder = builder.disambiguation(disambiguation.0);
+            builder = builder.disambiguation(disambiguation.into());
         }
         // finally build, mapping any error back to Python
         builder.build().map(Self::from).map_err(map_py_value_err)
