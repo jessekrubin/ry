@@ -25,3 +25,20 @@ class crc32:  # noqa: N801
     def oneshot_int(data: Buffer, *, seed: int | bytes = 0) -> int: ...
     @staticmethod
     def oneshot_hex(data: Buffer, *, seed: int | bytes = 0) -> str: ...
+
+    # FUTURE/DEV/TBD
+    def _combine(self, other: t.Self) -> t.Self:
+        """Return new crc32 hash state after combining with other
+
+        Used for combining the current hash state with the hash state for the subsequent block of bytes.
+
+        Parameters
+        ----------
+        other : t.Self
+            other crc32 hash state
+
+        Returns
+        -------
+        t.Self
+
+        """

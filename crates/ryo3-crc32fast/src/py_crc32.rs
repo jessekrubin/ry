@@ -35,6 +35,18 @@ impl PyCrc32Fast {
         let h = self.lock()?;
         Ok(h.clone().finalize())
     }
+
+    fn clone_inner(&self) -> PyResult<Crc32Hasher> {
+        let h = self.lock()?;
+        Ok(h.clone())
+    }
+
+    fn combine_inner(&self, other: &Self) -> PyResult<Self> {
+        let mut new_hasher = self.clone_inner()?;
+        let other_h = other.clone_inner()?;
+        new_hasher.combine(&other_h);
+        Ok(new_hasher.into())
+    }
 }
 
 impl From<Crc32Hasher> for PyCrc32Fast {
@@ -136,8 +148,14 @@ impl PyCrc32Fast {
         }
     }
 
+    // FUTURE: could possibly add inplace kwarg
+    fn _combine(&self, other: &Self) -> PyResult<Self> {
+        self.combine_inner(other)
+    }
+
     fn copy(&self) -> PyResult<Self> {
-        self.finish().map(Self::from)
+        let nu = self.lock()?;
+        Ok(nu.clone().into())
     }
 
     #[expect(clippy::needless_pass_by_value)]
