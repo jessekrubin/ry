@@ -207,9 +207,3 @@ impl From<Crc32Seed> for u32 {
         seed.0
     }
 }
-
-// impl From<Crc32Seed> for Fnv1aHasher {
-//     fn from(seed: Crc32Seed) -> Self {
-//         Self::with_seed(seed.into())
-//     }
-// }

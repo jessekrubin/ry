@@ -27,20 +27,18 @@ macro_rules! kw_builder {
     ($field:ident, $field_opt:ident, $unit:ident, $itype:ty) => {
         #[inline]
         pub(crate) const fn $field(mut self, value: $itype) -> Self {
-            if value != 0 {
-                self.mask = self.mask.with_unit(SpanUnit::$unit);
-            }
+            self.mask = self.mask.with_unit(SpanUnit::$unit);
             self.$field = value;
             self
         }
 
         #[inline]
-        pub(crate) const fn $field_opt(mut self, value: Option<$itype>) -> Self {
+        pub(crate) const fn $field_opt(self, value: Option<$itype>) -> Self {
             if let Some(v) = value {
-                self.mask = self.mask.with_unit(SpanUnit::$unit);
-                self.$field = v;
+                self.$field(v)
+            } else {
+                self
             }
-            self
         }
     };
 }
