@@ -15,7 +15,7 @@ python bindings for rust crates ~ `ry == rust | python`
 
 **This is a work in progress ~ feedback and PRs are welcome.**
 
-## Highlights
+## What it do!?
 
 - **Async/Blocking http-clients:** Built on `reqwest`, with a `fetch`-like API.
   Supports streaming, zero-copy IO (via the buffer protocol), timeouts,
@@ -130,6 +130,7 @@ _(aka: questions that I have been asking myself)_
 | `zstd`             | [`ryo3-zstd`](https://github.com/jessekrubin/ry/tree/main/crates/ryo3-zstd)                         |
 | **Hashing**        | **~**                                                                                               |
 | `aws-lc-rs`        | [`ryo3-aws-lc`](https://github.com/jessekrubin/ry/tree/main/crates/ryo3-aws-lc)                     |
+| `crc32fast`        | [`ryo3-crc32fast`](https://github.com/jessekrubin/ry/tree/main/crates/ryo3-crc32fast)               |
 | `fnv`              | [`ryo3-fnv`](https://github.com/jessekrubin/ry/tree/main/crates/ryo3-fnv)                           |
 | `twox-hash`        | [`ryo3-twox-hash`](https://github.com/jessekrubin/ry/tree/main/crates/ryo3-twox-hash)               |
 | **@BurntSushi**    | **~**                                                                                               |

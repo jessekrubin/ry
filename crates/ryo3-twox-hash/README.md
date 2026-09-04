@@ -6,7 +6,7 @@ ryo3-wrapper for `twox-hash` crate
 
 ## Ref
 
-- docs.rs: [https://docs.rs/twox-hash](https://docs.rs/twox-hash)
-- crates: [https://crates.io/crates/twox-hash](https://crates.io/crates/twox-hash)
+- docs.rs: [docs.rs/twox-hash](https://docs.rs/twox-hash)
+- crates: [crates.io/crates/twox-hash](https://crates.io/crates/twox-hash)
 
 [//]: # "</GENERATED>"

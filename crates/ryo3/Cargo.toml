@@ -39,6 +39,7 @@ ryo3-brotli = { workspace = true, optional = true }
 ryo3-bytes = { workspace = true, optional = true }
 ryo3-bzip2 = { workspace = true, optional = true }
 ryo3-cookie = { workspace = true, optional = true }
+ryo3-crc32fast = { workspace = true, optional = true }
 ryo3-dirs = { workspace = true, optional = true }
 ryo3-flate2 = { workspace = true, optional = true }
 ryo3-fnv = { workspace = true, optional = true }
@@ -73,6 +74,7 @@ default = []
 all = [
   "aws-lc",
   "brotli",
+  "crc32fast",
   "bytes",
   "bzip2",
   "dirs",
@@ -120,6 +122,7 @@ ry = [
   "ryo3-aws-lc/ry",
   "ryo3-bytes/ry",
   "ryo3-cookie/ry",
+  "ryo3-crc32fast/ry",
   "ryo3-fnv/ry",
   "ryo3-fspath/ry",
   "ryo3-glob/ry",
@@ -151,6 +154,7 @@ brotli = ["dep:ryo3-brotli"]
 bzip2 = ["dep:ryo3-bzip2"]
 bytes = ["dep:ryo3-bytes"]
 cookie = ["dep:ryo3-cookie"]
+crc32fast = ["dep:ryo3-crc32fast"]
 dirs = ["dep:ryo3-dirs"]
 flate2 = ["dep:ryo3-flate2"]
 fnv = ["dep:ryo3-fnv"]

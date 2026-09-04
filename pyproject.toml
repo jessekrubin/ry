@@ -75,6 +75,7 @@ bindings = "pyo3"
 python-source = "python"
 include = [ { path = "python/ry/.git-sha", format = "sdist" } ]
 features = [ "pyo3/extension-module" ]
+
 # strip = true
 
 [tool.uv]
@@ -167,11 +168,12 @@ executionEnvironments = [
   { root = "tests/xxhash", reportAttributeAccessIssue = false },
 ]
 
-[tool.ty]
+[tool.ty]  # https://docs.astral.sh/ty/reference/configuration/
 analysis.allowed-unresolved-imports = [ "tests.**", "xxhash.**" ]
 analysis.replace-imports-with-any = [ "numpy.**", "xxhash.**" ]
 # Multiple directories (priority order)
 environment.root = [ ".", "./python", "./scripts" ]
+src.exclude-scripts = true
 
 [tool.rumdl]
 disable = [ "MD033" ]

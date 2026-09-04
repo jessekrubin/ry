@@ -77,6 +77,7 @@ _RY_TYPES: list[type] = [
     ry.ZonedDateTimeDifference,
     ry.ZonedDateTimeRound,
     ry.fnv1a,
+    ry.crc32,
     ry.sha1,
     ry.sha224,
     ry.sha256,
