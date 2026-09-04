@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import hashlib
-import sys
 import typing as t
 import zlib
 
@@ -77,21 +76,15 @@ def test_hashers_info(info: _HasherInfo) -> None:
     assert info["ry_hasher"]().digest_size == info["digest_size"]
 
 
-# @pytest.mark.parametrize("info", _HASHERS)
-# def test_sha_hasher_repr(info: _HasherInfo) -> None:
-#     """Test the repr of the hashers
-
-#     Should look like `<sha256 @ 0x12345678>` tho this prolly is stupid and
-#     should change
-#     """
-#     hasher = info["ry_hasher"]()
-#     repr_str = repr(hasher)
-#     id_ptr = hex(id(hasher))
-#     assert repr_str.startswith(f"<{info['name']} @ ")
-#     assert repr_str.endswith(">")
-#     # pypy prt don't work good?
-#     if sys.implementation.name == "cpython":
-#         assert repr_str[len(f"<{info['name']} @ ") : -1] == id_ptr
+def test_crc32_repr() -> None:
+    hasher = ry.crc32()
+    assert repr(hasher) == "crc32<00000000>"
+    some_bytes = b"random"
+    hasher.update(some_bytes)
+    expected_crc = zlib.crc32(some_bytes)
+    expected_repr = f"crc32<{expected_crc:08x}>"
+    assert repr(hasher) == expected_repr
+    assert repr(hasher) == repr(hasher).lower()
 
 
 @pytest.mark.parametrize("info", _HASHERS)

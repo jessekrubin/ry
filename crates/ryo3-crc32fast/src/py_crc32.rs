@@ -192,7 +192,7 @@ impl PyCrc32Fast {
 impl std::fmt::Display for PyCrc32Fast {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let seed = self.finish().expect("no-way-jose");
-        write!(f, "crc32<{seed:x}>")
+        write!(f, "crc32<{seed:08x}>")
     }
 }
 
