@@ -23,6 +23,7 @@ cargo llvm-cov report \
   --package ryo3-bzip2 \
   --package ryo3-cookie \
   --package ryo3-core \
+  --package ryo3-crc32fast \
   --package ryo3-dirs \
   --package ryo3-flate2 \
   --package ryo3-fnv \
@@ -67,6 +68,7 @@ cargo llvm-cov report \
   --package ryo3-bzip2 \
   --package ryo3-cookie \
   --package ryo3-core \
+  --package ryo3-crc32fast \
   --package ryo3-dirs \
   --package ryo3-flate2 \
   --package ryo3-fnv \
