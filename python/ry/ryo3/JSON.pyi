@@ -93,6 +93,46 @@ def stringify(
     pybytes: t.Literal[False] = False,
 ) -> Bytes: ...
 @t.overload
+def stringify_v2(
+    obj: t.Any,
+    *,
+    default: t.Callable[[t.Any], t.Any] | None = None,
+    fmt: bool = False,
+    sort_keys: bool = False,
+    append_newline: bool = False,
+    pybytes: t.Literal[True],
+) -> bytes: ...
+@t.overload
+def stringify_v2(
+    obj: t.Any,
+    *,
+    default: t.Callable[[t.Any], t.Any] | None = None,
+    fmt: bool = False,
+    sort_keys: bool = False,
+    append_newline: bool = False,
+    pybytes: t.Literal[False] = False,
+) -> Bytes: ...
+@t.overload
+def stringify_v3(
+    obj: t.Any,
+    *,
+    default: t.Callable[[t.Any], t.Any] | None = None,
+    fmt: bool = False,
+    sort_keys: bool = False,
+    append_newline: bool = False,
+    pybytes: t.Literal[True],
+) -> bytes: ...
+@t.overload
+def stringify_v3(
+    obj: t.Any,
+    *,
+    default: t.Callable[[t.Any], t.Any] | None = None,
+    fmt: bool = False,
+    sort_keys: bool = False,
+    append_newline: bool = False,
+    pybytes: t.Literal[False] = False,
+) -> Bytes: ...
+@t.overload
 def dumps(
     obj: t.Any,
     *,

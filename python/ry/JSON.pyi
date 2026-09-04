@@ -8,6 +8,8 @@ from ry.ryo3.JSON import loads as loads
 from ry.ryo3.JSON import minify as minify
 from ry.ryo3.JSON import parse as parse
 from ry.ryo3.JSON import stringify as stringify
+from ry.ryo3.JSON import stringify_v2 as stringify_v2
+from ry.ryo3.JSON import stringify_v3 as stringify_v3
 
 __all__ = (
     "cache_clear",
@@ -18,4 +20,6 @@ __all__ = (
     "minify",
     "parse",
     "stringify",
+    "stringify_v2",
+    "stringify_v3",
 )

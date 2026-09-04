@@ -2,7 +2,10 @@ use pyo3::IntoPyObjectExt;
 use pyo3::exceptions::{PyRecursionError, PyTypeError};
 use pyo3::prelude::*;
 use ryo3_bytes::RyBytes;
+use ryo3_core::macros::py_not_implemented_err;
 use ryo3_serde::PyAnySerializer;
+
+use super::ser;
 
 fn map_serde_json_err<E: std::fmt::Display>(e: E) -> PyErr {
     if e.to_string().starts_with("recursion") {
@@ -13,33 +16,26 @@ fn map_serde_json_err<E: std::fmt::Display>(e: E) -> PyErr {
 }
 
 #[derive(Clone, Copy, Debug, Default)]
-struct JsonOptions {
+struct JsonOptionsV2 {
     fmt: bool,
     sort_keys: bool,
     append_newline: bool,
 }
 
 #[derive(Debug, Default)]
-struct JsonSerializer<'py> {
+struct JsonSerializerV2<'py> {
     default: Option<&'py Bound<'py, PyAny>>,
-    opts: JsonOptions,
+    opts: JsonOptionsV2,
 }
 
-impl<'py> JsonSerializer<'py> {
-    fn new(default: Option<&'py Bound<'py, PyAny>>, options: JsonOptions) -> PyResult<Self> {
-        let slf = JsonSerializer {
+impl<'py> JsonSerializerV2<'py> {
+    fn new(default: Option<&'py Bound<'py, PyAny>>, options: JsonOptionsV2) -> PyResult<Self> {
+        let slf = JsonSerializerV2 {
             default,
             opts: options,
         };
         slf.check_default()?;
         Ok(slf)
-    }
-
-    fn new_no_default(options: JsonOptions) -> Self {
-        JsonSerializer {
-            default: None,
-            opts: options,
-        }
     }
 
     fn check_default(&self) -> PyResult<()> {
@@ -61,22 +57,9 @@ impl<'py> JsonSerializer<'py> {
         let s = PyAnySerializer::new_json(obj.as_borrowed(), self.default);
         let mut bytes: Vec<u8> = Vec::with_capacity(4096);
         if self.opts.sort_keys {
-            // TODO: This is a very hacky way of handling sorting the keys...
-            //       ideally this would be part of the serialization process
-            //       I think
-            let value = serde_json::to_value(&s).map_err(map_serde_json_err)?;
-            if self.opts.fmt {
-                serde_json::to_writer_pretty(&mut bytes, &value).map_err(map_serde_json_err)?;
-            } else {
-                serde_json::to_writer(&mut bytes, &value).map_err(map_serde_json_err)?;
-            }
+            return py_not_implemented_err!("tbd");
         } else {
-            // 4k seeeems is a reasonable default size for JSON serialization?
-            if self.opts.fmt {
-                serde_json::to_writer_pretty(&mut bytes, &s).map_err(map_serde_json_err)?;
-            } else {
-                serde_json::to_writer(&mut bytes, &s).map_err(map_serde_json_err)?;
-            }
+            write_json_v2(&mut bytes, &s, self.opts.fmt)?;
         }
 
         if self.opts.append_newline {
@@ -84,6 +67,19 @@ impl<'py> JsonSerializer<'py> {
         }
         Ok(bytes)
     }
+}
+
+fn write_json_v2<T: serde_core::Serialize>(
+    bytes: &mut Vec<u8>,
+    value: &T,
+    fmt: bool,
+) -> PyResult<()> {
+    if fmt {
+        ser::to_writer_pretty(bytes, value)
+    } else {
+        ser::to_writer(bytes, value)
+    }
+    .map_err(map_serde_json_err)
 }
 
 // **retired**
@@ -133,7 +129,7 @@ impl<'py> JsonSerializer<'py> {
         pybytes = false
     )
 )]
-pub fn stringify<'py>(
+pub(crate) fn stringify_v2<'py>(
     py: Python<'py>,
     obj: &Bound<'py, PyAny>,
     default: Option<&'py Bound<'py, PyAny>>,
@@ -142,67 +138,19 @@ pub fn stringify<'py>(
     append_newline: bool,
     pybytes: bool,
 ) -> PyResult<Bound<'py, PyAny>> {
-    if let Some(default) = default {
-        let serializer = JsonSerializer::new(
-            Some(default),
-            JsonOptions {
-                fmt,
-                sort_keys,
-                append_newline,
-            },
-        )?;
-        serializer.serialize_to_vec(obj).map(|v| {
-            if pybytes {
-                pyo3::types::PyBytes::new(py, &v).into_bound_py_any(py)
-            } else {
-                RyBytes::from(v).into_bound_py_any(py)
-            }
-        })?
-    } else {
-        let serializer = JsonSerializer::new_no_default(JsonOptions {
+    let serializer = JsonSerializerV2::new(
+        default,
+        JsonOptionsV2 {
             fmt,
             sort_keys,
             append_newline,
-        });
-        serializer.serialize_to_vec(obj).map(|v| {
-            if pybytes {
-                pyo3::types::PyBytes::new(py, &v).into_bound_py_any(py)
-            } else {
-                RyBytes::from(v).into_bound_py_any(py)
-            }
-        })?
-    }
-}
-
-pub fn to_vec(obj: &Bound<'_, PyAny>) -> PyResult<Vec<u8>> {
-    JsonSerializer::new_no_default(JsonOptions {
-        fmt: false,
-        sort_keys: false,
-        append_newline: false,
-    })
-    .serialize_to_vec(obj)
-}
-
-#[expect(clippy::fn_params_excessive_bools, reason = "python kwargs")]
-#[pyfunction(
-    signature=(
-        obj,
-        *,
-        default = None,
-        fmt = false,
-        sort_keys = false,
-        append_newline = false,
-        pybytes = false
-    )
-)]
-pub fn dumps<'py>(
-    py: Python<'py>,
-    obj: &Bound<'py, PyAny>,
-    default: Option<&'py Bound<'py, PyAny>>,
-    fmt: bool,
-    sort_keys: bool,
-    append_newline: bool,
-    pybytes: bool,
-) -> PyResult<Bound<'py, PyAny>> {
-    stringify(py, obj, default, fmt, sort_keys, append_newline, pybytes)
+        },
+    )?;
+    serializer.serialize_to_vec(obj).map(|v| {
+        if pybytes {
+            pyo3::types::PyBytes::new(py, &v).into_bound_py_any(py)
+        } else {
+            RyBytes::from(v).into_bound_py_any(py)
+        }
+    })?
 }

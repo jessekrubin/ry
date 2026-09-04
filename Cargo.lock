@@ -581,6 +581,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "flexon"
+version = "0.4.8"
+dependencies = [
+ "itoa",
+ "serde",
+ "serde_core",
+ "simdutf8",
+ "zmij",
+]
+
+[[package]]
 name = "fnv"
 version = "1.0.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2205,13 +2216,17 @@ dependencies = [
 name = "ryo3-json"
 version = "0.0.100"
 dependencies = [
+ "flexon",
+ "itoa",
  "pyo3",
  "ryo3-bytes",
  "ryo3-core",
  "ryo3-jiter",
  "ryo3-serde",
  "serde-transcode",
+ "serde_core",
  "serde_json",
+ "zmij",
 ]
 
 [[package]]

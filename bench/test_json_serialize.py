@@ -106,19 +106,54 @@ class _TestData:
         return _TestData._arr2dict_fn(_TestData.mixed_array)(size)
 
 
+
+def x100() -> str:
+    return "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+
+
+_STRINGIFY_FUNCTIONS = [
+    ry.stringify_v3,
+    ry.stringify,
+    ry.stringify_v2,
+]
+_STRINGIFY_FUNCTION_IDS = [e.__name__ for e in _STRINGIFY_FUNCTIONS]
+
+
 @pytest.mark.benchmark(group="stringify")
 @pytest.mark.parametrize(
     "data_fn",
     [
-        getattr(_TestData, fn)
-        for fn in dir(_TestData)
-        if callable(getattr(_TestData, fn)) and not fn.startswith("_")
+            getattr(_TestData, fn)
+            for fn in dir(_TestData)
+            if callable(getattr(_TestData, fn)) and not fn.startswith("_")
     ],
 )
+@pytest.mark.parametrize(
+    "stringify_fn",
+    _STRINGIFY_FUNCTIONS,
+    ids=_STRINGIFY_FUNCTION_IDS,
+)
 def test_bench_serialize(
-    benchmark: BenchmarkFixture, data_fn: t.Callable[[], t.Any]
+    benchmark: BenchmarkFixture,
+    data_fn: t.Callable[[], t.Any],
+    stringify_fn: t.Callable[[t.Any], object],
 ) -> None:
     # set the group
     benchmark.group = data_fn.__name__  # ty:ignore[unresolved-attribute]
     data = data_fn()
-    benchmark(ry.stringify, data)
+    benchmark(stringify_fn, data)
+
+@pytest.mark.benchmark(group="stringify")
+
+@pytest.mark.parametrize(
+    "stringify_fn",
+    _STRINGIFY_FUNCTIONS,
+    ids=_STRINGIFY_FUNCTION_IDS,
+)
+def test_bench_serialize_x100(
+    benchmark: BenchmarkFixture,
+    stringify_fn: t.Callable[[t.Any], object],
+) -> None:
+    benchmark.group = "x100"  # ty:ignore[unresolved-attribute]
+    data = x100()
+    benchmark(stringify_fn, data)
