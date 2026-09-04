@@ -7,15 +7,14 @@
 
 ---
 
-## TBD
+## v0.0.100 [unreleased]
 
 - `ryo3-crc32fast`
   - `crc32` class hasher implementation following the ry hasher conventions; I
     need this soon and need it to be fast. The `crc32fast` crate is already used
     by the `flate2` crate
-
-## v0.0.100 [unreleased]
-
+- `ryo3-flate2`
+  - switch from `miniz_oxide` to `zlib-rs`
 - `ryo3-jiff`
   - `ry.TimeSpan`
     - property `is_absolute`; is the timespan composed of only positive/0 units

@@ -215,7 +215,9 @@ cookie = { version = "0.18.1", default-features = false, features = ["percent-en
 crc32fast = { version = "1.5.1", default-features = false, features = ["std"] }
 dirs = { version = "6.0.0", default-features = false, features = [] }
 encoding_rs = { version = "0.8.35", default-features = false, features = [] }
-flate2 = { version = "1.1.8", default-features = false, features = ["miniz_oxide"] }
+# FUTURE: switch to "zlib-rs"?
+# flate2 = { version = "1.1.8", default-features = false, features = ["miniz_oxide"] }
+flate2 = { version = "1.1.8", default-features = false, features = ["zlib-rs"] }
 futures = { version = "0.3.32", default-features = false }
 futures-channel = { version = "0.3.32", default-features = false, features = [] }
 futures-core = { version = "0.3.32", default-features = false }
