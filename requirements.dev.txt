@@ -26,7 +26,7 @@ pluggy==1.6.0
     # via
     #   pytest
     #   pytest-cov
-py-cpuinfo==9.0.0
+py-cpuinfo2==10.1.1
     # via pytest-benchmark
 pydantic==2.13.4
     # via -r requirements.dev.in
@@ -42,7 +42,7 @@ pytest==9.1.1
     #   pytest-cov
 pytest-asyncio==1.4.0
     # via -r requirements.dev.in
-pytest-benchmark==5.2.3
+pytest-benchmark==5.3.0
     # via -r requirements.dev.in
 pytest-cov==7.1.0
     # via -r requirements.dev.in
