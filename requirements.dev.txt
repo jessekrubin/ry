@@ -28,9 +28,9 @@ pluggy==1.6.0
     #   pytest-cov
 py-cpuinfo2==10.1.1
     # via pytest-benchmark
-pydantic==2.13.4
+pydantic==2.13.5
     # via -r requirements.dev.in
-pydantic-core==2.46.4
+pydantic-core==2.46.5
     # via pydantic
 pygments==2.20.0
     # via pytest
