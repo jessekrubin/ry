@@ -21,6 +21,13 @@ _SECS_PER_MINUTE: int = 60
 _MINS_PER_HOUR: int = 60
 
 
+def test_signed_duration_replace() -> None:
+    dur = ry.SignedDuration(1, 2)
+    replaced = dur.replace(secs=3, nanos=4)
+    assert replaced.secs == 3
+    assert replaced.nanos == 4
+
+
 def test_signed_duration_min_max() -> None:
     assert ry.SignedDuration.MIN == ry.SignedDuration(-(1 << 63), -999_999_999)
     assert ry.SignedDuration.MAX == ry.SignedDuration((1 << 63) - 1, 999_999_999)
@@ -356,6 +363,71 @@ class TestDurationArithmetic:
         assert isinstance(result_right, ry.SignedDuration)
         assert result == result_right
 
+    def test_add_with_kwargs(self) -> None:
+        dur = ry.SignedDuration(1, 123)
+        expected = (
+            dur
+            + ry.SignedDuration.from_hours(2)
+            + ry.SignedDuration.from_mins(3)
+            + ry.SignedDuration.from_secs(4)
+            + ry.SignedDuration.from_millis(5)
+            + ry.SignedDuration.from_micros(6)
+            + ry.SignedDuration.from_nanos(7)
+        )
+        added = dur.add(
+            hours=2,
+            minutes=3,
+            seconds=4,
+            milliseconds=5,
+            microseconds=6,
+            nanoseconds=7,
+        )
+        assert added == expected
+
+    def test_add_with_zero_kwargs(self) -> None:
+        dur = ry.SignedDuration(1, 123)
+        assert dur.add(hours=0) == dur
+
+    def test_add_with_large_i64_hours_keyword_unit(self) -> None:
+        hours = ry.I32_MAX + 1
+        dur = ry.SignedDuration(0, 0).add(hours=hours)
+        assert dur == ry.SignedDuration.from_hours(hours)
+
+    def test_add_rejects_positional_and_kwargs(self) -> None:
+        dur = ry.SignedDuration(1, 0)
+        other = ry.SignedDuration(2, 0)
+        with pytest.raises(
+            TypeError,
+            match="add\\(\\) accepts either a span-like object or keyword units, not both",
+        ):
+            dur.add(other, seconds=1)  # type: ignore[call-overload]  # ty: ignore[no-matching-overload]
+
+    def test_add_requires_positional_or_keyword_units(self) -> None:
+        dur = ry.SignedDuration(1, 0)
+        with pytest.raises(
+            TypeError,
+            match="add\\(\\) missing required argument: 'other' or keyword units",
+        ):
+            dur.add()
+
+    @pytest.mark.parametrize(
+        ("unit", "value"),
+        [
+            ("hours", 2_562_047_788_015_216),
+            ("hours", -2_562_047_788_015_216),
+            ("minutes", 153_722_867_280_912_931),
+            ("minutes", -153_722_867_280_912_931),
+        ],
+    )
+    def test_add_with_keyword_unit_value_overflow(self, unit: str, value: int) -> None:
+        dur = ry.SignedDuration(0, 0)
+        with pytest.raises(OverflowError):
+            dur.add(**{unit: value})
+
+    def test_add_with_keyword_units_result_overflow(self) -> None:
+        with pytest.raises(OverflowError):
+            ry.SignedDuration.MAX.add(nanoseconds=1)
+
     # =========================================================================
     # SUBTRACTION
     # =========================================================================
@@ -396,6 +468,61 @@ class TestDurationArithmetic:
 
         result = left - right
         assert isinstance(result, ry.SignedDuration)
+
+    def test_sub_with_keyword_units(self) -> None:
+        dur = ry.SignedDuration(7_385, 5_006_130)
+        assert dur.sub(
+            hours=2,
+            minutes=3,
+            seconds=4,
+            milliseconds=5,
+            microseconds=6,
+            nanoseconds=7,
+        ) == ry.SignedDuration(1, 123)
+
+    def test_sub_with_zero_keyword_units(self) -> None:
+        dur = ry.SignedDuration(1, 123)
+        assert dur.sub(hours=0) == dur
+
+    def test_sub_with_large_i64_hours_keyword_unit(self) -> None:
+        hours = ry.I32_MAX + 1
+        dur = ry.SignedDuration.from_hours(hours).sub(hours=hours)
+        assert dur == ry.SignedDuration(0, 0)
+
+    def test_sub_rejects_positional_and_keyword_units(self) -> None:
+        dur = ry.SignedDuration(1, 0)
+        other = ry.SignedDuration(2, 0)
+        with pytest.raises(
+            TypeError,
+            match="sub\\(\\) accepts either a duration-like object or keyword units, not both",
+        ):
+            dur.sub(other, seconds=1)  # type: ignore[call-overload]  # ty: ignore[no-matching-overload]
+
+    def test_sub_requires_positional_or_keyword_units(self) -> None:
+        dur = ry.SignedDuration(1, 0)
+        with pytest.raises(
+            TypeError,
+            match="sub\\(\\) missing required argument: 'other' or keyword units",
+        ):
+            dur.sub()
+
+    @pytest.mark.parametrize(
+        ("unit", "value"),
+        [
+            ("hours", 2_562_047_788_015_216),
+            ("hours", -2_562_047_788_015_216),
+            ("minutes", 153_722_867_280_912_931),
+            ("minutes", -153_722_867_280_912_931),
+        ],
+    )
+    def test_sub_with_keyword_unit_value_overflow(self, unit: str, value: int) -> None:
+        dur = ry.SignedDuration(0, 0)
+        with pytest.raises(OverflowError):
+            dur.sub(**{unit: value})
+
+    def test_sub_with_keyword_units_result_overflow(self) -> None:
+        with pytest.raises(OverflowError):
+            ry.SignedDuration.MIN.sub(nanoseconds=1)
 
     # =========================================================================
     # DIVISION

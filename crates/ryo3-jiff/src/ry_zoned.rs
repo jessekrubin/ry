@@ -364,7 +364,7 @@ impl RyZoned {
         match (other, !spkw.is_zero()) {
             (Some(o), false) => self.__add__(o),
             (None, true) => {
-                let span = spkw.build()?;
+                let span = spkw.build_span()?;
                 self.0
                     .checked_add(span)
                     .map(Self::from)
@@ -430,7 +430,7 @@ impl RyZoned {
         match (other, !spkw.is_zero()) {
             (Some(o), false) => Ok(self.__sub__(o)),
             (None, true) => {
-                let span = spkw.build()?;
+                let span = spkw.build_span()?;
                 Ok(self.checked_sub(span).into())
             }
             (Some(_), true) => {
@@ -765,7 +765,7 @@ impl RyZoned {
             builder = builder.offset_conflict(offset_conflict.0);
         }
         if let Some(disambiguation) = disambiguation {
-            builder = builder.disambiguation(disambiguation.0);
+            builder = builder.disambiguation(disambiguation.into());
         }
         // finally build, mapping any error back to Python
         builder.build().map(Self::from).map_err(map_py_value_err)

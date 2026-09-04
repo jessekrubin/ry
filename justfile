@@ -206,6 +206,15 @@ mypy:
     uv run mypy --version
     uv run mypy python/ry tests/ examples/ scripts/
 
+# run pytest
+
+# run ty typechecker
+ty *ARGS:
+    uv run ty check {{ ARGS }}
+
+# typecheck python
+typecheck: mypy ty
+
 # run pyright
 pyright:
     pyright

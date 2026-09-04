@@ -24,7 +24,7 @@ import typing as t
 
 import orjson
 
-import ry
+import ry  # ty: ignore[unresolved-import]
 
 
 def _tokens() -> dict[str, str]:

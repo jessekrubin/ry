@@ -13,7 +13,7 @@ from typing import TYPE_CHECKING, Any
 from pydantic.dataclasses import dataclass
 from rich.console import Console
 
-import ry
+import ry  # ty: ignore[unresolved-import]
 
 if TYPE_CHECKING:
     from collections.abc import Coroutine

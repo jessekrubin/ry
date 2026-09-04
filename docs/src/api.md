@@ -3194,6 +3194,19 @@ class SignedDuration(
     def abs(self) -> t.Self: ...
     def unsigned_abs(self) -> Duration: ...
     def __richcmp__(self, other: t.Self, op: int) -> bool: ...
+    def replace(self, secs: int | None = None, nanos: int | None = None) -> t.Self:
+        """Return duration with parts replaced
+
+
+        Examples
+        --------
+        >>> from ry import SignedDuration
+        >>> d = SignedDuration(5, 500_000_000)  # 5.5 seconds
+        >>> d.replace(secs=10)  # 10.5 seconds
+        SignedDuration(secs=10, nanos=500000000)
+
+        """
+
     # =========================================================================
     # EQUIV
     # =========================================================================
@@ -3340,6 +3353,34 @@ class SignedDuration(
     def saturating_sub(self, other: t.Self) -> t.Self: ...
     def signum(self) -> t.Literal[-1, 0, 1]: ...
     def to_timespan(self) -> TimeSpan: ...
+    @t.overload
+    def add(self, other: t.Self | Duration | pydt.timedelta, /) -> t.Self: ...
+    @t.overload
+    def add(self, other: _TTemporal, /) -> _TTemporal: ...
+    @t.overload
+    def add(
+        self,
+        *,
+        hours: int | None = None,
+        minutes: int | None = None,
+        seconds: int | None = None,
+        milliseconds: int | None = None,
+        microseconds: int | None = None,
+        nanoseconds: int | None = None,
+    ) -> t.Self: ...
+    @t.overload
+    def sub(self, other: t.Self | Duration | pydt.timedelta, /) -> t.Self: ...
+    @t.overload
+    def sub(
+        self,
+        *,
+        hours: int | None = None,
+        minutes: int | None = None,
+        seconds: int | None = None,
+        milliseconds: int | None = None,
+        microseconds: int | None = None,
+        nanoseconds: int | None = None,
+    ) -> t.Self: ...
     def round(
         self,
         smallest: _ExactUnit = "nanosecond",
@@ -3528,9 +3569,41 @@ class TimeSpan(
     # =========================================================================
     # ARITHMETIC METHODS
     # =========================================================================
-    def add(self, other: _TimeSpanArithmetic) -> t.Self: ...
+    @t.overload
+    def add(self, other: _TimeSpanArithmetic, /) -> t.Self: ...
+    @t.overload
+    def add(
+        self,
+        *,
+        years: int | None = None,
+        months: int | None = None,
+        weeks: int | None = None,
+        days: int | None = None,
+        hours: int | None = None,
+        minutes: int | None = None,
+        seconds: int | None = None,
+        milliseconds: int | None = None,
+        microseconds: int | None = None,
+        nanoseconds: int | None = None,
+    ) -> t.Self: ...
     def mul(self, other: int) -> t.Self: ...
-    def sub(self, other: _TimeSpanArithmetic) -> t.Self: ...
+    @t.overload
+    def sub(self, other: _TimeSpanArithmetic, /) -> t.Self: ...
+    @t.overload
+    def sub(
+        self,
+        *,
+        years: int | None = None,
+        months: int | None = None,
+        weeks: int | None = None,
+        days: int | None = None,
+        hours: int | None = None,
+        minutes: int | None = None,
+        seconds: int | None = None,
+        milliseconds: int | None = None,
+        microseconds: int | None = None,
+        nanoseconds: int | None = None,
+    ) -> t.Self: ...
 
     # =========================================================================
     # INSTANCE METHODS
@@ -6977,7 +7050,27 @@ class Duration(FromStr, ToPyTimeDelta, ToPy[pydt.timedelta], ToString, _Parse):
     def __mul__(self, other: float) -> t.Self: ...
     def __rmul__(self, other: float) -> t.Self: ...
     def abs_diff(self, other: t.Self | pydt.timedelta) -> t.Self: ...
-    def sleep(self, *, interval: int = 10) -> None: ...
+    def replace(self, secs: int | None = None, nanos: int | None = None) -> t.Self:
+        """Return duration with parts replaced
+
+        Examples
+        --------
+        >>> from ry import Duration
+        >>> d = Duration(5, 500_000_000)  # 5.5 seconds
+        >>> d.replace(secs=10)  # 10.5 seconds
+        Duration(secs=10, nanos=500000000)
+
+        """
+
+    def sleep(self, *, interval: int = 100) -> None:
+        """Sleep for duration length
+
+        Parameters
+        ----------
+        interval : int, optional
+            check signals interval in milliseconds; range 1..=1000 (default=100)
+
+        """
 
     # =========================================================================
     # PYTHON_CONVERSIONS

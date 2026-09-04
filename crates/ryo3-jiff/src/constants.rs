@@ -1,8 +1,16 @@
-use jiff::fmt::temporal::{DateTimeParser, SpanParser, SpanPrinter};
+pub(crate) static DATETIME_PARSER: jiff::fmt::temporal::DateTimeParser =
+    jiff::fmt::temporal::DateTimeParser::new();
+pub(crate) static SPAN_PARSER: jiff::fmt::temporal::SpanParser =
+    jiff::fmt::temporal::SpanParser::new();
+pub(crate) static SPAN_PRINTER_TEMPORAL: jiff::fmt::temporal::SpanPrinter =
+    jiff::fmt::temporal::SpanPrinter::new();
+pub(crate) static SPAN_PRINTER_FRIENDLY: jiff::fmt::friendly::SpanPrinter =
+    jiff::fmt::friendly::SpanPrinter::new();
 
-pub(crate) static DATETIME_PARSER: DateTimeParser = DateTimeParser::new();
-pub(crate) static SPAN_PARSER: SpanParser = SpanParser::new();
-pub(crate) static SPAN_PRINTER: SpanPrinter = SpanPrinter::new();
+// UNITS
+pub(crate) const NANOSECONDS_PER_SECOND: i32 = 1_000_000_000;
+pub(crate) const SECONDS_PER_MINUTE: i64 = 60;
+pub(crate) const MINUTES_PER_HOUR: i64 = 60;
 
 // SPAN-RANGES
 // span-years

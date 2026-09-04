@@ -111,7 +111,26 @@ class Duration(FromStr, ToPyTimeDelta, ToPy[pydt.timedelta], ToString, _Parse):
     def __mul__(self, other: float) -> t.Self: ...
     def __rmul__(self, other: float) -> t.Self: ...
     def abs_diff(self, other: t.Self | pydt.timedelta) -> t.Self: ...
-    def sleep(self, *, interval: int = 10) -> None: ...
+    def replace(self, secs: int | None = None, nanos: int | None = None) -> t.Self:
+        """Return duration with parts replaced
+
+        Examples
+        --------
+        >>> from ry import Duration
+        >>> d = Duration(5, 500_000_000)  # 5.5 seconds
+        >>> d.replace(secs=10)  # 10.5 seconds
+        Duration(secs=10, nanos=500000000)
+
+        """
+    def sleep(self, *, interval: int = 100) -> None:
+        """Sleep for duration length
+
+        Parameters
+        ----------
+        interval : int, optional
+            check signals interval in milliseconds; range 1..=1000 (default=100)
+
+        """
 
     # =========================================================================
     # PYTHON_CONVERSIONS

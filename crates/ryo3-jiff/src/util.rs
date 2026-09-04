@@ -25,6 +25,7 @@ pub(crate) struct SpanKwargs {
 
 macro_rules! kw_builder {
     ($field:ident, $field_opt:ident, $unit:ident, $itype:ty) => {
+        #[inline]
         pub(crate) const fn $field(mut self, value: $itype) -> Self {
             if value != 0 {
                 self.mask = self.mask.with_unit(SpanUnit::$unit);
@@ -33,10 +34,11 @@ macro_rules! kw_builder {
             self
         }
 
+        #[inline]
         pub(crate) const fn $field_opt(mut self, value: Option<$itype>) -> Self {
-            if let Some(value) = value {
+            if let Some(v) = value {
                 self.mask = self.mask.with_unit(SpanUnit::$unit);
-                self.$field = value;
+                self.$field = v;
             }
             self
         }
@@ -67,6 +69,7 @@ impl SpanKwargs {
         Self::default()
     }
 
+    #[inline]
     pub(crate) const fn is_empty(&self) -> bool {
         self.mask.count() == 0
     }
@@ -82,21 +85,22 @@ impl SpanKwargs {
     kw_builder!(microseconds, microseconds_opt, Microseconds, i64);
     kw_builder!(nanoseconds, nanoseconds_opt, Nanoseconds, i64);
 
-    pub(crate) fn build(self) -> PyResult<jiff::Span> {
+    pub(crate) fn build_span(self) -> PyResult<jiff::Span> {
         jiff::Span::try_from(self)
     }
 
     pub(crate) const fn is_zero(&self) -> bool {
-        self.years == 0
-            && self.months == 0
-            && self.weeks == 0
-            && self.days == 0
-            && self.hours == 0
-            && self.minutes == 0
-            && self.seconds == 0
-            && self.milliseconds == 0
-            && self.microseconds == 0
-            && self.nanoseconds == 0
+        self.is_empty()
+            || (self.years == 0
+                && self.months == 0
+                && self.weeks == 0
+                && self.days == 0
+                && self.hours == 0
+                && self.minutes == 0
+                && self.seconds == 0
+                && self.milliseconds == 0
+                && self.microseconds == 0
+                && self.nanoseconds == 0)
     }
 }
 
@@ -104,9 +108,40 @@ impl SpanKwargs {
 mod tests {
     use super::*;
     const SIZEOF_SPAN_KWARGS: usize = std::mem::size_of::<SpanKwargs>();
+    #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+    pub(crate) struct SpanKwargsCalendar {
+        /// presence mask
+        mask: u8,
+        // __unit_values__
+        years: i16,
+        months: i32,
+        weeks: i32,
+        days: i32,
+    }
+
+    #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+    pub(crate) struct SpanKwargsExact {
+        /// presence mask
+        mask: u8,
+        // __unit_values__
+        hours: i32,
+        minutes: i64,
+        seconds: i64,
+        milliseconds: i64,
+        microseconds: i64,
+        nanoseconds: i64,
+    }
+
+    struct SpanKwargsV2 {
+        calendar: SpanKwargsCalendar,
+        exact: SpanKwargsExact,
+    }
+    const SIZEOF_SPAN_KWARGS_V2: usize = std::mem::size_of::<SpanKwargsV2>();
 
     #[test]
     fn test_size_of_span_kwargs() {
         assert_eq!(SIZEOF_SPAN_KWARGS, 64);
+        assert_eq!(SIZEOF_SPAN_KWARGS, 64);
+        assert_eq!(SIZEOF_SPAN_KWARGS_V2, 64);
     }
 }

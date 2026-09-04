@@ -613,8 +613,16 @@ impl PyDuration {
         }
     }
 
-    #[pyo3(signature = (*, interval = 10))]
+    #[pyo3(signature = (*, secs = None, nanos = None))]
+    fn replace(&self, secs: Option<u64>, nanos: Option<u32>) -> PyResult<Self> {
+        Self::py_new(
+            secs.unwrap_or(self.0.as_secs()),
+            nanos.unwrap_or(self.0.subsec_nanos()),
+        )
+    }
+
     /// Sleep for the duration
+    #[pyo3(signature = (*, interval = 100))]
     pub(crate) fn sleep(&self, py: Python<'_>, interval: u64) -> PyResult<()> {
         if !(1..=1000).contains(&interval) {
             return py_value_err!("interval must be in the range 1..=1000 milliseconds");
@@ -623,15 +631,14 @@ impl PyDuration {
         let check_interval = Duration::from_millis(interval);
         let mut remaining = sleep_duration;
         while remaining > check_interval {
-            py.check_signals()?; // This ensures signals are handled
+            py.check_signals()?; // check for ctrl-c/sigs
             py.detach(|| std::thread::sleep(check_interval));
             remaining -= check_interval;
         }
         if remaining > Duration::ZERO {
-            py.check_signals()?; // One last signal check before sleeping
+            py.check_signals()?; // final check for ctrl-c/sigs
             py.detach(|| std::thread::sleep(remaining));
         }
-
         Ok(())
     }
 

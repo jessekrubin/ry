@@ -894,6 +894,19 @@ class SignedDuration(
     def abs(self) -> t.Self: ...
     def unsigned_abs(self) -> Duration: ...
     def __richcmp__(self, other: t.Self, op: int) -> bool: ...
+    def replace(self, secs: int | None = None, nanos: int | None = None) -> t.Self:
+        """Return duration with parts replaced
+
+
+        Examples
+        --------
+        >>> from ry import SignedDuration
+        >>> d = SignedDuration(5, 500_000_000)  # 5.5 seconds
+        >>> d.replace(secs=10)  # 10.5 seconds
+        SignedDuration(secs=10, nanos=500000000)
+
+        """
+
     # =========================================================================
     # EQUIV
     # =========================================================================
@@ -1039,6 +1052,34 @@ class SignedDuration(
     def saturating_sub(self, other: t.Self) -> t.Self: ...
     def signum(self) -> t.Literal[-1, 0, 1]: ...
     def to_timespan(self) -> TimeSpan: ...
+    @t.overload
+    def add(self, other: t.Self | Duration | pydt.timedelta, /) -> t.Self: ...
+    @t.overload
+    def add(self, other: _TTemporal, /) -> _TTemporal: ...
+    @t.overload
+    def add(
+        self,
+        *,
+        hours: int | None = None,
+        minutes: int | None = None,
+        seconds: int | None = None,
+        milliseconds: int | None = None,
+        microseconds: int | None = None,
+        nanoseconds: int | None = None,
+    ) -> t.Self: ...
+    @t.overload
+    def sub(self, other: t.Self | Duration | pydt.timedelta, /) -> t.Self: ...
+    @t.overload
+    def sub(
+        self,
+        *,
+        hours: int | None = None,
+        minutes: int | None = None,
+        seconds: int | None = None,
+        milliseconds: int | None = None,
+        microseconds: int | None = None,
+        nanoseconds: int | None = None,
+    ) -> t.Self: ...
     def round(
         self,
         smallest: _ExactUnit = "nanosecond",

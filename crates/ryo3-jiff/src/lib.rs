@@ -46,7 +46,6 @@ mod serde;
 mod series;
 mod span_units;
 mod spanish;
-mod test;
 mod tz;
 mod util;
 
