@@ -63,5 +63,5 @@ tzdata==2026.3
     # via -r requirements.dev.in
 uvicorn==0.52.1
     # via -r requirements.dev.in
-websockets==17.0.1
+websockets==17.1
     # via -r requirements.dev.in
