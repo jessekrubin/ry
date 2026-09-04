@@ -106,7 +106,6 @@ class _TestData:
         return _TestData._arr2dict_fn(_TestData.mixed_array)(size)
 
 
-
 def x100() -> str:
     return "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 
@@ -123,9 +122,9 @@ _STRINGIFY_FUNCTION_IDS = [e.__name__ for e in _STRINGIFY_FUNCTIONS]
 @pytest.mark.parametrize(
     "data_fn",
     [
-            getattr(_TestData, fn)
-            for fn in dir(_TestData)
-            if callable(getattr(_TestData, fn)) and not fn.startswith("_")
+        getattr(_TestData, fn)
+        for fn in dir(_TestData)
+        if callable(getattr(_TestData, fn)) and not fn.startswith("_")
     ],
 )
 @pytest.mark.parametrize(
@@ -143,8 +142,8 @@ def test_bench_serialize(
     data = data_fn()
     benchmark(stringify_fn, data)
 
-@pytest.mark.benchmark(group="stringify")
 
+@pytest.mark.benchmark(group="stringify")
 @pytest.mark.parametrize(
     "stringify_fn",
     _STRINGIFY_FUNCTIONS,
