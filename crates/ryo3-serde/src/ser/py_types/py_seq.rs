@@ -262,6 +262,22 @@ where
         let mut prev_ob_type_ptr = 0;
         let mut prev_ob_type = PyObType::Unknown;
         let mut seq = serializer.serialize_seq(Some(len))?;
+
+        #[cfg(not(Py_GIL_DISABLED))]
+        for element in ryo3_core::py_list::BorrowedListIter::new_with_len(self.obj, len) {
+            let type_ptr = element.get_type_ptr() as usize;
+            let ob_type = if type_ptr == prev_ob_type_ptr {
+                prev_ob_type
+            } else {
+                let t = self.ctx.typeref.ptr2type(type_ptr);
+                prev_ob_type_ptr = type_ptr;
+                prev_ob_type = t;
+                t
+            };
+            serialize_seq_element!(ob_type, seq, self, element);
+        }
+
+        #[cfg(Py_GIL_DISABLED)]
         for element in self.obj.iter() {
             let element = element.as_borrowed();
             let type_ptr = element.get_type_ptr() as usize;
