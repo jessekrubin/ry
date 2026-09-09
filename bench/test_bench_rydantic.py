@@ -20,7 +20,7 @@ _T = t.TypeVar("_T")
 
 @dataclasses.dataclass
 class _RydanticBench(t.Generic[_T]):
-    rytype: type
+    rytype: type[_T]
     py_inputs: list[t.Any]
     json_inputs: list[str] = dataclasses.field(default_factory=list)
 
