@@ -13,6 +13,13 @@ impl<'a, 'py> PyUuidSerializer<'a, 'py> {
         Self { obj }
     }
 }
+/// Extract a uuid from a pyobject we KNOW is a uuid.
+fn extract_uuid(obj: Borrowed<'_, '_, PyAny>) -> PyResult<uuid::Uuid> {
+    let py = obj.py();
+    let value = obj.getattr(pyo3::intern!(py, "int"))?;
+    let value = value.extract::<u128>()?;
+    Ok(uuid::Uuid::from_u128(value))
+}
 
 impl Serialize for PyUuidSerializer<'_, '_> {
     #[inline]
@@ -20,7 +27,8 @@ impl Serialize for PyUuidSerializer<'_, '_> {
     where
         S: Serializer,
     {
-        let uu: uuid::Uuid = self.obj.extract().map_err(pyerr2sererr)?;
-        uu.serialize(serializer)
+        extract_uuid(self.obj)
+            .map_err(pyerr2sererr)?
+            .serialize(serializer)
     }
 }

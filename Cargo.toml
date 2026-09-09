@@ -81,7 +81,7 @@ inherits = "release"
 lto = "fat"
 
 [workspace.package]
-version = "0.0.100"
+version = "0.0.101"
 authors = [
   "jesse k. rubin <jessekrubin@gmail.com>",
   # hopefully you will contribute!
@@ -176,7 +176,7 @@ ryo3-lz4rip = { path = "./crates/ryo3-lz4rip" }
 ryo3-macro-rules = { path = "crates/ryo3-macro-rules" }
 ryo3-memchr = { path = "crates/ryo3-memchr" }
 ryo3-pydantic = { path = "./crates/ryo3-pydantic" }
-ryo3-quick-maths = { path = "./crates/_ryo3-quick-maths" } # template library
+ryo3-quick-maths = { path = "./crates/_ryo3-quick-maths" }          # template library
 ryo3-regex = { path = "./crates/ryo3-regex" }
 ryo3-reqwest = { path = "./crates/ryo3-reqwest" }
 ryo3-same-file = { path = "./crates/ryo3-same-file" }
@@ -199,8 +199,12 @@ ryo3-zstd = { path = "./crates/ryo3-zstd" }
 
 # pyo3 et al
 pyo3 = { version = "0.29", features = ["macros", "serde"] }
-pyo3-async-runtimes = { git = "https://github.com/PyO3/pyo3-async-runtimes ", default-features = false, features = ["tokio-runtime"] }
-pyo3-build-config = { version = "0.29", default-features = false, features = ["resolve-config"] }
+pyo3-async-runtimes = { git = "https://github.com/PyO3/pyo3-async-runtimes ", default-features = false, features = [
+  "tokio-runtime",
+] }
+pyo3-build-config = { version = "0.29", default-features = false, features = [
+  "resolve-config",
+] }
 
 # allocator(s)
 mimalloc = { version = "0.1.52", default-features = false, features = [] }
@@ -211,7 +215,9 @@ aws-lc-rs = { version = "1.17.0", default-features = true }
 brotli = { version = "8.0.2", default-features = false }
 bytes = { version = "1.11.0", default-features = false }
 bzip2 = { version = "0.6.1", default-features = false, features = ["default"] }
-cookie = { version = "0.18.1", default-features = false, features = ["percent-encode"] }
+cookie = { version = "0.18.1", default-features = false, features = [
+  "percent-encode",
+] }
 crc32fast = { version = "1.5.1", default-features = false, features = ["std"] }
 dirs = { version = "6.0.0", default-features = false, features = [] }
 encoding_rs = { version = "0.8.35", default-features = false, features = [] }
@@ -219,7 +225,8 @@ encoding_rs = { version = "0.8.35", default-features = false, features = [] }
 # flate2 = { version = "1.1.8", default-features = false, features = ["miniz_oxide"] }
 flate2 = { version = "1.1.8", default-features = false, features = ["zlib-rs"] }
 futures = { version = "0.3.32", default-features = false }
-futures-channel = { version = "0.3.32", default-features = false, features = [] }
+futures-channel = { version = "0.3.32", default-features = false, features = [
+] }
 futures-core = { version = "0.3.32", default-features = false }
 futures-util = { version = "0.3.32", default-features = false }
 glob = { version = "0.3", default-features = false, features = [] }
@@ -228,7 +235,11 @@ heck = { version = "0.5.0", default-features = false }
 http = { version = "1.4", default-features = false, features = ["std"] }
 http-body-util = { version = "0.1.3", default-features = false, features = [] }
 ignore = { version = "0.4.24", default-features = false, features = [] }
-jiff = { version = "0.2.30", default-features = false, features = ["default", "perf-inline", "tzdb-bundle-always"] }
+jiff = { version = "0.2.30", default-features = false, features = [
+  "default",
+  "perf-inline",
+  "tzdb-bundle-always",
+] }
 jiter = { version = "0.16", default-features = false, features = ["python"] }
 lz4rip = { version = "0.11.1", default-features = false, features = ["std"] }
 memchr = { version = "2.7.5", default-features = false, features = [] }
@@ -237,23 +248,39 @@ rand = { version = "0.10.1", default-features = false, features = [] }
 regex = { version = "1.12.2", default-features = false, features = [] }
 reqwest = { version = "0.13.4", default-features = false, features = [] }
 rustls = { version = "0.23.39", default-features = false, features = [] }
-rustls-native-certs = { version = "0.8.3", default-features = false, features = [] }
+rustls-native-certs = { version = "0.8.3", default-features = false, features = [
+] }
 same-file = { version = "1.0.6", default-features = false }
 serde = { version = "1.0", default-features = false, features = ["derive"] }
 serde-transcode = { version = "1.1.1", default-features = false, features = [] }
 serde_bytes = { version = "0.11.19", default-features = false, features = [] }
 serde_json = { version = "1.0", default-features = false, features = ["std"] }
-serde_urlencoded = { version = "0.7.1", default-features = false, features = [] }
+serde_urlencoded = { version = "0.7.1", default-features = false, features = [
+] }
 shlex = { version = "2.0.1", default-features = false, features = [] }
 size = { version = "0.5.0", default-features = false, features = [] }
 sqlformat = { version = "0.5.0", default-features = false, features = [] }
 thiserror = { version = "2.0.18", default-features = false, features = [] }
-tokio = { version = "1.52.3", default-features = false, features = ["bytes", "fs", "io-util", "rt", "rt-multi-thread", "sync"] }
+tokio = { version = "1.52.3", default-features = false, features = [
+  "bytes",
+  "fs",
+  "io-util",
+  "rt",
+  "rt-multi-thread",
+  "sync",
+] }
 tokio-stream = { version = "0.1.18", default-features = false, features = [] }
 tokio-websockets = { version = "0.13.1", features = [] }
-tracing = { version = "0.1.44", default-features = false, features = ["std", "attributes"] }
+tracing = { version = "0.1.44", default-features = false, features = [
+  "std",
+  "attributes",
+] }
 tracing-log = { version = "0.2.0", default-features = false, features = [] }
-tracing-subscriber = { version = "0.3.23", default-features = false, features = ["default", "serde", "serde_json"] }
+tracing-subscriber = { version = "0.3.23", default-features = false, features = [
+  "default",
+  "serde",
+  "serde_json",
+] }
 twox-hash = { version = "2.1.2", default-features = false, features = [] }
 ulid = { version = "3.0.0", default-features = false, features = ["std"] }
 unindent = { version = "0.2.4", default-features = false, features = [] }
