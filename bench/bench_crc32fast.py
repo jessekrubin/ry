@@ -1,13 +1,13 @@
 from __future__ import annotations
 
+import typing as t
 import zlib
-from typing import TYPE_CHECKING
 
 import pytest
 
 import ry
 
-if TYPE_CHECKING:
+if t.TYPE_CHECKING:
     from pytest_benchmark.fixture import BenchmarkFixture
 
     from ry.ryo3._bytes import ReadableBuffer
@@ -60,6 +60,9 @@ class _PyCrc32:
         return zlib.crc32(bytes(data)).to_bytes(4, "big").hex()
 
 
+_Impl: t.TypeAlias = type[_PyCrc32] | type[ry.crc32]
+
+
 def random_bytes(size: int) -> bytes:
     # make random bytes
     return bytes([i % 256 for i in range(size)])
@@ -97,7 +100,7 @@ def test_bench_crc32fast_hasher(
 @pytest.mark.parametrize("id_data", _BYTES, ids=lambda id_data: id_data[0])
 @pytest.mark.parametrize("impl", _HASHERS, ids=lambda impl: impl[0])
 def test_bench_crc32fast_oneshot_bytes(
-    benchmark: BenchmarkFixture, id_data: tuple[str, bytes], impl: tuple[str, type]
+    benchmark: BenchmarkFixture, id_data: tuple[str, bytes], impl: tuple[str, _Impl]
 ) -> None:
     name, data = id_data
     benchmark.group = f"crc32-oneshot-bytes-{name}"
@@ -111,7 +114,7 @@ def test_bench_crc32fast_oneshot_bytes(
 @pytest.mark.parametrize("id_data", _BYTES, ids=lambda id_data: id_data[0])
 @pytest.mark.parametrize("impl", _HASHERS, ids=lambda impl: impl[0])
 def test_bench_crc32fast_oneshot_int(
-    benchmark: BenchmarkFixture, id_data: tuple[str, bytes], impl: tuple[str, type]
+    benchmark: BenchmarkFixture, id_data: tuple[str, bytes], impl: tuple[str, _Impl]
 ) -> None:
     name, data = id_data
     benchmark.group = f"crc32-oneshot-int-{name}"
