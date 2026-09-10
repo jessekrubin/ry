@@ -552,24 +552,19 @@ async def test_client_post_json_and_form_errors(
 
 
 class TestTimeout:
-    async def test_client_timeout_dev(
-        self, server: ReqtestServer, client_cls: type[TClient]
-    ) -> None:
-        url = server.url
-        client = client_cls(timeout=ry.Duration.from_secs_f64(0.1))
-        res = await client.get(str(url) + "slow")
-        assert res.status_code == 200
-        with pytest.raises(ry.ReqwestError, match="TimedOut"):
-            _text = await res.text()
-
     async def test_client_timeout(
         self, server: ReqtestServer, client_cls: type[TClient]
     ) -> None:
         url = server.url
         client = client_cls(timeout=ry.Duration.from_secs_f64(0.1))
-        res = await client.get(str(url) + "slow")
-        with pytest.raises(ry.ReqwestError):
-            _text = await res.text()
+
+        async def _do_get() -> str:
+            res = await client.get(str(url) + "slow")
+            assert res.status_code == 200
+            return await res.text()
+
+        with pytest.raises(ry.ReqwestError, match="TimedOut"):
+            _text = await _do_get()
 
     async def test_client_timeout_get_both_time(
         self, server: ReqtestServer, client_cls: type[TClient]
