@@ -9,11 +9,7 @@ from ry._types import Buffer
 # JSON
 # =============================================================================
 _JsonPrimitive: t.TypeAlias = bool | int | float | str | None
-_JsonValue: t.TypeAlias = (
-    _JsonPrimitive
-    | dict[str, _JsonPrimitive | _JsonValue]
-    | list[_JsonPrimitive | _JsonValue]
-)
+_JsonValue: t.TypeAlias = _JsonPrimitive | dict[str, _JsonValue] | list[_JsonValue]
 
 def parse_json(
     data: Buffer | bytes | str,

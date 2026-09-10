@@ -4,6 +4,7 @@ use std::sync::Arc;
 use reqwest::StatusCode;
 use ryo3_cookie::PyCookie;
 use ryo3_core::sync::RyRwLock;
+use ryo3_url::PyUrl;
 
 #[derive(Debug, Clone)]
 pub(crate) struct RyResponseHead {
@@ -12,7 +13,7 @@ pub(crate) struct RyResponseHead {
     /// das headers
     pub(crate) headers: Arc<RyRwLock<http::HeaderMap, false>>,
     /// das url
-    pub(crate) url: reqwest::Url,
+    pub(crate) url: Box<reqwest::Url>,
     /// das content length -- if it exists (tho it might not and/or be
     /// different if the response is compressed)
     pub(crate) content_length: Option<u64>,
@@ -23,6 +24,10 @@ pub(crate) struct RyResponseHead {
 }
 
 impl RyResponseHead {
+    pub(crate) fn py_url(&self) -> PyUrl {
+        PyUrl::from((*self.url).clone())
+    }
+
     pub(crate) fn from_parts(
         status: StatusCode,
         headers: http::HeaderMap,
@@ -34,7 +39,7 @@ impl RyResponseHead {
         Self {
             status,
             headers: Arc::new(RyRwLock::new(headers)),
-            url,
+            url: Box::new(url),
             content_length,
             version,
             remote_addr,
