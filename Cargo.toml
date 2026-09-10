@@ -213,7 +213,7 @@ bytes = { version = "1.11.0", default-features = false }
 bzip2 = { version = "0.6.1", default-features = false, features = ["default"] }
 cookie = { version = "0.18.1", default-features = false, features = ["percent-encode"] }
 crc32fast = { version = "1.5.1", default-features = false, features = ["std"] }
-dirs = { version = "6.0.0", default-features = false, features = [] }
+dirs = { version = "7.0.0", default-features = false, features = [] }
 encoding_rs = { version = "0.8.35", default-features = false, features = [] }
 # FUTURE: switch to "zlib-rs"?
 # flate2 = { version = "1.1.8", default-features = false, features = ["miniz_oxide"] }
