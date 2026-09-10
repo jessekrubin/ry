@@ -11,6 +11,9 @@
 
 - `ryo3-core`/`ryo3-serde`
   - `BorrowedListIter` added for no rec-count-bumpage when iterating over lists
+- `ryo3-zstd`
+  - update `zstd` to `0.14.0`
+  - update `zstd-safe` to `0.8.0`
 
 ---
 
