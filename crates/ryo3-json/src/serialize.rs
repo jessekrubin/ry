@@ -4,6 +4,8 @@ use pyo3::prelude::*;
 use ryo3_bytes::RyBytes;
 use ryo3_serde::PyAnySerializer;
 
+const DEFAULT_CAPACITY: usize = 4096;
+
 fn map_serde_json_err<E: std::fmt::Display>(e: E) -> PyErr {
     if e.to_string().starts_with("recursion") {
         PyRecursionError::new_err("Recursion limit reached")
@@ -59,7 +61,7 @@ impl<'py> JsonSerializer<'py> {
 
     pub(crate) fn serialize_to_vec(&self, obj: &Bound<'py, PyAny>) -> PyResult<Vec<u8>> {
         let s = PyAnySerializer::new_json(obj.as_borrowed(), self.default);
-        let mut bytes: Vec<u8> = Vec::with_capacity(4096);
+        let mut bytes: Vec<u8> = Vec::with_capacity(DEFAULT_CAPACITY);
         if self.opts.sort_keys {
             // TODO: This is a very hacky way of handling sorting the keys...
             //       ideally this would be part of the serialization process

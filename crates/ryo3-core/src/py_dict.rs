@@ -28,6 +28,7 @@ impl<'a, 'py> BorrowedDictIter<'a, 'py> {
 
     #[must_use]
     pub fn new_with_len(dict: Borrowed<'a, 'py, PyDict>, len: usize) -> Self {
+        debug_assert!(len == dict.len(), "dict.len ne expected length {len}");
         BorrowedDictIter {
             dict,
             ppos: 0,
@@ -41,8 +42,14 @@ impl<'a, 'py> Iterator for BorrowedDictIter<'a, 'py> {
 
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
-        let mut key_ptr: *mut ffi::PyObject = std::ptr::null_mut();
-        let mut val_ptr: *mut ffi::PyObject = std::ptr::null_mut();
+        if self.remaining == 0 {
+            return None;
+        }
+
+        let mut key_ptr = std::mem::MaybeUninit::<*mut ffi::PyObject>::uninit();
+        let mut val_ptr = std::mem::MaybeUninit::<*mut ffi::PyObject>::uninit();
+        // let mut key_ptr: *mut ffi::PyObject = std::ptr::null_mut();
+        // let mut val_ptr: *mut ffi::PyObject = std::ptr::null_mut();
 
         #[expect(unsafe_code)]
         // Safety: self.dict lives sufficiently long that the pointer is not dangling
@@ -50,8 +57,8 @@ impl<'a, 'py> Iterator for BorrowedDictIter<'a, 'py> {
             ffi::PyDict_Next(
                 self.dict.as_ptr(),
                 &raw mut self.ppos,
-                &raw mut key_ptr,
-                &raw mut val_ptr,
+                key_ptr.as_mut_ptr(),
+                val_ptr.as_mut_ptr(),
             )
         } != 0
         {
@@ -60,10 +67,13 @@ impl<'a, 'py> Iterator for BorrowedDictIter<'a, 'py> {
             // Safety:
             // - PyDict_Next returns borrowed values
             // - we have already checked that `PyDict_Next` succeeded, so we can assume these to be non-null
+            let key_ptr = unsafe { key_ptr.assume_init() };
+            let val_ptr = unsafe { val_ptr.assume_init() };
             let map_key = unsafe { Borrowed::from_ptr(py, key_ptr) };
             let map_val = unsafe { Borrowed::from_ptr(py, val_ptr) };
             Some((map_key, map_val))
         } else {
+            self.remaining = 0;
             None
         }
     }

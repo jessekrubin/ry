@@ -7,7 +7,14 @@
 
 ---
 
-## v0.0.100 [unreleased]
+## v0.0.101 [unreleased]
+
+- `ryo3-core`/`ryo3-serde`
+  - `BorrowedListIter` added for no rec-count-bumpage when iterating over lists
+
+---
+
+## v0.0.100 [2026-09-04]
 
 - `ryo3-crc32fast`
   - `crc32` class hasher implementation following the ry hasher conventions; I

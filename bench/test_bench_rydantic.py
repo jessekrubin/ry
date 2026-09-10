@@ -15,14 +15,16 @@ import ry
 if TYPE_CHECKING:
     from pytest_benchmark.fixture import BenchmarkFixture
 
+_T = t.TypeVar("_T")
+
 
 @dataclasses.dataclass
-class _RydanticBench:
-    rytype: type
+class _RydanticBench(t.Generic[_T]):
+    rytype: type[_T]
     py_inputs: list[t.Any]
     json_inputs: list[str] = dataclasses.field(default_factory=list)
 
-    def type_adapter(self) -> pydantic.TypeAdapter:
+    def type_adapter(self) -> pydantic.TypeAdapter[_T]:
         return pydantic.TypeAdapter(self.rytype)
 
 
@@ -36,7 +38,7 @@ _RY_IPV6 = ry.Ipv6Addr("::1")
 _RY_SOCKET_V4 = ry.SocketAddrV4(ry.Ipv4Addr(192, 168, 0, 1), 8080)
 _RY_SOCKET_V6 = ry.SocketAddrV6(ry.Ipv6Addr("::1"), 8080)
 
-_BENCHMARKS = [
+_BENCHMARKS: list[_RydanticBench[t.Any]] = [
     _RydanticBench(
         ry.Date,
         [
@@ -269,12 +271,12 @@ _BENCHMARKS = [
 )
 def test_rydantic_bench_python(
     benchmark: BenchmarkFixture,
-    rybench: _RydanticBench,
+    rybench: _RydanticBench[t.Any],
 ) -> None:
     adapter = rybench.type_adapter()
     benchmark.group = f"pydantic-{rybench.rytype.__name__}-validate-python"
 
-    def _fn():
+    def _fn() -> None:
         for value in rybench.py_inputs:
             adapter.validate_python(value)
 
@@ -291,12 +293,12 @@ def test_rydantic_bench_python(
 )
 def test_rydantic_bench_json(
     benchmark: BenchmarkFixture,
-    rybench: _RydanticBench,
+    rybench: _RydanticBench[t.Any],
 ) -> None:
     adapter = rybench.type_adapter()
     benchmark.group = f"pydantic-{rybench.rytype.__name__}-validate-json"
 
-    def _fn():
+    def _fn() -> None:
         for value in rybench.json_inputs:
             adapter.validate_json(value)
 
