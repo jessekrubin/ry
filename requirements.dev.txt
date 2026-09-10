@@ -61,7 +61,7 @@ typing-inspection==0.4.2
     # via pydantic
 tzdata==2026.3
     # via -r requirements.dev.in
-uvicorn==0.52.1
+uvicorn==0.52.4
     # via -r requirements.dev.in
 websockets==17.1
     # via -r requirements.dev.in
