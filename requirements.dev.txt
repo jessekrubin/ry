@@ -2,7 +2,7 @@
 #    uv pip compile requirements.dev.in -n
 annotated-types==0.7.0
     # via pydantic
-anyio==4.14.2
+anyio==4.15.1
     # via -r requirements.dev.in
 click==8.4.2
     # via uvicorn
