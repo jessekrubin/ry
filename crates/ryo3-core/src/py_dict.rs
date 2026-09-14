@@ -101,26 +101,27 @@ impl ExactSizeIterator for BorrowedDictIter<'_, '_> {
 
 // KWARGS TBD
 
-// pub struct KwargsIter<'a, 'py> {
-//     dict_iter: BorrowedDictIter<'a, 'py>,
-// }
+pub struct KwargsIter<'a, 'py>(BorrowedDictIter<'a, 'py>);
 
-// impl<'a, 'py> KwargsIter<'a, 'py> {
-//     #[must_use]
-//     pub fn new(dict: Borrowed<'a, 'py, PyDict>) -> Self {
-//         Self {
-//             dict_iter: BorrowedDictIter::new(dict),
-//         }
-//     }
-// }
+impl<'a, 'py> KwargsIter<'a, 'py> {
+    #[must_use]
+    pub fn new(dict: Borrowed<'a, 'py, PyDict>) -> Self {
+        Self(BorrowedDictIter::new(dict))
+    }
+}
 
-// impl<'a, 'py> Iterator for KwargsIter<'a, 'py> {
-//     type Item = (&'a str, Borrowed<'a, 'py, PyAny>);
+impl<'a, 'py> Iterator for KwargsIter<'a, 'py> {
+    type Item = (&'a str, Borrowed<'a, 'py, PyAny>);
 
-//     fn next(&mut self) -> Option<Self::Item> {
-//         let (key, val) = self.dict_iter.next()?;
-//         let pys = key.cast_exact_opt::<pyo3::types::PyString>()?;
-//         let key_str = unsafe { pystr_read_fast_opt(pys) }?;
-//         Some((key_str, val))
-//     }
-// }
+    fn next(&mut self) -> Option<Self::Item> {
+        let (key, val) = self.0.next()?;
+        let pys = crate::PyCastExactOpt::cast_exact_opt::<pyo3::types::PyString>(key);
+        if let Some(pys) = pys {
+            #[expect(unsafe_code)]
+            let key_str = unsafe { crate::pystr_read_fast_opt(pys) }?;
+            Some((key_str, val))
+        } else {
+            None
+        }
+    }
+}
