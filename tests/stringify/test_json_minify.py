@@ -95,14 +95,19 @@ def test_json_minify_format(tdata: JsonDataTestCase) -> None:
         json_string_indented.decode("utf-8"),
     ):
         minified_json = JSON.minify(el)
-        assert minified_json == tdata.expected
+        minified_json_bytes = (
+            minified_json.encode("utf-8")
+            if isinstance(minified_json, str)
+            else minified_json
+        )
+        assert minified_json_bytes == tdata.expected
 
         # go backwards...
         for min_el in (
             minified_json,
-            bytes(minified_json),
-            memoryview(minified_json),
-            minified_json.decode("utf-8"),
+            bytes(minified_json_bytes),
+            memoryview(minified_json_bytes),
+            minified_json_bytes.decode("utf-8"),
         ):
             unminified = JSON.fmt(min_el)
             assert unminified == json_string_indented
