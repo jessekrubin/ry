@@ -120,251 +120,149 @@ fn extract_form_body(form: Borrowed<'_, '_, PyAny>) -> PyResult<PyReqwestBody> {
     Ok(PyReqwestBody::Form(url_encoded_form))
 }
 
-// #[cfg(any(PyPy, GraalPy, Py_LIMITED_API))]
+#[cfg(any(PyPy, GraalPy, Py_LIMITED_API))]
+#[inline]
+fn extract_kwargs<const BLOCKING: bool>(
+    dict: Borrowed<'_, '_, PyDict>,
+) -> PyResult<ReqwestKwargs<BLOCKING>> {
+    let py = dict.py();
+
+    // body parts...
+    let body = dict.get_item(pyo3::intern!(py, "body"))?;
+    let json = dict.get_item(pyo3::intern!(py, "json"))?;
+    let form = dict.get_item(pyo3::intern!(py, "form"))?;
+    let multipart = dict.get_item(pyo3::intern!(py, "multipart"))?;
+
+    let query: Option<PyQuery> = dict
+        .get_item(pyo3::intern!(py, "query"))?
+        .map(|q| q.extract::<PyQuery>())
+        .transpose()?;
+    let body: PyReqwestBody = match (body, json, form, multipart) {
+        (Some(_), Some(_), _, _)
+        | (Some(_), _, Some(_), _)
+        | (Some(_), _, _, Some(_))
+        | (_, Some(_), Some(_), _)
+        | (_, Some(_), _, Some(_))
+        | (_, _, Some(_), Some(_)) => {
+            return py_value_err!("body, json, form, multipart are mutually exclusive");
+        }
+        (Some(body), None, None, None) => {
+            extract_body_from_py_body::<BLOCKING>(body.as_borrowed())?
+        }
+        (None, Some(json), None, None) => PyReqwestBody::Json(ryo3_json::to_vec(&json)?),
+        (None, None, Some(form), None) => extract_form_body(form.as_borrowed())?,
+        (None, None, None, Some(_multipart)) => pytodo!("multipart not implemented (yet)"),
+        (None, None, None, None) => PyReqwestBody::None,
+    };
+    let timeout = dict
+        .get_item(pyo3::intern!(py, "timeout"))?
+        .map(|t| t.extract::<PyTimeout>())
+        .transpose()?
+        .map(Duration::from);
+    let headers = dict
+        .get_item(pyo3::intern!(py, "headers"))?
+        .map(|h| h.extract::<PyHeadersLike>())
+        .transpose()?
+        .map(PyHeadersLike::into_header_map);
+    let basic_auth: Option<BasicAuth> = dict
+        .get_item(pyo3::intern!(py, "basic_auth"))?
+        .map(|b| b.extract())
+        .transpose()?;
+    let bearer_auth: Option<PyBackedStr> = dict
+        .get_item(pyo3::intern!(py, "bearer_auth"))?
+        .map(|b| b.extract())
+        .transpose()?;
+    let version: Option<PyHttpVersion> = dict
+        .get_item(pyo3::intern!(py, "version"))?
+        .map(|v| v.extract())
+        .transpose()?;
+    Ok(ReqwestKwargs {
+        headers,
+        query,
+        body,
+        timeout,
+        basic_auth,
+        bearer_auth,
+        version,
+    })
+}
+
+#[cfg(not(any(PyPy, GraalPy, Py_LIMITED_API)))]
+#[inline]
+fn extract_kwargs<const BLOCKING: bool>(
+    dict: Borrowed<'_, '_, PyDict>,
+) -> PyResult<ReqwestKwargs<BLOCKING>> {
+    let mut res = ReqwestKwargs {
+        body: PyReqwestBody::None,
+        headers: None,
+        query: None,
+        timeout: None,
+        basic_auth: None,
+        bearer_auth: None,
+        version: None,
+    };
+
+    let mut body_set = false;
+    for (key, value) in ryo3_core::py_dict::KwargsIter::new(dict) {
+        match key {
+            "body" => {
+                if body_set {
+                    return py_value_err!("body, json, form, multipart are mutually exclusive");
+                }
+                body_set = true;
+                res.body = extract_body_from_py_body::<BLOCKING>(value)?;
+            }
+            "json" => {
+                if body_set {
+                    return py_value_err!("body, json, form, multipart are mutually exclusive");
+                }
+                body_set = true;
+                res.body = PyReqwestBody::Json(ryo3_json::to_vec(&value)?);
+            }
+            "form" => {
+                if body_set {
+                    return py_value_err!("body, json, form, multipart are mutually exclusive");
+                }
+                body_set = true;
+                res.body = extract_form_body(value)?;
+            }
+            "multipart" => {
+                pytodo!("multipart not implemented (yet)");
+            }
+            "query" => {
+                res.query = Some(value.extract()?);
+            }
+            "headers" => {
+                res.headers = Some(
+                    value
+                        .extract::<PyHeadersLike>()
+                        .map(PyHeadersLike::into_header_map)?,
+                );
+            }
+            "timeout" => {
+                res.timeout = Some(Duration::from(value.extract::<PyTimeout>()?));
+            }
+            "basic_auth" => {
+                res.basic_auth = Some(value.extract()?);
+            }
+            "bearer_auth" => {
+                res.bearer_auth = Some(value.extract()?);
+            }
+            "version" => {
+                res.version = Some(value.extract()?);
+            }
+            _ => {
+                return py_type_err!("unexpected keyword argument: {key}");
+            }
+        }
+    }
+    Ok(res)
+}
+
 impl<'py, const BLOCKING: bool> FromPyObject<'_, 'py> for ReqwestKwargs<BLOCKING> {
     type Error = PyErr;
 
     fn extract(obj: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
-        let py = obj.py();
-        let dict = obj.cast_exact::<PyDict>()?;
-
-        // body parts...
-        let body = dict.get_item(pyo3::intern!(py, "body"))?;
-        let json = dict.get_item(pyo3::intern!(py, "json"))?;
-        let form = dict.get_item(pyo3::intern!(py, "form"))?;
-        let multipart = dict.get_item(pyo3::intern!(py, "multipart"))?;
-
-        // let query: PyResult<Option<String>> =
-        let query: Option<PyQuery> = dict
-            .get_item(pyo3::intern!(py, "query"))?
-            .map(|q| q.extract::<PyQuery>())
-            .transpose()?;
-        let body: PyReqwestBody = match (body, json, form, multipart) {
-            (Some(_), Some(_), _, _)
-            | (Some(_), _, Some(_), _)
-            | (Some(_), _, _, Some(_))
-            | (_, Some(_), Some(_), _)
-            | (_, Some(_), _, Some(_))
-            | (_, _, Some(_), Some(_)) => {
-                return py_value_err!("body, json, form, multipart are mutually exclusive");
-            }
-            (Some(body), None, None, None) => {
-                extract_body_from_py_body::<BLOCKING>(body.as_borrowed())?
-            }
-            (None, Some(json), None, None) => PyReqwestBody::Json(ryo3_json::to_vec(&json)?),
-            (None, None, Some(form), None) => extract_form_body(form.as_borrowed())?,
-            (None, None, None, Some(_multipart)) => {
-                pytodo!("multipart not implemented (yet)")
-            }
-            (None, None, None, None) => PyReqwestBody::None,
-        };
-        let timeout = dict
-            .get_item(pyo3::intern!(py, "timeout"))?
-            .map(|t| t.extract::<PyTimeout>())
-            .transpose()?
-            .map(Duration::from);
-        let headers = dict
-            .get_item(pyo3::intern!(py, "headers"))?
-            .map(|h| h.extract::<PyHeadersLike>())
-            .transpose()?
-            .map(PyHeadersLike::into_header_map);
-        let basic_auth: Option<BasicAuth> = dict
-            .get_item(pyo3::intern!(py, "basic_auth"))?
-            .map(|b| b.extract())
-            .transpose()?;
-        let bearer_auth: Option<PyBackedStr> = dict
-            .get_item(pyo3::intern!(py, "bearer_auth"))?
-            .map(|b| b.extract())
-            .transpose()?;
-        let version: Option<PyHttpVersion> = dict
-            .get_item(pyo3::intern!(py, "version"))?
-            .map(|v| v.extract())
-            .transpose()?;
-        Ok(Self {
-            headers,
-            query,
-            body,
-            timeout,
-            basic_auth,
-            bearer_auth,
-            version,
-        })
+        extract_kwargs(obj.cast_exact::<PyDict>()?)
     }
 }
-
-// #[cfg(not(any(PyPy, GraalPy, Py_LIMITED_API)))]
-// impl<'py, const BLOCKING: bool> FromPyObject<'_, 'py> for ReqwestKwargs<BLOCKING> {
-//     type Error = PyErr;
-
-//     fn extract(obj: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
-//         let dict = obj.cast_exact::<PyDict>()?;
-
-//         let kwargs = ryo3_core::py_dict::KwargsIter::new(dict);
-//         // use thingy::BorrowedDictIter;
-
-//         let mut res = Self {
-//             body: PyReqwestBody::None,
-//             headers: None,
-//             query: None,
-//             timeout: None,
-//             basic_auth: None,
-//             bearer_auth: None,
-//             version: None,
-//         };
-
-//         let mut body_set = false;
-//         for (key, value) in kwargs {
-//             // let key_str: &str = key.extract()?;
-//             match key {
-//                 "body" => {
-//                     if body_set {
-//                         return py_value_err!("body, json, form, multipart are mutually exclusive");
-//                     }
-//                     body_set = true;
-//                     res.body = extract_body_from_py_body::<BLOCKING>(value)?;
-//                 }
-//                 "json" => {
-//                     if body_set {
-//                         return py_value_err!("body, json, form, multipart are mutually exclusive");
-//                     }
-//                     body_set = true;
-//                     res.body = PyReqwestBody::Json(ryo3_json::to_vec(&value)?);
-//                 }
-//                 "form" => {
-//                     if body_set {
-//                         return py_value_err!("body, json, form, multipart are mutually exclusive");
-//                     }
-//                     body_set = true;
-//                     res.body = extract_form_body(value)?;
-//                 }
-//                 "multipart" => {
-//                     pytodo!("multipart not implemented (yet)");
-//                 }
-//                 "query" => {
-//                     res.query = Some(value.extract()?);
-//                 }
-//                 "headers" => {
-//                     let headers = value
-//                         .extract::<PyHeadersLike>()
-//                         .map(PyHeadersLike::into_header_map)?;
-//                     res.headers = Some(headers);
-//                 }
-//                 "timeout" => {
-//                     res.timeout = Some(Duration::from(value.extract::<PyTimeout>()?));
-//                 }
-//                 "basic_auth" => {
-//                     res.basic_auth = Some(value.extract()?);
-//                 }
-//                 "bearer_auth" => {
-//                     res.bearer_auth = Some(value.extract()?);
-//                 }
-//                 "version" => {
-//                     res.version = Some(value.extract()?);
-//                 }
-//                 _other => {
-//                     return py_type_err!("unexpected keyword argument: {key}");
-//                 }
-//             }
-//         }
-//         Ok(res)
-//     }
-// }
-
-// ===========================================================================
-// REQWEST KWARGS BUILDER TODO?
-// ===========================================================================
-
-// pub(crate) struct ReqwestKwargsBuilder<const BLOCKING: bool = false> {
-//     headers: Option<PyHeadersLike>,
-//     query: Option<PyQuery>,
-//     body: Option<PyBody>,
-//     json: Option<PyRequestJson>,
-//     form: Option<String>,
-//     multipart: Option<String>,
-//     timeout: Option<Timeout>,
-//     basic_auth: Option<BasicAuth>,
-//     bearer_auth: Option<PyBackedStr>,
-//     version: Option<PyHttpVersion>,
-// }
-
-// macro_rules! impl_reqwest_kwargs_builder_field {
-//     ($field:ident, $ty:ty) => {
-//         fn $field(self, $field: Option<$ty>) -> Self {
-//             Self { $field, ..self }
-//         }
-//     };
-// }
-// impl<const BLOCKING: bool> ReqwestKwargsBuilder<BLOCKING> {
-//     fn new() -> Self {
-//         Self {
-//             headers: None,
-//             query: None,
-//             body: None,
-//             json: None,
-//             form: None,
-//             multipart: None,
-//             timeout: None,
-//             basic_auth: None,
-//             bearer_auth: None,
-//             version: None,
-//         }
-//     }
-//     impl_reqwest_kwargs_builder_field!(headers, PyHeadersLike);
-//     impl_reqwest_kwargs_builder_field!(query, PyQuery);
-//     impl_reqwest_kwargs_builder_field!(body, PyBody);
-//     impl_reqwest_kwargs_builder_field!(json, PyRequestJson);
-//     impl_reqwest_kwargs_builder_field!(form, String);
-//     impl_reqwest_kwargs_builder_field!(multipart, String);
-//     impl_reqwest_kwargs_builder_field!(timeout, Timeout);
-//     impl_reqwest_kwargs_builder_field!(basic_auth, BasicAuth);
-//     impl_reqwest_kwargs_builder_field!(bearer_auth, PyBackedStr);
-//     impl_reqwest_kwargs_builder_field!(version, PyHttpVersion);
-
-//     fn request_body(&mut self) -> PyResult<PyReqwestBody> {
-//         let parts = (
-//             self.body.take(),
-//             self.json.take(),
-//             self.form.take(),
-//             self.multipart.is_some(), // TODO: impl
-//         );
-//         match parts {
-//             (Some(_), Some(_), _, _)
-//             | (Some(_), _, Some(_), _)
-//             | (Some(_), _, _, true)
-//             | (_, Some(_), Some(_), _)
-//             | (_, Some(_), _, true)
-//             | (_, _, Some(_), true) => {
-//                 py_value_err!("body, json, form, multipart are mutually exclusive")
-//             }
-//             (Some(body), None, None, false) => match body {
-//                 PyBody::Bytes(b) => Ok(PyReqwestBody::Bytes(b.into())),
-//                 PyBody::Stream(s) => {
-//                     if BLOCKING && s.is_async() {
-//                         return py_type_err!("cannot use async stream body with blocking client");
-//                     }
-//                     Ok(PyReqwestBody::Stream(s))
-//                 }
-//             },
-//             (None, Some(json), None, false) => Ok(PyReqwestBody::Json(json.into())),
-//             (None, None, Some(form), false) => Ok(PyReqwestBody::Form(form)),
-//             (None, None, None, true) => {
-//                 pytodo!("multipart not implemented (yet)");
-//             }
-//             (None, None, None, false) => Ok(PyReqwestBody::None),
-//         }
-//     }
-
-//     fn build(self) -> ReqwestKwargs<BLOCKING> {
-//         let mut slf = self; // TODO: fix this?
-//         let body = slf.request_body().unwrap_or(PyReqwestBody::None);
-//         ReqwestKwargs {
-//             headers: slf.headers.map(Into::into),
-//             query: slf.query,
-//             body,
-//             timeout: slf.timeout.map(Into::into),
-//             basic_auth: slf.basic_auth,
-//             bearer_auth: slf.bearer_auth,
-//             version: slf.version,
-//         }
-//     }
-// }
