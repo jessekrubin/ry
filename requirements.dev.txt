@@ -59,7 +59,7 @@ typing-extensions==4.16.0
     #   typing-inspection
 typing-inspection==0.4.2
     # via pydantic
-tzdata==2026.3
+tzdata==2026.4
     # via -r requirements.dev.in
 uvicorn==0.52.4
     # via -r requirements.dev.in
