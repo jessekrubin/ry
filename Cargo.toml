@@ -240,7 +240,7 @@ jiff = { version = "0.2.30", default-features = false, features = [
   "perf-inline",
   "tzdb-bundle-always",
 ] }
-jiter = { version = "0.16", default-features = false, features = ["python"] }
+jiter = { version = "0.17", default-features = false, features = ["python"] }
 lz4rip = { version = "0.11.1", default-features = false, features = ["std"] }
 memchr = { version = "2.7.5", default-features = false, features = [] }
 mime = { version = "0.3.17", default-features = false, features = [] }

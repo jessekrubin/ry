@@ -20,6 +20,9 @@
     [reqwest-0.13.5](https://github.com/seanmonstar/reqwest/releases#release-v0.13.5)
   - faster/more-accurate kwarg ingestion (cpython only); its a wee bit faster,
     BUT it also flags invalid/extra kwargs
+- `ryo3-jiter`
+  - update `jiter` to `0.17.0` (which AFAICT adds simd parsing!?)
+- `cargo update`
 
 ---
 
