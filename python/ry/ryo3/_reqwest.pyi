@@ -59,6 +59,7 @@ class ClientConfig(t.TypedDict):
     http1_only: bool
     https_only: bool
     http1_title_case_headers: bool
+    http1_max_headers: int  # default: 100
     http1_allow_obsolete_multiline_headers_in_responses: bool
     http1_allow_spaces_after_header_name_in_responses: bool
     http1_ignore_invalid_headers_in_responses: bool

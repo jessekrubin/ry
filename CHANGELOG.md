@@ -14,6 +14,10 @@
 - `ryo3-zstd`
   - update `zstd` to `0.14.0`
   - update `zstd-safe` to `0.8.0`
+- `ryo3-reqwest`
+  - update `reqwest` to `0.13.5` && add newly exposed `http1_max_headers` to
+    config/kwargs (default is 100) ~
+    [reqwest-0.13.5](https://github.com/seanmonstar/reqwest/releases#release-v0.13.5)
 
 ---
 
