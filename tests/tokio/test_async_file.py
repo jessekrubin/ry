@@ -502,7 +502,7 @@ async def test_filetask_async_context_aexit(
     try:
         await asyncio.wait_for(task, timeout=cancel_time)
     except TimeoutError:
-        assert task.cancelled  # type: ignore[truthy-function]
+        assert task.cancelled()
     assert file_ref is not None
     assert file_ref.closed
 

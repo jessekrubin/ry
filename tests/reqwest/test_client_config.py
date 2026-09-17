@@ -30,6 +30,7 @@ _DEFAULT_CONFIG: ClientConfig = {
     "http1_only": False,
     "https_only": False,
     "http1_title_case_headers": False,
+    "http1_max_headers": 100,
     "http1_allow_obsolete_multiline_headers_in_responses": False,
     "http1_allow_spaces_after_header_name_in_responses": False,
     "http1_ignore_invalid_headers_in_responses": False,
