@@ -18,6 +18,9 @@
   - update `reqwest` to `0.13.5` && add newly exposed `http1_max_headers` to
     config/kwargs (default is 100) ~
     [reqwest-0.13.5](https://github.com/seanmonstar/reqwest/releases#release-v0.13.5)
+- `ryo3-jiter`
+  - update `jiter` to `0.17.0` (which AFAICT adds simd parsing!?)
+- `cargo update`
 
 ---
 
