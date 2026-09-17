@@ -3,8 +3,6 @@ use pyo3::ffi;
 use pyo3::prelude::*;
 use pyo3::types::{PyAny, PyDict};
 
-// use crate::{PyCastExactOpt, pystr_read_fast_opt};
-
 // ----------------------------------------------------------------------------
 // DICT
 // ----------------------------------------------------------------------------
@@ -45,33 +43,34 @@ impl<'a, 'py> Iterator for BorrowedDictIter<'a, 'py> {
         if self.remaining == 0 {
             return None;
         }
-
         let mut key_ptr = std::mem::MaybeUninit::<*mut ffi::PyObject>::uninit();
         let mut val_ptr = std::mem::MaybeUninit::<*mut ffi::PyObject>::uninit();
-        // let mut key_ptr: *mut ffi::PyObject = std::ptr::null_mut();
-        // let mut val_ptr: *mut ffi::PyObject = std::ptr::null_mut();
-
+        // pydict-next returns 1 if more items, 0 if donezo
         #[expect(unsafe_code)]
-        // Safety: self.dict lives sufficiently long that the pointer is not dangling
-        if unsafe {
+        // Safety: self.dict lives long enuf that the ptr aint dangling
+        let found = unsafe {
             ffi::PyDict_Next(
                 self.dict.as_ptr(),
-                &raw mut self.ppos,
+                &mut self.ppos,
                 key_ptr.as_mut_ptr(),
                 val_ptr.as_mut_ptr(),
             )
-        } != 0
-        {
+        } != 0;
+        if found {
             self.remaining -= 1;
             let py = self.dict.py();
+            #[expect(unsafe_code)]
             // Safety:
             // - PyDict_Next returns borrowed values
             // - we have already checked that `PyDict_Next` succeeded, so we can assume these to be non-null
-            let key_ptr = unsafe { key_ptr.assume_init() };
-            let val_ptr = unsafe { val_ptr.assume_init() };
-            let map_key = unsafe { Borrowed::from_ptr(py, key_ptr) };
-            let map_val = unsafe { Borrowed::from_ptr(py, val_ptr) };
-            Some((map_key, map_val))
+            let map_kv = unsafe {
+                let key_ptr = key_ptr.assume_init();
+                let val_ptr = val_ptr.assume_init();
+                let map_key = Borrowed::from_ptr(py, key_ptr);
+                let map_val = Borrowed::from_ptr(py, val_ptr);
+                (map_key, map_val)
+            };
+            Some(map_kv)
         } else {
             self.remaining = 0;
             None
@@ -100,7 +99,6 @@ impl ExactSizeIterator for BorrowedDictIter<'_, '_> {
 }
 
 // KWARGS TBD
-
 pub struct KwargsIter<'a, 'py>(BorrowedDictIter<'a, 'py>);
 
 impl<'a, 'py> KwargsIter<'a, 'py> {
@@ -110,18 +108,36 @@ impl<'a, 'py> KwargsIter<'a, 'py> {
     }
 }
 
+/// Iterator over a kwarg-dict which cpython should (afaict) ensure string keys
+///
+/// previous version didnt yield `PyResult`, it just yielded the tuple:
+///
+/// ```rust,ignore
+/// impl<'a, 'py> Iterator for KwargsIter<'a, 'py> {
+/// type Item = (&'a str, Borrowed<'a, 'py, PyAny>);
+///
+/// fn next(&mut self) -> Option<Self::Item> {
+///         let (key, val) = self.0.next()?;
+///         let pys = key::cast_exact_opt::<pyo3::types::PyString>(key);
+///         if let Some(pys) = pys {
+///             #[expect(unsafe_code)]
+///             let key_str = unsafe { crate::pystr_read_fast_opt(pys) }?;
+///             Some((key_str, val))
+///         } else {
+///             None
+///         }
+///     }
+/// }
+/// ```
 impl<'a, 'py> Iterator for KwargsIter<'a, 'py> {
-    type Item = (&'a str, Borrowed<'a, 'py, PyAny>);
-
+    type Item = PyResult<(&'a str, Borrowed<'a, 'py, PyAny>)>;
     fn next(&mut self) -> Option<Self::Item> {
-        let (key, val) = self.0.next()?;
-        let pys = crate::PyCastExactOpt::cast_exact_opt::<pyo3::types::PyString>(key);
-        if let Some(pys) = pys {
-            #[expect(unsafe_code)]
-            let key_str = unsafe { crate::pystr_read_fast_opt(pys) }?;
-            Some((key_str, val))
-        } else {
-            None
-        }
+        use crate::PyCastExactOpt;
+        self.0.next().map(|(key, value)| {
+            key.cast_exact_opt::<pyo3::types::PyString>()
+                .ok_or_else(|| pyo3::exceptions::PyTypeError::new_err("non-str kwarg"))
+                .and_then(crate::pystr_read_fast)
+                .map(|key_str| (key_str, value))
+        })
     }
 }

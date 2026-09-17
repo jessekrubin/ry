@@ -203,7 +203,8 @@ fn extract_kwargs<const BLOCKING: bool>(
     };
 
     let mut body_set = false;
-    for (key, value) in ryo3_core::py_dict::KwargsIter::new(dict) {
+    for kwarg in ryo3_core::py_dict::KwargsIter::new(dict) {
+        let (key, value) = kwarg?;
         match key {
             "body" => {
                 if body_set {
