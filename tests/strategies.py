@@ -150,10 +150,13 @@ def st_json_js(
 
 
 _TIMEZONE_PROBLEM_CHILDREN = {
+    # build
     "build/etc/localtime",
-    "America/Halifax",  # Not sure why this one causes issues
+    # named
     "Africa/Accra",
     "Africa/Addis_Ababa",
+    "America/Bahia_Banderas",
+    "America/Halifax",  # Not sure why this one causes issues
     "Antarctica/Vostok",
 }
 

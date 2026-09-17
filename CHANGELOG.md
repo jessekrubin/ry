@@ -18,6 +18,8 @@
   - update `reqwest` to `0.13.5` && add newly exposed `http1_max_headers` to
     config/kwargs (default is 100) ~
     [reqwest-0.13.5](https://github.com/seanmonstar/reqwest/releases#release-v0.13.5)
+  - faster/more-accurate kwarg ingestion (cpython only); its a wee bit faster,
+    BUT it also flags invalid/extra kwargs
 
 ---
 
