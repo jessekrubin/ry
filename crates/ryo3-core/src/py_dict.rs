@@ -51,7 +51,7 @@ impl<'a, 'py> Iterator for BorrowedDictIter<'a, 'py> {
         let found = unsafe {
             ffi::PyDict_Next(
                 self.dict.as_ptr(),
-                &mut self.ppos,
+                &raw mut self.ppos,
                 key_ptr.as_mut_ptr(),
                 val_ptr.as_mut_ptr(),
             )
