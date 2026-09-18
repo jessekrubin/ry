@@ -2,6 +2,7 @@
 mod digest;
 use pyo3::prelude::*;
 
+#[must_use]
 #[pyfunction]
 pub fn awslc_version() -> &'static str {
     aws_lc_rs::awslc_version()

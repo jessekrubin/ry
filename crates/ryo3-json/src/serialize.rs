@@ -24,17 +24,17 @@ struct JsonOptions(JsonSerOpt);
 
 impl JsonOptions {
     #[inline]
-    fn fmt(&self) -> bool {
+    fn fmt(self) -> bool {
         self.0 & JSON_SER_FMT != 0
     }
 
     #[inline]
-    fn sort_keys(&self) -> bool {
+    fn sort_keys(self) -> bool {
         self.0 & JSON_SER_SORT_KEYS != 0
     }
 
     #[inline]
-    fn append_newline(&self) -> bool {
+    fn append_newline(self) -> bool {
         self.0 & JSON_SER_APPEND_NEWLINE != 0
     }
 }
@@ -182,12 +182,7 @@ pub fn stringify<'py>(
 }
 
 pub fn to_vec(obj: Borrowed<'_, '_, PyAny>) -> PyResult<Vec<u8>> {
-    JsonSerializer::new_no_default(JsonOptions(
-        (if false { JSON_SER_FMT } else { 0 })
-            | (if false { JSON_SER_SORT_KEYS } else { 0 })
-            | (if false { JSON_SER_APPEND_NEWLINE } else { 0 }),
-    ))
-    .serialize_to_vec(obj)
+    JsonSerializer::new_no_default(JsonOptions(0)).serialize_to_vec(obj)
 }
 
 #[expect(clippy::fn_params_excessive_bools, reason = "python kwargs")]
