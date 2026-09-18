@@ -218,7 +218,7 @@ fn extract_kwargs<const BLOCKING: bool>(
                     return py_value_err!("body, json, form, multipart are mutually exclusive");
                 }
                 body_set = true;
-                res.body = PyReqwestBody::Json(ryo3_json::to_vec(&value)?);
+                res.body = PyReqwestBody::Json(ryo3_json::to_vec(value)?);
             }
             "form" => {
                 if body_set {
