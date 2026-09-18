@@ -4,6 +4,8 @@ import typing as t
 
 from ry._types import Buffer
 
+__aws_lc_version__: t.Final[str]
+
 _Sha1Name: t.TypeAlias = t.Literal["sha1"]
 _Sha1BlockSize: t.TypeAlias = t.Literal[64]
 _Sha1DigestSize: t.TypeAlias = t.Literal[20]

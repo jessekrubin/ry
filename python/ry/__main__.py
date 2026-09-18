@@ -34,6 +34,7 @@ def _ext_info() -> dict[str, str | int]:
         "target": __target__,
         "crypto_provider": __crypto_provider__,
         "pyo3_experimental_async": __pyo3_experimental_async__,
+        "aws_lc_version": ryo3.__aws_lc_version__,
     }
 
 
