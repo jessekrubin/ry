@@ -78,6 +78,7 @@ from ry.ryo3.__about__ import (
 )
 from ry.ryo3.__about__ import __target__ as __target__
 from ry.ryo3.__about__ import __version__ as __version__
+from ry.ryo3._aws_lc import awslc_version as awslc_version
 from ry.ryo3._aws_lc import sha1 as sha1
 from ry.ryo3._aws_lc import sha3_256 as sha3_256
 from ry.ryo3._aws_lc import sha3_384 as sha3_384
@@ -382,7 +383,7 @@ __build_timestamp__: str
 __pkg_name__: str
 __description__: str
 __target__: str
-__opt_level__: t.Literal["0", "1", "2", "3", "s", "z"]
+__opt_level__: t.Literal[0, 1, 2, 3, "s", "z"]
 __allocator__: t.Literal["mimalloc", "system"]
 __crypto_provider__: t.Literal["ring", "aws-lc-rs"]
 __pyo3_experimental_async__: bool
@@ -398,6 +399,11 @@ __git_sha__: str
 import typing as t
 
 from ry._types import Buffer
+
+
+def awslc_version() -> str:
+    """Return aws-lc-sys version"""
+
 
 _Sha1Name: t.TypeAlias = t.Literal["sha1"]
 _Sha1BlockSize: t.TypeAlias = t.Literal[64]
@@ -5538,11 +5544,7 @@ from ry._types import Buffer
 # JSON
 # =============================================================================
 _JsonPrimitive: t.TypeAlias = bool | int | float | str | None
-_JsonValue: t.TypeAlias = (
-    _JsonPrimitive
-    | dict[str, _JsonPrimitive | _JsonValue]
-    | list[_JsonPrimitive | _JsonValue]
-)
+_JsonValue: t.TypeAlias = _JsonPrimitive | dict[str, _JsonValue] | list[_JsonValue]
 
 
 def parse_json(
@@ -6004,6 +6006,7 @@ class ClientConfig(t.TypedDict):
     http1_only: bool
     https_only: bool
     http1_title_case_headers: bool
+    http1_max_headers: int  # default: 100
     http1_allow_obsolete_multiline_headers_in_responses: bool
     http1_allow_spaces_after_header_name_in_responses: bool
     http1_ignore_invalid_headers_in_responses: bool
@@ -9261,7 +9264,8 @@ import typing as t
 
 from ry._types import Buffer
 from ry.ryo3._bytes import Bytes
-from ry.ryo3._jiter import _JsonValue
+from ry.ryo3._jiter import _JsonPrimitive as _JsonPrimitive
+from ry.ryo3._jiter import _JsonValue as _JsonValue
 
 
 def minify(buf: Buffer | str, /) -> Bytes:
@@ -9558,6 +9562,8 @@ OpenMode: TypeAlias = Literal[
 ```python
 """ry.JSON"""
 
+from ry.ryo3.JSON import _JsonPrimitive as _JsonPrimitive
+from ry.ryo3.JSON import _JsonValue as _JsonValue
 from ry.ryo3.JSON import cache_clear as cache_clear
 from ry.ryo3.JSON import cache_usage as cache_usage
 from ry.ryo3.JSON import dumps as dumps
