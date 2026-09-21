@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import base64
 import typing as t
 from typing import TYPE_CHECKING
 
@@ -254,6 +255,45 @@ class TestResponseJson:
             ],
         }
         assert data == expected
+
+
+class TestAuthHeaders:
+    def _basic_auth_header(self, username: str, password: str | None) -> str:
+
+        _password = password if password is not None else ""
+        user_pass = f"{username}:{_password}"
+        user_pass_bytes = user_pass.encode("utf-8")
+        base64_bytes = base64.b64encode(user_pass_bytes)
+        base64_str = base64_bytes.decode("utf-8")
+        return f"Basic {base64_str}"
+
+    @pytest.mark.parametrize(
+        "basic_auth",
+        [
+            ("supersecretuser", "solarwinds123"),
+            ("supersecretuser", None),
+        ],
+    )
+    def test_basic_auth_headers(
+        self, server: ReqtestServer, basic_auth: tuple[str, str | None]
+    ) -> None:
+        url = server.url / "echo"
+        client = ry.BlockingClient()
+        response = client.get(url, basic_auth=basic_auth)
+        assert response.status_code == 200
+        res_json = response.json()
+        expected_auth_header = self._basic_auth_header(*basic_auth)
+        assert res_json["headers"]["authorization"] == expected_auth_header
+
+    def test_bearer_auth_headers(self, server: ReqtestServer) -> None:
+        url = server.url / "echo"
+        token = "supersecrettoken"  # noqa: S105
+        client = ry.BlockingClient()
+        response = client.get(url, bearer_auth=token)
+        assert response.status_code == 200
+        res_json = response.json()
+        expected_auth_header = f"Bearer {token}"
+        assert res_json["headers"]["authorization"] == expected_auth_header
 
 
 class TestStream:

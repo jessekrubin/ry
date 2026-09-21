@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import base64
 import typing as t
 from typing import TYPE_CHECKING
 
@@ -280,6 +281,47 @@ class TestResponseJson:
         assert data == expected
 
 
+class TestAuthHeaders:
+    def _basic_auth_header(self, username: str, password: str | None) -> str:
+
+        _password = password if password is not None else ""
+        user_pass = f"{username}:{_password}"
+        user_pass_bytes = user_pass.encode("utf-8")
+        base64_bytes = base64.b64encode(user_pass_bytes)
+        base64_str = base64_bytes.decode("utf-8")
+        return f"Basic {base64_str}"
+
+    @pytest.mark.anyio
+    @pytest.mark.parametrize(
+        "basic_auth",
+        [
+            ("supersecretuser", "solarwinds123"),
+            ("supersecretuser", None),
+        ],
+    )
+    async def test_basic_auth_headers(
+        self, server: ReqtestServer, client: TClient, basic_auth: tuple[str, str | None]
+    ) -> None:
+        url = server.url / "echo"
+        response = await client.get(url, basic_auth=basic_auth)
+        assert response.status_code == 200
+        res_json = await response.json()
+        expected_auth_header = self._basic_auth_header(*basic_auth)
+        assert res_json["headers"]["authorization"] == expected_auth_header
+
+    @pytest.mark.anyio
+    async def test_bearer_auth_headers(
+        self, server: ReqtestServer, client: TClient
+    ) -> None:
+        url = server.url / "echo"
+        token = "supersecrettoken"  # noqa: S105
+        response = await client.get(url, bearer_auth=token)
+        assert response.status_code == 200
+        res_json = await response.json()
+        expected_auth_header = f"Bearer {token}"
+        assert res_json["headers"]["authorization"] == expected_auth_header
+
+
 class TestStream:
     @pytest.mark.anyio
     async def test_get_bytes_stream(
@@ -541,14 +583,28 @@ async def test_client_post_json(server: ReqtestServer, client: TClient) -> None:
     assert res_json["body"] == '{"body":"BABOOM"}'
 
 
+@pytest.mark.parametrize(
+    "kwargs",
+    [
+        {"body": b"test", "json": {"a": 1}},
+        {"json": {"a": 1}, "body": b"test"},
+        {"body": b"test", "form": {"a": 1}},
+        {"json": {"a": 1}, "form": {"a": 1}},
+        {"body": b"test", "multipart": {"a": 1}},
+        {"json": {"a": 1}, "multipart": {"a": 1}},
+        {"form": {"a": 1}, "multipart": {"a": 1}},
+    ],
+)
 async def test_client_post_json_and_form_errors(
-    server: ReqtestServer, client: TClient
+    server: ReqtestServer, client: TClient, kwargs: dict[str, t.Any]
 ) -> None:
     url = server.url / "echo"
+    if "multipart" in kwargs:
+        pytest.skip("multipart not implemented yet")
     with pytest.raises(
         ValueError, match="body, json, form, multipart are mutually exclusive"
     ):
-        _response = await client.post(url, json={"body": "BABOOM"}, form={"a": 1})
+        _response = await client.post(url, **kwargs)
 
 
 class TestTimeout:
