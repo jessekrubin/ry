@@ -24,17 +24,49 @@ struct JsonOptions(JsonSerOpt);
 
 impl JsonOptions {
     #[inline]
-    fn fmt(self) -> bool {
+    const fn new() -> Self {
+        Self(0)
+    }
+
+    #[inline]
+    const fn with_sort_keys(self, sort_keys: bool) -> Self {
+        if sort_keys {
+            Self(self.0 | JSON_SER_SORT_KEYS)
+        } else {
+            self
+        }
+    }
+
+    #[inline]
+    const fn with_append_newline(self, append_newline: bool) -> Self {
+        if append_newline {
+            Self(self.0 | JSON_SER_APPEND_NEWLINE)
+        } else {
+            self
+        }
+    }
+
+    #[inline]
+    const fn with_fmt(self, fmt: bool) -> Self {
+        if fmt {
+            Self(self.0 | JSON_SER_FMT)
+        } else {
+            self
+        }
+    }
+
+    #[inline]
+    const fn fmt(self) -> bool {
         self.0 & JSON_SER_FMT != 0
     }
 
     #[inline]
-    fn sort_keys(self) -> bool {
+    const fn sort_keys(self) -> bool {
         self.0 & JSON_SER_SORT_KEYS != 0
     }
 
     #[inline]
-    fn append_newline(self) -> bool {
+    const fn append_newline(self) -> bool {
         self.0 & JSON_SER_APPEND_NEWLINE != 0
     }
 }
@@ -162,15 +194,10 @@ pub fn stringify<'py>(
     append_newline: bool,
     pybytes: bool,
 ) -> PyResult<Bound<'py, PyAny>> {
-    let opts = JsonOptions(
-        (if fmt { JSON_SER_FMT } else { 0 })
-            | (if sort_keys { JSON_SER_SORT_KEYS } else { 0 })
-            | (if append_newline {
-                JSON_SER_APPEND_NEWLINE
-            } else {
-                0
-            }),
-    );
+    let opts = JsonOptions::new()
+        .with_fmt(fmt)
+        .with_sort_keys(sort_keys)
+        .with_append_newline(append_newline);
     let serializer = JsonSerializer::new(default, opts)?;
     serializer.serialize_to_vec(obj.as_borrowed()).map(|v| {
         if pybytes {
