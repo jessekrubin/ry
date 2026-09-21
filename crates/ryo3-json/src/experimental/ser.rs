@@ -29,6 +29,15 @@ impl<F: Format> Serializer<F> {
     }
 
     #[inline(always)]
+    fn write_true(&mut self) {
+        self.output.extend_from_slice(b"true");
+    }
+
+    fn write_false(&mut self) {
+        self.output.extend_from_slice(b"false");
+    }
+
+    #[inline(always)]
     fn comma(&mut self, flag: &mut bool) {
         if *flag {
             self.output.push(b',');
@@ -52,26 +61,29 @@ impl<'a, F: Format> ser::Serializer for &'a mut Serializer<F> {
     #[inline]
     fn serialize_bool(self, v: bool) -> Result<()> {
         if v {
-            self.output.extend_from_slice(b"true");
+            self.write_true();
         } else {
-            self.output.extend_from_slice(b"false");
+            self.write_false();
         }
         Ok(())
     }
 
     #[inline]
     fn serialize_i8(self, v: i8) -> Result<()> {
-        self.serialize_i64(v as _)
+        self.write_n(itoa::Buffer::new().format(v as i64).as_bytes());
+        Ok(())
     }
 
     #[inline]
     fn serialize_i16(self, v: i16) -> Result<()> {
-        self.serialize_i64(v as _)
+        self.write_n(itoa::Buffer::new().format(v as i64).as_bytes());
+        Ok(())
     }
 
     #[inline]
     fn serialize_i32(self, v: i32) -> Result<()> {
-        self.serialize_i64(v as _)
+        self.write_n(itoa::Buffer::new().format(v as i64).as_bytes());
+        Ok(())
     }
 
     #[inline]
@@ -82,17 +94,20 @@ impl<'a, F: Format> ser::Serializer for &'a mut Serializer<F> {
 
     #[inline]
     fn serialize_u8(self, v: u8) -> Result<()> {
-        self.serialize_u64(v as _)
+        self.write_n(itoa::Buffer::new().format(v).as_bytes());
+        Ok(())
     }
 
     #[inline]
     fn serialize_u16(self, v: u16) -> Result<()> {
-        self.serialize_u64(v as _)
+        self.write_n(itoa::Buffer::new().format(v).as_bytes());
+        Ok(())
     }
 
     #[inline]
     fn serialize_u32(self, v: u32) -> Result<()> {
-        self.serialize_u64(v as _)
+        self.write_n(itoa::Buffer::new().format(v).as_bytes());
+        Ok(())
     }
 
     #[inline]
