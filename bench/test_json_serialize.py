@@ -111,7 +111,7 @@ def x100() -> str:
 
 
 _STRINGIFY_FUNCTIONS = [
-    ry.stringify_v3,
+    # ry.stringify_v3,
     ry.stringify,
     ry.stringify_v2,
 ]

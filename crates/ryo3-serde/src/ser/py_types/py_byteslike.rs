@@ -6,6 +6,14 @@ use serde::ser::{Serialize, Serializer};
 use crate::errors::pyerr2sererr;
 use crate::ser::{PySerializeTarget, SerdeTarget};
 
+pub(crate) struct PyBytesLikeSerializer2<'a, 'py, T = SerdeTarget>
+where
+    T: PySerializeTarget,
+{
+    obj: &'a Borrowed<'a, 'py, PyAny>,
+    _target: PhantomData<T>,
+}
+
 pub(crate) struct PyBytesLikeSerializer<'a, 'py, T = SerdeTarget>
 where
     T: PySerializeTarget,

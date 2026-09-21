@@ -57,7 +57,7 @@ impl<'py> JsonSerializer<'py> {
         Ok(())
     }
 
-    pub(crate) fn serialize_to_vec(&self, obj: &Bound<'py, PyAny>) -> PyResult<Vec<u8>> {
+    pub(crate) fn serialize_to_vec(&self, obj: Borrowed<'_, '_, PyAny>) -> PyResult<Vec<u8>> {
         let s = PyAnySerializer::new_json(obj.as_borrowed(), self.default);
         let mut bytes: Vec<u8> = Vec::with_capacity(4096);
         if self.opts.sort_keys {
@@ -151,7 +151,7 @@ pub fn stringify<'py>(
                 append_newline,
             },
         )?;
-        serializer.serialize_to_vec(obj).map(|v| {
+        serializer.serialize_to_vec(obj.as_borrowed()).map(|v| {
             if pybytes {
                 pyo3::types::PyBytes::new(py, &v).into_bound_py_any(py)
             } else {
@@ -164,7 +164,7 @@ pub fn stringify<'py>(
             sort_keys,
             append_newline,
         });
-        serializer.serialize_to_vec(obj).map(|v| {
+        serializer.serialize_to_vec(obj.as_borrowed()).map(|v| {
             if pybytes {
                 pyo3::types::PyBytes::new(py, &v).into_bound_py_any(py)
             } else {
@@ -174,7 +174,7 @@ pub fn stringify<'py>(
     }
 }
 
-pub fn to_vec(obj: &Bound<'_, PyAny>) -> PyResult<Vec<u8>> {
+pub fn to_vec(obj: Borrowed<'_, '_, PyAny>) -> PyResult<Vec<u8>> {
     JsonSerializer::new_no_default(JsonOptions {
         fmt: false,
         sort_keys: false,

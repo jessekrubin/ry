@@ -140,7 +140,7 @@ impl<'py, const BLOCKING: bool> FromPyObject<'_, 'py> for ReqwestKwargs<BLOCKING
                 }
             }
             (None, Some(json), None, None) => {
-                let b = ryo3_json::to_vec(&json)?;
+                let b = ryo3_json::to_vec(json.as_borrowed())?;
                 PyReqwestBody::Json(b)
             }
             (None, None, Some(form), None) => {

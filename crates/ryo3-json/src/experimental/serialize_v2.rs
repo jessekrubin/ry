@@ -55,12 +55,11 @@ impl<'py> JsonSerializerV2<'py> {
 
     pub(crate) fn serialize_to_vec(&self, obj: &Bound<'py, PyAny>) -> PyResult<Vec<u8>> {
         let s = PyAnySerializer::new_json(obj.as_borrowed(), self.default);
-        let mut bytes: Vec<u8> = Vec::with_capacity(4096);
         if self.opts.sort_keys {
             return py_not_implemented_err!("tbd");
-        } else {
-            write_json_v2(&mut bytes, &s, self.opts.fmt)?;
         }
+
+        let mut bytes = write_json_v2(&s, self.opts.fmt)?;
 
         if self.opts.append_newline {
             bytes.push(b'\n');
@@ -69,15 +68,11 @@ impl<'py> JsonSerializerV2<'py> {
     }
 }
 
-fn write_json_v2<T: serde_core::Serialize>(
-    bytes: &mut Vec<u8>,
-    value: &T,
-    fmt: bool,
-) -> PyResult<()> {
+fn write_json_v2<T: serde_core::Serialize>(value: &T, fmt: bool) -> PyResult<Vec<u8>> {
     if fmt {
-        ser::to_writer_pretty(bytes, value)
+        ser::to_vec_pretty(value)
     } else {
-        ser::to_writer(bytes, value)
+        ser::to_vec(value)
     }
     .map_err(map_serde_json_err)
 }

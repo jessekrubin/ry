@@ -1,9 +1,5 @@
 //! Formats for JSON serialization.
 
-use std::io::Write;
-
-use crate::experimental::ser::{Error, Result};
-
 /// Controls how JSON output is formatted.
 pub trait Format: Sized {
     #[doc(hidden)]
@@ -13,10 +9,10 @@ pub trait Format: Sized {
     fn dec(&mut self);
 
     #[doc(hidden)]
-    fn sep(&self, s: &mut impl Write) -> Result<()>;
+    fn sep(&self, output: &mut Vec<u8>);
 
     #[doc(hidden)]
-    fn indent(&self, s: &mut impl Write) -> Result<()>;
+    fn indent(&self, output: &mut Vec<u8>);
 }
 
 /// Compact format for JSON.
@@ -30,14 +26,10 @@ impl Format for Compact {
     fn dec(&mut self) {}
 
     #[inline(always)]
-    fn sep(&self, _: &mut impl Write) -> Result<()> {
-        Ok(())
-    }
+    fn sep(&self, _: &mut Vec<u8>) {}
 
     #[inline(always)]
-    fn indent(&self, _: &mut impl Write) -> Result<()> {
-        Ok(())
-    }
+    fn indent(&self, _: &mut Vec<u8>) {}
 }
 
 /// Pretty printing format for JSON.
@@ -75,25 +67,15 @@ impl Format for Pretty<'_> {
     }
 
     #[inline(always)]
-    fn sep(&self, s: &mut impl Write) -> Result<()> {
-        match s.write_all(b" ") {
-            Ok(_) => Ok(()),
-            _ => Err(Error::io()),
-        }
+    fn sep(&self, output: &mut Vec<u8>) {
+        output.push(b' ');
     }
 
     #[inline(always)]
-    fn indent(&self, s: &mut impl Write) -> Result<()> {
-        if s.write_all(b"\n").is_err() {
-            return Err(Error::io());
-        }
-
+    fn indent(&self, output: &mut Vec<u8>) {
+        output.push(b'\n');
         for _ in 0..self.depth {
-            if s.write_all(self.indent.as_bytes()).is_err() {
-                return Err(Error::io());
-            }
+            output.extend_from_slice(self.indent.as_bytes());
         }
-
-        Ok(())
     }
 }

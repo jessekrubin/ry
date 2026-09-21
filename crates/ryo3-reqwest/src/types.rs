@@ -135,7 +135,7 @@ impl<'py> FromPyObject<'_, 'py> for PyRequestJson {
     type Error = PyErr;
 
     fn extract(obj: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
-        let b = ryo3_json::to_vec(&obj)?;
+        let b = ryo3_json::to_vec(obj)?;
         Ok(Self(b))
     }
 }
