@@ -149,7 +149,9 @@ fn extract_kwargs<const BLOCKING: bool>(
         (Some(body), None, None, None) => {
             extract_body_from_py_body::<BLOCKING>(body.as_borrowed())?
         }
-        (None, Some(json), None, None) => PyReqwestBody::Json(ryo3_json::to_vec(&json)?),
+        (None, Some(json), None, None) => {
+            PyReqwestBody::Json(ryo3_json::to_vec(json.as_borrowed())?)
+        }
         (None, None, Some(form), None) => extract_form_body(form.as_borrowed())?,
         (None, None, None, Some(_multipart)) => pytodo!("multipart not implemented (yet)"),
         (None, None, None, None) => PyReqwestBody::None,
@@ -218,7 +220,7 @@ fn extract_kwargs<const BLOCKING: bool>(
                     return py_value_err!("body, json, form, multipart are mutually exclusive");
                 }
                 body_set = true;
-                res.body = PyReqwestBody::Json(ryo3_json::to_vec(&value)?);
+                res.body = PyReqwestBody::Json(ryo3_json::to_vec(value)?);
             }
             "form" => {
                 if body_set {

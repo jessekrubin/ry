@@ -16,6 +16,7 @@ from ry.ryo3.__about__ import __pkg_name__ as __pkg_name__
 from ry.ryo3.__about__ import __pyo3_experimental_async__ as __pyo3_experimental_async__
 from ry.ryo3.__about__ import __target__ as __target__
 from ry.ryo3.__about__ import __version__ as __version__
+from ry.ryo3._aws_lc import awslc_version as awslc_version
 from ry.ryo3._aws_lc import sha1 as sha1
 from ry.ryo3._aws_lc import sha3_256 as sha3_256
 from ry.ryo3._aws_lc import sha3_384 as sha3_384
