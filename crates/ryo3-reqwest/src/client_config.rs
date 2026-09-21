@@ -30,6 +30,7 @@ pub struct ClientConfig {
     https_only: bool,
     // -- http1 --
     http1_title_case_headers: bool,
+    http1_max_headers: usize,
     http1_allow_obsolete_multiline_headers_in_responses: bool,
     http1_allow_spaces_after_header_name_in_responses: bool,
     http1_ignore_invalid_headers_in_responses: bool,
@@ -109,6 +110,7 @@ impl Default for ClientConfig {
             https_only: false,
             // http/1.x
             http1_title_case_headers: false,
+            http1_max_headers: 100,
             http1_allow_obsolete_multiline_headers_in_responses: false,
             http1_allow_spaces_after_header_name_in_responses: false,
             http1_ignore_invalid_headers_in_responses: false,
@@ -226,6 +228,9 @@ impl<'py> FromPyObject<'_, 'py> for ClientConfig {
                 }
                 "http1_allow_spaces_after_header_name_in_responses" => {
                     cfg.http1_allow_spaces_after_header_name_in_responses = v.extract::<bool>()?;
+                }
+                "http1_max_headers" => {
+                    cfg.http1_max_headers = v.extract::<usize>()?;
                 }
                 "http1_ignore_invalid_headers_in_responses" => {
                     cfg.http1_ignore_invalid_headers_in_responses = v.extract::<bool>()?;
@@ -430,6 +435,7 @@ impl ClientConfig {
             .http1_allow_obsolete_multiline_headers_in_responses(
                 self.http1_allow_obsolete_multiline_headers_in_responses,
             )
+            .http1_max_headers(self.http1_max_headers)
             .http1_allow_spaces_after_header_name_in_responses(
                 self.http1_allow_spaces_after_header_name_in_responses,
             )
@@ -524,6 +530,7 @@ impl ClientConfig {
             "https_only" => self.https_only,
             // -- http1 --
             "http1_title_case_headers" => self.http1_title_case_headers,
+            "http1_max_headers" => self.http1_max_headers,
             "http1_allow_obsolete_multiline_headers_in_responses" => self.http1_allow_obsolete_multiline_headers_in_responses,
             "http1_allow_spaces_after_header_name_in_responses" => self.http1_allow_spaces_after_header_name_in_responses,
             "http1_ignore_invalid_headers_in_responses" => self.http1_ignore_invalid_headers_in_responses,

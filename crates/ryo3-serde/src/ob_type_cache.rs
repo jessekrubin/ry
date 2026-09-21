@@ -259,7 +259,7 @@ impl PyTypeCache {
 
     #[inline]
     pub(crate) fn ptr2type(&self, ptr: usize) -> PyObType {
-        // --- das builtins ---
+        // --- hot builtins ---
         py_obj_ptr!(self, ptr, string, String);
         py_obj_ptr!(self, ptr, int, Int);
         py_obj_ptr!(self, ptr, bool, Bool);
@@ -275,10 +275,6 @@ impl PyTypeCache {
         py_obj_ptr!(self, ptr, bytes, Bytes);
         py_obj_ptr!(self, ptr, py_uuid, PyUuid);
         py_obj_ptr!(self, ptr, bytearray, ByteArray);
-        py_obj_ptr!(self, ptr, memoryview, MemoryView);
-        py_obj_ptr!(self, ptr, ellipsis, Ellipsis);
-        py_obj_ptr!(self, ptr, frozenset, FrozenSet);
-        py_obj_ptr!(self, ptr, set, Set);
 
         // --- ryo3-* features ---
         // Ordered by how much (i (jesse)) use them
@@ -288,8 +284,8 @@ impl PyTypeCache {
         py_obj_ptr_feat!(self, ptr, "ryo3-jiff", ry_zoned, RyZoned);
         py_obj_ptr_feat!(self, ptr, "ryo3-jiff", ry_timespan, RyTimeSpan);
         py_obj_ptr_feat!(self, ptr, "ryo3-jiff", ry_timestamp, RyTimestamp);
-        py_obj_ptr_feat!(self, ptr, "ryo3-jiff", ry_date, RyDate);
         py_obj_ptr_feat!(self, ptr, "ryo3-jiff", ry_datetime, RyDateTime);
+        py_obj_ptr_feat!(self, ptr, "ryo3-jiff", ry_date, RyDate);
         py_obj_ptr_feat!(self, ptr, "ryo3-jiff", ry_time, RyTime);
 
         py_obj_ptr_feat!(self, ptr, "ryo3-url", ry_url, RyUrl);
@@ -303,12 +299,18 @@ impl PyTypeCache {
 
         py_obj_ptr_feat!(self, ptr, "ryo3-uuid", ry_uuid, RyUuid);
 
+        py_obj_ptr_feat!(self, ptr, "ryo3-ulid", ry_ulid, RyUlid);
+
         py_obj_ptr_feat!(self, ptr, "ryo3-http", ry_http_status, RyHttpStatus);
         py_obj_ptr_feat!(self, ptr, "ryo3-http", ry_headers, RyHeaders);
 
-        py_obj_ptr_feat!(self, ptr, "ryo3-ulid", ry_ulid, RyUlid);
-
         py_obj_ptr_feat!(self, ptr, "ryo3-jiff", ry_timezone, RyTimeZone);
+
+        // --- das cold builtins ---
+        py_obj_ptr!(self, ptr, memoryview, MemoryView);
+        py_obj_ptr!(self, ptr, ellipsis, Ellipsis);
+        py_obj_ptr!(self, ptr, frozenset, FrozenSet);
+        py_obj_ptr!(self, ptr, set, Set);
         PyObType::Unknown
     }
 

@@ -4,6 +4,9 @@ import typing as t
 
 from ry._types import Buffer
 
+def awslc_version() -> str:
+    """Return aws-lc-sys version"""
+
 _Sha1Name: t.TypeAlias = t.Literal["sha1"]
 _Sha1BlockSize: t.TypeAlias = t.Literal[64]
 _Sha1DigestSize: t.TypeAlias = t.Literal[20]

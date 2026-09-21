@@ -1,5 +1,7 @@
 """ry.JSON"""
 
+from ry.ryo3.JSON import _JsonPrimitive as _JsonPrimitive
+from ry.ryo3.JSON import _JsonValue as _JsonValue
 from ry.ryo3.JSON import cache_clear as cache_clear
 from ry.ryo3.JSON import cache_usage as cache_usage
 from ry.ryo3.JSON import dumps as dumps

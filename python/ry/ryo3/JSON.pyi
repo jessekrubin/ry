@@ -4,7 +4,8 @@ import typing as t
 
 from ry._types import Buffer
 from ry.ryo3._bytes import Bytes
-from ry.ryo3._jiter import _JsonValue
+from ry.ryo3._jiter import _JsonPrimitive as _JsonPrimitive
+from ry.ryo3._jiter import _JsonValue as _JsonValue
 
 def minify(buf: Buffer | str, /) -> Bytes:
     """Return minified json data (remove whitespace, newlines)

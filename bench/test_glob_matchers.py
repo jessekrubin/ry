@@ -85,26 +85,29 @@ _benchmark = pytest.mark.benchmark(group="fnmatch", warmup=True, min_rounds=1000
 
 @_benchmark
 def test_ry_pattern(benchmark: BenchmarkFixture) -> None:
-    @benchmark
     def _fn() -> None:
         for name in FILENAMES:
             ry_pattern_match(name)
 
+    benchmark(_fn)
+
 
 @_benchmark
 def test_ry_glob(benchmark: BenchmarkFixture) -> None:
-    @benchmark
     def _fn() -> None:
         for name in FILENAMES:
             ry_glob_match(name)
 
+    benchmark(_fn)
+
 
 @_benchmark
 def test_ry_regex(benchmark: BenchmarkFixture) -> None:
-    @benchmark
     def _fn() -> None:
         for name in FILENAMES:
             ry_regex_match(name)
+
+    benchmark(_fn)
 
 
 # ===================
@@ -112,34 +115,38 @@ def test_ry_regex(benchmark: BenchmarkFixture) -> None:
 # ===================
 @_benchmark
 def test_fnmatch(benchmark: BenchmarkFixture) -> None:
-    @benchmark
     def _fn() -> None:
         for name in FILENAMES:
             fnmatch_std(name)
 
+    benchmark(_fn)
+
 
 @_benchmark
 def test_fnmatchcase(benchmark: BenchmarkFixture) -> None:
-    @benchmark
     def _fn() -> None:
         for name in FILENAMES:
             fnmatch_case(name)
+
+    benchmark(_fn)
 
 
 @_benchmark
 def test_regex_match(benchmark: BenchmarkFixture) -> None:
     regex = re.compile(fnmatch.translate(PATTERN))
 
-    @benchmark
     def _fn() -> None:
         for name in FILENAMES:
             _ = regex.match(name) is not None
+
+    benchmark(_fn)
 
 
 @_benchmark
 @pytest.mark.skip(reason="pathlib is slow af")
 def test_pathlib_match(benchmark: BenchmarkFixture) -> None:
-    @benchmark
     def _fn() -> None:
         for name in FILENAMES:
             pathlib.Path(name).match(PATTERN)
+
+    benchmark(_fn)

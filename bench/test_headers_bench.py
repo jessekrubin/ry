@@ -141,7 +141,7 @@ def test_bench_headers_insert(benchmark: BenchmarkFixture, size: int) -> None:
     def _fn(h: ry.Headers, key: str, value: str) -> None:
         h[key] = value
 
-    benchmark.pedantic(_fn, setup=_setup, rounds=50, iterations=1)
+    benchmark.pedantic(_fn, setup=_setup, rounds=50, iterations=1)  # type: ignore[no-untyped-call]
 
 
 @pytest.mark.benchmark(group="headers-write")
@@ -154,7 +154,7 @@ def test_bench_headers_append(benchmark: BenchmarkFixture, size: int) -> None:
     def _fn(h: ry.Headers, key: str, value: str) -> None:
         h.append(key, value)
 
-    benchmark.pedantic(_fn, setup=_setup, rounds=50, iterations=1)
+    benchmark.pedantic(_fn, setup=_setup, rounds=50, iterations=1)  # type: ignore[no-untyped-call]
 
 
 @pytest.mark.benchmark(group="headers-write")
@@ -169,7 +169,7 @@ def test_bench_headers_update_dict(benchmark: BenchmarkFixture, size: int) -> No
     def _fn(h: ry.Headers, upd: dict[str, str]) -> None:
         h.update(upd)
 
-    benchmark.pedantic(_fn, setup=_setup, rounds=50, iterations=1)
+    benchmark.pedantic(_fn, setup=_setup, rounds=50, iterations=1)  # type: ignore[no-untyped-call]
 
 
 @pytest.mark.benchmark(group="headers-write")
@@ -184,4 +184,4 @@ def test_bench_headers_update_headers(benchmark: BenchmarkFixture, size: int) ->
     def _fn(h: ry.Headers, other: ry.Headers) -> None:
         h.update(other)
 
-    benchmark.pedantic(_fn, setup=_setup, rounds=50, iterations=1)
+    benchmark.pedantic(_fn, setup=_setup, rounds=50, iterations=1)  # type: ignore[no-untyped-call]

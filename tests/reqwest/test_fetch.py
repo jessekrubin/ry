@@ -14,13 +14,17 @@ class TestFetch:
     @pytest.mark.anyio
     async def test_fetch_timeout_on_request(self, server: ReqtestServer) -> None:
         url = server.url / "slow"
-        res = await ry.fetch(
-            url,
-            timeout=ry.Duration.from_secs_f64(0.1),
-        )
-        assert res.status_code == 200
+
+        async def _do_fetch() -> str:
+            res = await ry.fetch(
+                url,
+                timeout=ry.Duration.from_secs_f64(0.1),
+            )
+            assert res.status_code == 200
+            return await res.text()
+
         with pytest.raises(ry.ReqwestError, match="TimedOut"):
-            _text = await res.text()
+            _text = await _do_fetch()
 
     @pytest.mark.anyio
     async def test_fetch_multipart_not_impl(
@@ -33,13 +37,16 @@ class TestFetch:
 class TestFetchSync:
     def test_fetch_timeout_on_request_sync(self, server: ReqtestServer) -> None:
         url = server.url / "slow"
-        res = ry.fetch_sync(
-            url,
-            timeout=ry.Duration.from_secs_f64(0.1),
-        )
+
+        def _do_fetch() -> str:
+            res = ry.fetch_sync(
+                url,
+                timeout=ry.Duration.from_secs_f64(0.1),
+            )
+            return res.text()
 
         with pytest.raises(ry.ReqwestError, match="TimedOut"):
-            _text = res.text()
+            _text = _do_fetch()
 
     def test_fetch_multipart_not_impl_sync(
         self,

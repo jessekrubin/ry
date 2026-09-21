@@ -64,7 +64,9 @@ def test_bench_aws_lc_digest_sha(
 @pytest.mark.parametrize("id_data", _BYTES, ids=lambda t: t[0])
 @pytest.mark.parametrize("impl", _RY_HASHERS, ids=lambda t: f"{t[0]}-{t[1]}")
 def test_bench_aws_lc_digest_oneshot(
-    benchmark: BenchmarkFixture, id_data: tuple[str, bytes], impl: tuple[str, str, _Sha]
+    benchmark: BenchmarkFixture,
+    id_data: tuple[str, bytes],
+    impl: tuple[str, str, _Sha[str, int, int]],
 ) -> None:
     size, data = id_data
     benchmark.group = impl[0] + "-" + size

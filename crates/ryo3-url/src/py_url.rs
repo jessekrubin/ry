@@ -524,6 +524,7 @@ impl AsRef<url::Url> for PyUrl {
 }
 
 impl From<url::Url> for PyUrl {
+    #[inline]
     fn from(url: url::Url) -> Self {
         Self(url)
     }

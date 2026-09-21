@@ -2,6 +2,7 @@ pub mod errors;
 mod map_pyerr;
 mod py_cast;
 pub mod py_dict;
+pub mod py_list;
 mod py_parse;
 mod py_str;
 mod py_try_from;

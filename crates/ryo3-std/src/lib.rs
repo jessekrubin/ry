@@ -1,3 +1,15 @@
+// silence `unused_crate_dependencies`
+// - jiff sans time
+// - serde sans (net OR time)
+// - pydantic sans (net OR time)
+#![cfg_attr(
+    any(
+        all(feature = "jiff", not(feature = "time")),
+        all(feature = "serde", not(feature = "net"), not(feature = "time")),
+        all(feature = "pydantic", not(feature = "time"))
+    ),
+    expect(unused_crate_dependencies)
+)]
 use pyo3::prelude::*;
 #[cfg(feature = "fs")]
 pub mod fs;

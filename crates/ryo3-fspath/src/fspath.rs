@@ -806,6 +806,7 @@ impl PyFsPath {
     }
 
     #[cfg(not(feature = "same-file"))]
+    #[cfg_attr(not(feature = "same-file"), expect(clippy::unused_self))]
     fn samefile(&self, _other: PathBuf) -> PyResult<bool> {
         Err(ryo3_core::FeatureNotEnabledError::new_err(
             "`same-file` feature not enabled",

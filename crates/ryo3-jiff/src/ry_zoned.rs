@@ -29,7 +29,7 @@ use crate::spanish::Spanish;
 use crate::util::SpanKwargs;
 use crate::{
     JiffEra, JiffEraYear, JiffRoundMode, JiffTzDisambiguation, JiffTzOffsetConflict, JiffUnit,
-    JiffWeekday, JiffZoned, RyDate,
+    JiffWeekday, JiffZoned, JiffZonedRef, RyDate,
 };
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize), serde(transparent))]
@@ -273,12 +273,12 @@ impl RyZoned {
         Ok(dict)
     }
 
-    fn to_py(&self) -> &Zoned {
+    fn to_py(&self) -> JiffZonedRef<'_> {
         self.to_pydatetime()
     }
 
-    fn to_pydatetime(&self) -> &Zoned {
-        &self.0
+    fn to_pydatetime(&self) -> JiffZonedRef<'_> {
+        JiffZonedRef(&self.0)
     }
 
     fn to_pydate(&self) -> Date {

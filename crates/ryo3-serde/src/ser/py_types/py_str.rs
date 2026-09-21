@@ -34,7 +34,6 @@ impl Serialize for PyStrSerializer<'_, '_> {
         if let Some(s) = s {
             serializer.serialize_str(s)
         } else {
-            // error here...
             crate::serde_err!("invalid str object")
         }
     }

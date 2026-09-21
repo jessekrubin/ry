@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import datetime as pydt
 from typing import TYPE_CHECKING
+from zoneinfo import ZoneInfo
 
 from hypothesis import assume, given
 from hypothesis import strategies as st
@@ -78,3 +79,17 @@ def test_zoned_datetime_roundtrip(dt: pydt.datetime) -> None:
     assert roundtrip_tz_utcoffset == tz_utcoffset, (
         f"Expected timezone offset {tz_utcoffset}, got {roundtrip_tz_utcoffset}"
     )
+
+
+def test_zoned_roundtrip_fold_problemo() -> None:
+    """fold not correctly calculated in pyo3 jiff converseions
+
+    maybe i otta PR this into pyo3
+    """
+    dt = pydt.datetime(
+        1999, 10, 31, 1, 0, 0, 1, fold=1, tzinfo=ZoneInfo("America/Adak")
+    )
+    roundtrip = ry.ZonedDateTime.from_pydatetime(dt).to_py()
+    assert roundtrip == dt
+    assert roundtrip.fold == dt.fold
+    assert roundtrip.utcoffset() == dt.utcoffset()
