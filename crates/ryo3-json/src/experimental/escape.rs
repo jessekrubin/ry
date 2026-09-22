@@ -1,15 +1,15 @@
-const BB: u8 = b'b';
-const TT: u8 = b't';
-const NN: u8 = b'n';
-const FF: u8 = b'f';
-const RR: u8 = b'r';
-const QU: u8 = b'"';
-const BS: u8 = b'\\';
-const UU: u8 = b'u';
+const BB: u8 = b'b'; // \x08
+const TT: u8 = b't'; // \x09
+const NN: u8 = b'n'; // \x0A
+const FF: u8 = b'f'; // \x0C
+const RR: u8 = b'r'; // \x0D
+const QU: u8 = b'"'; // \x22
+const BS: u8 = b'\\'; // \x5C
+const UU: u8 = b'u'; // \x00...\x1F except the ones above
 const __: u8 = 0;
 
-// A value of b'x' at index i means that byte i is escaped as "\x" in JSON.
-// A value of 0 means that byte i is not escaped.
+// Lookup table of escape sequences. A value of b'x' at index i means that byte
+// i is escaped as "\x" in JSON. A value of 0 means that byte i is not escaped.
 static ESCAPE: [u8; 256] = [
     //   1   2   3   4   5   6   7   8   9   A   B   C   D   E   F
     UU, UU, UU, UU, UU, UU, UU, UU, BB, TT, NN, UU, FF, RR, UU, UU, // 0
