@@ -1,3 +1,4 @@
+mod escape;
 mod format;
 mod ser;
 mod serialize_v2;

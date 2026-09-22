@@ -1,4 +1,5 @@
 //! Formats for JSON serialization.
+#![expect(clippy::inline_always, reason = "perf")]
 
 /// Controls how JSON output is formatted.
 pub trait Format: Sized {
@@ -34,7 +35,7 @@ impl Format for Compact {
 
 /// Pretty printing format for JSON.
 pub(super) struct Pretty<'a> {
-    indent: &'a str,
+    indent: &'a [u8],
     depth: usize,
 }
 
@@ -42,12 +43,12 @@ impl<'a> Pretty<'a> {
     /// Creates a pretty printing format with default 2 spaces for indentation.
     #[inline]
     pub(super) fn new() -> Self {
-        Self::with_indent("  ")
+        Self::with_indent(b"  ")
     }
 
     /// Creates a pretty printing format with the given indentation.
     #[inline]
-    fn with_indent(s: &'a str) -> Self {
+    fn with_indent(s: &'a [u8]) -> Self {
         Self {
             indent: s,
             depth: 0,
@@ -58,12 +59,12 @@ impl<'a> Pretty<'a> {
 impl Format for Pretty<'_> {
     #[inline(always)]
     fn inc(&mut self) {
-        self.depth += 1
+        self.depth += 1;
     }
 
     #[inline(always)]
     fn dec(&mut self) {
-        self.depth -= 1
+        self.depth -= 1;
     }
 
     #[inline(always)]
@@ -73,9 +74,11 @@ impl Format for Pretty<'_> {
 
     #[inline(always)]
     fn indent(&self, output: &mut Vec<u8>) {
+        let needed_space = self.depth * self.indent.len() + 1;
+        output.reserve(needed_space);
         output.push(b'\n');
         for _ in 0..self.depth {
-            output.extend_from_slice(self.indent.as_bytes());
+            output.extend_from_slice(self.indent);
         }
     }
 }
