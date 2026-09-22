@@ -61,9 +61,9 @@ impl<'a, F: Format> ser::Serializer for &'a mut Serializer<F> {
     #[inline]
     fn serialize_bool(self, v: bool) -> Result<()> {
         if v {
-            self.write_true();
+            self.write_n(b"true");
         } else {
-            self.write_false();
+            self.write_n(b"false");
         }
         Ok(())
     }

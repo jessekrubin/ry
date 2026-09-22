@@ -4,6 +4,8 @@ use pyo3::prelude::*;
 use ryo3_bytes::RyBytes;
 use ryo3_serde::PyAnySerializer;
 
+use crate::ser_opts::JsonOptions;
+
 const DEFAULT_CAPACITY: usize = 4096;
 
 fn map_serde_json_err<E: std::fmt::Display>(e: E) -> PyErr {
@@ -11,63 +13,6 @@ fn map_serde_json_err<E: std::fmt::Display>(e: E) -> PyErr {
         PyRecursionError::new_err("Recursion limit reached")
     } else {
         PyTypeError::new_err(format!("Failed to serialize: {e}"))
-    }
-}
-
-type JsonSerOpt = u8;
-const JSON_SER_FMT: JsonSerOpt = 1 << 0;
-const JSON_SER_SORT_KEYS: JsonSerOpt = 1 << 1;
-const JSON_SER_APPEND_NEWLINE: JsonSerOpt = 1 << 2;
-
-#[derive(Clone, Copy, Debug, Default)]
-struct JsonOptions(JsonSerOpt);
-
-impl JsonOptions {
-    #[inline]
-    const fn new() -> Self {
-        Self(0)
-    }
-
-    #[inline]
-    const fn with_sort_keys(self, sort_keys: bool) -> Self {
-        if sort_keys {
-            Self(self.0 | JSON_SER_SORT_KEYS)
-        } else {
-            self
-        }
-    }
-
-    #[inline]
-    const fn with_append_newline(self, append_newline: bool) -> Self {
-        if append_newline {
-            Self(self.0 | JSON_SER_APPEND_NEWLINE)
-        } else {
-            self
-        }
-    }
-
-    #[inline]
-    const fn with_fmt(self, fmt: bool) -> Self {
-        if fmt {
-            Self(self.0 | JSON_SER_FMT)
-        } else {
-            self
-        }
-    }
-
-    #[inline]
-    const fn fmt(self) -> bool {
-        self.0 & JSON_SER_FMT != 0
-    }
-
-    #[inline]
-    const fn sort_keys(self) -> bool {
-        self.0 & JSON_SER_SORT_KEYS != 0
-    }
-
-    #[inline]
-    const fn append_newline(self) -> bool {
-        self.0 & JSON_SER_APPEND_NEWLINE != 0
     }
 }
 
@@ -198,7 +143,11 @@ pub fn stringify<'py>(
         .with_fmt(fmt)
         .with_sort_keys(sort_keys)
         .with_append_newline(append_newline);
-    let serializer = JsonSerializer::new(default, opts)?;
+    let serializer = if let Some(default) = default {
+        JsonSerializer::new(Some(default), opts)?
+    } else {
+        JsonSerializer::new_no_default(opts)
+    };
     serializer.serialize_to_vec(obj.as_borrowed()).map(|v| {
         if pybytes {
             pyo3::types::PyBytes::new(py, &v).into_bound_py_any(py)
@@ -209,7 +158,7 @@ pub fn stringify<'py>(
 }
 
 pub fn to_vec(obj: Borrowed<'_, '_, PyAny>) -> PyResult<Vec<u8>> {
-    JsonSerializer::new_no_default(JsonOptions(0)).serialize_to_vec(obj)
+    JsonSerializer::new_no_default(JsonOptions::new()).serialize_to_vec(obj)
 }
 
 #[expect(clippy::fn_params_excessive_bools, reason = "python kwargs")]

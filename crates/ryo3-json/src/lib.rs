@@ -3,6 +3,7 @@
 #[cfg(feature = "experimental")]
 mod experimental;
 pub mod orjson;
+mod ser_opts;
 mod serialize;
 mod transcode;
 
