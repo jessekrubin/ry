@@ -51,6 +51,18 @@ class TestBytesConstructor:
         assert ry.Bytes(value) is value
 
 
+@pytest.mark.parametrize("py_bytes", [b"", b"asdf", b"a\x00b", bytes(range(256))])
+def test_bytes_hash_matches_python_bytes(py_bytes: bytes) -> None:
+    ry_bytes = ry.Bytes(py_bytes)
+    assert hash(ry_bytes) == hash(py_bytes)
+    assert hash(ry_bytes) == ry_bytes.py_hashbuffer()
+    assert hash(ry_bytes) == hash(ry_bytes)
+    py_bytes_dict: dict[bytes | ry.Bytes, str] = {ry_bytes: "found"}
+    ry_bytes_dict: dict[bytes | ry.Bytes, str] = {py_bytes: "found"}
+    assert py_bytes_dict[ry_bytes] == "found"
+    assert ry_bytes_dict[py_bytes] == "found"
+
+
 def test_bytes_pickling() -> None:
     b = ry.Bytes(b"asdf")
     import pickle

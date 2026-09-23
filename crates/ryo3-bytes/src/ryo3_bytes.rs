@@ -1,10 +1,12 @@
 //! Support for Python buffer protocol
 
 use std::fmt::Write;
+use std::hash::{Hash, Hasher};
 use std::num::NonZeroUsize;
 use std::ops::Range;
 use std::os::raw::c_int;
 use std::ptr::NonNull;
+use std::sync::atomic::{AtomicIsize, Ordering};
 
 use bytes::{Bytes, BytesMut};
 use pyo3::buffer::PyBuffer;
@@ -20,6 +22,7 @@ use crate::python_bytes_methods::{
 use crate::replace::{ReplaceBytes, replace_bytes};
 use crate::{ReadableBuffer, search};
 
+const PY_HASH_NONE: isize = -1;
 /// A wrapper around a [`bytes::Bytes`][].
 ///
 /// This implements both import and export via the Python buffer protocol.
@@ -50,9 +53,43 @@ use crate::{ReadableBuffer, search};
     skip_from_py_object,
     weakref
 )]
-#[derive(Clone, Hash, PartialEq, PartialOrd, Eq, Ord)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
-pub struct PyBytes(Bytes);
+pub struct PyBytes(Bytes, AtomicIsize);
+
+impl Clone for PyBytes {
+    fn clone(&self) -> Self {
+        Self(
+            self.0.clone(),
+            AtomicIsize::new(self.1.load(Ordering::Relaxed)),
+        )
+    }
+}
+
+impl Hash for PyBytes {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.0.hash(state);
+    }
+}
+
+impl PartialEq for PyBytes {
+    fn eq(&self, other: &Self) -> bool {
+        self.0 == other.0
+    }
+}
+
+impl Eq for PyBytes {}
+
+impl PartialOrd for PyBytes {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for PyBytes {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.0.cmp(&other.0)
+    }
+}
 
 impl PythonBytesMethods for PyBytes {}
 
@@ -71,7 +108,7 @@ impl AsRef<[u8]> for PyBytes {
 impl PyBytes {
     /// Construct a new [`PyBytes`]
     pub fn new(buffer: Bytes) -> Self {
-        Self(buffer)
+        Self(buffer, AtomicIsize::new(PY_HASH_NONE))
     }
 
     /// Consume and return the [Bytes]
@@ -137,13 +174,13 @@ impl PyBytes {
         };
 
         if new_capacity == 0 {
-            return Ok(Self(Bytes::new()));
+            return Ok(Self::new(Bytes::new()));
         }
         if step == 1 {
             // if start < 0  and stop > len and step == 1 just copy?
             if start < 0 && stop >= bytes_length {
                 let out = self.0.slice(..);
-                let py_bytes = Self(out);
+                let py_bytes = Self::new(out);
                 return Ok(py_bytes);
             }
 
@@ -151,7 +188,7 @@ impl PyBytes {
                 let start = usize::try_from(start).expect("wenodis: start is non-negative");
                 let stop = usize::try_from(stop).expect("wenodis: stop is non-negative");
                 let out = self.0.slice(start..stop);
-                let py_bytes = Self(out);
+                let py_bytes = Self::new(out);
                 return Ok(py_bytes);
             }
             // fall through to the general case here...
@@ -163,7 +200,7 @@ impl PyBytes {
             let stop = usize::try_from(stop).expect("wenodis: stop is non-negative");
             let step = usize::try_from(step).expect("wenodis: step is positive");
             new_buf.extend((start..stop).step_by(step).map(|i| self.0[i]));
-            Ok(Self(new_buf.freeze()))
+            Ok(Self::new(new_buf.freeze()))
         } else {
             // backward
             let mut new_buf = BytesMut::with_capacity(new_capacity);
@@ -171,7 +208,7 @@ impl PyBytes {
             let stop = usize::try_from(stop).expect("wenodis: stop is non-negative");
             let step = step.unsigned_abs();
             new_buf.extend((stop + 1..=start).rev().step_by(step).map(|i| self.0[i]));
-            Ok(Self(new_buf.freeze()))
+            Ok(Self::new(new_buf.freeze()))
         }
     }
 }
@@ -186,21 +223,21 @@ impl From<PyBytes> for Bytes {
 impl From<Vec<u8>> for PyBytes {
     #[inline]
     fn from(value: Vec<u8>) -> Self {
-        Self(value.into())
+        Self::new(value.into())
     }
 }
 
 impl From<Bytes> for PyBytes {
     #[inline]
     fn from(value: Bytes) -> Self {
-        Self(value)
+        Self::new(value)
     }
 }
 
 impl From<BytesMut> for PyBytes {
     #[inline]
     fn from(value: BytesMut) -> Self {
-        Self(value.into())
+        Self::new(value.into())
     }
 }
 
@@ -485,8 +522,19 @@ impl PyBytes {
 
     // <python-bytes-methods>
     /// Return python-hash of bytes
-    fn __hash__(&self) -> u64 {
-        self.py_hash()
+    fn __hash__(&self, py: Python<'_>) -> PyResult<isize> {
+        let hash = self.1.load(Ordering::Relaxed);
+        if hash != PY_HASH_NONE {
+            return Ok(hash);
+        }
+        let hash = self.py_hashbuffer(py)?;
+        self.1.store(hash, Ordering::Relaxed);
+        Ok(hash)
+    }
+
+    /// Hash bytes with Python's buffer hash for benchmarking.
+    fn py_hashbuffer(&self, py: Python<'_>) -> PyResult<isize> {
+        PythonBytesMethods::py_hashbuffer(self, py)
     }
 
     fn __iter__(&self) -> PyBytesIter {
@@ -826,17 +874,18 @@ impl<'py> FromPyObject<'_, 'py> for PyBytes {
                 // SAFETY: wenodis (see line above)
                 ob.cast_unchecked::<Self>()
             };
-            Ok(Self(pb.get().0.clone())) // supa fast clone the inner bytes::Bytes
+            Ok(Self::new(pb.get().0.clone())) // supa fast clone the inner bytes::Bytes
         } else {
             let buffer = ob.extract::<RyBuffer>()?;
             let bytes = Bytes::from_owner(buffer);
-            Ok(Self(bytes))
+            Ok(Self::new(bytes))
         }
     }
 }
 
-/// A wrapper around a `PyBuffer` that applies a custom destructor that checks if the Python
-/// interpreter is still initialized before freeing the buffer memory.
+/// A wrapper around a `PyBuffer` that applies a custom destructor that checks
+/// if the Python interpreter is still initialized before freeing the buffer
+/// memory.
 ///
 /// This also implements `AsRef`<[u8]> because that is required for `Bytes::from_owner`
 #[derive(Debug)]
@@ -869,7 +918,7 @@ impl From<RyBuffer<u8>> for PyBytes {
     #[inline]
     fn from(value: RyBuffer<u8>) -> Self {
         let bytes = Bytes::from_owner(value);
-        Self(bytes)
+        Self::new(bytes)
     }
 }
 

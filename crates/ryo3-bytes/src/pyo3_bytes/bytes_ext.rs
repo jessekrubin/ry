@@ -11,8 +11,13 @@ impl PythonBytesMethods for PyBytes {}
 #[pymethods]
 impl PyBytes {
     /// Return python-hash of bytes
-    fn __hash__(&self) -> u64 {
-        self.py_hash()
+    fn __hash__(&self, py: Python<'_>) -> PyResult<isize> {
+        self.py_hashbuffer(py)
+    }
+
+    /// Hash bytes with Python's buffer hash for benchmarking.
+    fn py_hashbuffer(&self, py: Python<'_>) -> PyResult<isize> {
+        PythonBytesMethods::py_hashbuffer(self, py)
     }
 
     fn __rmul__(&self, value: usize) -> PyBytes {
