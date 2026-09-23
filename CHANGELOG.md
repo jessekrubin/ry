@@ -25,7 +25,8 @@
 - `cargo update`
 - `ryo3-bytes`
   - use `pyo3::ffi::compat::Py_HashBuffer` for `__hash__`
-  - cache the hash in a `std::sync::atomic::AtomicIsize` w/ `-1` being not computed
+  - cache the hash in a `std::sync::atomic::AtomicIsize` w/ `-1` being not
+    computed
   - remove `ahash` dep
 
 ---
