@@ -23,6 +23,10 @@
 - `ryo3-jiter`
   - update `jiter` to `0.17.0` (which AFAICT adds simd parsing!?)
 - `cargo update`
+- `ryo3-bytes`
+  - use `pyo3::ffi::compat::Py_HashBuffer` for `__hash__`
+  - cache the hash in a `std::sync::atomic::AtomicIsize` w/ `-1` being not computed
+  - remove `ahash` dep
 
 ---
 

@@ -13,7 +13,6 @@ repository.workspace = true
 description = "ryo3 + bytes (https://docs.rs/bytes/latest/bytes/)"
 
 [dependencies]
-ahash = { workspace = true }
 bytes = { workspace = true }
 memchr = { workspace = true, optional = true }
 pyo3 = { workspace = true, features = [] }

@@ -1,6 +1,5 @@
 //! Extension(s) to the `pyo3-bytes` which will be hopefully be upstreamed.
 use std::fmt::Write;
-use std::hash::Hash;
 use std::num::NonZeroUsize;
 use std::ops::Range;
 
@@ -15,20 +14,18 @@ use crate::{ReadableBuffer, search};
 pub(crate) trait PythonBytesMethods:
     AsRef<[u8]> + From<Vec<u8>> + From<Bytes> + Sized + PyClass
 {
-    /// Hash bytes
-    fn py_hash(&self) -> u64 {
-        // STD-HASHER VERSION
-        // let mut hasher = std::hash::DefaultHasher::new();
-        // let bref: &[u8] = self.as_ref();
-        // bref.hash(&mut hasher);
-        // hasher.finish()
-        use std::hash::Hasher;
-
-        use ahash::AHasher;
-        let mut hasher = AHasher::default();
-        let bref: &[u8] = self.as_ref();
-        bref.hash(&mut hasher);
-        hasher.finish()
+    /// Hash bytes with Python's buffer hash, matching built-in bytes.
+    #[expect(unsafe_code)]
+    fn py_hashbuffer(&self, py: Python<'_>) -> PyResult<isize> {
+        let bytes = self.as_ref();
+        let len = bytes.len().try_into()?;
+        // SAFETY: `bytes` is valid for `len` bytes and lives through the FFI call.
+        let hash = unsafe { pyo3::ffi::compat::Py_HashBuffer(bytes.as_ptr().cast(), len) };
+        if hash == -1 {
+            Err(PyErr::fetch(py))
+        } else {
+            Ok(hash)
+        }
     }
 
     fn py_decode<'py>(

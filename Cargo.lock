@@ -2074,7 +2074,6 @@ dependencies = [
 name = "ryo3-bytes"
 version = "0.0.101"
 dependencies = [
- "ahash",
  "bytes",
  "memchr",
  "pyo3",
