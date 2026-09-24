@@ -75,7 +75,7 @@ class Date(
     MIN: t.Final[Date]
     MAX: t.Final[Date]
     ZERO: t.Final[Date]
-    __match_args__: t.Final[tuple[str, str, str]] = ("year", "month", "day")
+    __match_args__: t.Final = ("year", "month", "day")
 
     def __new__(cls, year: int, month: int, day: int) -> t.Self: ...
     def __eq__(self, other: object) -> bool: ...
@@ -278,7 +278,7 @@ class Time(
 ):
     MIN: t.Final[Time]
     MAX: t.Final[Time]
-    __match_args__: t.Final[tuple[str, str, str, str]] = (
+    __match_args__: t.Final = (
         "hour",
         "minute",
         "second",
@@ -490,7 +490,7 @@ class DateTime(
     MIN: t.Final[DateTime]
     MAX: t.Final[DateTime]
     ZERO: t.Final[DateTime]
-    __match_args__: t.Final[tuple[str, str, str, str, str, str, str]] = (
+    __match_args__: t.Final = (
         "year",
         "month",
         "day",
@@ -859,7 +859,7 @@ class SignedDuration(
     SECOND: t.Final[SignedDuration]
     MINUTE: t.Final[SignedDuration]
     HOUR: t.Final[SignedDuration]
-    __match_args__: t.Final[tuple[str, str]] = ("secs", "nanos")
+    __match_args__: t.Final = ("secs", "nanos")
 
     def __new__(cls, secs: int = 0, nanos: int = 0) -> t.Self: ...
 
@@ -1954,7 +1954,7 @@ class ISOWeekDate(
     MIN: t.Final[ISOWeekDate]
     MAX: t.Final[ISOWeekDate]
     ZERO: t.Final[ISOWeekDate]
-    __match_args__: t.Final[tuple[str, str, str]] = ("year", "week", "weekday")
+    __match_args__: t.Final = ("year", "week", "weekday")
     def __new__(cls, year: int, week: int, weekday: _Weekday) -> t.Self: ...
 
     # =========================================================================

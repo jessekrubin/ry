@@ -150,7 +150,7 @@ overrides = [
 ]
 
 [tool.pyrefly]
-errors.bad-match = false
+# errors.bad-match = false
 errors.deprecated = "error"
 errors.redundant-cast = "warn"
 ignore-missing-imports = [ "tests.*", "*" ]
