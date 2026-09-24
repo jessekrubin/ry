@@ -504,8 +504,6 @@ def brotli(
 import sys
 import typing as t
 
-from ry.protocols import RyIterator
-
 if sys.version_info >= (3, 12):
     from collections.abc import Buffer as Buffer
 else:
@@ -629,7 +627,7 @@ class Bytes(Buffer):
         """
 
     def isspace(self) -> bool:
-        """
+        r"""
         Return `True` if all bytes in the sequence are ASCII whitespace and the sequence
         is not empty, `False` otherwise.
 
@@ -2663,7 +2661,7 @@ class Time(
     def to_py(self) -> pydt.time: ...
     def to_pytime(self) -> pydt.time: ...
     @classmethod
-    def from_pytime(cls, t: pydt.time) -> t.Self: ...
+    def from_pytime(cls, time: pydt.time) -> t.Self: ...
 
     # =========================================================================
     # CLASS METHODS
@@ -3256,7 +3254,7 @@ class SignedDuration(
     def abs(self) -> t.Self: ...
     def unsigned_abs(self) -> Duration: ...
     def __richcmp__(self, other: t.Self, op: int) -> bool: ...
-    def replace(self, secs: int | None = None, nanos: int | None = None) -> t.Self:
+    def replace(self, *, secs: int | None = None, nanos: int | None = None) -> t.Self:
         """Return duration with parts replaced
 
 
@@ -3422,6 +3420,8 @@ class SignedDuration(
     @t.overload
     def add(
         self,
+        other: None = None,
+        /,
         *,
         hours: int | None = None,
         minutes: int | None = None,
@@ -3435,6 +3435,8 @@ class SignedDuration(
     @t.overload
     def sub(
         self,
+        other: None = None,
+        /,
         *,
         hours: int | None = None,
         minutes: int | None = None,
@@ -3636,6 +3638,8 @@ class TimeSpan(
     @t.overload
     def add(
         self,
+        other: None = None,
+        /,
         *,
         years: int | None = None,
         months: int | None = None,
@@ -3654,6 +3658,8 @@ class TimeSpan(
     @t.overload
     def sub(
         self,
+        other: None = None,
+        /,
         *,
         years: int | None = None,
         months: int | None = None,
@@ -7109,7 +7115,7 @@ class Duration(FromStr, ToPyTimeDelta, ToPy[pydt.timedelta], ToString, _Parse):
     def __mul__(self, other: float) -> t.Self: ...
     def __rmul__(self, other: float) -> t.Self: ...
     def abs_diff(self, other: t.Self | pydt.timedelta) -> t.Self: ...
-    def replace(self, secs: int | None = None, nanos: int | None = None) -> t.Self:
+    def replace(self, *, secs: int | None = None, nanos: int | None = None) -> t.Self:
         """Return duration with parts replaced
 
         Examples
@@ -7281,13 +7287,15 @@ def instant() -> Instant:
     """Return an `Instant` ~ alias for `Instant` constructor"""
 
 
-def sleep(secs: float) -> float:
+def sleep(secs: float, interval: int = 100) -> float:
     """Sleep for the given number of seconds.
 
     Parameters
     ----------
     secs : float
         number of seconds to sleep
+    interval : int, optional
+        check signals interval in milliseconds; range 1..=1000 (default=100)
 
     Returns
     -------
@@ -9304,7 +9312,7 @@ def minify(buf: Buffer | str, /) -> Bytes:
 
 
 def fmt(buf: Buffer | str, /) -> Bytes:
-    """Return formatted json data (add indentation, newlines)
+    r"""Return formatted json data (add indentation, newlines)
 
     Parameters
     ----------

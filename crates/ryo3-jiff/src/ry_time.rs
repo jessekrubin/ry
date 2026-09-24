@@ -317,8 +317,8 @@ impl RyTime {
     }
 
     #[staticmethod]
-    fn from_pytime(py_time: JiffTime) -> Self {
-        Self::from(py_time.0)
+    fn from_pytime(time: JiffTime) -> Self {
+        Self::from(time.0)
     }
 
     // =====================================================================

@@ -111,7 +111,7 @@ class Duration(FromStr, ToPyTimeDelta, ToPy[pydt.timedelta], ToString, _Parse):
     def __mul__(self, other: float) -> t.Self: ...
     def __rmul__(self, other: float) -> t.Self: ...
     def abs_diff(self, other: t.Self | pydt.timedelta) -> t.Self: ...
-    def replace(self, secs: int | None = None, nanos: int | None = None) -> t.Self:
+    def replace(self, *, secs: int | None = None, nanos: int | None = None) -> t.Self:
         """Return duration with parts replaced
 
         Examples
@@ -275,13 +275,15 @@ def duration(secs: int = 0, nanos: int = 0) -> Duration:
 def instant() -> Instant:
     """Return an `Instant` ~ alias for `Instant` constructor"""
 
-def sleep(secs: float) -> float:
+def sleep(secs: float, interval: int = 100) -> float:
     """Sleep for the given number of seconds.
 
     Parameters
     ----------
     secs : float
         number of seconds to sleep
+    interval : int, optional
+        check signals interval in milliseconds; range 1..=1000 (default=100)
 
     Returns
     -------

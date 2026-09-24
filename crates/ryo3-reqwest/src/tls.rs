@@ -69,14 +69,14 @@ impl PyCertificate {
             .map_err(|e| py_value_error!("Failed to create certificate from PEM: {}", e))
     }
 
-    fn from_pem_bundle(pem: &[u8]) -> PyResult<Vec<Self>> {
-        ::reqwest::Certificate::from_pem_bundle(pem)
+    fn from_pem_bundle(pem_bundle: &[u8]) -> PyResult<Vec<Self>> {
+        ::reqwest::Certificate::from_pem_bundle(pem_bundle)
             .map(|certs| {
                 certs
                     .into_iter()
                     .map(|cert| Self {
                         kind: CertificateKind::Pem,
-                        bin: bytes::Bytes::copy_from_slice(pem),
+                        bin: bytes::Bytes::copy_from_slice(pem_bundle),
                         cert,
                     })
                     .collect()
@@ -129,8 +129,8 @@ impl PyCertificate {
     #[pyo3(name = "from_pem_bundle")]
     #[staticmethod]
     #[expect(clippy::needless_pass_by_value)]
-    fn py_from_pem_bundle(pem: ReadableBuffer) -> PyResult<Vec<Self>> {
-        Self::from_pem_bundle(pem.as_ref())
+    fn py_from_pem_bundle(pem_bundle: ReadableBuffer) -> PyResult<Vec<Self>> {
+        Self::from_pem_bundle(pem_bundle.as_ref())
     }
 
     fn __repr__(&self) -> String {

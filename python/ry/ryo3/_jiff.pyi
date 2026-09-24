@@ -326,7 +326,7 @@ class Time(
     def to_py(self) -> pydt.time: ...
     def to_pytime(self) -> pydt.time: ...
     @classmethod
-    def from_pytime(cls, t: pydt.time) -> t.Self: ...
+    def from_pytime(cls, time: pydt.time) -> t.Self: ...
 
     # =========================================================================
     # CLASS METHODS
@@ -894,7 +894,7 @@ class SignedDuration(
     def abs(self) -> t.Self: ...
     def unsigned_abs(self) -> Duration: ...
     def __richcmp__(self, other: t.Self, op: int) -> bool: ...
-    def replace(self, secs: int | None = None, nanos: int | None = None) -> t.Self:
+    def replace(self, *, secs: int | None = None, nanos: int | None = None) -> t.Self:
         """Return duration with parts replaced
 
 
@@ -1059,6 +1059,8 @@ class SignedDuration(
     @t.overload
     def add(
         self,
+        other: None = None,
+        /,
         *,
         hours: int | None = None,
         minutes: int | None = None,
@@ -1072,6 +1074,8 @@ class SignedDuration(
     @t.overload
     def sub(
         self,
+        other: None = None,
+        /,
         *,
         hours: int | None = None,
         minutes: int | None = None,
@@ -1267,6 +1271,8 @@ class TimeSpan(
     @t.overload
     def add(
         self,
+        other: None = None,
+        /,
         *,
         years: int | None = None,
         months: int | None = None,
@@ -1285,6 +1291,8 @@ class TimeSpan(
     @t.overload
     def sub(
         self,
+        other: None = None,
+        /,
         *,
         years: int | None = None,
         months: int | None = None,

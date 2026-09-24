@@ -3,8 +3,6 @@
 import sys
 import typing as t
 
-from ry.protocols import RyIterator
-
 if sys.version_info >= (3, 12):
     from collections.abc import Buffer as Buffer
 else:
@@ -124,7 +122,7 @@ class Bytes(Buffer):
         """
 
     def isspace(self) -> bool:
-        """
+        r"""
         Return `True` if all bytes in the sequence are ASCII whitespace and the sequence
         is not empty, `False` otherwise.
 

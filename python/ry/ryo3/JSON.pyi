@@ -38,7 +38,7 @@ def minify(buf: Buffer | str, /) -> Bytes:
     """
 
 def fmt(buf: Buffer | str, /) -> Bytes:
-    """Return formatted json data (add indentation, newlines)
+    r"""Return formatted json data (add indentation, newlines)
 
     Parameters
     ----------
