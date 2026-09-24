@@ -237,6 +237,17 @@ class TestResponseJson:
         ):
             _data = response.json()
 
+    def test_get_json_broken_is_broken2(self, server: ReqtestServer) -> None:
+        url = server.url / "broken-json"
+        client = ry.BlockingClient()
+        response = client.get(url)
+        try:
+            _data = response.json()
+        except ValueError as ve:
+            print(ve)
+            print(dir(ValueError))
+            assert False
+
     def test_get_json_broken_is_broken_allow_partial(
         self, server: ReqtestServer
     ) -> None:

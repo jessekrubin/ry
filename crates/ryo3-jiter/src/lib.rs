@@ -5,6 +5,7 @@
 //! allows for parsing json from bytes or str (which jiter-python does not as
 //! of [2024-05-29])
 use std::path::PathBuf;
+mod py_json_decode_error;
 
 pub use ::jiter::{FloatMode, PartialMode, PythonParse, StringCacheMode, map_json_error};
 use pyo3::IntoPyObjectExt;
@@ -105,8 +106,7 @@ impl JiterParseOptions {
 #[pyfunction(
     signature = (
         data,
-        /,
-        *,
+        /, *,
         allow_inf_nan = false,
         cache_mode = StringCacheMode::All,
         partial_mode = PartialMode::Off,
@@ -127,30 +127,39 @@ pub fn parse_json<'py>(
         .with_cache_mode(cache_mode)
         .with_partial_mode(partial_mode)
         .with_catch_duplicate_keys(catch_duplicate_keys);
-    if let Ok(bytes) = data.extract::<&[u8]>() {
-        options.parse(py, bytes)
-    } else if let Ok(s) = data.extract::<&str>() {
-        let json_bytes = s.as_bytes();
+    if let Ok(py_str) = data.cast_exact::<pyo3::types::PyString>() {
+        let json_bytes = py_str.to_str()?.as_bytes();
         options.parse(py, json_bytes)
-    } else if let Ok(custom) = data.cast_exact::<RyBytes>() {
-        let pybytes = custom.get();
-        let json_bytes = pybytes.as_slice();
-        options.parse(py, json_bytes)
-    } else if let Ok(pybytes) = data.extract::<RyBytes>() {
-        let json_bytes = pybytes.as_slice();
+    } else if let Ok(bytes) = data.extract::<ryo3_bytes::ReadableBuffer>() {
+        let json_bytes = bytes.as_slice();
         options.parse(py, json_bytes)
     } else {
         Err(pyo3::exceptions::PyTypeError::new_err(
-            "Expected bytes-like, bytearray, pyo3-bytes object or str",
+            "Expected bytes, bytearray, str, or buffer",
         ))
     }
+    // else if let Ok(bytes) = data.extract::<&[u8]>() {
+    //     options.parse(py, bytes)
+    // } else if let Ok(s) = data.extract::<&str>() {
+    //     let json_bytes = s.as_bytes();
+    //     options.parse(py, json_bytes)
+    // } else if let Ok(custom) = data.cast_exact::<RyBytes>() {
+    //     let pybytes = custom.get();
+    //     let json_bytes = pybytes.as_slice();
+    //     options.parse(py, json_bytes)
+    // } else if let Ok(pybytes) = data.extract::<RyBytes>() {
+    //     let json_bytes = pybytes.as_slice();
+    //     options.parse(py, json_bytes)
+    // } else {
+    //     Err(pyo3::exceptions::PyTypeError::new_err(
+    //         "Expected bytes-like, bytearray, pyo3-bytes object or str",
+    //     ))
+    // }
 }
-
 #[pyfunction(
     signature = (
         data,
-        /,
-        *,
+        /, *,
         allow_inf_nan = false,
         cache_mode = StringCacheMode::All,
         partial_mode = PartialMode::Off,
@@ -222,8 +231,7 @@ py_parse_fn!(loads);
 #[pyfunction(
     signature = (
         p,
-        /,
-        *,
+        /, *,
         allow_inf_nan = false,
         cache_mode = StringCacheMode::All,
         partial_mode = PartialMode::Off,
