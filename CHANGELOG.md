@@ -7,7 +7,7 @@
 
 ---
 
-## v0.0.101 [unreleased]
+## v0.0.101 [2026-09-23]
 
 - `ryo3-core`/`ryo3-serde`
   - `BorrowedListIter` added for no rec-count-bumpage when iterating over lists
