@@ -253,14 +253,12 @@ rustls-native-certs = { version = "0.8.3", default-features = false, features = 
 same-file = { version = "1.0.6", default-features = false }
 serde = { version = "1.0", default-features = false, features = ["derive"] }
 serde-transcode = { version = "1.1.1", default-features = false, features = [] }
-serde_bytes = { version = "0.11.19", default-features = false, features = [] }
 serde_json = { version = "1.0", default-features = false, features = ["std"] }
 serde_urlencoded = { version = "0.7.1", default-features = false, features = [
 ] }
 shlex = { version = "2.0.1", default-features = false, features = [] }
 size = { version = "0.5.0", default-features = false, features = [] }
 sqlformat = { version = "0.5.0", default-features = false, features = [] }
-thiserror = { version = "2.0.18", default-features = false, features = [] }
 tokio = { version = "1.52.3", default-features = false, features = [
   "bytes",
   "fs",

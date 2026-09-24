@@ -1,17 +1,14 @@
 ry.*.__richcmp__
-ry.*.__all__
 ry.*.__getnewargs_ex__
 ry.ryo3.*
 ry.dev.*
-ry.__about__.*
-ry.*.__getnewargs_ex__
-ry.__main__.*
 ry._types.*
 ry.*.__get_pydantic_core_schema__
 ry.*.__get_pydantic_json_schema__
-ry.__opt_level__
 ry.*.__dbg__
-
+ry.JSON.__all__
+ry.xxhash.__all__
+ry.zstd.__all__
 # ---------------
 # --- CLASSES ---
 # ---------------

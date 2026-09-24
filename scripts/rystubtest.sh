@@ -2,7 +2,10 @@
 
 uv run maturin develop
 
+echo "=== MYPY VERSION ==="
 uv run --with mypy==1.19.1 python -m mypy.stubtest --version
+
+echo "=== MYPY STUBTEST ==="
 uv run --with mypy==1.19.1 python -m mypy.stubtest \
   --mypy-config-file pyproject.toml \
   --whitelist scripts/stubtest-allowlist.txt \

@@ -73,7 +73,7 @@ impl PyCrc32Fast {
     #[new]
     #[pyo3(
         signature = (data = None, *, seed = Crc32Seed::default()),
-        text_signature = "(data=None, *, seed=0xcbf29ce484222325)",
+        text_signature = "(data=None, *, seed=0)",
     )]
     fn py_new(py: Python<'_>, data: Option<ReadableBuffer>, seed: Crc32Seed) -> Self {
         if let Some(b) = data {

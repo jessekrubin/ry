@@ -75,7 +75,7 @@ class Date(
     MIN: t.Final[Date]
     MAX: t.Final[Date]
     ZERO: t.Final[Date]
-    __match_args__: t.Final[tuple[str, str, str]] = ("year", "month", "day")
+    __match_args__: t.Final = ("year", "month", "day")
 
     def __new__(cls, year: int, month: int, day: int) -> t.Self: ...
     def __eq__(self, other: object) -> bool: ...
@@ -278,7 +278,7 @@ class Time(
 ):
     MIN: t.Final[Time]
     MAX: t.Final[Time]
-    __match_args__: t.Final[tuple[str, str, str, str]] = (
+    __match_args__: t.Final = (
         "hour",
         "minute",
         "second",
@@ -326,7 +326,7 @@ class Time(
     def to_py(self) -> pydt.time: ...
     def to_pytime(self) -> pydt.time: ...
     @classmethod
-    def from_pytime(cls, t: pydt.time) -> t.Self: ...
+    def from_pytime(cls, time: pydt.time) -> t.Self: ...
 
     # =========================================================================
     # CLASS METHODS
@@ -490,7 +490,7 @@ class DateTime(
     MIN: t.Final[DateTime]
     MAX: t.Final[DateTime]
     ZERO: t.Final[DateTime]
-    __match_args__: t.Final[tuple[str, str, str, str, str, str, str]] = (
+    __match_args__: t.Final = (
         "year",
         "month",
         "day",
@@ -859,7 +859,7 @@ class SignedDuration(
     SECOND: t.Final[SignedDuration]
     MINUTE: t.Final[SignedDuration]
     HOUR: t.Final[SignedDuration]
-    __match_args__: t.Final[tuple[str, str]] = ("secs", "nanos")
+    __match_args__: t.Final = ("secs", "nanos")
 
     def __new__(cls, secs: int = 0, nanos: int = 0) -> t.Self: ...
 
@@ -894,7 +894,7 @@ class SignedDuration(
     def abs(self) -> t.Self: ...
     def unsigned_abs(self) -> Duration: ...
     def __richcmp__(self, other: t.Self, op: int) -> bool: ...
-    def replace(self, secs: int | None = None, nanos: int | None = None) -> t.Self:
+    def replace(self, *, secs: int | None = None, nanos: int | None = None) -> t.Self:
         """Return duration with parts replaced
 
 
@@ -1059,6 +1059,8 @@ class SignedDuration(
     @t.overload
     def add(
         self,
+        other: None = None,
+        /,
         *,
         hours: int | None = None,
         minutes: int | None = None,
@@ -1072,6 +1074,8 @@ class SignedDuration(
     @t.overload
     def sub(
         self,
+        other: None = None,
+        /,
         *,
         hours: int | None = None,
         minutes: int | None = None,
@@ -1267,6 +1271,8 @@ class TimeSpan(
     @t.overload
     def add(
         self,
+        other: None = None,
+        /,
         *,
         years: int | None = None,
         months: int | None = None,
@@ -1285,6 +1291,8 @@ class TimeSpan(
     @t.overload
     def sub(
         self,
+        other: None = None,
+        /,
         *,
         years: int | None = None,
         months: int | None = None,
@@ -1946,7 +1954,7 @@ class ISOWeekDate(
     MIN: t.Final[ISOWeekDate]
     MAX: t.Final[ISOWeekDate]
     ZERO: t.Final[ISOWeekDate]
-    __match_args__: t.Final[tuple[str, str, str]] = ("year", "week", "weekday")
+    __match_args__: t.Final = ("year", "week", "weekday")
     def __new__(cls, year: int, week: int, weekday: _Weekday) -> t.Self: ...
 
     # =========================================================================

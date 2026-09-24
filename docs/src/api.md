@@ -470,7 +470,9 @@ sha3_256: type[_Sha[_Sha3_256Name, _Sha3_256BlockSize, _Sha3_256DigestSize]]
 sha3_384: type[_Sha[_Sha3_384Name, _Sha3_384BlockSize, _Sha3_384DigestSize]]
 sha3_512: type[_Sha[_Sha3_512Name, _Sha3_512BlockSize, _Sha3_512DigestSize]]
 sha512: type[_Sha[_Sha512Name, _Sha512BlockSize, _Sha512DigestSize]]
-sha512_256: type[_Sha[_Sha512_256Name, _Sha512_256BlockSize, _Sha512_256DigestSize]]
+sha512_256: type[
+    _Sha[_Sha512_256Name, _Sha512_256BlockSize, _Sha512_256DigestSize]
+]
 ```
 
 <h2 id="ry.ryo3._brotli"><code>ry.ryo3._brotli</code></h2>
@@ -503,8 +505,6 @@ def brotli(
 
 import sys
 import typing as t
-
-from ry.protocols import RyIterator
 
 if sys.version_info >= (3, 12):
     from collections.abc import Buffer as Buffer
@@ -629,7 +629,7 @@ class Bytes(Buffer):
         """
 
     def isspace(self) -> bool:
-        """
+        r"""
         Return `True` if all bytes in the sequence are ASCII whitespace and the sequence
         is not empty, `False` otherwise.
 
@@ -774,10 +774,14 @@ class Bytes(Buffer):
     ) -> int:
         """Return the highest index where `sub` is found or raise `ValueError`."""
 
-    def split(self, sep: Buffer | None = None, maxsplit: int = -1, /) -> list[Bytes]:
+    def split(
+        self, sep: Buffer | None = None, maxsplit: int = -1, /
+    ) -> list[Bytes]:
         """Return a list of the words in the bytes, using `sep` as the delimiter."""
 
-    def rsplit(self, sep: Buffer | None = None, maxsplit: int = -1, /) -> list[Bytes]:
+    def rsplit(
+        self, sep: Buffer | None = None, maxsplit: int = -1, /
+    ) -> list[Bytes]:
         """Return a list of the words in the bytes, using `sep` as the delimiter."""
 
     def partition(self, sep: Buffer, /) -> tuple[Bytes, Bytes, Bytes]:
@@ -837,7 +841,9 @@ class Bytes(Buffer):
 
         """
 
-    def windows(self, size: int, /, *, reverse: bool = False) -> _BytesSliceIter:
+    def windows(
+        self, size: int, /, *, reverse: bool = False
+    ) -> _BytesSliceIter:
         """Returns an iterator over all contiguous windows of length size.
 
         The windows overlap. If the slice is shorter than size, the iterator returns no values.
@@ -908,7 +914,9 @@ import typing as t
 from ry.protocols import FromStr, _Parse
 from ry.ryo3._std import Duration
 
-_SameSiteKw: t.TypeAlias = t.Literal["Lax", "lax", "Strict", "strict", "None", "none"]
+_SameSiteKw: t.TypeAlias = t.Literal[
+    "Lax", "lax", "Strict", "strict", "None", "none"
+]
 """same-site kwarg allows title-case and lower-case values"""
 
 
@@ -1668,11 +1676,17 @@ class fnv1a:  # noqa: N801
     def hexdigest(self) -> str: ...
     def copy(self) -> t.Self: ...
     @staticmethod
-    def oneshot(data: Buffer, *, seed: int | bytes = 0xCBF29CE484222325) -> bytes: ...  # noqa: PYI054
+    def oneshot(
+        data: Buffer, *, seed: int | bytes = 0xCBF29CE484222325
+    ) -> bytes: ...  # noqa: PYI054
     @staticmethod
-    def oneshot_int(data: Buffer, *, seed: int | bytes = 0xCBF29CE484222325) -> int: ...  # noqa: PYI054
+    def oneshot_int(
+        data: Buffer, *, seed: int | bytes = 0xCBF29CE484222325
+    ) -> int: ...  # noqa: PYI054
     @staticmethod
-    def oneshot_hex(data: Buffer, *, seed: int | bytes = 0xCBF29CE484222325) -> str: ...  # noqa: PYI054
+    def oneshot_hex(
+        data: Buffer, *, seed: int | bytes = 0xCBF29CE484222325
+    ) -> str: ...  # noqa: PYI054
 ```
 
 <h2 id="ry.ryo3._fspath"><code>ry.ryo3._fspath</code></h2>
@@ -1741,7 +1755,9 @@ class FsPath(ToPy[Path], ToString):
     def replace(self, new_path: PathLike[str] | str) -> FsPath: ...
     def resolve(self) -> FsPath: ...
     def rmdir(self, recursive: bool = False) -> None: ...
-    def unlink(self, missing_ok: bool = False, recursive: bool = False) -> None: ...
+    def unlink(
+        self, missing_ok: bool = False, recursive: bool = False
+    ) -> None: ...
     def with_name(self, name: str) -> t.Self: ...
     def with_suffix(self, suffix: str) -> t.Self: ...
 
@@ -1814,7 +1830,9 @@ class FsPath(ToPy[Path], ToString):
     @staticmethod
     def which_all(cmd: str, path: str | None = None) -> list[FsPath]: ...
     @staticmethod
-    def which_re(regex: str | Regex, path: str | None = None) -> list[FsPath]: ...
+    def which_re(
+        regex: str | Regex, path: str | None = None
+    ) -> list[FsPath]: ...
 
     # =========================================================================
     # DUNDERS
@@ -2411,7 +2429,7 @@ class Date(
     MIN: t.Final[Date]
     MAX: t.Final[Date]
     ZERO: t.Final[Date]
-    __match_args__: t.Final[tuple[str, str, str]] = ("year", "month", "day")
+    __match_args__: t.Final = ("year", "month", "day")
 
     def __new__(cls, year: int, month: int, day: int) -> t.Self: ...
     def __eq__(self, other: object) -> bool: ...
@@ -2615,7 +2633,7 @@ class Time(
 ):
     MIN: t.Final[Time]
     MAX: t.Final[Time]
-    __match_args__: t.Final[tuple[str, str, str, str]] = (
+    __match_args__: t.Final = (
         "hour",
         "minute",
         "second",
@@ -2663,7 +2681,7 @@ class Time(
     def to_py(self) -> pydt.time: ...
     def to_pytime(self) -> pydt.time: ...
     @classmethod
-    def from_pytime(cls, t: pydt.time) -> t.Self: ...
+    def from_pytime(cls, time: pydt.time) -> t.Self: ...
 
     # =========================================================================
     # CLASS METHODS
@@ -2848,7 +2866,7 @@ class DateTime(
     MIN: t.Final[DateTime]
     MAX: t.Final[DateTime]
     ZERO: t.Final[DateTime]
-    __match_args__: t.Final[tuple[str, str, str, str, str, str, str]] = (
+    __match_args__: t.Final = (
         "year",
         "month",
         "day",
@@ -3221,7 +3239,7 @@ class SignedDuration(
     SECOND: t.Final[SignedDuration]
     MINUTE: t.Final[SignedDuration]
     HOUR: t.Final[SignedDuration]
-    __match_args__: t.Final[tuple[str, str]] = ("secs", "nanos")
+    __match_args__: t.Final = ("secs", "nanos")
 
     def __new__(cls, secs: int = 0, nanos: int = 0) -> t.Self: ...
 
@@ -3250,13 +3268,17 @@ class SignedDuration(
     def __int__(self) -> int: ...
     def __bool__(self) -> bool: ...
     @t.overload
-    def __truediv__(self, other: t.Self | Duration | pydt.timedelta) -> float: ...
+    def __truediv__(
+        self, other: t.Self | Duration | pydt.timedelta
+    ) -> float: ...
     @t.overload
     def __truediv__(self, other: float) -> t.Self: ...
     def abs(self) -> t.Self: ...
     def unsigned_abs(self) -> Duration: ...
     def __richcmp__(self, other: t.Self, op: int) -> bool: ...
-    def replace(self, secs: int | None = None, nanos: int | None = None) -> t.Self:
+    def replace(
+        self, *, secs: int | None = None, nanos: int | None = None
+    ) -> t.Self:
         """Return duration with parts replaced
 
 
@@ -3422,6 +3444,8 @@ class SignedDuration(
     @t.overload
     def add(
         self,
+        other: None = None,
+        /,
         *,
         hours: int | None = None,
         minutes: int | None = None,
@@ -3435,6 +3459,8 @@ class SignedDuration(
     @t.overload
     def sub(
         self,
+        other: None = None,
+        /,
         *,
         hours: int | None = None,
         minutes: int | None = None,
@@ -3457,7 +3483,9 @@ _TimeSpanArithmetic: t.TypeAlias = (
     TimeSpan
     | Duration
     | SignedDuration
-    | tuple[TimeSpan | Duration | SignedDuration, ZonedDateTime | Date | DateTime]
+    | tuple[
+        TimeSpan | Duration | SignedDuration, ZonedDateTime | Date | DateTime
+    ]
 )
 
 _TimeSpanKey: t.TypeAlias = t.Literal[
@@ -3636,6 +3664,8 @@ class TimeSpan(
     @t.overload
     def add(
         self,
+        other: None = None,
+        /,
         *,
         years: int | None = None,
         months: int | None = None,
@@ -3654,6 +3684,8 @@ class TimeSpan(
     @t.overload
     def sub(
         self,
+        other: None = None,
+        /,
         *,
         years: int | None = None,
         months: int | None = None,
@@ -4092,7 +4124,9 @@ class ZonedDateTime(
     @classmethod
     def parse_rfc2822(cls, s: str) -> t.Self: ...
     @classmethod
-    def from_parts(cls, timestamp: Timestamp, time_zone: TimeZone) -> t.Self: ...
+    def from_parts(
+        cls, timestamp: Timestamp, time_zone: TimeZone
+    ) -> t.Self: ...
 
     # =========================================================================
     # STRPTIME/STRFTIME
@@ -4321,7 +4355,7 @@ class ISOWeekDate(
     MIN: t.Final[ISOWeekDate]
     MAX: t.Final[ISOWeekDate]
     ZERO: t.Final[ISOWeekDate]
-    __match_args__: t.Final[tuple[str, str, str]] = ("year", "week", "weekday")
+    __match_args__: t.Final = ("year", "week", "weekday")
 
     def __new__(cls, year: int, week: int, weekday: _Weekday) -> t.Self: ...
 
@@ -5548,7 +5582,9 @@ from ry._types import Buffer
 # JSON
 # =============================================================================
 _JsonPrimitive: t.TypeAlias = bool | int | float | str | None
-_JsonValue: t.TypeAlias = _JsonPrimitive | dict[str, _JsonValue] | list[_JsonValue]
+_JsonValue: t.TypeAlias = (
+    _JsonPrimitive | dict[str, _JsonValue] | list[_JsonValue]
+)
 
 
 def parse_json(
@@ -5556,7 +5592,9 @@ def parse_json(
     *,
     allow_inf_nan: bool = False,
     cache_mode: t.Literal[True, False, "all", "keys", "none"] = "all",
-    partial_mode: t.Literal[True, False, "off", "on", "trailing-strings"] = False,
+    partial_mode: t.Literal[
+        True, False, "off", "on", "trailing-strings"
+    ] = False,
     catch_duplicate_keys: bool = False,
 ) -> _JsonValue: ...
 def parse_jsonl(
@@ -5564,7 +5602,9 @@ def parse_jsonl(
     *,
     allow_inf_nan: bool = False,
     cache_mode: t.Literal[True, False, "all", "keys", "none"] = "all",
-    partial_mode: t.Literal[True, False, "off", "on", "trailing-strings"] = False,
+    partial_mode: t.Literal[
+        True, False, "off", "on", "trailing-strings"
+    ] = False,
     catch_duplicate_keys: bool = False,
 ) -> list[_JsonValue]: ...
 def read_json(
@@ -5572,7 +5612,9 @@ def read_json(
     *,
     allow_inf_nan: bool = False,
     cache_mode: t.Literal[True, False, "all", "keys", "none"] = "all",
-    partial_mode: t.Literal[True, False, "off", "on", "trailing-strings"] = False,
+    partial_mode: t.Literal[
+        True, False, "off", "on", "trailing-strings"
+    ] = False,
     catch_duplicate_keys: bool = False,
     lines: bool = False,
 ) -> _JsonValue: ...
@@ -5611,7 +5653,9 @@ class Lz4FrameInfo(t.TypedDict, total=False):
 
 @t.final
 class Lz4BlockCompressor:
-    def __new__(cls, dictionary: Buffer | None = None, *, size: bool = False) -> t.Self:
+    def __new__(
+        cls, dictionary: Buffer | None = None, *, size: bool = False
+    ) -> t.Self:
         """lz4 block compressor
 
         Parameters
@@ -5786,7 +5830,9 @@ def lz4_decompress_block(
     """
 
 
-def lz4_train_dict(samples: t.Iterable[Buffer], dict_size: int = 65535) -> Bytes:
+def lz4_train_dict(
+    samples: t.Iterable[Buffer], dict_size: int = 65535
+) -> Bytes:
     """train an lz4 dictionary from sample messages
 
     signature mirrors `compression.zstd.train_dict` but returns raw
@@ -5833,7 +5879,9 @@ def memchr3(
     needle1: _Byte, needle2: _Byte, needle3: _Byte, haystack: Buffer
 ) -> int | None: ...
 def memrchr(needle: _Byte, haystack: Buffer) -> int | None: ...
-def memrchr2(needle1: _Byte, needle2: _Byte, haystack: Buffer) -> int | None: ...
+def memrchr2(
+    needle1: _Byte, needle2: _Byte, haystack: Buffer
+) -> int | None: ...
 def memrchr3(
     needle1: _Byte, needle2: _Byte, needle3: _Byte, haystack: Buffer
 ) -> int | None: ...
@@ -6039,8 +6087,12 @@ class ClientConfig(t.TypedDict):
     tls_crls_only: list[CertificateRevocationList] | None
     tls_info: bool
     tls_sni: bool
-    tls_version_max: t.Literal["1.0", "1.1", "1.2", "1.3"] | None  # default: None
-    tls_version_min: t.Literal["1.0", "1.1", "1.2", "1.3"] | None  # default: None
+    tls_version_max: (
+        t.Literal["1.0", "1.1", "1.2", "1.3"] | None
+    )  # default: None
+    tls_version_min: (
+        t.Literal["1.0", "1.1", "1.2", "1.3"] | None
+    )  # default: None
     tls_danger_accept_invalid_certs: bool  # default: False
     tls_danger_accept_invalid_hostnames: bool  # default: False
     # __ UNSTABLE __
@@ -6313,7 +6365,9 @@ class Response:
         *,
         allow_inf_nan: bool = False,
         cache_mode: t.Literal[True, False, "all", "keys", "none"] = "all",
-        partial_mode: t.Literal[True, False, "off", "on", "trailing-strings"] = False,
+        partial_mode: t.Literal[
+            True, False, "off", "on", "trailing-strings"
+        ] = False,
         catch_duplicate_keys: bool = False,
     ) -> t.Any: ...
     async def bytes(self) -> ry.Bytes: ...
@@ -6328,11 +6382,15 @@ class Response:
     @property
     def version(
         self,
-    ) -> t.Literal["HTTP/0.9", "HTTP/1.0", "HTTP/1.1", "HTTP/2.0", "HTTP/3.0"]: ...
+    ) -> t.Literal[
+        "HTTP/0.9", "HTTP/1.0", "HTTP/1.1", "HTTP/2.0", "HTTP/3.0"
+    ]: ...
     @property
     def http_version(
         self,
-    ) -> t.Literal["HTTP/0.9", "HTTP/1.0", "HTTP/1.1", "HTTP/2.0", "HTTP/3.0"]: ...
+    ) -> t.Literal[
+        "HTTP/0.9", "HTTP/1.0", "HTTP/1.1", "HTTP/2.0", "HTTP/3.0"
+    ]: ...
     @property
     def redirected(self) -> bool: ...
     @property
@@ -6375,22 +6433,30 @@ class BlockingResponse:
         *,
         allow_inf_nan: bool = False,
         cache_mode: t.Literal[True, False, "all", "keys", "none"] = "all",
-        partial_mode: t.Literal[True, False, "off", "on", "trailing-strings"] = False,
+        partial_mode: t.Literal[
+            True, False, "off", "on", "trailing-strings"
+        ] = False,
         catch_duplicate_keys: bool = False,
     ) -> t.Any: ...
     def bytes(self) -> ry.Bytes: ...
-    def bytes_stream(self, min_read_size: int = 0, /) -> BlockingResponseStream: ...
+    def bytes_stream(
+        self, min_read_size: int = 0, /
+    ) -> BlockingResponseStream: ...
     def stream(self, min_read_size: int = 0, /) -> BlockingResponseStream: ...
     @property
     def url(self) -> URL: ...
     @property
     def version(
         self,
-    ) -> t.Literal["HTTP/0.9", "HTTP/1.0", "HTTP/1.1", "HTTP/2.0", "HTTP/3.0"]: ...
+    ) -> t.Literal[
+        "HTTP/0.9", "HTTP/1.0", "HTTP/1.1", "HTTP/2.0", "HTTP/3.0"
+    ]: ...
     @property
     def http_version(
         self,
-    ) -> t.Literal["HTTP/0.9", "HTTP/1.0", "HTTP/1.1", "HTTP/2.0", "HTTP/3.0"]: ...
+    ) -> t.Literal[
+        "HTTP/0.9", "HTTP/1.0", "HTTP/1.1", "HTTP/2.0", "HTTP/3.0"
+    ]: ...
     @property
     def redirected(self) -> bool: ...
     @property
@@ -6430,7 +6496,9 @@ class ResponseStream:
     @t.overload
     async def collect(self, join: t.Literal[True]) -> ry.Bytes: ...
     @t.overload
-    async def collect(self, join: t.Literal[False] = False) -> list[ry.Bytes]: ...
+    async def collect(
+        self, join: t.Literal[False] = False
+    ) -> list[ry.Bytes]: ...
 
 
 @t.final
@@ -6918,11 +6986,15 @@ class SqlfmtQueryParams:
 
 
 def sqlfmt_params(
-    params: _SqlfmtParamsLike[_TSqlfmtParamValue_co] | SqlfmtQueryParams | None = None,
+    params: _SqlfmtParamsLike[_TSqlfmtParamValue_co]
+    | SqlfmtQueryParams
+    | None = None,
 ) -> SqlfmtQueryParams: ...
 def sqlfmt(
     sql: str,
-    params: _SqlfmtParamsLike[_TSqlfmtParamValue_co] | SqlfmtQueryParams | None = None,
+    params: _SqlfmtParamsLike[_TSqlfmtParamValue_co]
+    | SqlfmtQueryParams
+    | None = None,
     *,
     indent: int | t.Literal["tabs", "\t"] = 2,
     uppercase: bool | None = None,
@@ -7109,7 +7181,9 @@ class Duration(FromStr, ToPyTimeDelta, ToPy[pydt.timedelta], ToString, _Parse):
     def __mul__(self, other: float) -> t.Self: ...
     def __rmul__(self, other: float) -> t.Self: ...
     def abs_diff(self, other: t.Self | pydt.timedelta) -> t.Self: ...
-    def replace(self, secs: int | None = None, nanos: int | None = None) -> t.Self:
+    def replace(
+        self, *, secs: int | None = None, nanos: int | None = None
+    ) -> t.Self:
         """Return duration with parts replaced
 
         Examples
@@ -7281,13 +7355,15 @@ def instant() -> Instant:
     """Return an `Instant` ~ alias for `Instant` constructor"""
 
 
-def sleep(secs: float) -> float:
+def sleep(secs: float, interval: int = 100) -> float:
     """Sleep for the given number of seconds.
 
     Parameters
     ----------
     secs : float
         number of seconds to sleep
+    interval : int, optional
+        check signals interval in milliseconds; range 1..=1000 (default=100)
 
     Returns
     -------
@@ -8084,7 +8160,9 @@ async def asleep(secs: float) -> float:
 # =============================================================================
 @t.final
 class AsyncFile:
-    def __new__(cls, path: FsPathLike, mode: OpenBinaryMode = "rb") -> t.Self: ...
+    def __new__(
+        cls, path: FsPathLike, mode: OpenBinaryMode = "rb"
+    ) -> t.Self: ...
     async def close(self) -> None: ...
     async def flush(self) -> None: ...
     async def isatty(self) -> t.NoReturn: ...
@@ -8302,7 +8380,9 @@ class WsMessage(Buffer):
         >>> ping_msg.payload
         Bytes(b"ping-payload")
         >>> too_large_payload = b"x" * 126
-        >>> WsMessage.ping(too_large_payload)  # doctest: +IGNORE_EXCEPTION_DETAIL
+        >>> WsMessage.ping(
+        ...     too_large_payload
+        ... )  # doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
             ...
         ValueError: ping-payload exceeds the websocket limit of 125 bytes
@@ -8332,7 +8412,9 @@ class WsMessage(Buffer):
         >>> pong_msg.payload
         Bytes(b"pong-payload")
         >>> too_large_payload = b"x" * 126
-        >>> WsMessage.pong(too_large_payload)  # doctest: +IGNORE_EXCEPTION_DETAIL
+        >>> WsMessage.pong(
+        ...     too_large_payload
+        ... )  # doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
             ...
         ValueError: pong-payload exceeds the websocket limit of 125 bytes
@@ -8340,7 +8422,9 @@ class WsMessage(Buffer):
         """
 
     @staticmethod
-    def close(code: int = 1_000, reason: str | Buffer | None = None) -> WsMessage:
+    def close(
+        code: int = 1_000, reason: str | Buffer | None = None
+    ) -> WsMessage:
         """Construct a new close message with the given close-code and reason"""
 
     # -------------------------------------------------------------------------
@@ -8395,7 +8479,9 @@ class WsMessage(Buffer):
         *,
         allow_inf_nan: bool = False,
         cache_mode: t.Literal[True, False, "all", "keys", "none"] = "all",
-        partial_mode: t.Literal[True, False, "off", "on", "trailing-strings"] = False,
+        partial_mode: t.Literal[
+            True, False, "off", "on", "trailing-strings"
+        ] = False,
         catch_duplicate_keys: bool = False,
     ) -> t.Any:
         """Parse the message payload as JSON"""
@@ -8520,7 +8606,9 @@ class xxh32:  # noqa: N801
     digest_size: t.Literal[4]
     block_size: t.Literal[16]
 
-    def __new__(cls, data: Buffer | None = None, *, seed: int = 0) -> t.Self: ...
+    def __new__(
+        cls, data: Buffer | None = None, *, seed: int = 0
+    ) -> t.Self: ...
     def update(self, data: Buffer) -> None: ...
     def digest(self) -> bytes: ...
     def hexdigest(self) -> str: ...
@@ -8547,7 +8635,9 @@ class xxh64:  # noqa: N801
     digest_size: t.Literal[8]
     block_size: t.Literal[32]
 
-    def __new__(cls, data: Buffer | None = None, *, seed: int = 0) -> t.Self: ...
+    def __new__(
+        cls, data: Buffer | None = None, *, seed: int = 0
+    ) -> t.Self: ...
     def update(self, data: Buffer) -> None: ...
     def digest(self) -> bytes: ...
     def hexdigest(self) -> str: ...
@@ -8852,7 +8942,9 @@ class URL(FromStr, ToString, _Parse):
     @classmethod
     def from_str(cls, s: str, /) -> t.Self: ...
     @classmethod
-    def parse_with_params(cls, url: str | bytes, params: dict[str, str]) -> t.Self: ...
+    def parse_with_params(
+        cls, url: str | bytes, params: dict[str, str]
+    ) -> t.Self: ...
     @classmethod
     def from_directory_path(cls, path: FsPathLike) -> t.Self: ...
     @classmethod
@@ -8966,7 +9058,12 @@ class URL(FromStr, ToString, _Parse):
         *,
         fragment: str | None = None,
         host: str | None = None,
-        ip_host: IPv4Address | IPv6Address | Ipv4Addr | Ipv6Addr | IpAddr | None = None,
+        ip_host: IPv4Address
+        | IPv6Address
+        | Ipv4Addr
+        | Ipv6Addr
+        | IpAddr
+        | None = None,
         password: str | None = None,
         path: str | None = None,
         port: int | None = None,
@@ -9043,9 +9140,13 @@ class UUID(FromStr):
     @t.overload
     def __new__(cls, *, bytes: _Bytes, version: _V | None = None) -> t.Self: ...
     @t.overload
-    def __new__(cls, *, bytes_le: _Bytes, version: _V | None = None) -> t.Self: ...
+    def __new__(
+        cls, *, bytes_le: _Bytes, version: _V | None = None
+    ) -> t.Self: ...
     @t.overload
-    def __new__(cls, *, fields: _UuidFields, version: _V | None = None) -> t.Self: ...
+    def __new__(
+        cls, *, fields: _UuidFields, version: _V | None = None
+    ) -> t.Self: ...
     @t.overload
     def __new__(cls, *, int: _Int, version: _V | None = None) -> t.Self: ...
     @t.overload
@@ -9304,7 +9405,7 @@ def minify(buf: Buffer | str, /) -> Bytes:
 
 
 def fmt(buf: Buffer | str, /) -> Bytes:
-    """Return formatted json data (add indentation, newlines)
+    r"""Return formatted json data (add indentation, newlines)
 
     Parameters
     ----------
@@ -9385,7 +9486,9 @@ def loads(
     *,
     allow_inf_nan: bool = False,
     cache_mode: t.Literal[True, False, "all", "keys", "none"] = "all",
-    partial_mode: t.Literal[True, False, "off", "on", "trailing-strings"] = False,
+    partial_mode: t.Literal[
+        True, False, "off", "on", "trailing-strings"
+    ] = False,
     catch_duplicate_keys: bool = False,
 ) -> _JsonValue: ...
 def parse(
@@ -9393,7 +9496,9 @@ def parse(
     *,
     allow_inf_nan: bool = False,
     cache_mode: t.Literal[True, False, "all", "keys", "none"] = "all",
-    partial_mode: t.Literal[True, False, "off", "on", "trailing-strings"] = False,
+    partial_mode: t.Literal[
+        True, False, "off", "on", "trailing-strings"
+    ] = False,
     catch_duplicate_keys: bool = False,
 ) -> _JsonValue: ...
 def cache_clear() -> None: ...

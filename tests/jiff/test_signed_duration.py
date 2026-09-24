@@ -400,7 +400,7 @@ class TestDurationArithmetic:
             TypeError,
             match="add\\(\\) accepts either a span-like object or keyword units, not both",
         ):
-            dur.add(other, seconds=1)  # type: ignore[call-overload]  # ty: ignore[no-matching-overload]
+            dur.add(other, seconds=1)  # type: ignore[call-overload]  # ty: ignore[invalid-argument-type]
 
     def test_add_requires_positional_or_keyword_units(self) -> None:
         dur = ry.SignedDuration(1, 0)
@@ -496,7 +496,7 @@ class TestDurationArithmetic:
             TypeError,
             match="sub\\(\\) accepts either a duration-like object or keyword units, not both",
         ):
-            dur.sub(other, seconds=1)  # type: ignore[call-overload]  # ty: ignore[no-matching-overload]
+            dur.sub(other, seconds=1)  # type: ignore[call-overload]  # ty: ignore[invalid-argument-type]
 
     def test_sub_requires_positional_or_keyword_units(self) -> None:
         dur = ry.SignedDuration(1, 0)

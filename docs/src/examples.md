@@ -307,7 +307,9 @@ def test_print_current_time_rounded_to_second() -> None:
 
 
 def test_print_todays_date_at_specific_time() -> None:
-    zdt = ry.ZonedDateTime.now().replace(hour=14, minute=0, second=0, nanosecond=0)
+    zdt = ry.ZonedDateTime.now().replace(
+        hour=14, minute=0, second=0, nanosecond=0
+    )
     assert zdt.hour == 14 and zdt.minute == 0 and zdt.second == 0
     assert zdt.nanosecond == 0
 
@@ -366,11 +368,15 @@ def test_dealing_with_ambiguity() -> None:
 
 def test_parsing_a_span() -> None:
     iso = ry.TimeSpan.parse("P5y1w10dT5h59m")
-    expected = ry.TimeSpan()._years(5)._weeks(1)._days(10)._hours(5)._minutes(59)
+    expected = (
+        ry.TimeSpan()._years(5)._weeks(1)._days(10)._hours(5)._minutes(59)
+    )
     assert iso == expected
     assert str(iso) == "P5Y1W10DT5H59M"
 
-    from_friendly = ry.TimeSpan.parse("5 years, 1 week, 10 days, 5 hours, 59 minutes")
+    from_friendly = ry.TimeSpan.parse(
+        "5 years, 1 week, 10 days, 5 hours, 59 minutes"
+    )
     assert iso == from_friendly
     assert from_friendly.to_string(friendly=True) == "5y 1w 10d 5h 59m"
     assert from_friendly.friendly() == "5y 1w 10d 5h 59m"

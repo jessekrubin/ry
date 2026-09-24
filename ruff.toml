@@ -66,7 +66,7 @@ ignore = [
   "E501",    # line length
   "PLR2004", # magic values (super dumb rule)
   "PYI021",  # docstring-in-stub
-  "PYI053",  #
+  # "PYI053",  #
   "SIM105",  # suppressible-exception
 ]
 preview = true
@@ -109,7 +109,6 @@ flake8-boolean-trap.extend-allowed-calls = [
 [lint.per-file-ignores]
 "python/ry/**/*.pyi" = [
   "COM",
-  # "D",
   "PYI021",
   "ANN401",
   "E501",
@@ -124,7 +123,6 @@ flake8-boolean-trap.extend-allowed-calls = [
   "D403",     # first-word-uncapitalized
   "D418",     # overload-with-docstring
   # ^ fine for annotations
-  "D301", # escape-sequence-in-docstring
   "D412", # blank-lines-between-header-and-content
   # ^ causes problems when hovering over a method it looks bad
 ]
@@ -204,7 +202,6 @@ flake8-boolean-trap.extend-allowed-calls = [
   "D418",     # overload-with-docstring
   "E501",     # line-too-long
   "FIX002",   # line-contains-todo
-  "PGH003",   # blanket-type-ignore
   "PLR2004",  # magic-value-comparison
   "RUF100",   # unused-noqa
   "SIM201",   # negate-equal-op
@@ -216,7 +213,6 @@ flake8-boolean-trap.extend-allowed-calls = [
 ]
 "tests/reqwest/conftest.py" = ["ARG001"]
 "python/ry/dev/*.py" = ["PLC0415"]
-"python/ry/ryo3/*.pyi" = ["F401", "F821"]
 "scripts/**" = [
   "S101", # assert
   "S603", # subprocess-without-shell-equals-true
