@@ -21,7 +21,7 @@ use crate::ry_time::RyTime;
 use crate::ry_timezone::RyTimeZone;
 use crate::ry_zoned::RyZoned;
 use crate::series::RyDateSeries;
-use crate::spanish::Spanish;
+use crate::spanish::{DurationLike, Spanish};
 use crate::util::SpanKwargs;
 use crate::{JiffEra, JiffEraYear, JiffRoundMode, JiffUnit, JiffWeekday, RyTimestamp};
 
@@ -159,6 +159,10 @@ impl RyDate {
             .checked_add(other)
             .map(Self::from)
             .map_err(map_py_overflow_err)
+    }
+
+    fn __radd__(&self, other: DurationLike) -> PyResult<Self> {
+        self.__add__(other.into())
     }
 
     #[expect(clippy::too_many_arguments, reason = "python kwargs")]

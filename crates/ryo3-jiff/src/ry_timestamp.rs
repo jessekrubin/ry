@@ -14,7 +14,7 @@ use crate::difference::{RyTimestampDifference, TimestampDifferenceArg};
 use crate::py_temporal_like::{TemporalSubInput, TemporalSubOutput};
 use crate::round::RyTimestampRound;
 use crate::series::RyTimestampSeries;
-use crate::spanish::Spanish;
+use crate::spanish::{DurationLike, Spanish};
 use crate::util::SpanKwargs;
 use crate::{
     JiffRoundMode, JiffUnit, RyDate, RyDateTime, RyISOWeekDate, RyOffset, RySignedDuration, RySpan,
@@ -182,6 +182,10 @@ impl RyTimestamp {
             .checked_add(other)
             .map(Self::from)
             .map_err(map_py_overflow_err)
+    }
+
+    fn __radd__(&self, other: DurationLike) -> PyResult<Self> {
+        self.__add__(other.into())
     }
 
     #[expect(clippy::too_many_arguments, reason = "python kwargs")]

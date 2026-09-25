@@ -10,7 +10,7 @@ include = [
   "docs/ryo3_version.py",
   "docs/**/*.md",
 ]
-extend-exclude = [".purgatory/**/*.py"]
+extend-exclude = [".purgatory/**/*.py", "scripts/.*.py"]
 
 format.docstring-code-format = true
 

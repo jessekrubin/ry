@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import datetime as pydt
+
 import pytest
 from hypothesis import given
 
@@ -132,3 +134,27 @@ class TestInstantArithmetic:
         dos = ry.Instant().now()
         with pytest.raises(OverflowError, match="overflow error"):
             _ = uno - dos
+
+    def test_instant_radd_commutative(self) -> None:
+        i = ry.Instant.now()
+        d = ry.Duration(secs=10, nanos=500)
+        expected = i + d
+        assert d + i == expected
+        assert i.__radd__(d) == expected  # noqa: PLC2801
+
+    @pytest.mark.parametrize(
+        "other",
+        [
+            ry.SignedDuration(secs=10),
+            ry.timespan(seconds=10),
+            pydt.timedelta(seconds=10),
+            1,
+        ],
+        ids=lambda v: type(v).__name__,
+    )
+    def test_instant_radd_unsupported(self, other: object) -> None:
+        i = ry.Instant.now()
+        assert i.__radd__(other) is NotImplemented  # type: ignore[operator]  # ruff: ignore[unnecessary-dunder-call]  # ty: ignore[invalid-argument-type]
+
+        with pytest.raises(TypeError):
+            _ = other + i  # type: ignore[operator]

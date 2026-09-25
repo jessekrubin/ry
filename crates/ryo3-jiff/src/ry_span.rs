@@ -13,7 +13,7 @@ use ryo3_core::{PyAsciiString, PyCastExactOpt, map_py_overflow_err, map_py_value
 use crate::py_temporal_like::PyTemporalArg;
 use crate::ry_signed_duration::RySignedDuration;
 use crate::span_units::{SpanUnit, SpanUnitsMask};
-use crate::spanish::Spanish;
+use crate::spanish::{DurationLike, Spanish};
 use crate::util::SpanKwargs;
 use crate::{
     JiffRoundMode, JiffSpan, JiffUnit, RyDate, RyDateTime, RyTime, RyTimestamp, RyZoned, constants,
@@ -583,7 +583,7 @@ impl RySpan {
     }
 
     #[expect(clippy::needless_pass_by_value)]
-    fn __sub__(&self, other: IntoSpanArithmetic) -> PyResult<Self> {
+    fn __sub__(&self, other: RySpanArithmetic) -> PyResult<Self> {
         let span_arithmetic: SpanArithmetic = (&other).into();
         self.0
             .checked_sub(span_arithmetic)
@@ -610,7 +610,7 @@ impl RySpan {
     )]
     fn sub(
         &self,
-        other: Option<IntoSpanArithmetic>,
+        other: Option<RySpanArithmetic>,
         // **KWARG ONLY
         years: Option<i16>,
         months: Option<i32>,
@@ -1100,90 +1100,67 @@ impl<'a, 'py> From<&'a RySpanRelativeTo<'a, 'py>> for jiff::SpanRelativeTo<'a> {
 }
 
 #[derive(Debug, Clone)]
-pub(crate) enum IntoSpanArithmetic<'a, 'py> {
-    Uno(Spanish<'a, 'py>),
-    Dos((Spanish<'a, 'py>, RySpanRelativeTo<'a, 'py>)),
+pub(crate) struct RySpanArithmetic<'a, 'py> {
+    spanish: Spanish<'a, 'py>,
+    relative_to: Option<RySpanRelativeTo<'a, 'py>>,
 }
 
-impl<'a, 'py> FromPyObject<'a, 'py> for IntoSpanArithmetic<'a, 'py> {
+impl<'a, 'py> FromPyObject<'a, 'py> for RySpanArithmetic<'a, 'py> {
     type Error = PyErr;
 
     fn extract(obj: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
         if let Ok(tup) = obj.cast_exact::<PyTuple>() {
             if tup.len() == 2 {
                 let both = tup.extract::<(Spanish<'a, 'py>, RySpanRelativeTo<'a, 'py>)>()?;
-                Ok(IntoSpanArithmetic::Dos(both))
+                Ok(RySpanArithmetic {
+                    spanish: both.0,
+                    relative_to: Some(both.1),
+                })
             } else {
                 py_type_err!("Expected a tuple of length 2 for Span arithmetic with relative")
             }
         } else if let Ok(spanish) = obj.extract::<Spanish<'a, 'py>>() {
-            Ok(IntoSpanArithmetic::Uno(spanish))
+            Ok(RySpanArithmetic {
+                spanish,
+                relative_to: None,
+            })
         } else {
             py_type_err!(
-                "Expected TimeSpan, SignedDuration, Duration, datetime.timedelta, or a tuple of length 2 for Span arithmetic with relative",
+                "Expected `<TimeSpan, SignedDuration, Duration, datetime.timedelta>`, or a tuple of length 2 for Span arithmetic with relative",
             )
         }
     }
 }
 
-impl<'a, 'py> From<&'a IntoSpanArithmetic<'a, 'py>> for SpanArithmetic<'a> {
-    fn from(value: &'a IntoSpanArithmetic<'a, 'py>) -> Self {
-        // HERE WE HAVE A TOTAL CLUSTER-FUCK OF MATCHING...
-        // BUT I AM NOT SURE HOW TO GET THIS TO PLAY NICE WITH PYTHON + LIFETIMES
-        // -- update --
-        // SO this is A BIT LESS of a clusterfuck but still pretty cluster-fucky
-        match value {
-            IntoSpanArithmetic::Uno(s) => match s {
-                Spanish::Span(sp) => SpanArithmetic::from(sp.get().0).days_are_24_hours(),
-                Spanish::Duration(dur) => {
-                    SpanArithmetic::from(*(dur.get().inner())).days_are_24_hours()
+impl<'a, 'py> From<&'a RySpanArithmetic<'a, 'py>> for SpanArithmetic<'a> {
+    fn from(value: &'a RySpanArithmetic<'a, 'py>) -> Self {
+        if let Some(ref relative_to) = value.relative_to {
+            macro_rules! from_relative_to {
+                ($x:expr) => {
+                    match relative_to {
+                        RySpanRelativeTo::Zoned(z) => SpanArithmetic::from(($x, &z.get().0)),
+                        RySpanRelativeTo::Date(d) => SpanArithmetic::from(($x, d.get().0)),
+                        RySpanRelativeTo::DateTime(dt) => SpanArithmetic::from(($x, dt.get().0)),
+                    }
+                };
+            }
+            match &value.spanish {
+                Spanish::Span(sp) => from_relative_to!(sp.get().0),
+                Spanish::SignedDuration(sd) => from_relative_to!(sd.get().0),
+                Spanish::DurationLike(DurationLike::Duration(d)) => {
+                    from_relative_to!(*d.get().inner())
                 }
-                Spanish::SignedDuration(dur) => {
-                    SpanArithmetic::from(dur.get().0).days_are_24_hours()
-                }
-                // delta
-                Spanish::PyTimeDelta(sd) => SpanArithmetic::from(*sd).days_are_24_hours(),
-            },
-            IntoSpanArithmetic::Dos((s, r)) => match s {
-                Spanish::Span(sp) => match r {
-                    RySpanRelativeTo::Zoned(z) => SpanArithmetic::from((sp.get().0, &z.get().0)),
-                    RySpanRelativeTo::Date(d) => SpanArithmetic::from((sp.get().0, d.get().0)),
-                    RySpanRelativeTo::DateTime(dt) => {
-                        SpanArithmetic::from((sp.get().0, dt.get().0))
-                    }
-                },
-                Spanish::Duration(dur) => match r {
-                    RySpanRelativeTo::Zoned(z) => {
-                        SpanArithmetic::from((*(dur.get().inner()), &z.get().0))
-                    }
-                    RySpanRelativeTo::Date(d) => {
-                        SpanArithmetic::from((*(dur.get().inner()), d.get().0))
-                    }
-                    RySpanRelativeTo::DateTime(dt) => {
-                        SpanArithmetic::from((*(dur.get().inner()), dt.get().0))
-                    }
-                },
-                Spanish::SignedDuration(dur) => match r {
-                    RySpanRelativeTo::Zoned(z) => SpanArithmetic::from((dur.get().0, &z.get().0)),
-                    RySpanRelativeTo::Date(d) => SpanArithmetic::from((dur.get().0, d.get().0)),
-                    RySpanRelativeTo::DateTime(dt) => {
-                        SpanArithmetic::from((dur.get().0, dt.get().0))
-                    }
-                },
-                // delta
-                Spanish::PyTimeDelta(sd) => match r {
-                    RySpanRelativeTo::Zoned(z) => SpanArithmetic::from((*sd, &z.get().0)),
-                    RySpanRelativeTo::Date(d) => SpanArithmetic::from((*sd, d.get().0)),
-                    RySpanRelativeTo::DateTime(dt) => SpanArithmetic::from((*sd, dt.get().0)),
-                },
-            },
+                Spanish::DurationLike(DurationLike::PyTimeDelta(sd)) => from_relative_to!(*sd),
+            }
+        } else {
+            SpanArithmetic::from(&value.spanish).days_are_24_hours()
         }
     }
 }
 
 #[derive(Debug, Clone)]
 pub(crate) enum SpanAddTarget<'a, 'py> {
-    Span(IntoSpanArithmetic<'a, 'py>),
+    Span(RySpanArithmetic<'a, 'py>),
     TemporalType(PyTemporalArg<'a, 'py>),
 }
 
@@ -1193,7 +1170,7 @@ impl<'a, 'py> FromPyObject<'a, 'py> for SpanAddTarget<'a, 'py> {
     fn extract(obj: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
         if let Ok(temporal_ish) = obj.extract::<PyTemporalArg<'a, 'py>>() {
             Ok(Self::TemporalType(temporal_ish))
-        } else if let Ok(span_arith) = obj.extract::<IntoSpanArithmetic<'a, 'py>>() {
+        } else if let Ok(span_arith) = obj.extract::<RySpanArithmetic<'a, 'py>>() {
             Ok(Self::Span(span_arith))
         } else {
             py_type_err!(
@@ -1246,7 +1223,7 @@ impl<'a, 'py> SpanAdd<'a, 'py> for PyTemporalArg<'a, 'py> {
     }
 }
 
-impl<'a, 'py> SpanAdd<'a, 'py> for IntoSpanArithmetic<'a, 'py> {
+impl<'a, 'py> SpanAdd<'a, 'py> for RySpanArithmetic<'a, 'py> {
     type Target = RySpan;
     type Output = Bound<'py, Self::Target>;
     fn add_span(self, py: Python<'py>, span: &RySpan) -> PyResult<Self::Output> {

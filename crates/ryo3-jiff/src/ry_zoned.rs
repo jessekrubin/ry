@@ -25,7 +25,7 @@ use crate::ry_timestamp::RyTimestamp;
 use crate::ry_timezone::RyTimeZone;
 use crate::ry_timezone_database::bundled_tzdb;
 use crate::series::RyZonedSeries;
-use crate::spanish::Spanish;
+use crate::spanish::{DurationLike, Spanish};
 use crate::util::SpanKwargs;
 use crate::{
     JiffEra, JiffEraYear, JiffRoundMode, JiffTzDisambiguation, JiffTzOffsetConflict, JiffUnit,
@@ -316,6 +316,10 @@ impl RyZoned {
             .checked_add(other)
             .map(Self::from)
             .map_err(map_py_overflow_err)
+    }
+
+    fn __radd__(&self, other: DurationLike) -> PyResult<Self> {
+        self.__add__(other.into())
     }
 
     #[expect(clippy::too_many_arguments, reason = "python kwargs")]
