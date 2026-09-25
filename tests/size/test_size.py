@@ -228,7 +228,6 @@ def test_size_reflected() -> None:
 
 @pytest.mark.parametrize("other", [5, 2.5])
 def test_size_reflected_number_unsupported(other: float) -> None:
-    # `Size + number` works, but `number + Size` does not
     size = ry.Size(3)
     assert size - other
     assert size + other
