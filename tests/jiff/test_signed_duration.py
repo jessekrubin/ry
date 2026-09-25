@@ -97,20 +97,6 @@ def test_cast_bool(dur: ry.SignedDuration) -> None:
     assert b == (not dur.is_zero)
 
 
-@pytest.mark.skip(reason="legacy behavior ~ remove this test me")
-def test_signed_duration_cmp_timedelta() -> None:
-    left = ry.SignedDuration(1, 2)
-    right = ry.SignedDuration(3, 4).to_py()
-    assert left < right
-    assert right > left
-    assert left <= right
-    assert right >= left
-    assert left != right
-    assert right != left
-    assert left == left
-    assert right == right
-
-
 def test_duration_from_pydelta() -> None:
     pydelta = pydt.timedelta(days=1, hours=2, minutes=3, seconds=4, microseconds=5)
     ryduration = ry.SignedDuration.from_pytimedelta(pydelta)
