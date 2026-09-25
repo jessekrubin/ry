@@ -1,4 +1,3 @@
-ry.*.__richcmp__
 ry.*.__getnewargs_ex__
 ry.ryo3.*
 ry.dev.*
