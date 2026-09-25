@@ -483,15 +483,15 @@ import typing as t
 from ry._types import Buffer
 from ry.ryo3._bytes import Bytes
 
-_Quality: t.TypeAlias = t.Literal[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+_BrotliQuality: t.TypeAlias = t.Literal[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
 
 
 def brotli_encode(
-    data: Buffer, quality: _Quality = 11, *, magic_number: bool = False
+    data: Buffer, quality: _BrotliQuality = 11, *, magic_number: bool = False
 ) -> Bytes: ...
 def brotli_decode(data: Buffer) -> Bytes: ...
 def brotli(
-    data: Buffer, quality: _Quality = 11, *, magic_number: bool = False
+    data: Buffer, quality: _BrotliQuality = 11, *, magic_number: bool = False
 ) -> Bytes:
     """Alias for brotli_encode"""
 ```
@@ -888,12 +888,12 @@ import typing as t
 from ry._types import Buffer
 from ry.ryo3._bytes import Bytes
 
-_Quality: t.TypeAlias = t.Literal[1, 2, 3, 4, 5, 6, 7, 8, 9, "best", "fast"]
+_Bzip2Quality: t.TypeAlias = t.Literal[1, 2, 3, 4, 5, 6, 7, 8, 9, "best", "fast"]
 
 
 def bzip2_decode(data: Buffer) -> Bytes: ...
-def bzip2_encode(data: Buffer, quality: _Quality = 6) -> Bytes: ...
-def bzip2(data: Buffer, quality: _Quality = 6) -> Bytes:
+def bzip2_encode(data: Buffer, quality: _Bzip2Quality = 6) -> Bytes: ...
+def bzip2(data: Buffer, quality: _Bzip2Quality = 6) -> Bytes:
     """Alias for bzip2_encode"""
 ```
 
@@ -1622,12 +1622,12 @@ import typing as t
 from ry import Bytes
 from ry._types import Buffer
 
-_Quality: t.TypeAlias = t.Literal[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, "best", "fast"]
+_GzipQuality: t.TypeAlias = t.Literal[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, "best", "fast"]
 
 
-def gzip_encode(data: Buffer, quality: _Quality = 6) -> Bytes: ...
+def gzip_encode(data: Buffer, quality: _GzipQuality = 6) -> Bytes: ...
 def gzip_decode(data: Buffer) -> Bytes: ...
-def gzip(data: Buffer, quality: _Quality = 6) -> Bytes:
+def gzip(data: Buffer, quality: _GzipQuality = 6) -> Bytes:
     """Alias for gzip_encode"""
 
 
@@ -9476,7 +9476,7 @@ VERSION_MINOR: int
 VERSION_NUMBER: int
 VERSION_RELEASE: int
 
-_Quality: t.TypeAlias = t.Literal[
+_ZstdQuality: t.TypeAlias = t.Literal[
     1,
     2,
     3,
@@ -9503,9 +9503,9 @@ _Quality: t.TypeAlias = t.Literal[
 
 
 # __COMPRESSION__
-def compress(data: Buffer, level: _Quality = 3) -> Bytes: ...
-def encode(data: Buffer, level: _Quality = 3) -> Bytes: ...
-def zstd(data: Buffer, level: _Quality = 3) -> Bytes: ...
+def compress(data: Buffer, level: _ZstdQuality = 3) -> Bytes: ...
+def encode(data: Buffer, level: _ZstdQuality = 3) -> Bytes: ...
+def zstd(data: Buffer, level: _ZstdQuality = 3) -> Bytes: ...
 
 
 # __DECOMPRESSION__
