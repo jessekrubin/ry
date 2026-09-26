@@ -255,7 +255,7 @@ impl PyWsMessage {
         cache_mode: ryo3_jiter::StringCacheMode,
         partial_mode: ryo3_jiter::PartialMode,
         catch_duplicate_keys: bool,
-    ) -> PyResult<Bound<'py, PyAny>> {
+    ) -> Result<Bound<'py, PyAny>, ryo3_jiter::RyJSONDecodeError> {
         let options = ryo3_jiter::JiterParseOptions::new()
             .with_allow_inf_nan(allow_inf_nan)
             .with_cache_mode(cache_mode)

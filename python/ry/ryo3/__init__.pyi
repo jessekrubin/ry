@@ -113,6 +113,7 @@ from ry.ryo3._jiff import time as time
 from ry.ryo3._jiff import timespan as timespan
 from ry.ryo3._jiff import utcnow as utcnow
 from ry.ryo3._jiff import zoned as zoned
+from ry.ryo3._jiter import JSONDecodeError as JSONDecodeError
 from ry.ryo3._jiter import _JsonPrimitive as _JsonPrimitive
 from ry.ryo3._jiter import _JsonValue as _JsonValue
 from ry.ryo3._jiter import json_cache_clear as json_cache_clear

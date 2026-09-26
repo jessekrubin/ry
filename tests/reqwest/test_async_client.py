@@ -257,7 +257,7 @@ class TestResponseJson:
         url = server.url / "broken-json"
         response = await client.get(url)
         with pytest.raises(
-            ValueError, match="EOF while parsing a string at line 1 column 153"
+            ValueError, match="EOF while parsing a string: line 1 column 153"
         ):
             _data = await response.json()
 

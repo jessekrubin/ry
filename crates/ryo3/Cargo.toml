@@ -129,6 +129,7 @@ ry = [
   "ryo3-globset/ry",
   "ryo3-http/ry",
   "ryo3-jiff/ry",
+  "ryo3-jiter/ry",
   "ryo3-lz4rip/ry",
   "ryo3-regex/ry",
   "ryo3-reqwest/ry",

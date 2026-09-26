@@ -233,7 +233,7 @@ class TestResponseJson:
         client = ry.BlockingClient()
         response = client.get(url)
         with pytest.raises(
-            ValueError, match="EOF while parsing a string at line 1 column 153"
+            ValueError, match="EOF while parsing a string: line 1 column 153"
         ):
             _data = response.json()
 
@@ -243,10 +243,11 @@ class TestResponseJson:
         response = client.get(url)
         try:
             _data = response.json()
-        except ValueError as ve:
-            print(ve)
-            print(dir(ValueError))
-            assert False
+        except ry.JSONDecodeError as e:
+            doc = e.doc
+            assert doc == ry.Bytes(
+                b'{"dog":"dingo","is-dingo":true,"bluey-fam-size":4,"fraction-red-heelers":0.5,"activities":["screwing up the garden","barking at strangers for existing","'
+            )
 
     def test_get_json_broken_is_broken_allow_partial(
         self, server: ReqtestServer
