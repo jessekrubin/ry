@@ -6,7 +6,7 @@
 //! of [2024-05-29])
 use std::path::PathBuf;
 mod py_json_decode_error;
-pub use ::jiter::{FloatMode, PartialMode, PythonParse, StringCacheMode, map_json_error};
+pub use ::jiter::{FloatMode, PartialMode, PythonParse, StringCacheMode};
 pub use py_json_decode_error::RyJSONDecodeError;
 use pyo3::IntoPyObjectExt;
 use pyo3::prelude::*;
@@ -43,13 +43,20 @@ impl JiterParseOptions {
     }
 
     pub fn parse_lines<'py>(self, py: Python<'py>, data: &[u8]) -> PyResult<Bound<'py, PyAny>> {
-        let lines_iter = data.split(|b| *b == b'\n').filter(|line| !line.is_empty());
         let parser = self.parser();
         // parse each line and collect into a Vec
         let mut parsed_lines = Vec::new();
-        for line in lines_iter {
-            let parsed = parser.python_parse(py, line).map_err(|e| {
-                RyJSONDecodeError::new(line, e, Some(ryo3_bytes::Bytes::copy_from_slice(line)))
+        let mut line_start = 0;
+        for line in data.split(|b| *b == b'\n') {
+            let offset = line_start;
+            line_start += line.len() + 1;
+            if line.is_empty() {
+                continue;
+            }
+            let parsed = parser.python_parse(py, line).map_err(|mut e| {
+                // error index relative to the whole document
+                e.index += offset;
+                RyJSONDecodeError::new(data, e, Some(ryo3_bytes::Bytes::copy_from_slice(data)))
             })?;
             parsed_lines.push(parsed);
         }
@@ -61,7 +68,8 @@ impl JiterParseOptions {
 #[pyfunction(
     signature = (
         data,
-        /, *,
+        /,
+        *,
         allow_inf_nan = false,
         cache_mode = StringCacheMode::All,
         partial_mode = PartialMode::Off,
@@ -85,12 +93,10 @@ pub fn parse_json<'py>(
     // TODO: use fast_str_read at somepoint?
     if let Ok(py_str) = data.cast_exact::<pyo3::types::PyString>() {
         let json_bytes = py_str.to_str()?.as_bytes();
-        let obj = options.parse(py, json_bytes)?;
-        Ok(obj)
+        Ok(options.parse(py, json_bytes)?)
     } else if let Ok(bytes) = data.extract::<ryo3_bytes::ReadableBuffer>() {
         let json_bytes = bytes.as_slice();
-        let obj = options.parse(py, json_bytes)?;
-        Ok(obj)
+        Ok(options.parse(py, json_bytes)?)
     } else {
         Err(pyo3::exceptions::PyTypeError::new_err(
             "Expected bytes, bytearray, str, or buffer",
@@ -101,7 +107,8 @@ pub fn parse_json<'py>(
 #[pyfunction(
     signature = (
         data,
-        /, *,
+        /,
+        *,
         allow_inf_nan = false,
         cache_mode = StringCacheMode::All,
         partial_mode = PartialMode::Off,
@@ -167,7 +174,8 @@ py_parse_fn!(loads);
 #[pyfunction(
     signature = (
         p,
-        /, *,
+        /,
+        *,
         allow_inf_nan = false,
         cache_mode = StringCacheMode::All,
         partial_mode = PartialMode::Off,
@@ -192,11 +200,9 @@ pub fn read_json(
         .with_partial_mode(partial_mode)
         .with_catch_duplicate_keys(catch_duplicate_keys);
     if lines {
-        let obj = options.parse_lines(py, &fbytes)?;
-        Ok(obj)
+        Ok(options.parse_lines(py, &fbytes)?)
     } else {
-        let obj = options.parse(py, &fbytes)?;
-        Ok(obj)
+        Ok(options.parse(py, &fbytes)?)
     }
 }
 

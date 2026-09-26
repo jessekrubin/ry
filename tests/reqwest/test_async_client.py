@@ -257,9 +257,12 @@ class TestResponseJson:
         url = server.url / "broken-json"
         response = await client.get(url)
         with pytest.raises(
-            ValueError, match="EOF while parsing a string: line 1 column 153"
-        ):
+            ry.JSONDecodeError, match="EOF while parsing a string: line 1 column 153"
+        ) as exc_info:
             _data = await response.json()
+        assert exc_info.value.doc == ry.Bytes(
+            b'{"dog":"dingo","is-dingo":true,"bluey-fam-size":4,"fraction-red-heelers":0.5,"activities":["screwing up the garden","barking at strangers for existing","'
+        )
 
     @pytest.mark.anyio
     async def test_get_json_broken_is_broken_allow_partial(

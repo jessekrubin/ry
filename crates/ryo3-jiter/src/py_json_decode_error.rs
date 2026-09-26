@@ -58,6 +58,17 @@ impl RyJSONDecodeError {
     }
 }
 
+impl From<(JsonError, ryo3_bytes::Bytes)> for RyJSONDecodeError {
+    fn from(value: (JsonError, ryo3_bytes::Bytes)) -> Self {
+        let position = value.0.get_position(&value.1);
+        Self {
+            err: value.0,
+            position,
+            data: Some(value.1),
+        }
+    }
+}
+
 #[pymethods]
 impl RyJSONDecodeError {
     #[new]
