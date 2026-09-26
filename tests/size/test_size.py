@@ -213,3 +213,25 @@ def test_size_formatter_equality(fmt_options: _FmtOptions) -> None:
     assert formatter.base == _base_expected
     assert formatter.style == _style_expected
     assert formatter == eval(repr(formatter), {"SizeFormatter": ry.SizeFormatter})
+
+
+def test_size_reflected() -> None:
+    a = ry.Size(3)
+    b = ry.Size(10)
+    res_add = a.__radd__(b)  # noqa: PLC2801
+    assert isinstance(res_add, ry.Size)
+    res_sub = a.__rsub__(b)  # noqa: PLC2801
+    assert isinstance(res_sub, ry.Size)
+    assert res_add == b + a
+    assert res_sub == b - a
+
+
+@pytest.mark.parametrize("other", [5, 2.5])
+def test_size_reflected_number_unsupported(other: float) -> None:
+    size = ry.Size(3)
+    assert size - other
+    assert size + other
+    with pytest.raises(TypeError):
+        _sub = other - size  # type: ignore[operator]  # ty: ignore[unsupported-operator]
+    with pytest.raises(TypeError):
+        _ = other + size  # type: ignore[operator]  # ty: ignore[unsupported-operator]

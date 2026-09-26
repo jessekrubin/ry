@@ -14,7 +14,7 @@ use ryo3_macro_rules::{any_repr, py_type_err};
 use crate::difference::{RyTimeDifference, TimeDifferenceArg};
 use crate::py_temporal_like::{TemporalSubInput, TemporalSubOutput};
 use crate::series::RyTimeSeries;
-use crate::spanish::Spanish;
+use crate::spanish::{DurationLike, Spanish};
 use crate::util::SpanKwargs;
 use crate::{
     JiffRoundMode, JiffTime, JiffUnit, RyDate, RyDateTime, RySignedDuration, RySpan, RyTimeRound,
@@ -159,6 +159,10 @@ impl RyTime {
             .checked_add(other)
             .map(Self::from)
             .map_err(map_py_overflow_err)
+    }
+
+    fn __radd__(&self, other: DurationLike) -> PyResult<Self> {
+        self.__add__(other.into())
     }
 
     #[expect(clippy::too_many_arguments, reason = "python kwargs")]

@@ -112,9 +112,17 @@ impl From<&RyDate> for RyISOWeekDate {
 
 macro_rules! impl_from_jiff_for_ry {
     ($jiff_type:ty, $ryo3_type:ty) => {
-        impl From<$jiff_type> for $ryo3_type {
-            fn from(value: $jiff_type) -> Self {
+        impl $ryo3_type {
+            #[inline]
+            pub fn from_inner(value: $jiff_type) -> Self {
                 Self(value)
+            }
+        }
+
+        impl From<$jiff_type> for $ryo3_type {
+            #[inline]
+            fn from(value: $jiff_type) -> Self {
+                Self::from_inner(value)
             }
         }
     };

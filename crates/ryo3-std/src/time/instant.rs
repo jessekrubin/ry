@@ -70,6 +70,10 @@ impl PyInstant {
             .ok_or_else(|| py_overflow_error!("instant-overflow-add"))
     }
 
+    fn __radd__(&self, other: &PyDuration) -> PyResult<Self> {
+        self.__add__(other)
+    }
+
     fn __sub__(
         &self,
         other: arithmetic::PyInstantSubtractInput<'_, '_>,

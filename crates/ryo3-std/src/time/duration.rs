@@ -967,7 +967,7 @@ mod arithmetic {
             if let Some(inst) = obj.cast_exact_opt::<PyDuration>() {
                 let dur = inst.get();
                 Ok(Self(dur.0))
-            } else if let Ok(inst) = obj.cast::<pyo3::types::PyDelta>() {
+            } else if let Ok(inst) = obj.cast_exact::<pyo3::types::PyDelta>() {
                 let dur: Duration = inst.extract()?;
                 Ok(Self(dur))
             } else {
@@ -1052,11 +1052,9 @@ mod arithmetic {
         type Error = PyErr;
         fn extract(obj: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
             if let Some(pi) = obj.cast_exact_opt::<pyo3::types::PyInt>() {
-                let i = pi.extract::<u32>()?;
-                Ok(Self::Int(i))
+                pi.extract::<u32>().map(Self::Int)
             } else if let Some(pf) = obj.cast_exact_opt::<pyo3::types::PyFloat>() {
-                let f = pf.extract::<f64>()?;
-                Ok(Self::Float(f))
+                pf.extract::<f64>().map(Self::Float)
             } else {
                 py_type_err!("unsupported operand type(s); must be int | float")
             }
