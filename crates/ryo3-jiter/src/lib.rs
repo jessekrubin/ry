@@ -37,11 +37,13 @@ impl JiterParseOptions {
         py: Python<'py>,
         data: &[u8],
     ) -> Result<Bound<'py, PyAny>, RyJSONDecodeError> {
-        self.parser().python_parse(py, data).map_err(|e| {
-            RyJSONDecodeError::new(data, e, Some(ryo3_bytes::Bytes::copy_from_slice(data)))
-        })
+        self.parser()
+            .python_parse(py, data)
+            .map_err(|e| RyJSONDecodeError::new(data, e))
     }
 
+    // TODO: this could be an iterable that has options or generics to control
+    //       return type and avoid stupid python token eg [data, ...] vs [ data | err , ...]
     pub fn parse_lines<'py>(self, py: Python<'py>, data: &[u8]) -> PyResult<Bound<'py, PyAny>> {
         let parser = self.parser();
         // parse each line and collect into a Vec
@@ -56,7 +58,7 @@ impl JiterParseOptions {
             let parsed = parser.python_parse(py, line).map_err(|mut e| {
                 // error index relative to the whole document
                 e.index += offset;
-                RyJSONDecodeError::new(data, e, Some(ryo3_bytes::Bytes::copy_from_slice(data)))
+                RyJSONDecodeError::new(data, e)
             })?;
             parsed_lines.push(parsed);
         }
@@ -200,9 +202,11 @@ pub fn read_json(
         .with_partial_mode(partial_mode)
         .with_catch_duplicate_keys(catch_duplicate_keys);
     if lines {
-        Ok(options.parse_lines(py, &fbytes)?)
+        options.parse_lines(py, &fbytes)
     } else {
-        Ok(options.parse(py, &fbytes)?)
+        let parsed = options.parser().python_parse(py, &fbytes);
+        // move the file bytes into the error (no copy)
+        Ok(parsed.map_err(|e| RyJSONDecodeError::from((e, ryo3_bytes::Bytes::from(fbytes))))?)
     }
 }
 

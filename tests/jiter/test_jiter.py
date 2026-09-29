@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import copy
 import json
+import pickle
 from typing import TYPE_CHECKING, Any
 
 import pytest
@@ -135,9 +137,18 @@ class TestJSONDecodeError:
         assert issubclass(ry.JSONDecodeError, ValueError)
         assert ry.JSON.JSONDecodeError is ry.JSONDecodeError
 
-    def test_not_constructable(self) -> None:
-        with pytest.raises(NotImplementedError):
-            ry.JSONDecodeError("msg", None, 0)
+    def test_new(self) -> None:
+        data = b'{"a": 1,\n "b": 2,}'
+        e = ry.JSONDecodeError("trailing-comma", data, 17)
+        assert str(e) == "trailing comma: line 2 column 9 (char 17)"
+        assert e.args == (str(e),)
+        assert e.kind == "trailing-comma"
+        assert e.doc == ry.Bytes(data)
+        assert (e.pos, e.lineno, e.colno) == (17, 2, 9)
+
+    def test_new_bad_doc(self) -> None:
+        with pytest.raises(TypeError):
+            ry.JSONDecodeError("trailing-comma", 123, 0)  # type: ignore[arg-type]
 
     @pytest.mark.parametrize("data", ['{"a": 1,\n "b": 2,}', b'{"a": 1,\n "b": 2,}'])
     def test_attrs(self, data: str | bytes) -> None:
@@ -145,17 +156,15 @@ class TestJSONDecodeError:
             ry.parse_json(data)
         e = exc_info.value
         assert str(e) == "trailing comma: line 2 column 9 (char 17)"
+        assert e.args == (str(e),)
         assert e.msg == "trailing comma"
         assert e.kind == "trailing-comma"
-        assert e.pos == 17
-        assert e.lineno == 2
-        assert e.colno == 9
-        assert e.doc == ry.Bytes(b'{"a": 1,\n "b": 2,}')
+        assert (e.pos, e.lineno, e.colno) == (17, 2, 9)
+        assert e.doc is None
 
     def test_pos_is_byte_index(self) -> None:
         with pytest.raises(ry.JSONDecodeError) as exc_info:
             ry.parse_json('{"\u00e9": 1,}')
-        # 'é' is 2 bytes in utf-8
         assert exc_info.value.pos == 9
         assert exc_info.value.colno == 10
 
@@ -164,7 +173,45 @@ class TestJSONDecodeError:
         with pytest.raises(ry.JSONDecodeError) as exc_info:
             ry.parse_jsonl(data)
         e = exc_info.value
-        assert e.doc == ry.Bytes(data.encode())
-        assert e.lineno == 4
-        assert e.colno == 9
-        assert e.pos == 26
+        assert e.doc is None
+        assert (e.pos, e.lineno, e.colno) == (27, 4, 9)
+
+    def test_read_json_has_doc(self, tmp_path: Path) -> None:
+        p = tmp_path / "broken.json"
+        p.write_bytes(b'{"a": 1,}')
+        with pytest.raises(ry.JSONDecodeError) as exc_info:
+            ry.read_json(p)
+        e = exc_info.value
+        assert e.doc == ry.Bytes(b'{"a": 1,}')
+        assert pickle.loads(pickle.dumps(e)).doc == e.doc
+        assert copy.copy(e).doc == e.doc
+
+    @pytest.mark.parametrize(
+        ("data", "expected_repr"),
+        [
+            (
+                '{"a": 1,\n "b": 2,}',
+                'JSONDecodeError("trailing-comma", pos=17, lineno=2, colno=9)',
+            ),
+            (
+                '{"\u00e9": 1, "\u00e9": 2}',
+                'JSONDecodeError(("duplicate-key", "\u00e9"), pos=15, lineno=1, colno=16)',
+            ),
+        ],
+    )
+    def test_round_trip(self, data: str, expected_repr: str) -> None:
+        with pytest.raises(ry.JSONDecodeError) as exc_info:
+            ry.parse_json(data, catch_duplicate_keys=True)
+        e = exc_info.value
+        assert repr(e) == expected_repr
+
+        for restored in (
+            pickle.loads(pickle.dumps(e)),
+            copy.copy(e),
+            eval(repr(e), {"JSONDecodeError": ry.JSONDecodeError}),
+        ):
+            assert type(restored) is ry.JSONDecodeError
+            assert repr(restored) == repr(e)
+            assert str(restored) == str(e)
+            assert restored.args == e.args
+            assert restored.msg == e.msg

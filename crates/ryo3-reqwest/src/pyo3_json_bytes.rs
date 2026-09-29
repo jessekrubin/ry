@@ -34,10 +34,7 @@ impl<'py> IntoPyObject<'py> for Pyo3JsonBytes {
     type Error = RyJSONDecodeError;
 
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
-        {
-            let data = &self.bytes[..];
-            self.options.parser().python_parse(py, data)
-        }
-        .map_err(|e| RyJSONDecodeError::from((e, self.bytes)))
+        let parsed = self.options.parser().python_parse(py, &self.bytes);
+        parsed.map_err(|e| RyJSONDecodeError::from((e, self.bytes)))
     }
 }
