@@ -1,5 +1,4 @@
 //! Serialize JSON using serde.
-#![expect(clippy::inline_always, reason = "perf")]
 use core::fmt::{self, Display, Formatter};
 
 use serde_core::ser::{
@@ -7,36 +6,14 @@ use serde_core::ser::{
     SerializeStructVariant, SerializeTuple, SerializeTupleStruct, SerializeTupleVariant,
 };
 
-use super::escape;
 use super::format::{Compact, Format, Pretty};
+use super::writer::JsonWriter;
 
 pub(super) type Result<T> = core::result::Result<T, Error>;
 
-/// JSON serializing structure.
+/// JSON serializing structure; a serde frontend over [`JsonWriter`].
 struct Serializer<F: Format> {
-    output: Vec<u8>,
-    format: F,
-}
-
-impl<F: Format> Serializer<F> {
-    #[inline(always)]
-    fn write_byte(&mut self, v: u8) {
-        self.output.push(v);
-    }
-
-    #[inline(always)]
-    fn write_slice(&mut self, v: &[u8]) {
-        self.output.extend_from_slice(v);
-    }
-
-    #[inline(always)]
-    fn comma(&mut self, flag: &mut bool) {
-        if *flag {
-            self.output.push(b',');
-        } else {
-            *flag = true;
-        }
-    }
+    w: JsonWriter<F>,
 }
 
 impl<'a, F: Format> ser::Serializer for &'a mut Serializer<F> {
@@ -52,85 +29,67 @@ impl<'a, F: Format> ser::Serializer for &'a mut Serializer<F> {
 
     #[inline]
     fn serialize_bool(self, v: bool) -> Result<()> {
-        if v {
-            self.write_slice(b"true");
-        } else {
-            self.write_slice(b"false");
-        }
+        self.w.bool(v);
         Ok(())
     }
 
     #[inline]
     fn serialize_i8(self, v: i8) -> Result<()> {
-        self.write_slice(itoa::Buffer::new().format(i64::from(v)).as_bytes());
+        self.w.int(v);
         Ok(())
     }
 
     #[inline]
     fn serialize_i16(self, v: i16) -> Result<()> {
-        self.write_slice(itoa::Buffer::new().format(i64::from(v)).as_bytes());
+        self.w.int(v);
         Ok(())
     }
 
     #[inline]
     fn serialize_i32(self, v: i32) -> Result<()> {
-        self.write_slice(itoa::Buffer::new().format(i64::from(v)).as_bytes());
+        self.w.int(v);
         Ok(())
     }
 
     #[inline]
     fn serialize_i64(self, v: i64) -> Result<()> {
-        self.write_slice(itoa::Buffer::new().format(v).as_bytes());
+        self.w.int(v);
         Ok(())
     }
 
     #[inline]
     fn serialize_u8(self, v: u8) -> Result<()> {
-        self.write_slice(itoa::Buffer::new().format(v).as_bytes());
+        self.w.int(v);
         Ok(())
     }
 
     #[inline]
     fn serialize_u16(self, v: u16) -> Result<()> {
-        self.write_slice(itoa::Buffer::new().format(v).as_bytes());
+        self.w.int(v);
         Ok(())
     }
 
     #[inline]
     fn serialize_u32(self, v: u32) -> Result<()> {
-        self.write_slice(itoa::Buffer::new().format(v).as_bytes());
+        self.w.int(v);
         Ok(())
     }
 
     #[inline]
     fn serialize_u64(self, v: u64) -> Result<()> {
-        self.write_slice(itoa::Buffer::new().format(v).as_bytes());
+        self.w.int(v);
         Ok(())
     }
 
     #[inline]
     fn serialize_f32(self, v: f32) -> Result<()> {
-        let mut tmp;
-
-        self.write_slice(if v.is_finite() {
-            tmp = zmij::Buffer::new();
-            tmp.format_finite(v).as_bytes()
-        } else {
-            b"null"
-        });
+        self.w.float(v);
         Ok(())
     }
 
     #[inline]
     fn serialize_f64(self, v: f64) -> Result<()> {
-        let mut tmp;
-
-        self.write_slice(if v.is_finite() {
-            tmp = zmij::Buffer::new();
-            tmp.format_finite(v).as_bytes()
-        } else {
-            b"null"
-        });
+        self.w.float(v);
         Ok(())
     }
 
@@ -140,20 +99,20 @@ impl<'a, F: Format> ser::Serializer for &'a mut Serializer<F> {
     }
 
     fn serialize_str(self, v: &str) -> Result<()> {
-        escape::format_escaped_str(&mut self.output, v);
+        self.w.str(v);
         Ok(())
     }
 
     fn serialize_bytes(self, v: &[u8]) -> Result<()> {
-        self.write_byte(b'[');
-        let mut flag = false;
+        self.w.raw_byte(b'[');
+        let mut written = false;
 
         for &v in v {
-            self.comma(&mut flag);
-            self.write_slice(itoa::Buffer::new().format(v).as_bytes());
+            self.w.comma(&mut written);
+            self.w.int(v);
         }
 
-        self.write_byte(b']');
+        self.w.raw_byte(b']');
         Ok(())
     }
 
@@ -168,7 +127,7 @@ impl<'a, F: Format> ser::Serializer for &'a mut Serializer<F> {
     }
 
     fn serialize_unit(self) -> Result<()> {
-        self.write_slice(b"null");
+        self.w.null();
         Ok(())
     }
 
@@ -198,23 +157,22 @@ impl<'a, F: Format> ser::Serializer for &'a mut Serializer<F> {
         variant: &'static str,
         value: &T,
     ) -> Result<()> {
-        self.write_byte(b'{');
-        self.serialize_str(variant)?;
-        self.write_byte(b':');
+        self.w.raw_byte(b'{');
+        self.w.str(variant);
+        self.w.raw_byte(b':');
         value.serialize(&mut *self)?;
-        self.write_byte(b'}');
+        self.w.raw_byte(b'}');
         Ok(())
     }
 
     fn serialize_seq(self, len: Option<usize>) -> Result<Container<'a, F>> {
         if let Some(len) = len {
-            self.output.reserve(len.saturating_mul(2).saturating_add(1));
+            self.w.reserve(len.saturating_mul(2).saturating_add(1));
         }
-        self.write_byte(b'[');
-        self.format.inc();
+        self.w.begin_array();
         Ok(Container {
             ser: self,
-            flag: false,
+            written: false,
         })
     }
 
@@ -235,21 +193,20 @@ impl<'a, F: Format> ser::Serializer for &'a mut Serializer<F> {
         variant: &'static str,
         len: usize,
     ) -> Result<Container<'a, F>> {
-        self.write_byte(b'{');
-        self.serialize_str(variant)?;
-        self.write_byte(b':');
+        self.w.raw_byte(b'{');
+        self.w.str(variant);
+        self.w.raw_byte(b':');
         self.serialize_seq(Some(len))
     }
 
     fn serialize_map(self, len: Option<usize>) -> Result<Container<'a, F>> {
         if let Some(len) = len {
-            self.output.reserve(len.saturating_mul(4).saturating_add(1));
+            self.w.reserve(len.saturating_mul(4).saturating_add(1));
         }
-        self.write_byte(b'{');
-        self.format.inc();
+        self.w.begin_object();
         Ok(Container {
             ser: self,
-            flag: false,
+            written: false,
         })
     }
 
@@ -265,9 +222,9 @@ impl<'a, F: Format> ser::Serializer for &'a mut Serializer<F> {
         variant: &'static str,
         len: usize,
     ) -> Result<Container<'a, F>> {
-        self.write_byte(b'{');
-        self.serialize_str(variant)?;
-        self.write_byte(b':');
+        self.w.raw_byte(b'{');
+        self.w.str(variant);
+        self.w.raw_byte(b':');
         self.serialize_map(Some(len))
     }
 
@@ -277,20 +234,20 @@ impl<'a, F: Format> ser::Serializer for &'a mut Serializer<F> {
     {
         use core::fmt::Write as _;
 
-        struct Adapter<'a>(&'a mut Vec<u8>);
+        struct Adapter<'a, F: Format>(&'a mut JsonWriter<F>);
 
-        impl fmt::Write for Adapter<'_> {
+        impl<F: Format> fmt::Write for Adapter<'_, F> {
             fn write_str(&mut self, s: &str) -> fmt::Result {
-                escape::format_escaped_str_contents(self.0, s);
+                self.0.str_contents(s);
                 Ok(())
             }
         }
 
-        self.write_byte(b'"');
-        write!(Adapter(&mut self.output), "{value}").map_err(|_| {
+        self.w.raw_byte(b'"');
+        write!(Adapter(&mut self.w), "{value}").map_err(|_| {
             <Error as ser::Error>::custom("Display implementation returned an error")
         })?;
-        self.write_byte(b'"');
+        self.w.raw_byte(b'"');
         Ok(())
     }
 }
@@ -298,7 +255,7 @@ impl<'a, F: Format> ser::Serializer for &'a mut Serializer<F> {
 #[doc(hidden)]
 pub struct Container<'a, F: Format> {
     ser: &'a mut Serializer<F>,
-    flag: bool,
+    written: bool,
 }
 
 impl<F: Format> SerializeSeq for Container<'_, F> {
@@ -307,18 +264,13 @@ impl<F: Format> SerializeSeq for Container<'_, F> {
 
     #[inline]
     fn serialize_element<T: ?Sized + Serialize>(&mut self, value: &T) -> Result<()> {
-        self.ser.comma(&mut self.flag);
-        self.ser.format.indent(&mut self.ser.output);
+        self.ser.w.elem_sep(&mut self.written);
         value.serialize(&mut *self.ser)
     }
 
     #[inline]
     fn end(self) -> Result<()> {
-        self.ser.format.dec();
-        if self.flag {
-            self.ser.format.indent(&mut self.ser.output);
-        }
-        self.ser.write_byte(b']');
+        self.ser.w.end_array(self.written);
         Ok(())
     }
 }
@@ -364,11 +316,8 @@ impl<F: Format> SerializeTupleVariant for Container<'_, F> {
 
     #[inline]
     fn end(self) -> Result<()> {
-        self.ser.format.dec();
-        if self.flag {
-            self.ser.format.indent(&mut self.ser.output);
-        }
-        self.ser.write_slice(b"]}");
+        self.ser.w.end_array(self.written);
+        self.ser.w.raw_byte(b'}');
         Ok(())
     }
 }
@@ -378,24 +327,18 @@ impl<F: Format> SerializeMap for Container<'_, F> {
     type Error = Error;
 
     fn serialize_key<T: ?Sized + Serialize>(&mut self, key: &T) -> Result<()> {
-        self.ser.comma(&mut self.flag);
-        self.ser.format.indent(&mut self.ser.output);
+        self.ser.w.elem_sep(&mut self.written);
         key.serialize(MapKey(self.ser))
     }
 
     fn serialize_value<T: ?Sized + Serialize>(&mut self, value: &T) -> Result<()> {
-        self.ser.write_byte(b':');
-        self.ser.format.sep(&mut self.ser.output);
+        self.ser.w.key_sep();
         value.serialize(&mut *self.ser)
     }
 
     #[inline]
     fn end(self) -> Result<()> {
-        self.ser.format.dec();
-        if self.flag {
-            self.ser.format.indent(&mut self.ser.output);
-        }
-        self.ser.write_byte(b'}');
+        self.ser.w.end_object(self.written);
         Ok(())
     }
 }
@@ -432,11 +375,8 @@ impl<F: Format> SerializeStructVariant for Container<'_, F> {
     }
 
     fn end(self) -> Result<()> {
-        self.ser.format.dec();
-        if self.flag {
-            self.ser.format.indent(&mut self.ser.output);
-        }
-        self.ser.write_slice(b"}}");
+        self.ser.w.end_object(self.written);
+        self.ser.w.raw_byte(b'}');
         Ok(())
     }
 }
@@ -457,62 +397,61 @@ impl<F: Format> ser::Serializer for MapKey<'_, F> {
 
     #[inline]
     fn serialize_bool(self, v: bool) -> Result<()> {
-        self.0
-            .write_slice(if v { br#""true""# } else { br#""false""# });
+        self.0.w.quoted_bool(v);
         Ok(())
     }
 
     #[inline]
     fn serialize_i8(self, v: i8) -> Result<()> {
-        self.serialize_i64(v.into())
+        self.0.w.quoted_int(v);
+        Ok(())
     }
 
     #[inline]
     fn serialize_i16(self, v: i16) -> Result<()> {
-        self.serialize_i64(v.into())
+        self.0.w.quoted_int(v);
+        Ok(())
     }
 
     #[inline]
     fn serialize_i32(self, v: i32) -> Result<()> {
-        self.serialize_i64(v.into())
+        self.0.w.quoted_int(v);
+        Ok(())
     }
 
+    #[inline]
     fn serialize_i64(self, v: i64) -> Result<()> {
-        self.0.write_byte(b'"');
-        self.0.write_slice(itoa::Buffer::new().format(v).as_bytes());
-        self.0.write_byte(b'"');
+        self.0.w.quoted_int(v);
         Ok(())
     }
 
     #[inline]
     fn serialize_u8(self, v: u8) -> Result<()> {
-        self.serialize_u64(v.into())
+        self.0.w.quoted_int(v);
+        Ok(())
     }
 
     #[inline]
     fn serialize_u16(self, v: u16) -> Result<()> {
-        self.serialize_u64(v.into())
+        self.0.w.quoted_int(v);
+        Ok(())
     }
 
     #[inline]
     fn serialize_u32(self, v: u32) -> Result<()> {
-        self.serialize_u64(v.into())
+        self.0.w.quoted_int(v);
+        Ok(())
     }
 
+    #[inline]
     fn serialize_u64(self, v: u64) -> Result<()> {
-        self.0.write_byte(b'"');
-        self.0.write_slice(itoa::Buffer::new().format(v).as_bytes());
-        self.0.write_byte(b'"');
+        self.0.w.quoted_int(v);
         Ok(())
     }
 
     fn serialize_f32(self, v: f32) -> Result<()> {
-        self.0.write_byte(b'"');
-
         if v.is_finite() {
-            let mut tmp = zmij::Buffer::new();
-            self.0.write_slice(tmp.format_finite(v).as_bytes());
-            self.0.write_byte(b'"');
+            self.0.w.quoted_finite_float(v);
             Ok(())
         } else {
             Err(Error::float_key_must_be_finite())
@@ -520,11 +459,8 @@ impl<F: Format> ser::Serializer for MapKey<'_, F> {
     }
 
     fn serialize_f64(self, v: f64) -> Result<()> {
-        self.0.write_byte(b'"');
         if v.is_finite() {
-            let mut tmp = zmij::Buffer::new();
-            self.0.write_slice(tmp.format_finite(v).as_bytes());
-            self.0.write_byte(b'"');
+            self.0.w.quoted_finite_float(v);
             Ok(())
         } else {
             Err(Error::float_key_must_be_finite())
@@ -703,11 +639,10 @@ impl core::error::Error for Error {}
 #[inline]
 pub(super) fn to_vec<T: ?Sized + Serialize>(v: &T) -> Result<Vec<u8>> {
     let mut serializer = Serializer {
-        output: Vec::with_capacity(4096),
-        format: Compact,
+        w: JsonWriter::with_capacity(4096, Compact),
     };
     v.serialize(&mut serializer)?;
-    Ok(serializer.output)
+    Ok(serializer.w.into_inner())
 }
 
 /// Serializes the given data into a pretty-printed JSON byte vector.
@@ -719,11 +654,10 @@ pub(super) fn to_vec<T: ?Sized + Serialize>(v: &T) -> Result<Vec<u8>> {
 #[inline]
 pub(super) fn to_vec_pretty<T: ?Sized + Serialize>(v: &T) -> Result<Vec<u8>> {
     let mut serializer = Serializer {
-        output: Vec::with_capacity(4096),
-        format: Pretty::new(),
+        w: JsonWriter::with_capacity(4096, Pretty::new()),
     };
     v.serialize(&mut serializer)?;
-    Ok(serializer.output)
+    Ok(serializer.w.into_inner())
 }
 
 #[cfg(test)]
@@ -758,6 +692,26 @@ mod tests {
         assert_eq!(
             serialize(&value),
             br#"{"answer":42,"items":[true,null,"a\nb"]}"#
+        );
+    }
+
+    #[test]
+    fn serializes_integer_arrays() {
+        let value: Vec<i64> = vec![0, 7, -1, 1234, i64::MIN, i64::MAX];
+        assert_eq!(
+            serialize(&value),
+            serde_json::to_vec(&value).expect("serde_json failed")
+        );
+        let value: Vec<u64> = (0..1000).map(|i| i * 7919).chain([u64::MAX]).collect();
+        assert_eq!(
+            serialize(&value),
+            serde_json::to_vec(&value).expect("serde_json failed")
+        );
+        let value: (i8, i16, i32, u8, u16, u32) =
+            (i8::MIN, i16::MIN, i32::MIN, u8::MAX, u16::MAX, u32::MAX);
+        assert_eq!(
+            serialize(&value),
+            serde_json::to_vec(&value).expect("serde_json failed")
         );
     }
 
@@ -806,6 +760,109 @@ mod tests {
             Ok(output) => output,
             Err(error) => panic!("serde_json serialization failed: {error}"),
         }
+    }
+
+    /// Exercises the enum-variant serializer paths without needing serde derive.
+    struct Variants;
+
+    impl Serialize for Variants {
+        fn serialize<S>(&self, serializer: S) -> core::result::Result<S::Ok, S::Error>
+        where
+            S: serde_core::Serializer,
+        {
+            use serde_core::ser::{
+                SerializeSeq as _, SerializeStructVariant as _, SerializeTupleVariant as _,
+            };
+
+            struct Newtype;
+            impl Serialize for Newtype {
+                fn serialize<S>(&self, s: S) -> core::result::Result<S::Ok, S::Error>
+                where
+                    S: serde_core::Serializer,
+                {
+                    s.serialize_newtype_variant("E", 0, "Newtype", &1u8)
+                }
+            }
+            struct Tuple;
+            impl Serialize for Tuple {
+                fn serialize<S>(&self, s: S) -> core::result::Result<S::Ok, S::Error>
+                where
+                    S: serde_core::Serializer,
+                {
+                    let mut tv = s.serialize_tuple_variant("E", 1, "Tuple", 2)?;
+                    tv.serialize_field(&-1i32)?;
+                    tv.serialize_field("x")?;
+                    tv.end()
+                }
+            }
+            struct Struct;
+            impl Serialize for Struct {
+                fn serialize<S>(&self, s: S) -> core::result::Result<S::Ok, S::Error>
+                where
+                    S: serde_core::Serializer,
+                {
+                    let mut sv = s.serialize_struct_variant("E", 2, "Struct", 2)?;
+                    sv.serialize_field("a", &f64::NAN)?;
+                    sv.serialize_field("b", &2.5f32)?;
+                    sv.end()
+                }
+            }
+
+            let mut seq = serializer.serialize_seq(Some(4))?;
+            seq.serialize_element(&Newtype)?;
+            seq.serialize_element(&Tuple)?;
+            seq.serialize_element(&Struct)?;
+            seq.serialize_element(&serde_bytes_like::Bytes(&[0, 1, 255]))?;
+            seq.end()
+        }
+    }
+
+    mod serde_bytes_like {
+        pub(super) struct Bytes<'a>(pub(super) &'a [u8]);
+        impl serde_core::Serialize for Bytes<'_> {
+            fn serialize<S>(&self, s: S) -> core::result::Result<S::Ok, S::Error>
+            where
+                S: serde_core::Serializer,
+            {
+                s.serialize_bytes(self.0)
+            }
+        }
+    }
+
+    #[test]
+    fn matches_serde_json_for_variants_keys_and_empties() {
+        assert_eq!(serialize(&Variants), serialize_with_serde_json(&Variants));
+
+        let int_keys = BTreeMap::from([(-3i64, "a"), (7, "b"), (u8::MAX.into(), "c")]);
+        assert_eq!(serialize(&int_keys), serialize_with_serde_json(&int_keys));
+
+        let bool_keys = BTreeMap::from([(false, 0), (true, 1)]);
+        assert_eq!(serialize(&bool_keys), serialize_with_serde_json(&bool_keys));
+
+        let nested = json!({"a": [], "b": {}, "c": [[], {}, [1, {"d": null}]]});
+        assert_eq!(serialize(&nested), serialize_with_serde_json(&nested));
+        assert_eq!(
+            serialize_pretty(&nested),
+            serde_json::to_vec_pretty(&nested).expect("serde_json failed")
+        );
+    }
+
+    #[test]
+    fn non_finite_float_key_is_an_error() {
+        struct NanKey;
+        impl Serialize for NanKey {
+            fn serialize<S>(&self, s: S) -> core::result::Result<S::Ok, S::Error>
+            where
+                S: serde_core::Serializer,
+            {
+                use serde_core::ser::SerializeMap as _;
+                let mut m = s.serialize_map(Some(1))?;
+                m.serialize_entry(&f64::NAN, &1)?;
+                m.end()
+            }
+        }
+        let err = to_vec(&NanKey).expect_err("NaN key should fail");
+        assert_eq!(err.to_string(), "float key must be finite");
     }
 
     #[test]

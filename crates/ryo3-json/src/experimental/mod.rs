@@ -2,6 +2,7 @@ mod escape;
 mod format;
 mod ser;
 mod serialize_v2;
+mod writer;
 // mod serialize_v3;
 
 pub(crate) use serialize_v2::stringify_v2;
