@@ -1,7 +1,6 @@
 use bytes::Bytes;
-use jiter::map_json_error;
 use pyo3::prelude::*;
-use ryo3_jiter::JiterParseOptions;
+use ryo3_jiter::{JiterParseOptions, RyJSONDecodeError};
 
 pub(crate) struct Pyo3JsonBytes {
     pub bytes: Bytes,
@@ -32,13 +31,10 @@ impl From<Bytes> for Pyo3JsonBytes {
 impl<'py> IntoPyObject<'py> for Pyo3JsonBytes {
     type Target = PyAny;
     type Output = Bound<'py, Self::Target>;
-    type Error = PyErr;
+    type Error = RyJSONDecodeError;
 
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
-        let b_u8 = &self.bytes[..];
-        let parser = self.options.parser();
-        parser
-            .python_parse(py, b_u8)
-            .map_err(|e| map_json_error(b_u8, &e))
+        let parsed = self.options.parser().python_parse(py, &self.bytes);
+        parsed.map_err(|e| RyJSONDecodeError::from((e, self.bytes)))
     }
 }

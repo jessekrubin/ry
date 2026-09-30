@@ -4,6 +4,7 @@ import typing as t
 
 from ry._types import Buffer
 from ry.ryo3._bytes import Bytes
+from ry.ryo3._jiter import JSONDecodeError as JSONDecodeError
 from ry.ryo3._jiter import _JsonPrimitive as _JsonPrimitive
 from ry.ryo3._jiter import _JsonValue as _JsonValue
 

@@ -16,6 +16,7 @@ pub fn py_submod_register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(ryo3_jiter::loads, m)?)?;
     m.add_function(wrap_pyfunction!(ryo3_jiter::cache_clear, m)?)?;
     m.add_function(wrap_pyfunction!(ryo3_jiter::cache_usage, m)?)?;
+    m.add_class::<ryo3_jiter::RyJSONDecodeError>()?;
     Ok(())
 }
 
