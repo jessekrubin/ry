@@ -59,7 +59,7 @@ impl<'a, F: JsonFormat> ser::Serializer for &'a mut Serializer<F> {
 
     #[inline]
     fn serialize_bool(self, v: bool) -> Result<()> {
-        self.w.bool(v);
+        self.w.write_bool(v);
         Ok(())
     }
 
@@ -142,7 +142,7 @@ impl<'a, F: JsonFormat> ser::Serializer for &'a mut Serializer<F> {
 
     #[inline]
     fn serialize_str(self, v: &str) -> Result<()> {
-        self.w.str(v);
+        self.w.write_str(v);
         Ok(())
     }
 
@@ -179,7 +179,7 @@ impl<'a, F: JsonFormat> ser::Serializer for &'a mut Serializer<F> {
 
     #[inline]
     fn serialize_unit(self) -> Result<()> {
-        self.w.null();
+        self.w.write_null();
         Ok(())
     }
 
@@ -211,7 +211,7 @@ impl<'a, F: JsonFormat> ser::Serializer for &'a mut Serializer<F> {
         value: &T,
     ) -> Result<()> {
         self.w.raw_byte(b'{');
-        self.w.str(variant);
+        self.w.write_str(variant);
         self.w.raw_byte(b':');
         value.serialize(&mut *self)?;
         self.w.raw_byte(b'}');
@@ -249,7 +249,7 @@ impl<'a, F: JsonFormat> ser::Serializer for &'a mut Serializer<F> {
         len: usize,
     ) -> Result<Container<'a, F>> {
         self.w.raw_byte(b'{');
-        self.w.str(variant);
+        self.w.write_str(variant);
         self.w.raw_byte(b':');
         self.serialize_seq(Some(len))
     }
@@ -280,7 +280,7 @@ impl<'a, F: JsonFormat> ser::Serializer for &'a mut Serializer<F> {
         len: usize,
     ) -> Result<Container<'a, F>> {
         self.w.raw_byte(b'{');
-        self.w.str(variant);
+        self.w.write_str(variant);
         self.w.raw_byte(b':');
         self.serialize_map(Some(len))
     }
@@ -454,7 +454,7 @@ impl<F: JsonFormat> ser::Serializer for MapKey<'_, F> {
 
     #[inline]
     fn serialize_bool(self, v: bool) -> Result<()> {
-        self.0.w.quoted_bool(v);
+        self.0.w.write_bool_key(v);
         Ok(())
     }
 
