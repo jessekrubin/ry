@@ -1,8 +1,4 @@
-//! Low-level JSON byte writer.
-//!
-//! Owns the output buffer and the [`Format`]; knows how JSON bytes are laid out
-//! but nothing about serde. The serde `Serializer` in `ser.rs` is a thin
-//! frontend over this.
+//! JSON byte(s) writer
 #![expect(clippy::inline_always, reason = "perf")]
 
 use super::escape;
@@ -33,7 +29,7 @@ impl<F: Format> JsonWriter<F> {
     }
 
     // ------------------------------------------------------------------------
-    // raw
+    // RAW
     // ------------------------------------------------------------------------
 
     /// Write a single byte verbatim (no formatting hooks).
@@ -49,7 +45,7 @@ impl<F: Format> JsonWriter<F> {
     }
 
     // ------------------------------------------------------------------------
-    // scalars
+    // PRIMITIVES
     // ------------------------------------------------------------------------
 
     #[inline(always)]
@@ -59,8 +55,6 @@ impl<F: Format> JsonWriter<F> {
 
     #[inline(always)]
     pub(super) fn bool(&mut self, v: bool) {
-        // Separate branches keep each copy a constant length; a single
-        // `raw(if v { .. } else { .. })` becomes a variable-length memcpy call.
         if v {
             self.raw(b"true");
         } else {
@@ -73,9 +67,73 @@ impl<F: Format> JsonWriter<F> {
         self.raw(itoa::Buffer::new().format(v).as_bytes());
     }
 
-    /// Finite floats are written as numbers; NaN/inf are written as `null`.
     #[inline(always)]
-    pub(super) fn float<T: zmij::Float + FloatExt>(&mut self, v: T) {
+    pub(super) fn write_i8(&mut self, v: i8) {
+        self.raw(itoa::Buffer::new().format(v).as_bytes());
+    }
+
+    #[inline(always)]
+    pub(super) fn write_u8(&mut self, v: u8) {
+        self.raw(itoa::Buffer::new().format(v).as_bytes());
+    }
+
+    #[inline(always)]
+    pub(super) fn write_i16(&mut self, v: i16) {
+        self.raw(itoa::Buffer::new().format(v).as_bytes());
+    }
+
+    #[inline(always)]
+    pub(super) fn write_u16(&mut self, v: u16) {
+        self.raw(itoa::Buffer::new().format(v).as_bytes());
+    }
+
+    #[inline(always)]
+    pub(super) fn write_i32(&mut self, v: i32) {
+        self.raw(itoa::Buffer::new().format(v).as_bytes());
+    }
+
+    #[inline(always)]
+    pub(super) fn write_u32(&mut self, v: u32) {
+        self.raw(itoa::Buffer::new().format(v).as_bytes());
+    }
+
+    #[inline(always)]
+    pub(super) fn write_i64(&mut self, v: i64) {
+        self.raw(itoa::Buffer::new().format(v).as_bytes());
+    }
+
+    #[inline(always)]
+    pub(super) fn write_u64(&mut self, v: u64) {
+        self.raw(itoa::Buffer::new().format(v).as_bytes());
+    }
+
+    #[inline(always)]
+    pub(super) fn write_i128(&mut self, v: i128) {
+        self.raw(itoa::Buffer::new().format(v).as_bytes());
+    }
+
+    #[inline(always)]
+    pub(super) fn write_u128(&mut self, v: u128) {
+        self.raw(itoa::Buffer::new().format(v).as_bytes());
+    }
+
+    /// Finite floats are written as numbers; NaN/inf are written as `null`.
+    // #[inline(always)]
+    // pub(super) fn write_infinity<const NEGATIVE: bool>(&mut self) {
+    //     if NEGATIVE {
+    //         self.raw(b"-Infinity");
+    //     } else {
+    //         self.raw(b"Infinity");
+    //     }
+    // }
+
+    // #[inline(always)]
+    // pub(super) fn write_nan(&mut self) {
+    //     self.raw(b"NaN");
+    // }
+
+    #[inline(always)]
+    pub(super) fn write_f32(&mut self, v: f32) {
         if v.is_finite() {
             self.raw(zmij::Buffer::new().format_finite(v).as_bytes());
         } else {
@@ -83,20 +141,29 @@ impl<F: Format> JsonWriter<F> {
         }
     }
 
-    /// Write a quoted, escaped string.
+    #[inline(always)]
+    pub(super) fn write_f64(&mut self, v: f64) {
+        if v.is_finite() {
+            self.raw(zmij::Buffer::new().format_finite(v).as_bytes());
+        } else {
+            self.null();
+        }
+    }
+
+    /// write quotes, and escaped string
     #[inline(always)]
     pub(super) fn str(&mut self, v: &str) {
         escape::format_escaped_str(&mut self.buf, v);
     }
 
-    /// Write escaped string contents without surrounding quotes.
+    /// write escaped string w/o quotes
     #[inline(always)]
     pub(super) fn str_contents(&mut self, v: &str) {
         escape::format_escaped_str_contents(&mut self.buf, v);
     }
 
     // ------------------------------------------------------------------------
-    // quoted scalars (map keys)
+    // MAP KEY PRIMITIVES
     // ------------------------------------------------------------------------
 
     #[inline(always)]
@@ -183,33 +250,5 @@ impl<F: Format> JsonWriter<F> {
         } else {
             *written = true;
         }
-    }
-
-    #[inline(always)]
-    fn close(&mut self, nonempty: bool, close: u8) {
-        self.fmt.dec();
-        if nonempty {
-            self.fmt.indent(&mut self.buf);
-        }
-        self.raw_byte(close);
-    }
-}
-
-/// `is_finite` for the float types `zmij` formats.
-pub(super) trait FloatExt: Copy {
-    fn is_finite(self) -> bool;
-}
-
-impl FloatExt for f32 {
-    #[inline(always)]
-    fn is_finite(self) -> bool {
-        Self::is_finite(self)
-    }
-}
-
-impl FloatExt for f64 {
-    #[inline(always)]
-    fn is_finite(self) -> bool {
-        Self::is_finite(self)
     }
 }

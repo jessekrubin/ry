@@ -11,6 +11,36 @@ use super::writer::JsonWriter;
 
 pub(super) type Result<T> = core::result::Result<T, Error>;
 
+/// Serializes the given data into a JSON byte vector.
+///
+/// # Errors
+///
+/// Returns an error if `T`'s `Serialize` implementation fails or `T` contains
+/// an unsupported map key.
+#[inline]
+pub(super) fn to_vec<T: ?Sized + Serialize>(v: &T) -> Result<Vec<u8>> {
+    let mut serializer = Serializer {
+        w: JsonWriter::with_capacity(4096, Compact),
+    };
+    v.serialize(&mut serializer)?;
+    Ok(serializer.w.into_inner())
+}
+
+/// Serializes the given data into a pretty-printed JSON byte vector.
+///
+/// # Errors
+///
+/// Returns an error if `T`'s `Serialize` implementation fails or `T` contains
+/// an unsupported map key.
+#[inline]
+pub(super) fn to_vec_pretty<T: ?Sized + Serialize>(v: &T) -> Result<Vec<u8>> {
+    let mut serializer = Serializer {
+        w: JsonWriter::with_capacity(4096, Pretty::new2()),
+    };
+    v.serialize(&mut serializer)?;
+    Ok(serializer.w.into_inner())
+}
+
 /// JSON serializing structure; a serde frontend over [`JsonWriter`].
 struct Serializer<F: Format> {
     w: JsonWriter<F>,
@@ -35,61 +65,73 @@ impl<'a, F: Format> ser::Serializer for &'a mut Serializer<F> {
 
     #[inline]
     fn serialize_i8(self, v: i8) -> Result<()> {
-        self.w.int(v);
+        self.w.write_i8(v);
         Ok(())
     }
 
     #[inline]
     fn serialize_i16(self, v: i16) -> Result<()> {
-        self.w.int(v);
+        self.w.write_i16(v);
         Ok(())
     }
 
     #[inline]
     fn serialize_i32(self, v: i32) -> Result<()> {
-        self.w.int(v);
+        self.w.write_i32(v);
         Ok(())
     }
 
     #[inline]
     fn serialize_i64(self, v: i64) -> Result<()> {
-        self.w.int(v);
+        self.w.write_i64(v);
+        Ok(())
+    }
+
+    #[inline]
+    fn serialize_i128(self, v: i128) -> Result<()> {
+        self.w.write_i128(v);
         Ok(())
     }
 
     #[inline]
     fn serialize_u8(self, v: u8) -> Result<()> {
-        self.w.int(v);
+        self.w.write_u8(v);
         Ok(())
     }
 
     #[inline]
     fn serialize_u16(self, v: u16) -> Result<()> {
-        self.w.int(v);
+        self.w.write_u16(v);
         Ok(())
     }
 
     #[inline]
     fn serialize_u32(self, v: u32) -> Result<()> {
-        self.w.int(v);
+        self.w.write_u32(v);
         Ok(())
     }
 
     #[inline]
     fn serialize_u64(self, v: u64) -> Result<()> {
-        self.w.int(v);
+        self.w.write_u64(v);
+        Ok(())
+    }
+
+    #[inline]
+    fn serialize_u128(self, v: u128) -> Result<()> {
+        self.w.write_u128(v);
         Ok(())
     }
 
     #[inline]
     fn serialize_f32(self, v: f32) -> Result<()> {
-        self.w.float(v);
+        self.w.write_f32(v);
         Ok(())
     }
 
     #[inline]
     fn serialize_f64(self, v: f64) -> Result<()> {
-        self.w.float(v);
+        self.w.write_f64(v);
         Ok(())
     }
 
@@ -98,20 +140,29 @@ impl<'a, F: Format> ser::Serializer for &'a mut Serializer<F> {
         self.serialize_str(v.encode_utf8(&mut [0; 4]))
     }
 
+    #[inline]
     fn serialize_str(self, v: &str) -> Result<()> {
         self.w.str(v);
         Ok(())
     }
 
+    #[inline]
     fn serialize_bytes(self, v: &[u8]) -> Result<()> {
         self.w.raw_byte(b'[');
-        let mut written = false;
-
-        for &v in v {
-            self.w.comma(&mut written);
-            self.w.int(v);
+        match v.len() {
+            0 => {}
+            1 => {
+                self.w.write_u8(v[0]);
+            }
+            _ => {
+                let (f, rest) = v.split_first().expect("wenodis");
+                self.w.write_u8(*f);
+                for &v in rest {
+                    self.w.raw_byte(b',');
+                    self.w.write_u8(v);
+                }
+            }
         }
-
         self.w.raw_byte(b']');
         Ok(())
     }
@@ -126,6 +177,7 @@ impl<'a, F: Format> ser::Serializer for &'a mut Serializer<F> {
         value.serialize(self)
     }
 
+    #[inline]
     fn serialize_unit(self) -> Result<()> {
         self.w.null();
         Ok(())
@@ -150,6 +202,7 @@ impl<'a, F: Format> ser::Serializer for &'a mut Serializer<F> {
         value.serialize(self)
     }
 
+    #[inline]
     fn serialize_newtype_variant<T: ?Sized + Serialize>(
         self,
         _: &'static str,
@@ -165,6 +218,7 @@ impl<'a, F: Format> ser::Serializer for &'a mut Serializer<F> {
         Ok(())
     }
 
+    #[inline]
     fn serialize_seq(self, len: Option<usize>) -> Result<Container<'a, F>> {
         if let Some(len) = len {
             self.w.reserve(len.saturating_mul(2).saturating_add(1));
@@ -186,6 +240,7 @@ impl<'a, F: Format> ser::Serializer for &'a mut Serializer<F> {
         self.serialize_seq(Some(len))
     }
 
+    #[inline]
     fn serialize_tuple_variant(
         self,
         _: &'static str,
@@ -199,6 +254,7 @@ impl<'a, F: Format> ser::Serializer for &'a mut Serializer<F> {
         self.serialize_seq(Some(len))
     }
 
+    #[inline]
     fn serialize_map(self, len: Option<usize>) -> Result<Container<'a, F>> {
         if let Some(len) = len {
             self.w.reserve(len.saturating_mul(4).saturating_add(1));
@@ -215,6 +271,7 @@ impl<'a, F: Format> ser::Serializer for &'a mut Serializer<F> {
         self.serialize_map(Some(len))
     }
 
+    #[inline]
     fn serialize_struct_variant(
         self,
         _: &'static str,
@@ -629,36 +686,6 @@ impl Display for Error {
 }
 
 impl core::error::Error for Error {}
-
-/// Serializes the given data into a JSON byte vector.
-///
-/// # Errors
-///
-/// Returns an error if `T`'s `Serialize` implementation fails or `T` contains
-/// an unsupported map key.
-#[inline]
-pub(super) fn to_vec<T: ?Sized + Serialize>(v: &T) -> Result<Vec<u8>> {
-    let mut serializer = Serializer {
-        w: JsonWriter::with_capacity(4096, Compact),
-    };
-    v.serialize(&mut serializer)?;
-    Ok(serializer.w.into_inner())
-}
-
-/// Serializes the given data into a pretty-printed JSON byte vector.
-///
-/// # Errors
-///
-/// Returns an error if `T`'s `Serialize` implementation fails or `T` contains
-/// an unsupported map key.
-#[inline]
-pub(super) fn to_vec_pretty<T: ?Sized + Serialize>(v: &T) -> Result<Vec<u8>> {
-    let mut serializer = Serializer {
-        w: JsonWriter::with_capacity(4096, Pretty::new()),
-    };
-    v.serialize(&mut serializer)?;
-    Ok(serializer.w.into_inner())
-}
 
 #[cfg(test)]
 mod tests {

@@ -28,7 +28,7 @@ impl Serialize for PyIntSerializer<'_, '_> {
     where
         S: Serializer,
     {
-        let v: i64 = self.obj.extract().map_err(pyerr2sererr)?;
+        let v = self.obj.extract::<i64>().map_err(pyerr2sererr)?;
         serializer.serialize_i64(v)
     }
 }
