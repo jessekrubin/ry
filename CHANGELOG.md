@@ -15,6 +15,11 @@
     (`datetimes.timedelta` and `ry.Duration`)
 - stubs/types
   - fix positional dunder stubs
+- `ryo3-jiter`
+  - added `ry.JSONDecodeError`
+    - class which may or may not carry the offending JSON document
+    - WHY? primarily for when `data = await response.json()` fails and ya need
+      the response body
 
 ---
 
