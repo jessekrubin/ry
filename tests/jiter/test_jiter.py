@@ -148,7 +148,7 @@ class TestJSONDecodeError:
 
     def test_new_bad_doc(self) -> None:
         with pytest.raises(TypeError):
-            ry.JSONDecodeError("trailing-comma", 123, 0)  # type: ignore[arg-type]
+            ry.JSONDecodeError("trailing-comma", 123, 0)  # type: ignore[arg-type]  # ty: ignore[invalid-argument-type]
 
     @pytest.mark.parametrize("data", ['{"a": 1,\n "b": 2,}', b'{"a": 1,\n "b": 2,}'])
     def test_attrs(self, data: str | bytes) -> None:
