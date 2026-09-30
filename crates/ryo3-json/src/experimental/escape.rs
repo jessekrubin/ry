@@ -39,7 +39,7 @@ pub(crate) fn format_escaped_str(output: &mut Vec<u8>, value: &str) {
 
 /// JSON escape `&str`
 ///
-/// Adapted from `serde_json`'s escape-table impl for an infallible sink (a vec).
+/// Adapted from `serde_json`'s escape-table impl for writing to a vec
 ///
 /// ref: <https://github.com/serde-rs/json/blob/afdf6fc67247dd7fa4fcde1381e6ecc6bcc7a30e/src/ser.rs#L2079>
 #[inline]

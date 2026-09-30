@@ -1,15 +1,25 @@
 //! JSON byte(s) writer
 #![expect(clippy::inline_always, reason = "perf")]
-
 use super::escape;
-use super::format::Format;
+use super::format::JsonFormat;
 
-pub(super) struct JsonWriter<F: Format> {
+pub(super) struct JsonWriter<F: JsonFormat> {
     buf: Vec<u8>,
     fmt: F,
 }
 
-impl<F: Format> JsonWriter<F> {
+macro_rules! quoted_integer_impl {
+    ($name:ident, $int_type:ty) => {
+        #[inline(always)]
+        pub(super) fn $name(&mut self, v: $int_type) {
+            self.raw_byte(b'"');
+            self.raw(itoa::Buffer::new().format(v).as_bytes());
+            self.raw_byte(b'"');
+        }
+    };
+}
+
+impl<F: JsonFormat> JsonWriter<F> {
     #[inline]
     pub(super) fn with_capacity(capacity: usize, fmt: F) -> Self {
         Self {
@@ -63,11 +73,6 @@ impl<F: Format> JsonWriter<F> {
     }
 
     #[inline(always)]
-    pub(super) fn int(&mut self, v: impl itoa::Integer) {
-        self.raw(itoa::Buffer::new().format(v).as_bytes());
-    }
-
-    #[inline(always)]
     pub(super) fn write_i8(&mut self, v: i8) {
         self.raw(itoa::Buffer::new().format(v).as_bytes());
     }
@@ -117,7 +122,8 @@ impl<F: Format> JsonWriter<F> {
         self.raw(itoa::Buffer::new().format(v).as_bytes());
     }
 
-    /// Finite floats are written as numbers; NaN/inf are written as `null`.
+    // FUTURE: support optionally writing `-Infinity`/`Infinity`/`NaN`?
+
     // #[inline(always)]
     // pub(super) fn write_infinity<const NEGATIVE: bool>(&mut self) {
     //     if NEGATIVE {
@@ -133,18 +139,28 @@ impl<F: Format> JsonWriter<F> {
     // }
 
     #[inline(always)]
+    pub(super) fn write_f32_finite(&mut self, v: f32) {
+        self.raw(zmij::Buffer::new().format_finite(v).as_bytes());
+    }
+
+    #[inline(always)]
     pub(super) fn write_f32(&mut self, v: f32) {
         if v.is_finite() {
-            self.raw(zmij::Buffer::new().format_finite(v).as_bytes());
+            self.write_f32_finite(v);
         } else {
             self.null();
         }
     }
 
     #[inline(always)]
+    pub(super) fn write_f64_finite(&mut self, v: f64) {
+        self.raw(zmij::Buffer::new().format_finite(v).as_bytes());
+    }
+
+    #[inline(always)]
     pub(super) fn write_f64(&mut self, v: f64) {
         if v.is_finite() {
-            self.raw(zmij::Buffer::new().format_finite(v).as_bytes());
+            self.write_f64_finite(v);
         } else {
             self.null();
         }
@@ -175,21 +191,33 @@ impl<F: Format> JsonWriter<F> {
         }
     }
 
-    #[inline(always)]
-    pub(super) fn quoted_int(&mut self, v: impl itoa::Integer) {
-        self.raw_byte(b'"');
-        self.int(v);
-        self.raw_byte(b'"');
-    }
+    quoted_integer_impl!(write_i8_key, i8);
+    quoted_integer_impl!(write_i16_key, i16);
+    quoted_integer_impl!(write_i32_key, i32);
+    quoted_integer_impl!(write_i64_key, i64);
+    quoted_integer_impl!(write_i128_key, i128);
+    quoted_integer_impl!(write_u8_key, u8);
+    quoted_integer_impl!(write_u16_key, u16);
+    quoted_integer_impl!(write_u32_key, u32);
+    quoted_integer_impl!(write_u64_key, u64);
+    quoted_integer_impl!(write_u128_key, u128);
 
-    /// Caller must ensure `v` is finite.
+    /// Must be finite
     #[inline(always)]
-    pub(super) fn quoted_finite_float<T: zmij::Float>(&mut self, v: T) {
+    pub(super) fn write_f32_key(&mut self, v: f32) {
+        debug_assert!(v.is_finite(), "f32 key must be finite");
         self.raw_byte(b'"');
         self.raw(zmij::Buffer::new().format_finite(v).as_bytes());
         self.raw_byte(b'"');
     }
 
+    #[inline(always)]
+    pub(super) fn write_f64_key(&mut self, v: f64) {
+        debug_assert!(v.is_finite(), "f64 key must be finite");
+        self.raw_byte(b'"');
+        self.raw(zmij::Buffer::new().format_finite(v).as_bytes());
+        self.raw_byte(b'"');
+    }
     // ------------------------------------------------------------------------
     // structure
     // ------------------------------------------------------------------------

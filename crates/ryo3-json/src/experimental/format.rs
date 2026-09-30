@@ -2,7 +2,7 @@
 #![expect(clippy::inline_always, reason = "perf")]
 
 /// Controls how JSON output is formatted.
-pub trait Format: Sized {
+pub trait JsonFormat: Sized {
     #[doc(hidden)]
     fn inc(&mut self);
 
@@ -17,9 +17,9 @@ pub trait Format: Sized {
 }
 
 /// Compact format for JSON.
-pub(super) struct Compact;
+pub(super) struct JsonFormatCompact;
 
-impl Format for Compact {
+impl JsonFormat for JsonFormatCompact {
     #[inline(always)]
     fn inc(&mut self) {}
 
@@ -33,37 +33,18 @@ impl Format for Compact {
     fn indent(&self, _: &mut Vec<u8>) {}
 }
 
-/// Pretty printing format for JSON.
-pub(super) struct Pretty<const INDENT: usize = 2> {
+pub(super) struct JsonFormatPretty<const INDENT: usize = 2> {
     depth: u32,
 }
 
-impl Pretty<2> {
-    /// Creates a pretty printing format with default 2 spaces for indentation.
-    #[inline]
-    pub(super) fn new2() -> Self {
-        Self { depth: 0 }
-    }
-}
-
-impl<const INDENT: usize> Pretty<INDENT> {
-    /// Creates a pretty printing format with default 2 spaces for indentation.
+impl<const INDENT: usize> JsonFormatPretty<INDENT> {
     #[inline]
     pub(super) fn new() -> Self {
         Self { depth: 0 }
     }
-
-    // /// Creates a pretty printing format with the given indentation.
-    // #[inline]
-    // fn with_indent(s: &'a [u8]) -> Self {
-    //     Self {
-    //         indent: s,
-    //         depth: 0,
-    //     }
-    // }
 }
 
-impl<const INDENT: usize> Format for Pretty<INDENT> {
+impl<const INDENT: usize> JsonFormat for JsonFormatPretty<INDENT> {
     #[inline(always)]
     fn inc(&mut self) {
         self.depth += 1;
@@ -89,53 +70,3 @@ impl<const INDENT: usize> Format for Pretty<INDENT> {
         }
     }
 }
-
-// /// Pretty printing format for JSON.
-// pub(super) struct Pretty<'a> {
-//     indent: &'a [u8],
-//     depth: usize,
-// }
-
-// impl<'a> Pretty<'a> {
-//     /// Creates a pretty printing format with default 2 spaces for indentation.
-//     #[inline]
-//     pub(super) fn new() -> Self {
-//         Self::with_indent(b"  ")
-//     }
-
-//     /// Creates a pretty printing format with the given indentation.
-//     #[inline]
-//     fn with_indent(s: &'a [u8]) -> Self {
-//         Self {
-//             indent: s,
-//             depth: 0,
-//         }
-//     }
-// }
-
-// impl Format for Pretty<'_> {
-//     #[inline(always)]
-//     fn inc(&mut self) {
-//         self.depth += 1;
-//     }
-
-//     #[inline(always)]
-//     fn dec(&mut self) {
-//         self.depth -= 1;
-//     }
-
-//     #[inline(always)]
-//     fn sep(&self, output: &mut Vec<u8>) {
-//         output.push(b' ');
-//     }
-
-//     #[inline(always)]
-//     fn indent(&self, output: &mut Vec<u8>) {
-//         let needed_space = self.depth * self.indent.len() + 1;
-//         output.reserve(needed_space);
-//         output.push(b'\n');
-//         for _ in 0..self.depth {
-//             output.extend_from_slice(self.indent);
-//         }
-//     }
-// }
