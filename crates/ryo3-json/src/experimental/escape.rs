@@ -30,12 +30,12 @@ static ESCAPE: [u8; 256] = [
     __, __, __, __, __, __, __, __, __, __, __, __, __, __, __, __, // F
 ];
 
-#[inline]
-pub(crate) fn format_escaped_str(output: &mut Vec<u8>, value: &str) {
-    output.push(b'"');
-    format_escaped_str_contents(output, value);
-    output.push(b'"');
-}
+// #[inline]
+// pub(crate) fn format_escaped_str(output: &mut Vec<u8>, value: &str) {
+//     output.push(b'"');
+//     format_escaped_str_contents(output, value);
+//     output.push(b'"');
+// }
 
 /// JSON escape `&str`
 ///

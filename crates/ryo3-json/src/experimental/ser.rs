@@ -48,33 +48,39 @@ pub(crate) struct Serializer<F: JsonFormat> {
 
 impl<F: JsonFormat> Serializer<F> {
     #[inline]
-    pub fn with_capacity(capacity: usize, fmt: F) -> Self {
+    pub(crate) fn with_capacity_and_format(capacity: usize, fmt: F) -> Self {
         Self {
             w: JsonWriter::with_capacity(capacity, fmt),
         }
     }
 
     #[inline]
-    pub fn into_inner(self) -> Vec<u8> {
+    pub(crate) fn into_inner(self) -> Vec<u8> {
         self.w.into_inner()
     }
 }
 
 impl Serializer<JsonFormatCompact> {
+    // #[inline]
+    // pub(crate) fn compact() -> Self {
+    //     Self::compact_with_capacity(4096)
+    // }
+
     #[inline]
-    pub fn compact() -> Self {
-        Serializer {
-            w: JsonWriter::with_capacity(4096, JsonFormatCompact),
-        }
+    pub(crate) fn compact_with_capacity(capacity: usize) -> Self {
+        Self::with_capacity_and_format(capacity, JsonFormatCompact)
     }
 }
 
 impl Serializer<JsonFormatPretty<2>> {
+    // #[inline]
+    // pub(crate) fn pretty() -> Self {
+    //     Self::pretty_with_capacity(4096)
+    // }
+
     #[inline]
-    pub fn pretty() -> Self {
-        Serializer {
-            w: JsonWriter::with_capacity(4096, JsonFormatPretty::<2>::new()),
-        }
+    pub(crate) fn pretty_with_capacity(capacity: usize) -> Self {
+        Self::with_capacity_and_format(capacity, JsonFormatPretty::<2>::new())
     }
 }
 

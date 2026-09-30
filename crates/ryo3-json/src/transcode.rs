@@ -5,19 +5,18 @@ use ryo3_bytes::{ReadableBuffer, RyBytes};
 use ryo3_core::PyCastExactOpt;
 use ryo3_core::macros::{py_type_err, py_value_error};
 
-use crate::experimental::{JsonFormat, JsonFormatCompact, JsonFormatPretty, Serializer};
+use crate::experimental::Serializer;
 
-fn transcode_json<F: JsonFormat>(input: &[u8], fmt: F) -> Result<Vec<u8>, String> {
+fn minify_json(input: &[u8]) -> Result<Vec<u8>, String> {
     let mut de = JiterDeserializer::new(input);
-    let mut ser = Serializer::with_capacity(input.len(), fmt);
+    let mut ser = Serializer::compact_with_capacity(input.len());
     serde_transcode::transcode(&mut de, &mut ser).map_err(|e| e.to_string())?;
     de.finish().map_err(|e| e.description(input))?;
     Ok(ser.into_inner())
 }
 
 fn py_minify_json(input: &[u8]) -> PyResult<Vec<u8>> {
-    transcode_json(input, JsonFormatCompact)
-        .map_err(|e| py_value_error!("Failed to minify JSON: {e}"))
+    minify_json(input).map_err(|e| py_value_error!("Failed to minify JSON: {e}"))
 }
 
 #[pyfunction(signature = (buf, /))]
@@ -35,9 +34,16 @@ pub(crate) fn minify<'py>(buf: &'py Bound<'py, PyAny>) -> PyResult<RyBytes> {
     }
 }
 
+fn indent2_json(input: &[u8]) -> Result<Vec<u8>, String> {
+    let mut de = JiterDeserializer::new(input);
+    let mut ser = Serializer::pretty_with_capacity(input.len());
+    serde_transcode::transcode(&mut de, &mut ser).map_err(|e| e.to_string())?;
+    de.finish().map_err(|e| e.description(input))?;
+    Ok(ser.into_inner())
+}
+
 fn py_indent2_json(input: &[u8]) -> PyResult<Vec<u8>> {
-    transcode_json(input, JsonFormatPretty::<2>::new())
-        .map_err(|e| py_value_error!("Failed to format JSON: {e}"))
+    indent2_json(input).map_err(|e| py_value_error!("Failed to format JSON: {e}"))
 }
 
 #[pyfunction(signature = (buf, /))]
