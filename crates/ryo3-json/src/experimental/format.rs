@@ -17,7 +17,7 @@ pub trait JsonFormat: Sized {
 }
 
 /// Compact format for JSON.
-pub(super) struct JsonFormatCompact;
+pub(crate) struct JsonFormatCompact;
 
 impl JsonFormat for JsonFormatCompact {
     #[inline(always)]
@@ -33,13 +33,13 @@ impl JsonFormat for JsonFormatCompact {
     fn indent(&self, _: &mut Vec<u8>) {}
 }
 
-pub(super) struct JsonFormatPretty<const INDENT: usize = 2> {
+pub(crate) struct JsonFormatPretty<const INDENT: usize = 2> {
     depth: u32,
 }
 
 impl<const INDENT: usize> JsonFormatPretty<INDENT> {
     #[inline]
-    pub(super) fn new() -> Self {
+    pub(crate) fn new() -> Self {
         Self { depth: 0 }
     }
 }

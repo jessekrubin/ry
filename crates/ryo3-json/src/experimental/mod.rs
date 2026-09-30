@@ -3,7 +3,7 @@ mod format;
 mod ser;
 mod serialize_v2;
 mod writer;
-// mod serialize_v3;
 
+pub(crate) use format::{JsonFormat, JsonFormatCompact, JsonFormatPretty};
+pub(crate) use ser::Serializer;
 pub(crate) use serialize_v2::stringify_v2;
-// pub(crate) use serialize_v3::stringify_v3;

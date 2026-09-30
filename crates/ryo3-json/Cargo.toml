@@ -16,21 +16,18 @@ description = "json ~ rust-python-json"
 pyo3 = { workspace = true, features = [] }
 ryo3-bytes = { workspace = true }
 ryo3-core = { workspace = true }
+jiter = { workspace = true, features = ["serde"] }
 ryo3-jiter = { workspace = true }
 ryo3-serde = { workspace = true }
-serde-transcode ={ workspace = true }
-serde_json = { workspace = true}
-zmij = { version = "1.0", optional = true }
-itoa = { version = "1.0", optional = true }
-serde_core = { version = "1.0", optional = true, default-features = false }
-# flexon = { path = "../../_flexon", optional = true, default-features = false, features = [
-#   "serde",
-#   "std",
-# ] }
+serde-transcode = { workspace = true }
+serde_json = { workspace = true }
+zmij = { version = "1.0" }
+itoa = { version = "1.0" }
+serde_core = { version = "1.0", default-features = false }
 
 [features]
-default = ["experimental"]
-experimental = ["dep:zmij", "dep:itoa", "dep:serde_core"]
+default = []
+ry = []
 
 [lints]
 workspace = true

@@ -42,8 +42,40 @@ pub(super) fn to_vec_pretty<T: ?Sized + Serialize>(v: &T) -> Result<Vec<u8>> {
 }
 
 /// JSON serializer with vec writer
-struct Serializer<F: JsonFormat> {
+pub(crate) struct Serializer<F: JsonFormat> {
     w: JsonWriter<F>,
+}
+
+impl<F: JsonFormat> Serializer<F> {
+    #[inline]
+    pub fn with_capacity(capacity: usize, fmt: F) -> Self {
+        Self {
+            w: JsonWriter::with_capacity(capacity, fmt),
+        }
+    }
+
+    #[inline]
+    pub fn into_inner(self) -> Vec<u8> {
+        self.w.into_inner()
+    }
+}
+
+impl Serializer<JsonFormatCompact> {
+    #[inline]
+    pub fn compact() -> Self {
+        Serializer {
+            w: JsonWriter::with_capacity(4096, JsonFormatCompact),
+        }
+    }
+}
+
+impl Serializer<JsonFormatPretty<2>> {
+    #[inline]
+    pub fn pretty() -> Self {
+        Serializer {
+            w: JsonWriter::with_capacity(4096, JsonFormatPretty::<2>::new()),
+        }
+    }
 }
 
 impl<'a, F: JsonFormat> ser::Serializer for &'a mut Serializer<F> {

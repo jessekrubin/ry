@@ -1,9 +1,8 @@
 //! JSON byte(s) writer
-#![expect(clippy::inline_always, reason = "perf")]
 use super::escape;
 use super::format::JsonFormat;
 
-pub(super) struct JsonWriter<F: JsonFormat> {
+pub(crate) struct JsonWriter<F: JsonFormat> {
     buf: Vec<u8>,
     fmt: F,
 }
@@ -11,7 +10,7 @@ pub(super) struct JsonWriter<F: JsonFormat> {
 macro_rules! impl_write_int {
     ($name:ident, $int_type:ty) => {
         #[inline]
-        pub(super) fn $name(&mut self, v: $int_type) {
+        pub(crate) fn $name(&mut self, v: $int_type) {
             self.raw(itoa::Buffer::new().format(v).as_bytes());
         }
     };
@@ -20,7 +19,7 @@ macro_rules! impl_write_int {
 macro_rules! impl_write_int_key {
     ($name:ident, $int_type:ty) => {
         #[inline]
-        pub(super) fn $name(&mut self, v: $int_type) {
+        pub(crate) fn $name(&mut self, v: $int_type) {
             self.raw_byte(b'"');
             self.raw(itoa::Buffer::new().format(v).as_bytes());
             self.raw_byte(b'"');
@@ -30,7 +29,7 @@ macro_rules! impl_write_int_key {
 
 impl<F: JsonFormat> JsonWriter<F> {
     #[inline]
-    pub(super) fn with_capacity(capacity: usize, fmt: F) -> Self {
+    pub(crate) fn with_capacity(capacity: usize, fmt: F) -> Self {
         Self {
             buf: Vec::with_capacity(capacity),
             fmt,
@@ -38,12 +37,12 @@ impl<F: JsonFormat> JsonWriter<F> {
     }
 
     #[inline]
-    pub(super) fn into_inner(self) -> Vec<u8> {
+    pub(crate) fn into_inner(self) -> Vec<u8> {
         self.buf
     }
 
     #[inline]
-    pub(super) fn reserve(&mut self, additional: usize) {
+    pub(crate) fn reserve(&mut self, additional: usize) {
         self.buf.reserve(additional);
     }
 
@@ -53,13 +52,13 @@ impl<F: JsonFormat> JsonWriter<F> {
 
     /// Write a single byte verbatim (no formatting hooks).
     #[inline]
-    pub(super) fn raw_byte(&mut self, v: u8) {
+    pub(crate) fn raw_byte(&mut self, v: u8) {
         self.buf.push(v);
     }
 
     /// Write bytes verbatim (no formatting hooks).
     #[inline]
-    pub(super) fn raw(&mut self, v: &[u8]) {
+    pub(crate) fn raw(&mut self, v: &[u8]) {
         self.buf.extend_from_slice(v);
     }
 
@@ -68,12 +67,12 @@ impl<F: JsonFormat> JsonWriter<F> {
     // ------------------------------------------------------------------------
 
     #[inline]
-    pub(super) fn write_null(&mut self) {
+    pub(crate) fn write_null(&mut self) {
         self.raw(b"null");
     }
 
     #[inline]
-    pub(super) fn write_bool(&mut self, v: bool) {
+    pub(crate) fn write_bool(&mut self, v: bool) {
         if v {
             self.raw(b"true");
         } else {
@@ -95,7 +94,7 @@ impl<F: JsonFormat> JsonWriter<F> {
     // FUTURE: support optionally writing `-Infinity`/`Infinity`/`NaN`?
 
     // #[inline]
-    // pub(super) fn write_infinity<const NEGATIVE: bool>(&mut self) {
+    // pub(crate) fn write_infinity<const NEGATIVE: bool>(&mut self) {
     //     if NEGATIVE {
     //         self.raw(b"-Infinity");
     //     } else {
@@ -103,18 +102,17 @@ impl<F: JsonFormat> JsonWriter<F> {
     //     }
     // }
 
-    // #[inline]
-    // pub(super) fn write_nan(&mut self) {
+    // pub(crate) fn write_nan(&mut self) {
     //     self.raw(b"NaN");
     // }
 
     #[inline]
-    pub(super) fn write_f32_finite(&mut self, v: f32) {
+    pub(crate) fn write_f32_finite(&mut self, v: f32) {
         self.raw(zmij::Buffer::new().format_finite(v).as_bytes());
     }
 
     #[inline]
-    pub(super) fn write_f32(&mut self, v: f32) {
+    pub(crate) fn write_f32(&mut self, v: f32) {
         if v.is_finite() {
             self.write_f32_finite(v);
         } else {
@@ -123,12 +121,12 @@ impl<F: JsonFormat> JsonWriter<F> {
     }
 
     #[inline]
-    pub(super) fn write_f64_finite(&mut self, v: f64) {
+    pub(crate) fn write_f64_finite(&mut self, v: f64) {
         self.raw(zmij::Buffer::new().format_finite(v).as_bytes());
     }
 
     #[inline]
-    pub(super) fn write_f64(&mut self, v: f64) {
+    pub(crate) fn write_f64(&mut self, v: f64) {
         if v.is_finite() {
             self.write_f64_finite(v);
         } else {
@@ -138,7 +136,7 @@ impl<F: JsonFormat> JsonWriter<F> {
 
     /// write quotes, and escaped string
     #[inline]
-    pub(super) fn write_str(&mut self, v: &str) {
+    pub(crate) fn write_str(&mut self, v: &str) {
         self.raw_byte(b'"');
         escape::format_escaped_str_contents(&mut self.buf, v);
         self.raw_byte(b'"');
@@ -146,7 +144,7 @@ impl<F: JsonFormat> JsonWriter<F> {
 
     /// write escaped string w/o quotes
     #[inline]
-    pub(super) fn str_contents(&mut self, v: &str) {
+    pub(crate) fn str_contents(&mut self, v: &str) {
         escape::format_escaped_str_contents(&mut self.buf, v);
     }
 
@@ -154,7 +152,7 @@ impl<F: JsonFormat> JsonWriter<F> {
     // MAP KEY PRIMITIVES
     // ------------------------------------------------------------------------
     #[inline]
-    pub(super) fn write_bool_key(&mut self, v: bool) {
+    pub(crate) fn write_bool_key(&mut self, v: bool) {
         if v {
             self.raw(br#""true""#);
         } else {
@@ -175,7 +173,7 @@ impl<F: JsonFormat> JsonWriter<F> {
 
     /// Must be finite
     #[inline]
-    pub(super) fn write_f32_key(&mut self, v: f32) {
+    pub(crate) fn write_f32_key(&mut self, v: f32) {
         debug_assert!(v.is_finite(), "f32 key must be finite");
         self.raw_byte(b'"');
         self.raw(zmij::Buffer::new().format_finite(v).as_bytes());
@@ -183,7 +181,7 @@ impl<F: JsonFormat> JsonWriter<F> {
     }
 
     #[inline]
-    pub(super) fn write_f64_key(&mut self, v: f64) {
+    pub(crate) fn write_f64_key(&mut self, v: f64) {
         debug_assert!(v.is_finite(), "f64 key must be finite");
         self.raw_byte(b'"');
         self.raw(zmij::Buffer::new().format_finite(v).as_bytes());
@@ -194,14 +192,14 @@ impl<F: JsonFormat> JsonWriter<F> {
     // ------------------------------------------------------------------------
 
     #[inline]
-    pub(super) fn begin_array(&mut self) {
+    pub(crate) fn begin_array(&mut self) {
         self.raw_byte(b'[');
         self.fmt.inc();
     }
 
     /// `nonempty` is whether any element was written.
     #[inline]
-    pub(super) fn end_array(&mut self, nonempty: bool) {
+    pub(crate) fn end_array(&mut self, nonempty: bool) {
         self.fmt.dec();
         if nonempty {
             self.fmt.indent(&mut self.buf);
@@ -210,14 +208,14 @@ impl<F: JsonFormat> JsonWriter<F> {
     }
 
     #[inline]
-    pub(super) fn begin_object(&mut self) {
+    pub(crate) fn begin_object(&mut self) {
         self.raw_byte(b'{');
         self.fmt.inc();
     }
 
     /// `nonempty` is whether any entry was written.
     #[inline]
-    pub(super) fn end_object(&mut self, nonempty: bool) {
+    pub(crate) fn end_object(&mut self, nonempty: bool) {
         self.fmt.dec();
         if nonempty {
             self.fmt.indent(&mut self.buf);
@@ -228,14 +226,14 @@ impl<F: JsonFormat> JsonWriter<F> {
     /// Separator before an array element or object key: a comma if one was
     /// already written (tracked via `written`), then indentation.
     #[inline]
-    pub(super) fn elem_sep(&mut self, written: &mut bool) {
+    pub(crate) fn elem_sep(&mut self, written: &mut bool) {
         self.comma(written);
         self.fmt.indent(&mut self.buf);
     }
 
     /// Separator between an object key and its value.
     #[inline]
-    pub(super) fn key_sep(&mut self) {
+    pub(crate) fn key_sep(&mut self) {
         self.raw_byte(b':');
         self.fmt.sep(&mut self.buf);
     }
@@ -243,7 +241,7 @@ impl<F: JsonFormat> JsonWriter<F> {
     /// A comma if one was already written (tracked via `written`); no
     /// indentation. For compact sub-structures such as byte arrays.
     #[inline]
-    pub(super) fn comma(&mut self, written: &mut bool) {
+    pub(crate) fn comma(&mut self, written: &mut bool) {
         if *written {
             self.raw_byte(b',');
         } else {
