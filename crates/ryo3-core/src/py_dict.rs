@@ -26,7 +26,6 @@ impl<'a, 'py> BorrowedDictIter<'a, 'py> {
 
     #[must_use]
     pub fn new_with_len(dict: Borrowed<'a, 'py, PyDict>, len: usize) -> Self {
-        debug_assert!(len == dict.len(), "dict.len ne expected length {len}");
         BorrowedDictIter {
             dict,
             ppos: 0,
@@ -40,9 +39,9 @@ impl<'a, 'py> Iterator for BorrowedDictIter<'a, 'py> {
 
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
-        if self.remaining == 0 {
-            return None;
-        }
+        // if self.remaining == 0 {
+        //     return None;
+        // }
         let mut key_ptr = std::mem::MaybeUninit::<*mut ffi::PyObject>::uninit();
         let mut val_ptr = std::mem::MaybeUninit::<*mut ffi::PyObject>::uninit();
         // pydict-next returns 1 if more items, 0 if donezo
