@@ -9,6 +9,7 @@
 
 ## v0.0.102 [unreleased]
 
+- `pyo3-v0.29.3`
 - `ryo3-jiff`
   - fix `__radd__` impls for temporal types used to add duration types that have
     an `__add__` method that is not aware of the ry-jiff-temporal types
