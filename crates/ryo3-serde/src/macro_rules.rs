@@ -8,6 +8,6 @@ macro_rules! serde_err {
 #[macro_export]
 macro_rules! serde_err_recursion {
     () => {
-        Err(::serde::ser::Error::custom("recursion"))
+        Err(::serde::ser::Error::custom($crate::RECURSION_ERR_MSG))
     };
 }

@@ -5,11 +5,11 @@ use ryo3_bytes::RyBytes;
 use ryo3_core::macros::py_not_implemented_err;
 use ryo3_serde::PyAnySerializer;
 
-use super::ser;
+use crate::ser::{self, JsonSerError};
 use crate::ser_opts::JsonOptions;
 
-fn map_serde_json_err<E: std::fmt::Display>(e: E) -> PyErr {
-    if e.to_string().starts_with("recursion") {
+fn map_ser_err(e: &JsonSerError) -> PyErr {
+    if e.is_recursion() {
         PyRecursionError::new_err("Recursion limit reached")
     } else {
         PyTypeError::new_err(format!("Failed to serialize: {e}"))
@@ -67,7 +67,7 @@ impl<'py> JsonSerializerV2<'py> {
                 ser::to_vec(&s)
             }
         }
-        .map_err(map_serde_json_err)?;
+        .map_err(|e| map_ser_err(&e))?;
 
         if self.opts.append_newline() {
             bytes.push(b'\n');

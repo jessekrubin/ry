@@ -1,15 +1,7 @@
-//! Serialize JSON using serde.
-use core::fmt::{self, Display, Formatter};
+//! json serializer
+use serde_core::ser;
 
-use serde_core::ser::{
-    self, Impossible, Serialize, SerializeMap, SerializeSeq, SerializeStruct,
-    SerializeStructVariant, SerializeTuple, SerializeTupleStruct, SerializeTupleVariant,
-};
-
-use super::format::{JsonFormat, JsonFormatCompact, JsonFormatPretty};
-use super::writer::JsonWriter;
-
-pub(super) type Result<T> = core::result::Result<T, JsonSerError>;
+use super::{JsonFormat, JsonFormatCompact, JsonFormatPretty, JsonSerError, JsonWriter, Result};
 
 /// JSON serialize compact
 ///
@@ -18,7 +10,7 @@ pub(super) type Result<T> = core::result::Result<T, JsonSerError>;
 /// Returns an error if `T`'s `Serialize` implementation fails or `T` contains
 /// an unsupported map key.
 #[inline]
-pub(super) fn to_vec<T: ?Sized + Serialize>(v: &T) -> Result<Vec<u8>> {
+pub(crate) fn to_vec<T: ?Sized + ser::Serialize>(v: &T) -> Result<Vec<u8>> {
     let mut serializer = Serializer {
         w: JsonWriter::with_capacity(4096, JsonFormatCompact),
     };
@@ -33,7 +25,7 @@ pub(super) fn to_vec<T: ?Sized + Serialize>(v: &T) -> Result<Vec<u8>> {
 /// Returns an error if `T`'s `Serialize` implementation fails or `T` contains
 /// an unsupported map key.
 #[inline]
-pub(super) fn to_vec_pretty<T: ?Sized + Serialize>(v: &T) -> Result<Vec<u8>> {
+pub(crate) fn to_vec_pretty<T: ?Sized + ser::Serialize>(v: &T) -> Result<Vec<u8>> {
     let mut serializer = Serializer {
         w: JsonWriter::with_capacity(4096, JsonFormatPretty::<2>::new()),
     };
@@ -211,7 +203,7 @@ impl<'a, F: JsonFormat> ser::Serializer for &'a mut Serializer<F> {
     }
 
     #[inline]
-    fn serialize_some<T: ?Sized + Serialize>(self, value: &T) -> Result<()> {
+    fn serialize_some<T: ?Sized + ser::Serialize>(self, value: &T) -> Result<()> {
         value.serialize(self)
     }
 
@@ -232,7 +224,7 @@ impl<'a, F: JsonFormat> ser::Serializer for &'a mut Serializer<F> {
     }
 
     #[inline]
-    fn serialize_newtype_struct<T: ?Sized + Serialize>(
+    fn serialize_newtype_struct<T: ?Sized + ser::Serialize>(
         self,
         _: &'static str,
         value: &T,
@@ -241,7 +233,7 @@ impl<'a, F: JsonFormat> ser::Serializer for &'a mut Serializer<F> {
     }
 
     #[inline]
-    fn serialize_newtype_variant<T: ?Sized + Serialize>(
+    fn serialize_newtype_variant<T: ?Sized + ser::Serialize>(
         self,
         _: &'static str,
         _: u32,
@@ -325,14 +317,14 @@ impl<'a, F: JsonFormat> ser::Serializer for &'a mut Serializer<F> {
 
     fn collect_str<T>(self, value: &T) -> Result<()>
     where
-        T: ?Sized + Display,
+        T: ?Sized + std::fmt::Display,
     {
         use core::fmt::Write as _;
 
         struct Adapter<'a, F: JsonFormat>(&'a mut JsonWriter<F>);
 
-        impl<F: JsonFormat> fmt::Write for Adapter<'_, F> {
-            fn write_str(&mut self, s: &str) -> fmt::Result {
+        impl<F: JsonFormat> std::fmt::Write for Adapter<'_, F> {
+            fn write_str(&mut self, s: &str) -> std::fmt::Result {
                 self.0.str_contents(s);
                 Ok(())
             }
@@ -353,12 +345,12 @@ pub struct Container<'a, F: JsonFormat> {
     written: bool,
 }
 
-impl<F: JsonFormat> SerializeSeq for Container<'_, F> {
+impl<F: JsonFormat> ser::SerializeSeq for Container<'_, F> {
     type Ok = ();
     type Error = JsonSerError;
 
     #[inline]
-    fn serialize_element<T: ?Sized + Serialize>(&mut self, value: &T) -> Result<()> {
+    fn serialize_element<T: ?Sized + ser::Serialize>(&mut self, value: &T) -> Result<()> {
         self.ser.w.elem_sep(&mut self.written);
         value.serialize(&mut *self.ser)
     }
@@ -370,43 +362,43 @@ impl<F: JsonFormat> SerializeSeq for Container<'_, F> {
     }
 }
 
-impl<F: JsonFormat> SerializeTuple for Container<'_, F> {
+impl<F: JsonFormat> ser::SerializeTuple for Container<'_, F> {
     type Ok = ();
     type Error = JsonSerError;
 
     #[inline]
-    fn serialize_element<T: ?Sized + Serialize>(&mut self, value: &T) -> Result<()> {
-        SerializeSeq::serialize_element(self, value)
+    fn serialize_element<T: ?Sized + ser::Serialize>(&mut self, value: &T) -> Result<()> {
+        ser::SerializeSeq::serialize_element(self, value)
     }
 
     #[inline]
     fn end(self) -> Result<()> {
-        SerializeSeq::end(self)
+        ser::SerializeSeq::end(self)
     }
 }
 
-impl<F: JsonFormat> SerializeTupleStruct for Container<'_, F> {
+impl<F: JsonFormat> ser::SerializeTupleStruct for Container<'_, F> {
     type Ok = ();
     type Error = JsonSerError;
 
     #[inline]
-    fn serialize_field<T: ?Sized + Serialize>(&mut self, value: &T) -> Result<()> {
-        SerializeSeq::serialize_element(self, value)
+    fn serialize_field<T: ?Sized + ser::Serialize>(&mut self, value: &T) -> Result<()> {
+        ser::SerializeSeq::serialize_element(self, value)
     }
 
     #[inline]
     fn end(self) -> Result<()> {
-        SerializeSeq::end(self)
+        ser::SerializeSeq::end(self)
     }
 }
 
-impl<F: JsonFormat> SerializeTupleVariant for Container<'_, F> {
+impl<F: JsonFormat> ser::SerializeTupleVariant for Container<'_, F> {
     type Ok = ();
     type Error = JsonSerError;
 
     #[inline]
-    fn serialize_field<T: ?Sized + Serialize>(&mut self, value: &T) -> Result<()> {
-        SerializeSeq::serialize_element(self, value)
+    fn serialize_field<T: ?Sized + ser::Serialize>(&mut self, value: &T) -> Result<()> {
+        ser::SerializeSeq::serialize_element(self, value)
     }
 
     #[inline]
@@ -417,16 +409,16 @@ impl<F: JsonFormat> SerializeTupleVariant for Container<'_, F> {
     }
 }
 
-impl<F: JsonFormat> SerializeMap for Container<'_, F> {
+impl<F: JsonFormat> ser::SerializeMap for Container<'_, F> {
     type Ok = ();
     type Error = JsonSerError;
 
-    fn serialize_key<T: ?Sized + Serialize>(&mut self, key: &T) -> Result<()> {
+    fn serialize_key<T: ?Sized + ser::Serialize>(&mut self, key: &T) -> Result<()> {
         self.ser.w.elem_sep(&mut self.written);
         key.serialize(MapKey(self.ser))
     }
 
-    fn serialize_value<T: ?Sized + Serialize>(&mut self, value: &T) -> Result<()> {
+    fn serialize_value<T: ?Sized + ser::Serialize>(&mut self, value: &T) -> Result<()> {
         self.ser.w.key_sep();
         value.serialize(&mut *self.ser)
     }
@@ -438,35 +430,35 @@ impl<F: JsonFormat> SerializeMap for Container<'_, F> {
     }
 }
 
-impl<F: JsonFormat> SerializeStruct for Container<'_, F> {
+impl<F: JsonFormat> ser::SerializeStruct for Container<'_, F> {
     type Ok = ();
     type Error = JsonSerError;
 
     #[inline]
-    fn serialize_field<T: ?Sized + Serialize>(
+    fn serialize_field<T: ?Sized + ser::Serialize>(
         &mut self,
         key: &'static str,
         value: &T,
     ) -> Result<()> {
-        SerializeMap::serialize_entry(self, key, value)
+        ser::SerializeMap::serialize_entry(self, key, value)
     }
 
     #[inline]
     fn end(self) -> Result<()> {
-        SerializeMap::end(self)
+        ser::SerializeMap::end(self)
     }
 }
 
-impl<F: JsonFormat> SerializeStructVariant for Container<'_, F> {
+impl<F: JsonFormat> ser::SerializeStructVariant for Container<'_, F> {
     type Ok = ();
     type Error = JsonSerError;
 
-    fn serialize_field<T: ?Sized + Serialize>(
+    fn serialize_field<T: ?Sized + ser::Serialize>(
         &mut self,
         key: &'static str,
         value: &T,
     ) -> Result<()> {
-        SerializeStruct::serialize_field(self, key, value)
+        ser::SerializeStruct::serialize_field(self, key, value)
     }
 
     fn end(self) -> Result<()> {
@@ -482,13 +474,13 @@ struct MapKey<'a, F: JsonFormat>(&'a mut Serializer<F>);
 impl<F: JsonFormat> ser::Serializer for MapKey<'_, F> {
     type Ok = ();
     type Error = JsonSerError;
-    type SerializeSeq = Impossible<(), JsonSerError>;
-    type SerializeTuple = Impossible<(), JsonSerError>;
-    type SerializeTupleStruct = Impossible<(), JsonSerError>;
-    type SerializeTupleVariant = Impossible<(), JsonSerError>;
-    type SerializeMap = Impossible<(), JsonSerError>;
-    type SerializeStruct = Impossible<(), JsonSerError>;
-    type SerializeStructVariant = Impossible<(), JsonSerError>;
+    type SerializeSeq = ser::Impossible<(), JsonSerError>;
+    type SerializeTuple = ser::Impossible<(), JsonSerError>;
+    type SerializeTupleStruct = ser::Impossible<(), JsonSerError>;
+    type SerializeTupleVariant = ser::Impossible<(), JsonSerError>;
+    type SerializeMap = ser::Impossible<(), JsonSerError>;
+    type SerializeStruct = ser::Impossible<(), JsonSerError>;
+    type SerializeStructVariant = ser::Impossible<(), JsonSerError>;
 
     #[inline]
     fn serialize_bool(self, v: bool) -> Result<()> {
@@ -595,7 +587,7 @@ impl<F: JsonFormat> ser::Serializer for MapKey<'_, F> {
     }
 
     #[inline]
-    fn serialize_some<T: ?Sized + Serialize>(self, value: &T) -> Result<()> {
+    fn serialize_some<T: ?Sized + ser::Serialize>(self, value: &T) -> Result<()> {
         value.serialize(self)
     }
 
@@ -615,7 +607,7 @@ impl<F: JsonFormat> ser::Serializer for MapKey<'_, F> {
     }
 
     #[inline]
-    fn serialize_newtype_struct<T: ?Sized + Serialize>(
+    fn serialize_newtype_struct<T: ?Sized + ser::Serialize>(
         self,
         _: &'static str,
         value: &T,
@@ -624,7 +616,7 @@ impl<F: JsonFormat> ser::Serializer for MapKey<'_, F> {
     }
 
     #[inline]
-    fn serialize_newtype_variant<T: ?Sized + Serialize>(
+    fn serialize_newtype_variant<T: ?Sized + ser::Serialize>(
         self,
         _: &'static str,
         _: u32,
@@ -635,12 +627,12 @@ impl<F: JsonFormat> ser::Serializer for MapKey<'_, F> {
     }
 
     #[inline]
-    fn serialize_seq(self, _: Option<usize>) -> Result<Impossible<(), JsonSerError>> {
+    fn serialize_seq(self, _: Option<usize>) -> Result<ser::Impossible<(), JsonSerError>> {
         Err(JsonSerError::key_must_be_string())
     }
 
     #[inline]
-    fn serialize_tuple(self, _: usize) -> Result<Impossible<(), JsonSerError>> {
+    fn serialize_tuple(self, _: usize) -> Result<ser::Impossible<(), JsonSerError>> {
         Err(JsonSerError::key_must_be_string())
     }
 
@@ -649,7 +641,7 @@ impl<F: JsonFormat> ser::Serializer for MapKey<'_, F> {
         self,
         _: &'static str,
         _: usize,
-    ) -> Result<Impossible<(), JsonSerError>> {
+    ) -> Result<ser::Impossible<(), JsonSerError>> {
         Err(JsonSerError::key_must_be_string())
     }
 
@@ -660,17 +652,21 @@ impl<F: JsonFormat> ser::Serializer for MapKey<'_, F> {
         _: u32,
         _: &'static str,
         _: usize,
-    ) -> Result<Impossible<(), JsonSerError>> {
+    ) -> Result<ser::Impossible<(), JsonSerError>> {
         Err(JsonSerError::key_must_be_string())
     }
 
     #[inline]
-    fn serialize_map(self, _: Option<usize>) -> Result<Impossible<(), JsonSerError>> {
+    fn serialize_map(self, _: Option<usize>) -> Result<ser::Impossible<(), JsonSerError>> {
         Err(JsonSerError::key_must_be_string())
     }
 
     #[inline]
-    fn serialize_struct(self, _: &'static str, _: usize) -> Result<Impossible<(), JsonSerError>> {
+    fn serialize_struct(
+        self,
+        _: &'static str,
+        _: usize,
+    ) -> Result<ser::Impossible<(), JsonSerError>> {
         Err(JsonSerError::key_must_be_string())
     }
 
@@ -681,75 +677,27 @@ impl<F: JsonFormat> ser::Serializer for MapKey<'_, F> {
         _: u32,
         _: &'static str,
         _: usize,
-    ) -> Result<Impossible<(), JsonSerError>> {
+    ) -> Result<ser::Impossible<(), JsonSerError>> {
         Err(JsonSerError::key_must_be_string())
     }
 
     fn collect_str<T>(self, value: &T) -> Result<()>
     where
-        T: ?Sized + Display,
+        T: ?Sized + std::fmt::Display,
     {
         self.0.collect_str(value)
     }
 }
 
-#[derive(Debug)]
-pub struct JsonSerError {
-    kind: Box<JsonSerErrorKind>,
-}
-
-#[derive(Debug)]
-enum JsonSerErrorKind {
-    KeyMustBeString,
-    FloatKeyMustBeFinite,
-    Message(Box<str>),
-}
-
-impl JsonSerError {
-    #[inline]
-    fn key_must_be_string() -> Self {
-        Self {
-            kind: Box::new(JsonSerErrorKind::KeyMustBeString),
-        }
-    }
-
-    fn float_key_must_be_finite() -> Self {
-        Self {
-            kind: Box::new(JsonSerErrorKind::FloatKeyMustBeFinite),
-        }
-    }
-}
-
-impl ser::Error for JsonSerError {
-    fn custom<T: Display>(msg: T) -> Self {
-        Self {
-            kind: Box::new(JsonSerErrorKind::Message(Box::from(msg.to_string()))),
-        }
-    }
-}
-
-impl Display for JsonSerError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        match self.kind.as_ref() {
-            JsonSerErrorKind::KeyMustBeString => f.write_str("key must be a string"),
-            JsonSerErrorKind::FloatKeyMustBeFinite => f.write_str("float key must be finite"),
-            JsonSerErrorKind::Message(msg) => f.write_str(msg.as_ref()),
-        }
-    }
-}
-
-impl core::error::Error for JsonSerError {}
-
 #[cfg(test)]
 mod tests {
     use core::fmt::{self, Display, Formatter};
-    use core::mem::size_of;
     use std::collections::BTreeMap;
 
     use serde_core::Serialize;
     use serde_json::json;
 
-    use super::{JsonSerError, to_vec, to_vec_pretty};
+    use super::{to_vec, to_vec_pretty};
 
     fn serialize<T: ?Sized + Serialize>(value: &T) -> Vec<u8> {
         match to_vec(value) {
@@ -858,12 +806,6 @@ mod tests {
         }
         let err = to_vec(&NanKey).expect_err("NaN key should fail");
         assert_eq!(err.to_string(), "float key must be finite");
-    }
-
-    #[test]
-    fn error_is_pointer_sized() {
-        assert_eq!(size_of::<JsonSerError>(), size_of::<usize>());
-        assert_eq!(size_of::<super::Result<()>>(), size_of::<usize>());
     }
 
     #[test]
