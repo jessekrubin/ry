@@ -431,11 +431,13 @@ impl<F: JsonFormat> ser::SerializeMap for Container<'_, F> {
     type Ok = ();
     type Error = JsonSerError;
 
+    #[inline]
     fn serialize_key<T: ?Sized + ser::Serialize>(&mut self, key: &T) -> Result<()> {
         self.ser.w.elem_sep(&mut self.written);
         key.serialize(MapKey(self.ser))
     }
 
+    #[inline]
     fn serialize_value<T: ?Sized + ser::Serialize>(&mut self, value: &T) -> Result<()> {
         self.ser.w.key_sep();
         value.serialize(&mut *self.ser)

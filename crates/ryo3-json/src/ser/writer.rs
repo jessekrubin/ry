@@ -106,29 +106,29 @@ impl<F: JsonFormat> JsonWriter<F> {
     //     self.raw(b"NaN");
     // }
 
-    #[inline]
-    pub(crate) fn write_f32_finite(&mut self, v: f32) {
-        self.raw(zmij::Buffer::new().format_finite(v).as_bytes());
-    }
+    // #[inline]
+    // pub(crate) fn write_f32_finite(&mut self, v: f32) {
+    //     self.raw(zmij::Buffer::new().format_finite(v).as_bytes());
+    // }
 
     #[inline]
     pub(crate) fn write_f32(&mut self, v: f32) {
         if v.is_finite() {
-            self.write_f32_finite(v);
+            self.raw(zmij::Buffer::new().format_finite(v).as_bytes());
         } else {
             self.write_null();
         }
     }
 
-    #[inline]
-    pub(crate) fn write_f64_finite(&mut self, v: f64) {
-        self.raw(zmij::Buffer::new().format_finite(v).as_bytes());
-    }
+    // #[inline]
+    // pub(crate) fn write_f64_finite(&mut self, v: f64) {
+    //     self.raw(zmij::Buffer::new().format_finite(v).as_bytes());
+    // }
 
     #[inline]
     pub(crate) fn write_f64(&mut self, v: f64) {
         if v.is_finite() {
-            self.write_f64_finite(v);
+            self.raw(zmij::Buffer::new().format_finite(v).as_bytes());
         } else {
             self.write_null();
         }
