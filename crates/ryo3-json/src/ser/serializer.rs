@@ -10,12 +10,21 @@ use super::{JsonFormat, JsonFormatCompact, JsonFormatPretty, JsonSerError, JsonW
 /// Returns an error if `T`'s `Serialize` implementation fails or `T` contains
 /// an unsupported map key.
 #[inline]
-pub(crate) fn to_vec<T: ?Sized + ser::Serialize>(v: &T) -> Result<Vec<u8>> {
+pub fn to_vec<T: ?Sized + ser::Serialize>(v: &T) -> Result<Vec<u8>> {
     let mut serializer = Serializer {
         w: JsonWriter::with_capacity(4096, JsonFormatCompact),
     };
     v.serialize(&mut serializer)?;
     Ok(serializer.w.into_inner())
+}
+
+#[inline]
+pub fn to_string<T: ?Sized + ser::Serialize>(v: &T) -> Result<String> {
+    let vec = to_vec(v)?;
+    // SAFETY: `to_vec` is valid utf8-string (wenodis)
+    #[expect(unsafe_code)]
+    let s = unsafe { String::from_utf8_unchecked(vec) };
+    Ok(s)
 }
 
 /// JSON serialize formatted (indent=2)
@@ -25,12 +34,21 @@ pub(crate) fn to_vec<T: ?Sized + ser::Serialize>(v: &T) -> Result<Vec<u8>> {
 /// Returns an error if `T`'s `Serialize` implementation fails or `T` contains
 /// an unsupported map key.
 #[inline]
-pub(crate) fn to_vec_pretty<T: ?Sized + ser::Serialize>(v: &T) -> Result<Vec<u8>> {
+pub fn to_vec_pretty<T: ?Sized + ser::Serialize>(v: &T) -> Result<Vec<u8>> {
     let mut serializer = Serializer {
         w: JsonWriter::with_capacity(4096, JsonFormatPretty::<2>::new()),
     };
     v.serialize(&mut serializer)?;
     Ok(serializer.w.into_inner())
+}
+
+#[inline]
+pub fn to_string_pretty<T: ?Sized + ser::Serialize>(v: &T) -> Result<String> {
+    let vec = to_vec_pretty(v)?;
+    // SAFETY: `to_vec_pretty` is valid utf8-string (wenodis)
+    #[expect(unsafe_code)]
+    let s = unsafe { String::from_utf8_unchecked(vec) };
+    Ok(s)
 }
 
 /// JSON serializer with vec writer

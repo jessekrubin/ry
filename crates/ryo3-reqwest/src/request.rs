@@ -120,6 +120,14 @@ fn extract_form_body(form: Borrowed<'_, '_, PyAny>) -> PyResult<PyReqwestBody> {
     Ok(PyReqwestBody::Form(url_encoded_form))
 }
 
+#[inline]
+fn extract_json_body(form: Borrowed<'_, '_, PyAny>) -> PyResult<PyReqwestBody> {
+    let py_any_serializer = ryo3_serde::PyAnySerializer::new(form, None);
+    let json = ryo3_json::ser::to_vec(&py_any_serializer)
+        .map_err(|e| py_value_error!("failed to serialize json data: {e}"))?;
+    Ok(PyReqwestBody::Json(json))
+}
+
 #[cfg(any(PyPy, GraalPy, Py_LIMITED_API))]
 #[inline]
 fn extract_kwargs<const BLOCKING: bool>(
@@ -149,9 +157,7 @@ fn extract_kwargs<const BLOCKING: bool>(
         (Some(body), None, None, None) => {
             extract_body_from_py_body::<BLOCKING>(body.as_borrowed())?
         }
-        (None, Some(json), None, None) => {
-            PyReqwestBody::Json(ryo3_json::to_vec(json.as_borrowed())?)
-        }
+        (None, Some(json), None, None) => extract_json_body(json.as_borrowed())?,
         (None, None, Some(form), None) => extract_form_body(form.as_borrowed())?,
         (None, None, None, Some(_multipart)) => {
             pytodo!("multipart not implemented (yet)");
@@ -222,7 +228,7 @@ fn extract_kwargs<const BLOCKING: bool>(
                     return py_value_err!("body, json, form, multipart are mutually exclusive");
                 }
                 body_set = true;
-                res.body = PyReqwestBody::Json(ryo3_json::to_vec(value)?);
+                res.body = extract_json_body(value)?;
             }
             "form" => {
                 if body_set {

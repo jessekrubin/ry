@@ -1,7 +1,7 @@
 #![doc = include_str!("../README.md")]
 
 pub mod orjson;
-mod ser;
+pub mod ser;
 mod ser_opts;
 mod serialize;
 mod serialize_v2;
