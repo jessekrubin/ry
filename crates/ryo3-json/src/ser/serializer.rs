@@ -269,13 +269,10 @@ impl<'a, F: JsonFormat> ser::Serializer for &'a mut Serializer<F> {
     #[inline]
     fn serialize_seq(self, len: Option<usize>) -> Result<Container<'a, F>> {
         if let Some(len) = len {
-            self.w.reserve(len.saturating_mul(2).saturating_add(1));
+            self.w.reserve(len.saturating_mul(8).saturating_add(1));
         }
         self.w.begin_array();
-        Ok(Container {
-            ser: self,
-            written: false,
-        })
+        Ok(Container { ser: self })
     }
 
     #[inline]
@@ -305,13 +302,10 @@ impl<'a, F: JsonFormat> ser::Serializer for &'a mut Serializer<F> {
     #[inline]
     fn serialize_map(self, len: Option<usize>) -> Result<Container<'a, F>> {
         if let Some(len) = len {
-            self.w.reserve(len.saturating_mul(4).saturating_add(1));
+            self.w.reserve(len.saturating_mul(16).saturating_add(1));
         }
         self.w.begin_object();
-        Ok(Container {
-            ser: self,
-            written: false,
-        })
+        Ok(Container { ser: self })
     }
 
     #[inline]
@@ -360,7 +354,6 @@ impl<'a, F: JsonFormat> ser::Serializer for &'a mut Serializer<F> {
 #[doc(hidden)]
 pub struct Container<'a, F: JsonFormat> {
     ser: &'a mut Serializer<F>,
-    written: bool,
 }
 
 impl<F: JsonFormat> ser::SerializeSeq for Container<'_, F> {
@@ -369,13 +362,15 @@ impl<F: JsonFormat> ser::SerializeSeq for Container<'_, F> {
 
     #[inline]
     fn serialize_element<T: ?Sized + ser::Serialize>(&mut self, value: &T) -> Result<()> {
-        self.ser.w.elem_sep(&mut self.written);
-        value.serialize(&mut *self.ser)
+        self.ser.w.elem_begin();
+        value.serialize(&mut *self.ser)?;
+        self.ser.w.comma();
+        Ok(())
     }
 
     #[inline]
     fn end(self) -> Result<()> {
-        self.ser.w.end_array(self.written);
+        self.ser.w.end_array();
         Ok(())
     }
 }
@@ -421,7 +416,7 @@ impl<F: JsonFormat> ser::SerializeTupleVariant for Container<'_, F> {
 
     #[inline]
     fn end(self) -> Result<()> {
-        self.ser.w.end_array(self.written);
+        self.ser.w.end_array();
         self.ser.w.raw_byte(b'}');
         Ok(())
     }
@@ -433,19 +428,21 @@ impl<F: JsonFormat> ser::SerializeMap for Container<'_, F> {
 
     #[inline]
     fn serialize_key<T: ?Sized + ser::Serialize>(&mut self, key: &T) -> Result<()> {
-        self.ser.w.elem_sep(&mut self.written);
+        self.ser.w.elem_begin();
         key.serialize(MapKey(self.ser))
     }
 
     #[inline]
     fn serialize_value<T: ?Sized + ser::Serialize>(&mut self, value: &T) -> Result<()> {
-        self.ser.w.key_sep();
-        value.serialize(&mut *self.ser)
+        self.ser.w.colon();
+        value.serialize(&mut *self.ser)?;
+        self.ser.w.comma();
+        Ok(())
     }
 
     #[inline]
     fn end(self) -> Result<()> {
-        self.ser.w.end_object(self.written);
+        self.ser.w.end_object();
         Ok(())
     }
 }
@@ -482,7 +479,7 @@ impl<F: JsonFormat> ser::SerializeStructVariant for Container<'_, F> {
     }
 
     fn end(self) -> Result<()> {
-        self.ser.w.end_object(self.written);
+        self.ser.w.end_object();
         self.ser.w.raw_byte(b'}');
         Ok(())
     }

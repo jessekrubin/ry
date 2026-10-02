@@ -2,8 +2,6 @@ use pyo3::prelude::*;
 use pyo3::types::PyInt;
 use serde::ser::{Serialize, Serializer};
 
-use crate::errors::pyerr2sererr;
-
 pub(crate) struct PyIntSerializer<'a, 'py> {
     obj: Borrowed<'a, 'py, PyInt>,
 }
@@ -28,7 +26,13 @@ impl Serialize for PyIntSerializer<'_, '_> {
     where
         S: Serializer,
     {
-        let v = self.obj.extract::<i64>().map_err(pyerr2sererr)?;
-        serializer.serialize_i64(v)
+        if let Ok(v) = self.obj.extract::<i64>() {
+            return serializer.serialize_i64(v);
+        } else if let Ok(v) = self.obj.extract::<u64>() {
+            return serializer.serialize_u64(v);
+        }
+        Err(serde::ser::Error::custom(
+            "pyint not representable as i64 or u64",
+        ))
     }
 }

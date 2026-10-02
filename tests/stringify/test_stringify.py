@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+import dataclasses
 import datetime as pydt
+import enum
 import json
-import sys
 import typing as t
 import uuid as pyuuid
 
@@ -255,7 +256,7 @@ def test_uuid_keys() -> None:
         _json_bytes = ry.stringify(data)
 
 
-PYTYPES_JSON_SER = [
+_PYTYPES_JSON_SER = [
     "",
     1,
     1.0,
@@ -286,14 +287,14 @@ PYTYPES_JSON_SER = [
 ]
 
 
-@pytest.mark.parametrize("data", PYTYPES_JSON_SER)
+@pytest.mark.parametrize("data", _PYTYPES_JSON_SER)
 @pytest_mark_skip_orjson
 def test_stringify_json_data(data: t.Any) -> None:
     """Test that stringify_json produces valid JSON strings for various data types."""
     _test_stringify_json_orjson_compatible(data)
 
 
-RYTYPES_JSON_SER = {
+_RYTYPES_JSON_SER = {
     # std-time
     "duration": ry.Duration(secs=1),
     # uuid ~ ryo3-uuid
@@ -320,7 +321,7 @@ RYTYPES_JSON_SER = {
     "timezone": ry.TimeZone("America/New_York"),
     "zoned": ry.datetime(2020, 8, 26, 6, 27, 0, 0).in_tz("America/New_York"),
 }
-EXPECTED = {
+_EXPECTED = {
     "duration": "PT1S",
     "uuid": "88475448-f091-42ef-b574-2452952931c1",
     "ulid": "01H7Z5F8Y3V9G4J6K8D5E6F7G8",
@@ -345,7 +346,7 @@ EXPECTED = {
 
 def test_stringify_ry_types() -> None:
     """Test that `stringify` handles ry types correctly."""
-    res = ry.stringify(RYTYPES_JSON_SER, fmt=True)
+    res = ry.stringify(_RYTYPES_JSON_SER, fmt=True)
     parsed = ry.parse_json(res)
     assert isinstance(parsed, dict), "Parsed result should be a dictionary"
     parsed_dict: dict[str, t.Any] = t.cast("dict[str, t.Any]", parsed)
@@ -353,18 +354,18 @@ def test_stringify_ry_types() -> None:
     def _format_different() -> str:
         different_vals = {
             k: {
-                "expected": EXPECTED.get(k, f"Expected value for {k} not found"),
+                "expected": _EXPECTED.get(k, f"Expected value for {k} not found"),
                 "actual": v,
             }
             for k, v in parsed_dict.items()
-            if EXPECTED.get(k) != v
+            if _EXPECTED.get(k) != v
         }
         return "\n".join(
             f"{k}: expected `{v['expected']}`, got `{v['actual']}`"
             for k, v in different_vals.items()
         )
 
-    assert parsed_dict == EXPECTED, (
+    assert parsed_dict == _EXPECTED, (
         f"Parsed JSON does not match expected result: \n{_format_different()}\n"
     )
 
@@ -377,7 +378,7 @@ def test_stringify_some_mapping() -> None:
         "key3": "value3",
     }
 
-    class SomeMapping(t.Mapping[str, str]):
+    class _SomeMapping(t.Mapping[str, str]):
         def __init__(self, data: dict[str, str]) -> None:
             self._data = data
 
@@ -416,7 +417,7 @@ def test_stringify_deque() -> None:
 
 
 class TestStringifyDefault:
-    class SomeSTupidCustomType:
+    class _SomeSTupidCustomType:
         value: str
 
         def __init__(self, value: str) -> None:
@@ -428,20 +429,20 @@ class TestStringifyDefault:
     def test_stringify_custom_type_no_default_throws_err(self) -> None:
         """Test that stringify raises an error for custom types without a default."""
         with pytest.raises(TypeError, match="Failed to serialize"):
-            ry.stringify(self.SomeSTupidCustomType("test"))
+            ry.stringify(self._SomeSTupidCustomType("test"))
 
     def test_stringify_custom_type_with_default(self) -> None:
         """Test that stringify works for custom types with a default."""
 
         def _default_fn(obj: t.Any) -> t.Any:
-            if isinstance(obj, self.SomeSTupidCustomType):
+            if isinstance(obj, self._SomeSTupidCustomType):
                 return obj.value
             msg = f"Cannot serialize {obj}"
             raise TypeError(msg)
 
         data = {
             "key1": "value1",
-            "key2": self.SomeSTupidCustomType("test"),
+            "key2": self._SomeSTupidCustomType("test"),
         }
         res = ry.stringify(data, default=_default_fn, fmt=True)
         parsed = ry.parse_json(res)
@@ -454,7 +455,7 @@ class TestStringifyDefault:
         """Test that stringify raises an error if default is not callable."""
         data = {
             "key1": "value1",
-            "key2": self.SomeSTupidCustomType("test"),
+            "key2": self._SomeSTupidCustomType("test"),
         }
         with pytest.raises(TypeError, match="'str' is not callable"):
             ry.stringify(data, default="poopy::not-a-callable", fmt=True)  # type: ignore[call-overload]  # ty:ignore[invalid-argument-type]
@@ -462,16 +463,15 @@ class TestStringifyDefault:
 
 def test_stringify_dataclass() -> None:
     """Test that `stringify` handles dataclasses correctly."""
-    from dataclasses import dataclass
 
-    @dataclass
-    class Point:
+    @dataclasses.dataclass
+    class _Point:
         x: int
         y: int
 
     data = {
-        "point1": Point(1, 2),
-        "point2": Point(3, 4),
+        "point1": _Point(1, 2),
+        "point2": _Point(3, 4),
     }
     res = ry.stringify(data, fmt=True)
     parsed = ry.parse_json(res)
@@ -482,22 +482,15 @@ def test_stringify_dataclass() -> None:
     }, f"Parsed JSON does not match original data: {parsed} != {data}"
 
 
-@pytest.mark.skipif(
-    sys.version_info < (3, 10),
-    reason="dataclass(slots=True) is python3.10+ (IIRC -jesse)",
-)
 def test_stringify_dataclass_with_slots_kwarg() -> None:
-    """Test that `stringify` handles dataclasses with slots correctly."""
-    from dataclasses import dataclass
-
-    @dataclass(slots=True)
-    class Point:
+    @dataclasses.dataclass(slots=True)
+    class _Point:
         x: int
         y: int
 
     data = {
-        "point1": Point(1, 2),
-        "point2": Point(3, 4),
+        "point1": _Point(1, 2),
+        "point2": _Point(3, 4),
     }
     res = ry.stringify(data, fmt=True)
     parsed = ry.parse_json(res)
@@ -510,18 +503,17 @@ def test_stringify_dataclass_with_slots_kwarg() -> None:
 
 def test_stringify_dataclass_with_slots_manually_added() -> None:
     """Test that `stringify` handles dataclasses with slots manually added correctly."""
-    from dataclasses import dataclass
 
-    @dataclass
-    class Point:
+    @dataclasses.dataclass
+    class _Point:
         x: int
         y: int
 
         __slots__ = ("x", "y")
 
     data = {
-        "point1": Point(1, 2),
-        "point2": Point(3, 4),
+        "point1": _Point(1, 2),
+        "point2": _Point(3, 4),
     }
     res = ry.stringify(data, fmt=True)
     parsed = ry.parse_json(res)
@@ -534,21 +526,20 @@ def test_stringify_dataclass_with_slots_manually_added() -> None:
 
 def test_stringify_dataclass_nested() -> None:
     """Test that `stringify` handles nested dataclasses correctly."""
-    from dataclasses import dataclass
 
-    @dataclass
-    class Point:
+    @dataclasses.dataclass
+    class _Point:
         x: int
         y: int
 
-    @dataclass
-    class Shape:
+    @dataclasses.dataclass
+    class _Shape:
         name: str
-        point: Point
+        point: _Point
 
     data = {
-        "shape1": Shape("circle", Point(1, 2)),
-        "shape2": Shape("square", Point(3, 4)),
+        "shape1": _Shape("circle", _Point(1, 2)),
+        "shape2": _Shape("square", _Point(3, 4)),
     }
     res = ry.stringify(data, fmt=True)
     parsed = ry.parse_json(res)
@@ -562,7 +553,7 @@ def test_stringify_dataclass_nested() -> None:
 def test_stringify_non_dict_like_mapping() -> None:
     """Test that `stringify` raises an error for non-dict-like mappings."""
 
-    class NonDictLikeMapping(t.Mapping[str, str]):
+    class _NonDictLikeMapping(t.Mapping[str, str]):
         def __init__(self, data: dict[str, str]) -> None:
             self._data = data
 
@@ -584,7 +575,7 @@ def test_stringify_non_dict_like_mapping() -> None:
         def items(self) -> t.ItemsView[str, str]:
             return self._data.items()
 
-    data = NonDictLikeMapping({
+    data = _NonDictLikeMapping({
         "key1": "value1",
         "key2": "value2",
     })
@@ -599,12 +590,12 @@ def test_stringify_non_dict_like_mapping() -> None:
 def test_stringify_string_subclass() -> None:
     """Test that `stringify` handles string subclasses correctly."""
 
-    class MyStr(str):
+    class _MyStr(str):
         __slots__ = ()
 
     data = {
-        "key1": MyStr("value1"),
-        "key2": MyStr("value2"),
+        "key1": _MyStr("value1"),
+        "key2": _MyStr("value2"),
     }
     res = ry.stringify(data, fmt=True)
     parsed = ry.parse_json(res)
@@ -616,31 +607,30 @@ def test_stringify_string_subclass() -> None:
 
 def test_stringify_enums() -> None:
     """Test that `ry.stringify` handles Python enums by serializing `.value`."""
-    from enum import Enum, IntEnum, IntFlag, StrEnum
 
-    class Color(Enum):
+    class _Color(enum.Enum):
         RED = "red"
         GREEN = "green"
         BLUE = "blue"
 
-    class ExitCode(IntEnum):
+    class _ExitCode(enum.IntEnum):
         OK = 0
         FAIL = 1
 
-    class Labels(StrEnum):
+    class _Labels(enum.StrEnum):
         jb = "jellybean"
         bobo = "beta"
 
-    class Perm(IntFlag):
+    class _Perm(enum.IntFlag):
         READ = 1
         WRITE = 2
 
     data = {
-        "enum": Color.RED,
-        "int_enum": ExitCode.FAIL,
-        "str_enum": Labels.jb,
-        "int_flag": Perm.READ | Perm.WRITE,
-        "enum_list": [Color.GREEN, ExitCode.OK, Labels.bobo],
+        "enum": _Color.RED,
+        "int_enum": _ExitCode.FAIL,
+        "str_enum": _Labels.jb,
+        "int_flag": _Perm.READ | _Perm.WRITE,
+        "enum_list": [_Color.GREEN, _ExitCode.OK, _Labels.bobo],
         # TODO: support enums as keys? "enum_keyed": {Labels.jb: "x", Color.GREEN: "ok"},
     }
     res = ry.stringify(data, fmt=True)

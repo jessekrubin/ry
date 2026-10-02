@@ -50,15 +50,16 @@ impl<F: JsonFormat> JsonWriter<F> {
     // RAW
     // ------------------------------------------------------------------------
 
-    /// Write a single byte verbatim (no formatting hooks).
+    /// write uno byte
     #[inline]
     pub(crate) fn raw_byte(&mut self, v: u8) {
         self.buf.push(v);
     }
 
-    /// Write bytes verbatim (no formatting hooks).
+    /// write n+1 raw bytes
     #[inline]
     pub(crate) fn raw(&mut self, v: &[u8]) {
+        debug_assert!(!v.is_empty(), "raw bytes aint not empty");
         self.buf.extend_from_slice(v);
     }
 
@@ -134,7 +135,7 @@ impl<F: JsonFormat> JsonWriter<F> {
         }
     }
 
-    /// write quotes, and escaped string
+    /// write quote + escaped string + quote
     #[inline]
     pub(crate) fn write_str(&mut self, v: &str) {
         self.raw_byte(b'"');
@@ -171,7 +172,6 @@ impl<F: JsonFormat> JsonWriter<F> {
     impl_write_int_key!(write_u64_key, u64);
     impl_write_int_key!(write_u128_key, u128);
 
-    /// Must be finite
     #[inline]
     pub(crate) fn write_f32_key(&mut self, v: f32) {
         debug_assert!(v.is_finite(), "f32 key must be finite");
@@ -197,11 +197,11 @@ impl<F: JsonFormat> JsonWriter<F> {
         self.fmt.inc();
     }
 
-    /// `nonempty` is whether any element was written.
     #[inline]
-    pub(crate) fn end_array(&mut self, nonempty: bool) {
+    pub(crate) fn end_array(&mut self) {
         self.fmt.dec();
-        if nonempty {
+        if self.buf.last() == Some(&b',') {
+            self.buf.pop();
             self.fmt.indent(&mut self.buf);
         }
         self.raw_byte(b']');
@@ -213,39 +213,29 @@ impl<F: JsonFormat> JsonWriter<F> {
         self.fmt.inc();
     }
 
-    /// `nonempty` is whether any entry was written.
     #[inline]
-    pub(crate) fn end_object(&mut self, nonempty: bool) {
+    pub(crate) fn end_object(&mut self) {
         self.fmt.dec();
-        if nonempty {
+        if self.buf.last() == Some(&b',') {
+            self.buf.pop();
             self.fmt.indent(&mut self.buf);
         }
         self.raw_byte(b'}');
     }
 
-    /// Separator before an array element or object key: a comma if one was
-    /// already written (tracked via `written`), then indentation.
     #[inline]
-    pub(crate) fn elem_sep(&mut self, written: &mut bool) {
-        self.comma(written);
+    pub(crate) fn elem_begin(&mut self) {
         self.fmt.indent(&mut self.buf);
     }
 
-    /// Separator between an object key and its value.
     #[inline]
-    pub(crate) fn key_sep(&mut self) {
-        self.raw_byte(b':');
-        self.fmt.sep(&mut self.buf);
+    pub(crate) fn comma(&mut self) {
+        self.raw_byte(b',');
     }
 
-    /// A comma if one was already written (tracked via `written`); no
-    /// indentation. For compact sub-structures such as byte arrays.
     #[inline]
-    pub(crate) fn comma(&mut self, written: &mut bool) {
-        if *written {
-            self.raw_byte(b',');
-        } else {
-            *written = true;
-        }
+    pub(crate) fn colon(&mut self) {
+        self.raw_byte(b':');
+        self.fmt.sep(&mut self.buf);
     }
 }
