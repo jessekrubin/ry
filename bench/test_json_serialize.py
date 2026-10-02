@@ -153,6 +153,6 @@ def test_bench_serialize_x100(
     benchmark: BenchmarkFixture,
     stringify_fn: t.Callable[[t.Any], object],
 ) -> None:
-    benchmark.group = "x100"  # ty:ignore[unresolved-attribute]
+    benchmark.group = "x100"
     data = x100()
     benchmark(stringify_fn, data)

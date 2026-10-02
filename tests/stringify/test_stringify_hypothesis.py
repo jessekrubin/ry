@@ -33,17 +33,7 @@ def py_stringify(data: t.Any, *, fmt: bool = False) -> bytes:
     return json.dumps(data, separators=(",", ":")).encode()
 
 
-def ry_stringify(
-    data: t.Any,
-    *,
-    fmt: bool = False,
-    pybytes: bool = False,
-    append_newline: bool = False,
-) -> ry.Bytes | bytes:
-    """Convert data to a JSON string using `ry.stringify`."""
-    return ry.stringify_v2(
-        data, fmt=fmt, pybytes=pybytes, append_newline=append_newline
-    )
+ry_stringify = ry.stringify
 
 
 def oj_stringify(data: t.Any, *, fmt: bool = False) -> bytes:
