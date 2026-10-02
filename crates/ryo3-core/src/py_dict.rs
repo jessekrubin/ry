@@ -39,9 +39,9 @@ impl<'a, 'py> Iterator for BorrowedDictIter<'a, 'py> {
 
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
-        // if self.remaining == 0 {
-        //     return None;
-        // }
+        if self.remaining == 0 {
+            return None;
+        }
         let mut key_ptr = std::mem::MaybeUninit::<*mut ffi::PyObject>::uninit();
         let mut val_ptr = std::mem::MaybeUninit::<*mut ffi::PyObject>::uninit();
         // pydict-next returns 1 if more items, 0 if donezo

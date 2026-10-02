@@ -1,4 +1,4 @@
-//! json serialzation error/result
+//! json serialization error/result
 use serde_core::ser::{self};
 
 pub(crate) type Result<T> = core::result::Result<T, JsonSerError>;
