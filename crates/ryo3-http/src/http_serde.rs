@@ -12,11 +12,11 @@ impl<'de> serde::Deserialize<'de> for PyHttpStatus {
     where
         D: serde::Deserializer<'de>,
     {
+        const EMSG: &str = "invalid status code; must be in range 100..=999";
         let code = u16::deserialize(deserializer)?;
-        const ERR_MSG: &str = "invalid status code; must be in range 100..=999";
         http::StatusCode::from_u16(code)
             .map(Self)
-            .map_err(|_| serde::de::Error::custom(ERR_MSG))
+            .map_err(|_| serde::de::Error::custom(EMSG))
     }
 }
 

@@ -33,6 +33,19 @@ def py_stringify(data: t.Any, *, fmt: bool = False) -> bytes:
     return json.dumps(data, separators=(",", ":")).encode()
 
 
+def ry_stringify(
+    data: t.Any,
+    *,
+    fmt: bool = False,
+    pybytes: bool = False,
+    append_newline: bool = False,
+) -> ry.Bytes | bytes:
+    """Convert data to a JSON string using `ry.stringify`."""
+    return ry.stringify_v2(
+        data, fmt=fmt, pybytes=pybytes, append_newline=append_newline
+    )
+
+
 def oj_stringify(data: t.Any, *, fmt: bool = False) -> bytes:
     """Convert data to a JSON string using orjson."""
     assert orjson is not None, "orjson is not installed"
@@ -48,7 +61,7 @@ def oj_stringify(data: t.Any, *, fmt: bool = False) -> bytes:
 @given(data=st_json_js())
 def test_stringify_json(*, data: t.Any, fmt: bool) -> None:
     """Test that `ry.stringify` produces valid JSON equivalent to `json.dumps`."""
-    ry_res = ry.stringify(data, fmt=fmt)
+    ry_res = ry_stringify(data, fmt=fmt)
     assert isinstance(ry_res, ry.Bytes), "Result should be a `ry.Bytes`"
     assert json.loads(ry_res.decode()) == json.loads(py_stringify(data, fmt=fmt))
     assert ry.parse_json(ry_res) == ry.parse_json(py_stringify(data, fmt=fmt))
@@ -62,8 +75,8 @@ def test_stringify_json(*, data: t.Any, fmt: bool) -> None:
 @given(data=st_json_js(finite_only=False))
 def test_stringify_fmt_same_data_as_compact(data: t.Any) -> None:
     """Test that `fmt=True` only changes whitespace, not the data."""
-    ry_compact = ry.stringify(data)
-    ry_fmt = ry.stringify(data, fmt=True)
+    ry_compact = ry_stringify(data)
+    ry_fmt = ry_stringify(data, fmt=True)
     assert ry.parse_json(ry_fmt) == ry.parse_json(ry_compact)
     assert ry.JSON.minify(ry_fmt) == ry_compact
     assert ry.JSON.fmt(ry_compact) == ry_fmt
@@ -72,9 +85,12 @@ def test_stringify_fmt_same_data_as_compact(data: t.Any) -> None:
 @given(data=st_json_js(finite_only=False))
 def test_stringify_fmt_whitespace(data: t.Any) -> None:
     """Test that `fmt=True` output has no trailing whitespace/newline."""
-    ry_fmt = ry.stringify(data, fmt=True, pybytes=True)
+    ry_fmt = ry_stringify(data, fmt=True, pybytes=True)
     assert ry_fmt == ry_fmt.strip()
-    assert ry.stringify(data, fmt=True, append_newline=True) == ry_fmt + b"\n"
+    assert (
+        ry_stringify(data, fmt=True, pybytes=True, append_newline=True)
+        == ry_fmt + b"\n"
+    )
     if isinstance(data, (list, dict)) and data:
         assert ry_fmt[:2] in {b"[\n", b"{\n"}
         assert ry_fmt[-2:] in {b"\n]", b"\n}"}
@@ -103,14 +119,14 @@ def st_json_oj() -> st.SearchStrategy[t.Any]:
 @_pytest_mark_skip_orjson
 @given(data=st_json_oj())
 def test_stringify_orjson_identical(*, data: t.Any, fmt: bool) -> None:
-    assert ry.stringify(data, fmt=fmt, pybytes=True) == oj_stringify(data, fmt=fmt)
+    assert ry_stringify(data, fmt=fmt, pybytes=True) == oj_stringify(data, fmt=fmt)
 
 
 @_pytest_mark_skip_orjson
 @given(data=st.floats())
 def test_stringify_orjson_floats(data: float) -> None:
     """Test floats are identical aside from the `+` in positive exponents."""
-    ry_json = ry.stringify(data, pybytes=True)
+    ry_json = ry_stringify(data, pybytes=True)
     assert ry_json.replace(b"e+", b"e") == oj_stringify(data)
 
 
@@ -118,14 +134,14 @@ def test_stringify_orjson_floats(data: float) -> None:
 @given(data=st.integers(min_value=2**63, max_value=2**64 - 1))
 def test_stringify_orjson_u64(data: int) -> None:
     """Test ints in `(i64::MAX, u64::MAX]` are identical."""
-    assert ry.stringify(data, pybytes=True) == oj_stringify(data)
+    assert ry_stringify(data, pybytes=True) == oj_stringify(data)
 
 
 @_pytest_mark_skip_orjson
 @given(data=st.datetimes())
 def test_stringify_orjson_datetimes(data: t.Any) -> None:
     """Test orjson/ry.stringify for datetimes."""
-    ry_json = ry.stringify(data, pybytes=True).decode().strip('"')
+    ry_json = ry_stringify(data, pybytes=True).decode().strip('"')
     oj_json = oj_stringify(data).decode().strip('"')
     assert ry_json == (oj_json.rstrip("0") if data.microsecond else oj_json)
     assert ry.DateTime.parse(ry_json) == ry.DateTime.parse(oj_json)
@@ -136,7 +152,7 @@ def test_stringify_orjson_datetimes(data: t.Any) -> None:
 @given(data=st.dates())
 def test_stringify_dates(*, data: t.Any, fmt: bool) -> None:
     """Test orjson/ry.stringify for dates."""
-    ry_json = ry.stringify(data, fmt=fmt, pybytes=True).decode().strip('"')
+    ry_json = ry_stringify(data, fmt=fmt, pybytes=True).decode().strip('"')
     oj_json = oj_stringify(data, fmt=fmt).decode().strip('"')
     assert ry.Date.parse(ry_json) == ry.Date.parse(oj_json)
 
@@ -145,7 +161,7 @@ def test_stringify_dates(*, data: t.Any, fmt: bool) -> None:
 @given(data=st.times())
 def test_stringify_orjson_times(data: t.Any) -> None:
     """Test orjson/ry.stringify for times."""
-    ry_json = ry.stringify(data, pybytes=True).decode().strip('"')
+    ry_json = ry_stringify(data, pybytes=True).decode().strip('"')
     oj_json = oj_stringify(data).decode().strip('"')
     assert ry.Time.parse(ry_json) == ry.Time.parse(oj_json)
 
@@ -159,4 +175,4 @@ def test_stringify_orjson_int_out_of_range(data: int) -> None:
     with pytest.raises(TypeError):
         oj_stringify(data)
     with pytest.raises(TypeError):
-        ry.stringify(data)
+        ry_stringify(data)

@@ -307,4 +307,3 @@ from ry.ryo3._zstd import zstd_decompress as zstd_decompress
 from ry.ryo3._zstd import zstd_encode as zstd_encode
 from ry.ryo3.JSON import stringify as stringify
 from ry.ryo3.JSON import stringify_v2 as stringify_v2
-from ry.ryo3.JSON import stringify_v3 as stringify_v3

@@ -8,7 +8,8 @@ mod serialize_v2;
 mod transcode;
 
 use pyo3::prelude::*;
-pub use serialize::{dumps, stringify, to_vec};
+pub use serialize::{dumps, stringify};
+pub use serialize_v2::py_to_vec;
 
 pub fn py_submod_register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(serialize::stringify, m)?)?;

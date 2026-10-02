@@ -157,9 +157,9 @@ pub fn stringify<'py>(
     })?
 }
 
-pub fn to_vec(obj: Borrowed<'_, '_, PyAny>) -> PyResult<Vec<u8>> {
-    JsonSerializer::new_no_default(JsonOptions::new()).serialize_to_vec(obj)
-}
+// pub fn to_vec(obj: Borrowed<'_, '_, PyAny>) -> PyResult<Vec<u8>> {
+//     JsonSerializer::new_no_default(JsonOptions::new()).serialize_to_vec(obj)
+// }
 
 #[expect(clippy::fn_params_excessive_bools, reason = "python kwargs")]
 #[pyfunction(

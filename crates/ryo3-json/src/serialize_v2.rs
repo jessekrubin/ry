@@ -16,6 +16,11 @@ fn map_ser_err(e: &JsonSerError) -> PyErr {
     }
 }
 
+pub fn py_to_vec(obj: Borrowed<'_, '_, PyAny>) -> PyResult<Vec<u8>> {
+    let s = PyAnySerializer::new_json(obj, None);
+    ser::to_vec(&s).map_err(|e| map_ser_err(&e))
+}
+
 #[derive(Debug, Default)]
 struct JsonSerializerV2<'py> {
     default: Option<&'py Bound<'py, PyAny>>,
