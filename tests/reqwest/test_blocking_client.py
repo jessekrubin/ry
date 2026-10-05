@@ -1,7 +1,10 @@
 from __future__ import annotations
 
 import base64
+import os
+import threading
 import typing as t
+from concurrent.futures import ThreadPoolExecutor
 from typing import TYPE_CHECKING
 
 import pytest
@@ -407,6 +410,36 @@ def test_client_post(
     assert response.status_code == 200
     res_json = response.json()
     assert res_json["body"] == "BABOOM"
+
+
+def test_client_post_stream_body_does_not_block_runtime(server: ReqtestServer) -> None:
+    """Test that stalled body iterators dont nuke the tokio workers"""
+    url = str(server.url)
+    client = ry.BlockingClient()
+    n_uploads = (os.cpu_count() or 1) * 2
+    release = threading.Event()
+    stalled = threading.Semaphore(0)
+
+    def _stalled_body() -> t.Iterator[bytes]:
+        yield b"BABY"
+        stalled.release()
+        release.wait(30)
+        yield b"DOG"
+
+    with ThreadPoolExecutor(n_uploads + 1) as pool:
+        uploads = [
+            pool.submit(client.post, url + "echo", body=_stalled_body())
+            for _ in range(n_uploads)
+        ]
+        try:
+            for _ in range(n_uploads):
+                assert stalled.acquire(timeout=10)
+            response = pool.submit(client.get, url + "howdy").result(timeout=10)
+            assert response.status_code == 200
+        finally:
+            release.set()
+        for upload in uploads:
+            assert upload.result(timeout=10).json()["body"] == "BABYDOG"
 
 
 def test_client_post_json(server: ReqtestServer) -> None:
