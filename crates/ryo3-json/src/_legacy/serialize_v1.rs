@@ -1,35 +1,31 @@
+// LEGACY: old serde_json based `stringify`; not compiled, kept for reference
 use pyo3::IntoPyObjectExt;
 use pyo3::exceptions::{PyRecursionError, PyTypeError};
 use pyo3::prelude::*;
 use ryo3_bytes::RyBytes;
-use ryo3_core::macros::py_not_implemented_err;
 use ryo3_serde::PyAnySerializer;
 
-use crate::ser::{self, JsonSerError};
 use crate::ser_opts::JsonOptions;
 
-fn map_ser_err(e: &JsonSerError) -> PyErr {
-    if e.is_recursion() {
+const DEFAULT_CAPACITY: usize = 4096;
+
+fn map_serde_json_err<E: std::fmt::Display>(e: E) -> PyErr {
+    if e.to_string().starts_with("recursion") {
         PyRecursionError::new_err("Recursion limit reached")
     } else {
         PyTypeError::new_err(format!("Failed to serialize: {e}"))
     }
 }
 
-pub fn py_to_vec(obj: Borrowed<'_, '_, PyAny>) -> PyResult<Vec<u8>> {
-    let s = PyAnySerializer::new_json(obj, None);
-    ser::to_vec(&s).map_err(|e| map_ser_err(&e))
-}
-
 #[derive(Debug, Default)]
-struct JsonSerializerV2<'py> {
+struct JsonSerializer<'py> {
     default: Option<&'py Bound<'py, PyAny>>,
     opts: JsonOptions,
 }
 
-impl<'py> JsonSerializerV2<'py> {
+impl<'py> JsonSerializer<'py> {
     fn new(default: Option<&'py Bound<'py, PyAny>>, options: JsonOptions) -> PyResult<Self> {
-        let slf = JsonSerializerV2 {
+        let slf = JsonSerializer {
             default,
             opts: options,
         };
@@ -38,7 +34,7 @@ impl<'py> JsonSerializerV2<'py> {
     }
 
     fn new_no_default(options: JsonOptions) -> Self {
-        JsonSerializerV2 {
+        JsonSerializer {
             default: None,
             opts: options,
         }
@@ -60,19 +56,26 @@ impl<'py> JsonSerializerV2<'py> {
     }
 
     pub(crate) fn serialize_to_vec(&self, obj: Borrowed<'_, '_, PyAny>) -> PyResult<Vec<u8>> {
-        let s = PyAnySerializer::new_json(obj, self.default);
+        let s = PyAnySerializer::new_json(obj.as_borrowed(), self.default);
+        let mut bytes: Vec<u8> = Vec::with_capacity(DEFAULT_CAPACITY);
         if self.opts.sort_keys() {
-            return py_not_implemented_err!("tbd");
-        }
-
-        let mut bytes = {
+            // TODO: This is a very hacky way of handling sorting the keys...
+            //       ideally this would be part of the serialization process
+            //       I think
+            let value = serde_json::to_value(&s).map_err(map_serde_json_err)?;
             if self.opts.fmt() {
-                ser::to_vec_pretty(&s)
+                serde_json::to_writer_pretty(&mut bytes, &value).map_err(map_serde_json_err)?;
             } else {
-                ser::to_vec(&s)
+                serde_json::to_writer(&mut bytes, &value).map_err(map_serde_json_err)?;
+            }
+        } else {
+            // 4k seeeems is a reasonable default size for JSON serialization?
+            if self.opts.fmt() {
+                serde_json::to_writer_pretty(&mut bytes, &s).map_err(map_serde_json_err)?;
+            } else {
+                serde_json::to_writer(&mut bytes, &s).map_err(map_serde_json_err)?;
             }
         }
-        .map_err(|e| map_ser_err(&e))?;
 
         if self.opts.append_newline() {
             bytes.push(b'\n');
@@ -128,7 +131,7 @@ impl<'py> JsonSerializerV2<'py> {
         pybytes = false
     )
 )]
-pub(crate) fn stringify_v2<'py>(
+pub fn stringify<'py>(
     py: Python<'py>,
     obj: &Bound<'py, PyAny>,
     default: Option<&'py Bound<'py, PyAny>>,
@@ -142,9 +145,9 @@ pub(crate) fn stringify_v2<'py>(
         .with_sort_keys(sort_keys)
         .with_append_newline(append_newline);
     let serializer = if let Some(default) = default {
-        JsonSerializerV2::new(Some(default), opts)?
+        JsonSerializer::new(Some(default), opts)?
     } else {
-        JsonSerializerV2::new_no_default(opts)
+        JsonSerializer::new_no_default(opts)
     };
     serializer.serialize_to_vec(obj.as_borrowed()).map(|v| {
         if pybytes {
@@ -153,4 +156,32 @@ pub(crate) fn stringify_v2<'py>(
             RyBytes::from(v).into_bound_py_any(py)
         }
     })?
+}
+
+// pub fn to_vec(obj: Borrowed<'_, '_, PyAny>) -> PyResult<Vec<u8>> {
+//     JsonSerializer::new_no_default(JsonOptions::new()).serialize_to_vec(obj)
+// }
+
+#[expect(clippy::fn_params_excessive_bools, reason = "python kwargs")]
+#[pyfunction(
+    signature=(
+        obj,
+        *,
+        default = None,
+        fmt = false,
+        sort_keys = false,
+        append_newline = false,
+        pybytes = false
+    )
+)]
+pub fn dumps<'py>(
+    py: Python<'py>,
+    obj: &Bound<'py, PyAny>,
+    default: Option<&'py Bound<'py, PyAny>>,
+    fmt: bool,
+    sort_keys: bool,
+    append_newline: bool,
+    pybytes: bool,
+) -> PyResult<Bound<'py, PyAny>> {
+    stringify(py, obj, default, fmt, sort_keys, append_newline, pybytes)
 }

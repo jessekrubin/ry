@@ -25,6 +25,13 @@
     - class which may or may not carry the offending JSON document
     - WHY? primarily for when `data = await response.json()` fails and ya need
       the response body
+- `ryo3-json`
+  - custom vector based serializer implementation inspired by `serde_json` and
+    `flexon`; gives a solid 5-10% performance boost
+  - use `jiter` + the new serializer for the `JSON.fmt` and `JSON.minify` funcs
+- `ryo3-serde`
+  - support sorting keys in json target
+  - use dict serializer for dict-subclasses as opposed to the mapping serializer
 
 ---
 

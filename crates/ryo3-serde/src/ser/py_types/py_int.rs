@@ -27,12 +27,11 @@ impl Serialize for PyIntSerializer<'_, '_> {
         S: Serializer,
     {
         if let Ok(v) = self.obj.extract::<i64>() {
-            return serializer.serialize_i64(v);
+            serializer.serialize_i64(v)
         } else if let Ok(v) = self.obj.extract::<u64>() {
-            return serializer.serialize_u64(v);
+            serializer.serialize_u64(v)
+        } else {
+            crate::serde_err!("pyint not representable as i64 or u64")
         }
-        Err(serde::ser::Error::custom(
-            "pyint not representable as i64 or u64",
-        ))
     }
 }

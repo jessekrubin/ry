@@ -1,13 +1,13 @@
 use pyo3::prelude::*;
-use pyo3::types::{PyMapping, PySequence, PyString};
+use pyo3::types::{PyDict, PyMapping, PySequence, PyString};
 use serde::ser::{Serialize, Serializer};
 
 use crate::any_repr::any_repr;
 use crate::errors::pyerr2sererr;
 use crate::ser::dataclass::is_dataclass;
 use crate::ser::py_types::{
-    PyDataclassSerializer, PyEnumSerializer, PyMappingSerializer, PySequenceSerializer,
-    PyStrSubclassSerializer,
+    PyDataclassSerializer, PyDictSerializer, PyEnumSerializer, PyMappingSerializer,
+    PySequenceSerializer, PyStrSubclassSerializer,
 };
 use crate::ser::{PySerializeContext, PySerializeTarget, SerdeTarget};
 use crate::{Depth, PyAnySerializer, serde_err};
@@ -50,6 +50,8 @@ where
             PyEnumSerializer::new(self.obj, self.ctx, self.depth).serialize(serializer)
         } else if is_dataclass(self.obj) {
             PyDataclassSerializer::new(self.obj, self.ctx, self.depth).serialize(serializer)
+        } else if let Ok(py_dict) = self.obj.cast::<PyDict>() {
+            PyDictSerializer::new(py_dict, self.ctx, self.depth).serialize(serializer)
         } else if let Ok(py_map) = self.obj.cast::<PyMapping>() {
             PyMappingSerializer::new_with_depth(py_map, self.ctx, self.depth).serialize(serializer)
         } else if let Ok(py_seq) = self.obj.cast::<PySequence>() {

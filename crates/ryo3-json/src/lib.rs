@@ -4,16 +4,13 @@ pub mod orjson;
 pub mod ser;
 mod ser_opts;
 mod serialize;
-mod serialize_v2;
 mod transcode;
 
 use pyo3::prelude::*;
-pub use serialize::{dumps, stringify};
-pub use serialize_v2::py_to_vec;
+pub use serialize::{dumps, py_to_vec, stringify};
 
 pub fn py_submod_register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(serialize::stringify, m)?)?;
-    m.add_function(wrap_pyfunction!(serialize_v2::stringify_v2, m)?)?;
     m.add_function(wrap_pyfunction!(serialize::dumps, m)?)?;
     m.add_function(wrap_pyfunction!(transcode::minify, m)?)?;
     m.add_function(wrap_pyfunction!(transcode::fmt, m)?)?;
@@ -31,14 +28,8 @@ pub fn json_py_module(m: &Bound<'_, PyModule>) -> PyResult<()> {
     Ok(())
 }
 
-// pub fn pymod_add_experimental(m: &Bound<'_, PyModule>) -> PyResult<()> {
-//     m.add_function(wrap_pyfunction!(serialize_v2::stringify_v2, m)?)?;
-//     Ok(())
-// }
-
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(orjson::orjson_default, m)?)?;
     m.add_function(wrap_pyfunction!(serialize::stringify, m)?)?;
-    m.add_function(wrap_pyfunction!(serialize_v2::stringify_v2, m)?)?;
     Ok(())
 }

@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import collections
 import dataclasses
 import datetime as pydt
 import enum
 import json
+import types
 import typing as t
 import uuid as pyuuid
 
@@ -668,3 +670,72 @@ def test_stringify_frozenset() -> None:
     assert parsed == {  # type: ignore[comparison-overlap]
         "frozenset": frozenset({"a", "b", "c"}),
     }
+
+
+@dataclasses.dataclass
+class _SortDataclass:
+    zebra: int = 1
+    apple: dict[str, int] = dataclasses.field(default_factory=lambda: {"b": 1, "a": 2})
+
+
+@dataclasses.dataclass(slots=True)
+class _SortSlotsDataclass:
+    zebra: int = 1
+    apple: dict[str, int] = dataclasses.field(default_factory=lambda: {"b": 1, "a": 2})
+
+
+class TestStringifySortKeys:
+    def test_sort_keys(self) -> None:
+        data = {"b": 1, "a": {"d": [{"z": 1, "y": 2}], "c": 2}, "é": 3, "B": 4}
+        res = ry.stringify(data, sort_keys=True)
+        assert (
+            bytes(res)
+            == json.dumps(
+                data, sort_keys=True, separators=(",", ":"), ensure_ascii=False
+            ).encode()
+        )
+
+    def test_sort_keys_fmt(self) -> None:
+        res = ry.stringify({"b": {"d": 1, "c": 2}, "a": 0}, sort_keys=True, fmt=True)
+        assert (
+            bytes(res) == json.dumps({"a": 0, "b": {"c": 2, "d": 1}}, indent=2).encode()
+        )
+
+    def test_sort_keys_empty(self) -> None:
+        assert bytes(ry.stringify({}, sort_keys=True)) == b"{}"
+
+    @pytest.mark.parametrize(
+        "obj",
+        [
+            collections.OrderedDict(zebra=1, apple=2),
+            collections.defaultdict(int, zebra=1, apple=2),
+            collections.Counter({"zebra": 1, "apple": 2}),
+        ],
+        ids=lambda obj: type(obj).__name__,
+    )
+    def test_sort_keys_dict_subclasses(self, obj: object) -> None:
+        assert bytes(ry.stringify(obj, sort_keys=True)) == b'{"apple":2,"zebra":1}'
+        assert bytes(ry.stringify(obj)) == b'{"zebra":1,"apple":2}'
+
+    def test_sort_keys_non_dict_mapping_not_sorted(self) -> None:
+        obj = types.MappingProxyType({"zebra": 1, "apple": {"b": 1, "a": 2}})
+        res = ry.stringify(obj, sort_keys=True)
+        assert bytes(res) == b'{"zebra":1,"apple":{"a":2,"b":1}}'
+
+    @pytest.mark.parametrize("obj", [_SortDataclass(), _SortSlotsDataclass()])
+    def test_sort_keys_dataclass_fields_not_sorted(self, obj: object) -> None:
+        res = ry.stringify(obj, sort_keys=True)
+        assert bytes(res) == b'{"zebra":1,"apple":{"a":2,"b":1}}'
+
+    def test_sort_keys_default(self) -> None:
+        res = ry.stringify(object(), default=lambda _: {"b": 1, "a": 2}, sort_keys=True)
+        assert bytes(res) == b'{"a":2,"b":1}'
+
+    @pytest.mark.parametrize(
+        "data",
+        [{"a": 1, True: 2}, {True: 1, False: 2}, {"a": [{"x": {False: 1}}]}],
+    )
+    def test_sort_keys_requires_str_keys(self, data: dict[t.Any, t.Any]) -> None:
+        with pytest.raises(TypeError, match="sort_keys requires str keys, got bool"):
+            ry.stringify(data, sort_keys=True)
+        assert ry.stringify(data)

@@ -2,6 +2,7 @@ use core::fmt::Debug;
 
 pub trait PySerializeTarget: Copy + Clone + Debug + Default + 'static {
     const KIND: &'static str;
+    const SORT_KEYS: bool = false;
 }
 
 #[derive(Copy, Clone, Debug, Default)]
@@ -12,8 +13,9 @@ impl PySerializeTarget for SerdeTarget {
 }
 
 #[derive(Copy, Clone, Debug, Default)]
-pub struct JsonTarget;
+pub struct JsonTarget<const SORT_KEYS: bool = false>;
 
-impl PySerializeTarget for JsonTarget {
+impl<const SORT_KEYS: bool> PySerializeTarget for JsonTarget<SORT_KEYS> {
     const KIND: &'static str = "json";
+    const SORT_KEYS: bool = SORT_KEYS;
 }

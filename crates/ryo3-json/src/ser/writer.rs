@@ -94,24 +94,6 @@ impl<F: JsonFormat> JsonWriter<F> {
 
     // FUTURE: support optionally writing `-Infinity`/`Infinity`/`NaN`?
 
-    // #[inline]
-    // pub(crate) fn write_infinity<const NEGATIVE: bool>(&mut self) {
-    //     if NEGATIVE {
-    //         self.raw(b"-Infinity");
-    //     } else {
-    //         self.raw(b"Infinity");
-    //     }
-    // }
-
-    // pub(crate) fn write_nan(&mut self) {
-    //     self.raw(b"NaN");
-    // }
-
-    // #[inline]
-    // pub(crate) fn write_f32_finite(&mut self, v: f32) {
-    //     self.raw(zmij::Buffer::new().format_finite(v).as_bytes());
-    // }
-
     #[inline]
     pub(crate) fn write_f32(&mut self, v: f32) {
         if v.is_finite() {
@@ -120,11 +102,6 @@ impl<F: JsonFormat> JsonWriter<F> {
             self.write_null();
         }
     }
-
-    // #[inline]
-    // pub(crate) fn write_f64_finite(&mut self, v: f64) {
-    //     self.raw(zmij::Buffer::new().format_finite(v).as_bytes());
-    // }
 
     #[inline]
     pub(crate) fn write_f64(&mut self, v: f64) {

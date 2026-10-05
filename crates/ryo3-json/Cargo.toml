@@ -20,10 +20,12 @@ jiter = { workspace = true, features = ["serde"] }
 ryo3-jiter = { workspace = true }
 ryo3-serde = { workspace = true }
 serde-transcode = { workspace = true }
+itoa = { workspace = true }
+serde_core = { workspace = true }
+zmij = { workspace = true }
+
+[dev-dependencies]
 serde_json = { workspace = true }
-zmij = { version = "1.0" }
-itoa = { version = "1.0" }
-serde_core = { version = "1.0", default-features = false }
 
 [features]
 default = []

@@ -3,6 +3,8 @@ use serde_core::ser;
 
 use super::{JsonFormat, JsonFormatCompact, JsonFormatPretty, JsonSerError, JsonWriter, Result};
 
+const DEFAULT_CAPACITY: usize = 4096;
+
 /// JSON serialize compact
 ///
 /// # Errors
@@ -11,9 +13,7 @@ use super::{JsonFormat, JsonFormatCompact, JsonFormatPretty, JsonSerError, JsonW
 /// an unsupported map key.
 #[inline]
 pub fn to_vec<T: ?Sized + ser::Serialize>(v: &T) -> Result<Vec<u8>> {
-    let mut serializer = Serializer {
-        w: JsonWriter::with_capacity(4096, JsonFormatCompact),
-    };
+    let mut serializer = Serializer::compact_with_capacity(DEFAULT_CAPACITY);
     v.serialize(&mut serializer)?;
     Ok(serializer.w.into_inner())
 }
@@ -35,9 +35,7 @@ pub fn to_string<T: ?Sized + ser::Serialize>(v: &T) -> Result<String> {
 /// an unsupported map key.
 #[inline]
 pub fn to_vec_pretty<T: ?Sized + ser::Serialize>(v: &T) -> Result<Vec<u8>> {
-    let mut serializer = Serializer {
-        w: JsonWriter::with_capacity(4096, JsonFormatPretty::<2>::new()),
-    };
+    let mut serializer = Serializer::pretty_with_capacity(DEFAULT_CAPACITY);
     v.serialize(&mut serializer)?;
     Ok(serializer.w.into_inner())
 }
@@ -71,11 +69,6 @@ impl<F: JsonFormat> Serializer<F> {
 }
 
 impl Serializer<JsonFormatCompact> {
-    // #[inline]
-    // pub(crate) fn compact() -> Self {
-    //     Self::compact_with_capacity(4096)
-    // }
-
     #[inline]
     pub(crate) fn compact_with_capacity(capacity: usize) -> Self {
         Self::with_capacity_and_format(capacity, JsonFormatCompact)
@@ -83,11 +76,6 @@ impl Serializer<JsonFormatCompact> {
 }
 
 impl Serializer<JsonFormatPretty<2>> {
-    // #[inline]
-    // pub(crate) fn pretty() -> Self {
-    //     Self::pretty_with_capacity(4096)
-    // }
-
     #[inline]
     pub(crate) fn pretty_with_capacity(capacity: usize) -> Self {
         Self::with_capacity_and_format(capacity, JsonFormatPretty::<2>::new())
@@ -197,19 +185,11 @@ impl<'a, F: JsonFormat> ser::Serializer for &'a mut Serializer<F> {
     #[inline]
     fn serialize_bytes(self, v: &[u8]) -> Result<()> {
         self.w.raw_byte(b'[');
-        match v.len() {
-            0 => {}
-            1 => {
-                self.w.write_u8(v[0]);
+        for (i, &byte) in v.iter().enumerate() {
+            if i != 0 {
+                self.w.raw_byte(b',');
             }
-            _ => {
-                let (f, rest) = v.split_first().expect("wenodis");
-                self.w.write_u8(*f);
-                for &v in rest {
-                    self.w.raw_byte(b',');
-                    self.w.write_u8(v);
-                }
-            }
+            self.w.write_u8(byte);
         }
         self.w.raw_byte(b']');
         Ok(())
@@ -258,19 +238,18 @@ impl<'a, F: JsonFormat> ser::Serializer for &'a mut Serializer<F> {
         variant: &'static str,
         value: &T,
     ) -> Result<()> {
-        self.w.raw_byte(b'{');
+        self.w.begin_object();
+        self.w.elem_begin();
         self.w.write_str(variant);
-        self.w.raw_byte(b':');
+        self.w.colon();
         value.serialize(&mut *self)?;
-        self.w.raw_byte(b'}');
+        self.w.comma();
+        self.w.end_object();
         Ok(())
     }
 
     #[inline]
-    fn serialize_seq(self, len: Option<usize>) -> Result<Container<'a, F>> {
-        if let Some(len) = len {
-            self.w.reserve(len.saturating_mul(8).saturating_add(1));
-        }
+    fn serialize_seq(self, _len: Option<usize>) -> Result<Container<'a, F>> {
         self.w.begin_array();
         Ok(Container { ser: self })
     }
@@ -293,9 +272,10 @@ impl<'a, F: JsonFormat> ser::Serializer for &'a mut Serializer<F> {
         variant: &'static str,
         len: usize,
     ) -> Result<Container<'a, F>> {
-        self.w.raw_byte(b'{');
+        self.w.begin_object();
+        self.w.elem_begin();
         self.w.write_str(variant);
-        self.w.raw_byte(b':');
+        self.w.colon();
         self.serialize_seq(Some(len))
     }
 
@@ -321,9 +301,10 @@ impl<'a, F: JsonFormat> ser::Serializer for &'a mut Serializer<F> {
         variant: &'static str,
         len: usize,
     ) -> Result<Container<'a, F>> {
-        self.w.raw_byte(b'{');
+        self.w.begin_object();
+        self.w.elem_begin();
         self.w.write_str(variant);
-        self.w.raw_byte(b':');
+        self.w.colon();
         self.serialize_map(Some(len))
     }
 
@@ -417,7 +398,8 @@ impl<F: JsonFormat> ser::SerializeTupleVariant for Container<'_, F> {
     #[inline]
     fn end(self) -> Result<()> {
         self.ser.w.end_array();
-        self.ser.w.raw_byte(b'}');
+        self.ser.w.comma();
+        self.ser.w.end_object();
         Ok(())
     }
 }
@@ -480,12 +462,12 @@ impl<F: JsonFormat> ser::SerializeStructVariant for Container<'_, F> {
 
     fn end(self) -> Result<()> {
         self.ser.w.end_object();
-        self.ser.w.raw_byte(b'}');
+        self.ser.w.comma();
+        self.ser.w.end_object();
         Ok(())
     }
 }
 
-#[repr(transparent)]
 struct MapKey<'a, F: JsonFormat>(&'a mut Serializer<F>);
 
 impl<F: JsonFormat> ser::Serializer for MapKey<'_, F> {
@@ -717,17 +699,11 @@ mod tests {
     use super::{to_vec, to_vec_pretty};
 
     fn serialize<T: ?Sized + Serialize>(value: &T) -> Vec<u8> {
-        match to_vec(value) {
-            Ok(output) => output,
-            Err(error) => panic!("serialization failed: {error}"),
-        }
+        to_vec(value).expect("serialization failed")
     }
 
     fn serialize_pretty<T: ?Sized + Serialize>(value: &T) -> Vec<u8> {
-        match to_vec_pretty(value) {
-            Ok(output) => output,
-            Err(error) => panic!("serialization failed: {error}"),
-        }
+        to_vec_pretty(value).expect("serialization failed")
     }
 
     #[test]
@@ -778,7 +754,10 @@ mod tests {
         }
         value.push_str(" quote=\" slash=\\ solidus=/ unicode=❤");
 
-        assert_eq!(serialize(&value), serialize_with_serde_json(&value));
+        assert_eq!(
+            serialize(&value),
+            serde_json::to_vec(&value).expect("serde_json failed")
+        );
     }
 
     #[derive(Eq, Ord, PartialEq, PartialOrd)]
@@ -797,13 +776,6 @@ mod tests {
             S: serde_core::Serializer,
         {
             serializer.collect_str(self)
-        }
-    }
-
-    fn serialize_with_serde_json<T: ?Sized + Serialize>(value: &T) -> Vec<u8> {
-        match serde_json::to_vec(value) {
-            Ok(output) => output,
-            Err(error) => panic!("serde_json serialization failed: {error}"),
         }
     }
 

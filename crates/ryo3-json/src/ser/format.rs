@@ -3,16 +3,12 @@
 
 /// Controls how JSON output is formatted.
 pub trait JsonFormat: Sized {
-    #[doc(hidden)]
     fn inc(&mut self);
 
-    #[doc(hidden)]
     fn dec(&mut self);
 
-    #[doc(hidden)]
     fn sep(&self, output: &mut Vec<u8>);
 
-    #[doc(hidden)]
     fn indent(&self, output: &mut Vec<u8>);
 }
 

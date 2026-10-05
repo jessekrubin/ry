@@ -11,7 +11,6 @@ pub struct JsonSerError {
 enum JsonSerErrorKind {
     KeyMustBeString,
     FloatKeyMustBeFinite,
-    Recursion,
     Message(Box<str>),
 }
 
@@ -29,24 +28,12 @@ impl JsonSerError {
             kind: Box::new(JsonSerErrorKind::FloatKeyMustBeFinite),
         }
     }
-
-    /// `true` if the error is `ryo3_serde`'s recursion err msg
-    #[inline]
-    pub(crate) fn is_recursion(&self) -> bool {
-        matches!(self.kind.as_ref(), JsonSerErrorKind::Recursion)
-    }
 }
 
 impl ser::Error for JsonSerError {
     fn custom<T: std::fmt::Display>(msg: T) -> Self {
-        let msg = msg.to_string();
-        let kind = if msg == ryo3_serde::RECURSION_ERR_MSG {
-            JsonSerErrorKind::Recursion
-        } else {
-            JsonSerErrorKind::Message(Box::from(msg))
-        };
         Self {
-            kind: Box::new(kind),
+            kind: Box::new(JsonSerErrorKind::Message(msg.to_string().into())),
         }
     }
 }
@@ -56,7 +43,6 @@ impl std::fmt::Display for JsonSerError {
         match self.kind.as_ref() {
             JsonSerErrorKind::KeyMustBeString => f.write_str("key must be a string"),
             JsonSerErrorKind::FloatKeyMustBeFinite => f.write_str("float key must be finite"),
-            JsonSerErrorKind::Recursion => f.write_str(ryo3_serde::RECURSION_ERR_MSG),
             JsonSerErrorKind::Message(msg) => f.write_str(msg.as_ref()),
         }
     }
@@ -69,18 +55,6 @@ mod tests {
     use core::mem::size_of;
 
     use super::*;
-
-    #[test]
-    fn recursion_message_becomes_recursion_error() {
-        use serde_core::ser::Error as _;
-
-        let err = JsonSerError::custom(ryo3_serde::RECURSION_ERR_MSG);
-        assert!(err.is_recursion());
-        assert_eq!(err.to_string(), ryo3_serde::RECURSION_ERR_MSG);
-
-        let err = JsonSerError::custom("recursion is fun");
-        assert!(!err.is_recursion());
-    }
 
     #[test]
     fn error_is_pointer_sized() {

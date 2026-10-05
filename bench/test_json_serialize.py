@@ -113,7 +113,6 @@ def x100() -> str:
 _STRINGIFY_FUNCTIONS = [
     # ry.stringify_v3,
     ry.stringify,
-    ry.stringify_v2,
 ]
 _STRINGIFY_FUNCTION_IDS = [e.__name__ for e in _STRINGIFY_FUNCTIONS]
 
