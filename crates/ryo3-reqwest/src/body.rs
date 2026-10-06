@@ -52,10 +52,6 @@ impl<S> BodyRx<S> {
     }
 }
 
-fn lock<T>(m: &Mutex<T>) -> MutexGuard<'_, T> {
-    m.lock().unwrap_or_else(PoisonError::into_inner)
-}
-
 type PyBodySyncRx = BodyRx<Py<PyAny>>;
 type PyBodyAsyncRx = BodyRx<Arc<AsyncBodySrc>>;
 pub(crate) struct PyBodySyncStream(PyBodySyncRx);
@@ -298,8 +294,8 @@ impl Drop for PyBodyAsyncStream {
         if let BodyRx::Running(rx) = &mut self.rx {
             rx.close();
         }
-        // dropped mid `__anext__` ~ cancel it (not on a tokio worker bc gil)
-        let Some(task) = lock(&self.src.task).take() else {
+        // dropped mid `__anext__` ~ cancel it (not on a tokio bc gil)
+        let Some(task) = self.src.task().take() else {
             return;
         };
         let src = Arc::clone(&self.src);
