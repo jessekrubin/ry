@@ -597,7 +597,8 @@ class TestClientStreamingBody:
         async def _respond_n_hangup(
             reader: asyncio.StreamReader, writer: asyncio.StreamWriter
         ) -> None:
-            await reader.readuntil(b"\r\n\r\n")
+            # wait for 1st chunk before responding
+            await reader.readuntil(b"BABY")
             writer.write(b"HTTP/1.1 200 OK\r\ncontent-length: 5\r\n\r\nhowdy")
             await writer.drain()
             writer.close()
