@@ -1174,6 +1174,7 @@ dependencies = [
  "num-traits",
  "pyo3",
  "pyo3-build-config",
+ "serde",
  "smallvec",
 ]
 
@@ -2223,13 +2224,17 @@ dependencies = [
 name = "ryo3-json"
 version = "0.0.102"
 dependencies = [
+ "itoa",
+ "jiter",
  "pyo3",
  "ryo3-bytes",
  "ryo3-core",
  "ryo3-jiter",
  "ryo3-serde",
  "serde-transcode",
+ "serde_core",
  "serde_json",
+ "zmij",
 ]
 
 [[package]]

@@ -1,23 +1,20 @@
+// LEGACY: old serde_json based `stringify`; not compiled, kept for reference
 use pyo3::IntoPyObjectExt;
 use pyo3::exceptions::{PyRecursionError, PyTypeError};
 use pyo3::prelude::*;
 use ryo3_bytes::RyBytes;
-use ryo3_serde::{JsonTarget, PyAnySerializer};
+use ryo3_serde::PyAnySerializer;
 
-use crate::ser::{self, JsonSerError};
 use crate::ser_opts::JsonOptions;
 
-fn map_ser_err(e: &JsonSerError) -> PyErr {
-    if e.to_string() == ryo3_serde::RECURSION_ERR_MSG {
+const DEFAULT_CAPACITY: usize = 4096;
+
+fn map_serde_json_err<E: std::fmt::Display>(e: E) -> PyErr {
+    if e.to_string().starts_with("recursion") {
         PyRecursionError::new_err("Recursion limit reached")
     } else {
         PyTypeError::new_err(format!("Failed to serialize: {e}"))
     }
-}
-
-pub fn py_to_vec(obj: Borrowed<'_, '_, PyAny>) -> PyResult<Vec<u8>> {
-    let s = PyAnySerializer::new_json(obj, None);
-    ser::to_vec(&s).map_err(|e| map_ser_err(&e))
 }
 
 #[derive(Debug, Default)]
@@ -36,6 +33,13 @@ impl<'py> JsonSerializer<'py> {
         Ok(slf)
     }
 
+    fn new_no_default(options: JsonOptions) -> Self {
+        JsonSerializer {
+            default: None,
+            opts: options,
+        }
+    }
+
     fn check_default(&self) -> PyResult<()> {
         if let Some(default) = self.default
             && !default.is_callable()
@@ -51,23 +55,27 @@ impl<'py> JsonSerializer<'py> {
         Ok(())
     }
 
-    fn to_vec<T: serde_core::Serialize>(&self, s: &T) -> Result<Vec<u8>, JsonSerError> {
-        if self.opts.fmt() {
-            ser::to_vec_pretty(s)
-        } else {
-            ser::to_vec(s)
-        }
-    }
-
     pub(crate) fn serialize_to_vec(&self, obj: Borrowed<'_, '_, PyAny>) -> PyResult<Vec<u8>> {
-        let mut bytes = if self.opts.sort_keys() {
-            let s = PyAnySerializer::<JsonTarget<true>>::with_target(obj, self.default);
-            self.to_vec(&s)
+        let s = PyAnySerializer::new_json(obj.as_borrowed(), self.default);
+        let mut bytes: Vec<u8> = Vec::with_capacity(DEFAULT_CAPACITY);
+        if self.opts.sort_keys() {
+            // TODO: This is a very hacky way of handling sorting the keys...
+            //       ideally this would be part of the serialization process
+            //       I think
+            let value = serde_json::to_value(&s).map_err(map_serde_json_err)?;
+            if self.opts.fmt() {
+                serde_json::to_writer_pretty(&mut bytes, &value).map_err(map_serde_json_err)?;
+            } else {
+                serde_json::to_writer(&mut bytes, &value).map_err(map_serde_json_err)?;
+            }
         } else {
-            let s = PyAnySerializer::new_json(obj, self.default);
-            self.to_vec(&s)
+            // 4k seeeems is a reasonable default size for JSON serialization?
+            if self.opts.fmt() {
+                serde_json::to_writer_pretty(&mut bytes, &s).map_err(map_serde_json_err)?;
+            } else {
+                serde_json::to_writer(&mut bytes, &s).map_err(map_serde_json_err)?;
+            }
         }
-        .map_err(|e| map_ser_err(&e))?;
 
         if self.opts.append_newline() {
             bytes.push(b'\n');
@@ -136,7 +144,11 @@ pub fn stringify<'py>(
         .with_fmt(fmt)
         .with_sort_keys(sort_keys)
         .with_append_newline(append_newline);
-    let serializer = JsonSerializer::new(default, opts)?;
+    let serializer = if let Some(default) = default {
+        JsonSerializer::new(Some(default), opts)?
+    } else {
+        JsonSerializer::new_no_default(opts)
+    };
     serializer.serialize_to_vec(obj.as_borrowed()).map(|v| {
         if pybytes {
             pyo3::types::PyBytes::new(py, &v).into_bound_py_any(py)
@@ -145,6 +157,10 @@ pub fn stringify<'py>(
         }
     })?
 }
+
+// pub fn to_vec(obj: Borrowed<'_, '_, PyAny>) -> PyResult<Vec<u8>> {
+//     JsonSerializer::new_no_default(JsonOptions::new()).serialize_to_vec(obj)
+// }
 
 #[expect(clippy::fn_params_excessive_bools, reason = "python kwargs")]
 #[pyfunction(

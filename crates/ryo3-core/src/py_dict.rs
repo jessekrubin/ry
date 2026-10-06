@@ -26,7 +26,6 @@ impl<'a, 'py> BorrowedDictIter<'a, 'py> {
 
     #[must_use]
     pub fn new_with_len(dict: Borrowed<'a, 'py, PyDict>, len: usize) -> Self {
-        debug_assert!(len == dict.len(), "dict.len ne expected length {len}");
         BorrowedDictIter {
             dict,
             ppos: 0,

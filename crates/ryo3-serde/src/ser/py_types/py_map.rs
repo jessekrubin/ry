@@ -2,6 +2,7 @@ use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyMapping};
 use serde::ser::{Serialize, SerializeMap, Serializer};
 
+use crate::any_repr::any_repr;
 use crate::constants::{Depth, MAX_DEPTH};
 use crate::errors::pyerr2sererr;
 use crate::ob_type::PyObType;
@@ -22,7 +23,7 @@ use crate::ser::py_types::{
 ))]
 use crate::ser::ry_types;
 use crate::ser::{PySerializeContext, PySerializeTarget, SerdeTarget};
-use crate::serde_err_recursion;
+use crate::{serde_err, serde_err_recursion};
 
 pub(crate) struct PyDictSerializer<'a, 'py, T = SerdeTarget>
 where
@@ -272,11 +273,11 @@ macro_rules! serialize_map_value {
 //         m.end()
 //     }
 // }
-impl<T> Serialize for PyDictSerializer<'_, '_, T>
+impl<T> PyDictSerializer<'_, '_, T>
 where
     T: PySerializeTarget,
 {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    pub(crate) fn serialize_unsorted<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
     {
@@ -337,6 +338,57 @@ where
             serialize_map_value!(ob_type, m, self, map_val);
         }
         m.end()
+    }
+
+    fn serialize_sorted<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        if self.depth == MAX_DEPTH {
+            return serde_err_recursion!();
+        }
+        // owned refs bc `default` could mutate the dict mid-serialization
+        let items: Vec<_> = self.obj.iter().collect();
+        let mut entries = Vec::with_capacity(items.len());
+        for (key, val) in &items {
+            let key = key.as_borrowed();
+            if !self
+                .ctx
+                .typeref
+                .is_exact_string_ptr(key.get_type_ptr() as usize)
+            {
+                return serde_err!("sort_keys requires str keys, got {}", any_repr(key));
+            }
+            let Some(key_str) = PyStrSerializer::new_unchecked(key).read() else {
+                return serde_err!("invalid str object");
+            };
+            entries.push((key_str, val.as_borrowed()));
+        }
+        entries.sort_unstable_by_key(|(key, _)| *key);
+
+        let mut m = serializer.serialize_map(Some(entries.len()))?;
+        for (key, val) in entries {
+            let ob_type = self.ctx.typeref.obtype(val);
+            m.serialize_key(key)?;
+            serialize_map_value!(ob_type, m, self, val);
+        }
+        m.end()
+    }
+}
+
+impl<T> Serialize for PyDictSerializer<'_, '_, T>
+where
+    T: PySerializeTarget,
+{
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        if T::SORT_KEYS {
+            self.serialize_sorted(serializer)
+        } else {
+            self.serialize_unsorted(serializer)
+        }
     }
 }
 

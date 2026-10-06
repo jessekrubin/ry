@@ -21,6 +21,14 @@ impl<'a, 'py> PyStrSerializer<'a, 'py> {
         let obj = unsafe { obj.cast_unchecked::<PyString>() };
         Self::new(obj)
     }
+
+    #[inline]
+    pub(crate) fn read(&self) -> Option<&'a str> {
+        #[expect(unsafe_code)]
+        unsafe {
+            pystr_read_fast_opt(self.obj)
+        }
+    }
 }
 
 impl Serialize for PyStrSerializer<'_, '_> {

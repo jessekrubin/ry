@@ -8,7 +8,7 @@ from ry.ryo3._jiter import JSONDecodeError as JSONDecodeError
 from ry.ryo3._jiter import _JsonPrimitive as _JsonPrimitive
 from ry.ryo3._jiter import _JsonValue as _JsonValue
 
-def minify(buf: Buffer | str, /) -> Bytes:
+def minify(buf: Buffer | str, /, append_newline: bool = False) -> Bytes:
     """Return minified json data (remove whitespace, newlines)
 
     Parameters
@@ -38,7 +38,7 @@ def minify(buf: Buffer | str, /) -> Bytes:
 
     """
 
-def fmt(buf: Buffer | str, /) -> Bytes:
+def fmt(buf: Buffer | str, /, append_newline: bool = False) -> Bytes:
     r"""Return formatted json data (add indentation, newlines)
 
     Parameters

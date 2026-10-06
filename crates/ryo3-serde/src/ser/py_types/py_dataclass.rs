@@ -56,9 +56,9 @@ where
         // check for __dict__
         if let Ok(dunder_dict) = self.obj.getattr(intern!(py, "__dict__")) {
             if let Ok(dict) = dunder_dict.cast::<PyDict>() {
-                // serialize the __dict__ as a dict
+                // serialize the __dict__ as a dict (unsorted)
                 PyDictSerializer::new(dict.as_borrowed(), self.ctx, self.depth + 1)
-                    .serialize(serializer)
+                    .serialize_unsorted(serializer)
             } else {
                 serde_err!("dataclass::__dict__ is not a dict")
             }
