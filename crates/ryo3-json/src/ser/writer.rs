@@ -11,7 +11,11 @@ macro_rules! impl_write_int {
     ($name:ident, $int_type:ty) => {
         #[inline]
         pub(crate) fn $name(&mut self, v: $int_type) {
-            self.raw(itoa::Buffer::new().format(v).as_bytes());
+            use lexical_core::{FormattedSize, ToLexical};
+
+            let mut buffer = [0u8; u64::FORMATTED_SIZE_DECIMAL];
+            let digits = v.to_lexical(&mut buffer);
+            self.raw(digits);
         }
     };
 }
@@ -20,8 +24,11 @@ macro_rules! impl_write_int_key {
     ($name:ident, $int_type:ty) => {
         #[inline]
         pub(crate) fn $name(&mut self, v: $int_type) {
+            use lexical_core::{FormattedSize, ToLexical};
             self.raw_byte(b'"');
-            self.raw(itoa::Buffer::new().format(v).as_bytes());
+            let mut buffer = [0u8; u64::FORMATTED_SIZE_DECIMAL];
+            let digits = v.to_lexical(&mut buffer);
+            self.raw(digits);
             self.raw_byte(b'"');
         }
     };

@@ -20,6 +20,8 @@ jiter = { workspace = true, features = ["serde"] }
 ryo3-jiter = { workspace = true }
 ryo3-serde = { workspace = true }
 serde-transcode = { workspace = true }
+lexical = { workspace = true }
+lexical-core = { workspace = true }
 itoa = { workspace = true }
 serde_core = { workspace = true }
 zmij = { workspace = true }
