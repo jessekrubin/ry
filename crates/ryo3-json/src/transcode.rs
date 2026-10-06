@@ -9,7 +9,9 @@ use crate::ser::Serializer;
 
 fn minify_json(input: &[u8]) -> Result<Vec<u8>, String> {
     let mut de = JiterDeserializer::new(input);
-    let mut ser = Serializer::compact_with_capacity(input.len());
+    // allocate some cap, and  for add newline just in case its already minified...
+    let capacity = (input.len() / 8).saturating_add(1);
+    let mut ser = Serializer::compact_with_capacity(capacity);
     serde_transcode::transcode(&mut de, &mut ser).map_err(|e| e.to_string())?;
     de.finish().map_err(|e| e.description(input))?;
     Ok(ser.into_inner())
