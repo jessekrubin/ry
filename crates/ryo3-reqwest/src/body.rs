@@ -112,7 +112,7 @@ fn produce_sync(iter: &Py<PyAny>, tx: &mpsc::Sender<BodyItem>) {
     }
 }
 
-fn ensure_future(py: Python<'_>) -> PyResult<&Bound<'_, PyAny>> {
+fn ensure_future_pyfn(py: Python<'_>) -> PyResult<&Bound<'_, PyAny>> {
     static ENSURE_FUTURE: PyOnceLock<Py<PyAny>> = PyOnceLock::new();
     ENSURE_FUTURE.import(py, "asyncio", "ensure_future")
 }
@@ -149,7 +149,7 @@ impl AsyncBodyPump {
 
     fn pull(slf: &Bound<'_, Self>) -> PyResult<()> {
         let py = slf.py();
-        let fut = ensure_future(py)?.call1((slf.get().anext.bind(py).call0()?,))?;
+        let fut = ensure_future_pyfn(py)?.call1((slf.get().anext.bind(py).call0()?,))?;
         fut.call_method1(pyo3::intern!(py, "add_done_callback"), (slf,))?;
         Ok(())
     }
