@@ -96,6 +96,64 @@ enum PyReqwestBody {
     None,
 }
 
+/// pre-extraction body holder
+#[derive(Debug)]
+enum PyReqwestBodyDeferred<'a, 'py> {
+    /// Not set
+    None,
+    /// raw body ~ pre-extraction
+    Body(Borrowed<'a, 'py, PyAny>),
+    /// json ~ pre-extraction
+    Json(Borrowed<'a, 'py, PyAny>),
+    /// form ~ pre-extraction
+    Form(Borrowed<'a, 'py, PyAny>),
+    /// multipart ~ pre-extraction
+    Multipart(Borrowed<'a, 'py, PyAny>),
+}
+
+impl<'a, 'py> PyReqwestBodyDeferred<'a, 'py> {
+    fn try_set(&mut self, body: Self) -> PyResult<()> {
+        debug_assert!(!matches!(body, Self::None));
+        if !matches!(self, Self::None) {
+            return py_value_err!("body, json, form, multipart are mutually exclusive");
+        }
+        *self = body;
+        Ok(())
+    }
+
+    fn try_set_body(&mut self, body: Borrowed<'a, 'py, PyAny>) -> PyResult<()> {
+        self.try_set(Self::Body(body))
+    }
+
+    fn try_set_json(&mut self, json: Borrowed<'a, 'py, PyAny>) -> PyResult<()> {
+        self.try_set(Self::Json(json))
+    }
+
+    fn try_set_form(&mut self, form: Borrowed<'a, 'py, PyAny>) -> PyResult<()> {
+        self.try_set(Self::Form(form))
+    }
+
+    fn try_set_multipart(&mut self, multipart: Borrowed<'a, 'py, PyAny>) -> PyResult<()> {
+        self.try_set(Self::Multipart(multipart))
+    }
+
+    fn into_body<const BLOCKING: bool>(self) -> PyResult<PyReqwestBody> {
+        match self {
+            PyReqwestBodyDeferred::None => Ok(PyReqwestBody::None),
+            PyReqwestBodyDeferred::Body(body) => {
+                extract_body_from_py_body::<BLOCKING>(body.as_borrowed())
+            }
+            PyReqwestBodyDeferred::Json(json) => Ok(PyReqwestBody::Json(ryo3_json::py_to_vec(
+                json.as_borrowed(),
+            )?)),
+            PyReqwestBodyDeferred::Form(form) => extract_form_body(form.as_borrowed()),
+            PyReqwestBodyDeferred::Multipart(_multipart) => {
+                pytodo!("multipart not implemented (yet)");
+            }
+        }
+    }
+}
+
 #[inline]
 fn extract_body_from_py_body<const BLOCKING: bool>(
     body: Borrowed<'_, '_, PyAny>,
@@ -137,27 +195,7 @@ fn extract_kwargs<const BLOCKING: bool>(
         .get_item(pyo3::intern!(py, "query"))?
         .map(|q| q.extract::<PyQuery>())
         .transpose()?;
-    let body: PyReqwestBody = match (body, json, form, multipart) {
-        (Some(_), Some(_), _, _)
-        | (Some(_), _, Some(_), _)
-        | (Some(_), _, _, Some(_))
-        | (_, Some(_), Some(_), _)
-        | (_, Some(_), _, Some(_))
-        | (_, _, Some(_), Some(_)) => {
-            return py_value_err!("body, json, form, multipart are mutually exclusive");
-        }
-        (Some(body), None, None, None) => {
-            extract_body_from_py_body::<BLOCKING>(body.as_borrowed())?
-        }
-        (None, Some(json), None, None) => {
-            PyReqwestBody::Json(ryo3_json::py_to_vec(json.as_borrowed())?)
-        }
-        (None, None, Some(form), None) => extract_form_body(form.as_borrowed())?,
-        (None, None, None, Some(_multipart)) => {
-            pytodo!("multipart not implemented (yet)");
-        }
-        (None, None, None, None) => PyReqwestBody::None,
-    };
+
     let timeout = dict
         .get_item(pyo3::intern!(py, "timeout"))?
         .map(|t| t.extract::<PyTimeout>())
@@ -180,6 +218,29 @@ fn extract_kwargs<const BLOCKING: bool>(
         .get_item(pyo3::intern!(py, "version"))?
         .map(|v| v.extract())
         .transpose()?;
+    // extract body last as it is possibly the most expensive op
+
+    let body: PyReqwestBody = match (body, json, form, multipart) {
+        (Some(_), Some(_), _, _)
+        | (Some(_), _, Some(_), _)
+        | (Some(_), _, _, Some(_))
+        | (_, Some(_), Some(_), _)
+        | (_, Some(_), _, Some(_))
+        | (_, _, Some(_), Some(_)) => {
+            return py_value_err!("body, json, form, multipart are mutually exclusive");
+        }
+        (Some(body), None, None, None) => {
+            extract_body_from_py_body::<BLOCKING>(body.as_borrowed())?
+        }
+        (None, Some(json), None, None) => {
+            PyReqwestBody::Json(ryo3_json::py_to_vec(json.as_borrowed())?)
+        }
+        (None, None, Some(form), None) => extract_form_body(form.as_borrowed())?,
+        (None, None, None, Some(_multipart)) => {
+            pytodo!("multipart not implemented (yet)");
+        }
+        (None, None, None, None) => PyReqwestBody::None,
+    };
     Ok(ReqwestKwargs {
         headers,
         query,
@@ -206,33 +267,22 @@ fn extract_kwargs<const BLOCKING: bool>(
         version: None,
     };
 
-    let mut body_set = false;
+    let mut body_dto: PyReqwestBodyDeferred<'_, '_> = PyReqwestBodyDeferred::None;
+
     for kwarg in ryo3_core::py_dict::KwargsIter::new(dict) {
         let (key, value) = kwarg?;
         match key {
             "body" => {
-                if body_set {
-                    return py_value_err!("body, json, form, multipart are mutually exclusive");
-                }
-                body_set = true;
-                res.body = extract_body_from_py_body::<BLOCKING>(value)?;
+                body_dto.try_set_body(value)?;
             }
             "json" => {
-                if body_set {
-                    return py_value_err!("body, json, form, multipart are mutually exclusive");
-                }
-                body_set = true;
-                res.body = PyReqwestBody::Json(ryo3_json::py_to_vec(value)?);
+                body_dto.try_set_json(value)?;
             }
             "form" => {
-                if body_set {
-                    return py_value_err!("body, json, form, multipart are mutually exclusive");
-                }
-                body_set = true;
-                res.body = extract_form_body(value)?;
+                body_dto.try_set_form(value)?;
             }
             "multipart" => {
-                pytodo!("multipart not implemented (yet)");
+                body_dto.try_set_multipart(value)?;
             }
             "query" => {
                 res.query = Some(value.extract()?);
@@ -261,6 +311,7 @@ fn extract_kwargs<const BLOCKING: bool>(
             }
         }
     }
+    res.body = body_dto.into_body::<BLOCKING>()?;
     Ok(res)
 }
 

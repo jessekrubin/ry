@@ -558,6 +558,89 @@ async def test_client_post(
     assert res_json["body"] == "BABYDOG"
 
 
+class TestClientStreamingBody:
+    async def test_client_post_stream_body_cancel(
+        self, server: ReqtestServer, client: TClient
+    ) -> None:
+        """test cancelling a request cancels a `__anext__`"""
+        started = asyncio.Event()
+        closed = asyncio.Event()
+
+        async def _stalled_body() -> t.AsyncGenerator[bytes, None]:
+            try:
+                yield b"BABY"
+                started.set()
+                await asyncio.Event().wait()
+            finally:
+                closed.set()
+
+        req = asyncio.ensure_future(
+            client.post(str(server.url) + "echo", body=_stalled_body())
+        )
+        await asyncio.wait_for(started.wait(), 10)
+        req.cancel()
+        await asyncio.wait_for(closed.wait(), 10)
+
+    async def test_client_post_stream_body_early_response(
+        self, client: TClient
+    ) -> None:
+        """test that the server bailing mid-upload cancels a pending `__anext__`"""
+        closed = asyncio.Event()
+
+        async def _stalled_body() -> t.AsyncGenerator[bytes, None]:
+            try:
+                yield b"BABY"
+                await asyncio.Event().wait()
+            finally:
+                closed.set()
+
+        async def _respond_n_hangup(
+            reader: asyncio.StreamReader, writer: asyncio.StreamWriter
+        ) -> None:
+            # wait for 1st chunk before responding
+            await reader.readuntil(b"BABY")
+            writer.write(b"HTTP/1.1 200 OK\r\ncontent-length: 5\r\n\r\nhowdy")
+            await writer.drain()
+            writer.close()
+
+        async with await asyncio.start_server(_respond_n_hangup, "127.0.0.1", 0) as srv:
+            port = srv.sockets[0].getsockname()[1]
+            response = await client.post(
+                f"http://127.0.0.1:{port}/", body=_stalled_body()
+            )
+            assert response.status_code == 200
+            await asyncio.wait_for(closed.wait(), 10)
+
+    @pytest.mark.parametrize("n_chunks", [1, 8, 64, 256])
+    async def test_client_post_stream_body_backpressure(
+        self, server: ReqtestServer, client: TClient, n_chunks: int
+    ) -> None:
+        chunk = b"x" * (64 * 1024)
+
+        async def _body() -> t.AsyncGenerator[bytes, None]:
+            for _ in range(n_chunks):
+                yield chunk
+
+        response = await client.post(str(server.url) + "echo", body=_body())
+        assert response.status_code == 200
+        assert len((await response.json())["body"]) == n_chunks * len(chunk)
+
+    @pytest.mark.parametrize("n_chunks", [1, 8, 64, 256])
+    async def test_client_post_stream_body_raises(
+        self, server: ReqtestServer, client: TClient, n_chunks: int
+    ) -> None:
+        chunk = b"x" * (64 * 1024)
+
+        async def _body() -> t.AsyncGenerator[bytes, None]:
+            for _ in range(n_chunks):
+                yield chunk
+            msg = "BABOOM"
+            raise RuntimeError(msg)
+
+        with pytest.raises(Exception, match="BABOOM"):
+            await client.post(str(server.url) + "echo", body=_body())
+
+
 @pytest.mark.parametrize(
     "body",
     [
