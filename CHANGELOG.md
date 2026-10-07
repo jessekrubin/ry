@@ -18,6 +18,19 @@
   - fix `__radd__` impls for temporal types used to add duration types that have
     an `__add__` method that is not aware of the ry-jiff-temporal types
     (`datetimes.timedelta` and `ry.Duration`)
+- `ryo3-reqwest`
+  - reworked streaming request bodies (sync + async iterables); python is no
+    longer pulled from on the tokio workers
+    - fixes problem based on benchmark here:
+      https://github.com/curioswitch/pyqwest/issues/247#issuecomment-5988864560
+    - sync iters are polled/pull on a sync pool
+    - async iters are polled/pull on the python event loop by a done-callback
+      pump (which is basically a weird rust re-write of the pyo3-async-runtimes
+      into-stream-v2)
+    - chunks are forwarded to reqwest via channel
+    - request cancellation (or server hangup) cancels pending tasks `__anext__`
+      so a generator's `finally` fires
+    - no longer uses the `pyo3-async-runtimes` `unstable-streams` feature
 - stubs/types
   - fix positional dunder stubs
 - `ryo3-jiter`
