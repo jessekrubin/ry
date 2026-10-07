@@ -11,7 +11,7 @@ macro_rules! impl_write_int {
     ($name:ident, $int_type:ty) => {
         #[inline]
         pub(crate) fn $name(&mut self, v: $int_type) {
-            self.raw(itoa::Buffer::new().format(v).as_bytes());
+            itoap::write_to_vec(&mut self.buf, v);
         }
     };
 }
@@ -21,7 +21,7 @@ macro_rules! impl_write_int_key {
         #[inline]
         pub(crate) fn $name(&mut self, v: $int_type) {
             self.raw_byte(b'"');
-            self.raw(itoa::Buffer::new().format(v).as_bytes());
+            itoap::write_to_vec(&mut self.buf, v);
             self.raw_byte(b'"');
         }
     };

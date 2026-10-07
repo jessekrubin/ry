@@ -1108,6 +1108,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8f42a60cbdf9a97f5d2305f08a87dc4e09308d1276d28c869c684d7777685682"
 
 [[package]]
+name = "itoap"
+version = "1.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9028f49264629065d057f340a86acb84867925865f73bbf8d47b4d149a7e88b8"
+
+[[package]]
 name = "jiff"
 version = "0.2.37"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1941,7 +1947,7 @@ dependencies = [
  "security-framework",
  "security-framework-sys",
  "webpki-root-certs",
- "windows-sys 0.52.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -2224,7 +2230,7 @@ dependencies = [
 name = "ryo3-json"
 version = "0.0.102"
 dependencies = [
- "itoa",
+ "itoap",
  "jiter",
  "pyo3",
  "ryo3-bytes",
@@ -3336,7 +3342,7 @@ version = "0.1.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c2a7b1c03c876122aa43f3020e6c3c3ee5c05081c9a00739faf7503aeba10d22"
 dependencies = [
- "windows-sys 0.52.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
