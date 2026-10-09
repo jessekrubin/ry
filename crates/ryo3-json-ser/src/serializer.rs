@@ -50,34 +50,36 @@ pub fn to_string_pretty<T: ?Sized + ser::Serialize>(v: &T) -> Result<String> {
 }
 
 /// JSON serializer with vec writer
-pub(crate) struct Serializer<F: JsonFormat> {
+pub struct Serializer<F: JsonFormat> {
     w: JsonWriter<F>,
 }
 
 impl<F: JsonFormat> Serializer<F> {
     #[inline]
-    pub(crate) fn with_capacity_and_format(capacity: usize, fmt: F) -> Self {
+    pub fn with_capacity_and_format(capacity: usize, fmt: F) -> Self {
         Self {
             w: JsonWriter::with_capacity(capacity, fmt),
         }
     }
 
     #[inline]
-    pub(crate) fn into_inner(self) -> Vec<u8> {
+    pub fn into_inner(self) -> Vec<u8> {
         self.w.into_inner()
     }
 }
 
 impl Serializer<JsonFormatCompact> {
     #[inline]
-    pub(crate) fn compact_with_capacity(capacity: usize) -> Self {
+    #[must_use]
+    pub fn compact_with_capacity(capacity: usize) -> Self {
         Self::with_capacity_and_format(capacity, JsonFormatCompact)
     }
 }
 
 impl Serializer<JsonFormatPretty<2>> {
     #[inline]
-    pub(crate) fn pretty_with_capacity(capacity: usize) -> Self {
+    #[must_use]
+    pub fn pretty_with_capacity(capacity: usize) -> Self {
         Self::with_capacity_and_format(capacity, JsonFormatPretty::<2>::new())
     }
 }

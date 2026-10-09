@@ -1,12 +1,12 @@
 #![doc = include_str!("../README.md")]
 
 pub mod orjson;
-pub mod ser;
 mod ser_opts;
 mod serialize;
 mod transcode;
 
 use pyo3::prelude::*;
+pub use ryo3_json_ser as ser;
 pub use serialize::{dumps, py_to_vec, stringify};
 
 pub fn py_submod_register(m: &Bound<'_, PyModule>) -> PyResult<()> {

@@ -115,15 +115,17 @@ impl<F: JsonFormat> JsonWriter<F> {
     /// write quote + escaped string + quote
     #[inline]
     pub(crate) fn write_str(&mut self, v: &str) {
+        self.buf.reserve(v.len() + 2);
         self.raw_byte(b'"');
-        escape::format_escaped_str_contents(&mut self.buf, v);
+        escape::escape_into_swar(&mut self.buf, v);
         self.raw_byte(b'"');
     }
 
     /// write escaped string w/o quotes
     #[inline]
     pub(crate) fn str_contents(&mut self, v: &str) {
-        escape::format_escaped_str_contents(&mut self.buf, v);
+        self.buf.reserve(v.len());
+        escape::escape_into_swar(&mut self.buf, v);
     }
 
     // ------------------------------------------------------------------------

@@ -154,6 +154,7 @@ jobs:
             -p ryo3-jiff
             -p ryo3-jiter
             -p ryo3-json
+            -p ryo3-json-ser
             -p ryo3-macro-rules
             -p ryo3-memchr
             -p ryo3-pydantic

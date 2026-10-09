@@ -1,0 +1,32 @@
+[package]
+name = "ryo3-json-ser"
+version.workspace = true
+authors.workspace = true
+categories.workspace = true
+documentation.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+homepage.workspace = true
+keywords.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "json serializer (serde) ~ no pyo3"
+
+[lib]
+bench = false
+
+[dependencies]
+itoap = { workspace = true }
+serde_core = { workspace = true }
+zmij = { workspace = true }
+
+[dev-dependencies]
+criterion = { workspace = true }
+serde_json = { workspace = true }
+
+[[bench]]
+name = "escape"
+harness = false
+
+[lints]
+workspace = true
