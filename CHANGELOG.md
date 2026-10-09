@@ -42,6 +42,18 @@
   - custom vector based serializer implementation inspired by `serde_json` and
     `flexon`; gives a solid 5-10% performance boost
   - use `jiter` + the new serializer for the `JSON.fmt` and `JSON.minify` funcs
+  - json-string-escaping (swar aka poor-mans simd):
+    - faster escaping via a SWAR method for detecting chars that need escaping
+    - [REF-SWAR-JSON-ESCAPING](https://lemire.me/blog/2025/04/13/detect-control-characters-quotes-and-backslashes-efficiently-using-swar/)
+    - Notes:
+      - appears to be about 1.5-3x faster than the previous version adapted from
+        `serde-json`
+      - I (jesse) was in some sort of fugue state the other day and wrote
+        several versions of the SWAR json escaping function; there were 14
+        versions in total and I eventually settled on `escape_into_swar_v9`
+        which (is the current `escape_into_swar`) implementation. I tried
+        re-writing v9 to be more readable but for some weird reason none of the
+        re-writes preserved the very slight performance edge :/.
 - `ryo3-serde`
   - support sorting keys in json target
   - use dict serializer for dict-subclasses as opposed to the mapping serializer

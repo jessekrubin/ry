@@ -143,7 +143,7 @@ pub fn escape_into_swar(output: &mut Vec<u8>, value: &str) {
         // find next byte to escape and return its index (if any)
         // but also update the remaining (todo) slice
         let mut unscanned = rest;
-        let hit = 'found: {
+        let hit_ix = 'found: {
             while let Some((chunk, tail)) = unscanned.split_first_chunk::<8>() {
                 let mask = json_escapable_mask(u64::from_le_bytes(*chunk));
                 if mask != 0 {
@@ -160,16 +160,17 @@ pub fn escape_into_swar(output: &mut Vec<u8>, value: &str) {
         };
 
         // we got a hit!
-        if let Some(hit) = hit {
+        if let Some(hit_ix) = hit_ix {
             // split at the hit and escape the byte at the front of the tail
-            let (clean, tail) = rest.split_at(hit);
+            let (no_esc_run, tail) = rest.split_at(hit_ix);
             // and againt split bc we need the first byte separately for escaping
-            let (&byte, tail) = tail.split_first().expect("wenodis: inbounds");
-            output.extend_from_slice(clean);
+            let Some((&byte, tail)) = tail.split_first() else {
+                unreachable!("wenodis: inbounds")
+            };
+            output.extend_from_slice(no_esc_run);
             write_escape(output, byte, ESCAPE[byte as usize]);
             rest = tail;
-
-            // contig escapable bytes (eg `\r\n` (stupid windows))
+            // contiguous escapable bytes (eg `\r\n` (stupid windows))
             while let Some((&byte, tail)) = rest.split_first() {
                 let escape = ESCAPE[byte as usize];
                 if escape == 0 {
