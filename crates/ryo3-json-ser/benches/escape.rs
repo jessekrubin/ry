@@ -5,11 +5,14 @@
 use std::hint::black_box;
 
 use criterion::{BenchmarkId, Criterion, Throughput, criterion_group, criterion_main};
-use ryo3_json_ser::escape::{escape_into_scalar, escape_into_swar};
+use ryo3_json_ser::escape::{escape_into_scalar, escape_into_swar_u64};
 
 type EscapeFn = fn(&mut Vec<u8>, &str);
 
-const FNS: [(&str, EscapeFn); 2] = [("scalar", escape_into_scalar), ("swar", escape_into_swar)];
+const FNS: [(&str, EscapeFn); 2] = [
+    ("scalar", escape_into_scalar),
+    ("swar", escape_into_swar_u64),
+];
 
 fn cases() -> Vec<(&'static str, Vec<String>)> {
     let keys = [

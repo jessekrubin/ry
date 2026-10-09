@@ -117,7 +117,7 @@ impl<F: JsonFormat> JsonWriter<F> {
     pub(crate) fn write_str(&mut self, v: &str) {
         self.buf.reserve(v.len() + 2);
         self.raw_byte(b'"');
-        escape::escape_into_swar(&mut self.buf, v);
+        escape::escape_into_swar_u64(&mut self.buf, v);
         self.raw_byte(b'"');
     }
 
@@ -125,7 +125,7 @@ impl<F: JsonFormat> JsonWriter<F> {
     #[inline]
     pub(crate) fn str_contents(&mut self, v: &str) {
         self.buf.reserve(v.len());
-        escape::escape_into_swar(&mut self.buf, v);
+        escape::escape_into_swar_u64(&mut self.buf, v);
     }
 
     // ------------------------------------------------------------------------

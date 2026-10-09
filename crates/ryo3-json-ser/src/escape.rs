@@ -136,7 +136,7 @@ const fn json_escapable_mask(x: u64) -> u64 {
 ///
 /// if the second `split_first` below fails which it really should not (wenodis)
 #[inline]
-pub fn escape_into_swar(output: &mut Vec<u8>, value: &str) {
+pub fn escape_into_swar_u64(output: &mut Vec<u8>, value: &str) {
     let mut rest = value.as_bytes();
 
     loop {
