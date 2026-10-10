@@ -54,7 +54,7 @@ jobs:
             target: s390x
             manylinux: "2_28"
             features: "mimalloc"
-          # PPC IS A PAIN IN THE ASS
+          # PPC IS A PAIN IN THE ASS ~ TODO TODO
           # - runner: ubuntu-latest
           #   target: ppc64le
           #   manylinux: "2_28" # previously was 'auto'
