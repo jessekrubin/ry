@@ -5562,100 +5562,13 @@ import typing as t
 from os import PathLike
 
 from ry._types import Buffer
-from ry.ryo3._bytes import Bytes
+from ry.ryo3._bytes import Bytes, ReadableBuffer
 
 # =============================================================================
 # JSON
 # =============================================================================
 _JsonPrimitive: t.TypeAlias = bool | int | float | str | None
 _JsonValue: t.TypeAlias = _JsonPrimitive | dict[str, _JsonValue] | list[_JsonValue]
-_TJsonDocument = t.TypeVar("_TJsonDocument", bound=Bytes | None)
-
-
-@t.final
-class JSONDecodeError(ValueError):
-    r"""JSON decode error; semi compatible w/ `json.JSONDecodeError`
-
-    The main impetus for this custom error is to allow access to a response
-    body when a JSON decode error occurs. The ryo3-reqwest responses
-    parse inside of the `IntoPyObject` impl and raise this error if parsing
-    fails; b/c the response body get's consumed, a JSON decode error is raised
-    to provide access to the body.
-
-    Note
-    ----
-    This aint a subclass of `json.JSONDecodeError`; catch `ry.JSONDecodeError`
-    or `ValueError`.
-
-    Attributes
-    ----------
-    msg : str
-        The unformatted error message.
-    doc : Bytes | None
-        The JSON document being parsed.
-    pos : int
-        The start (byte) index of `doc` where parsing failed.
-    lineno : int
-        The line corresponding to `pos` (1-based).
-    colno : int
-        The column corresponding to `pos` (1-based).
-    kind : str
-        The error kind (e.g. `"trailing-comma"`).
-
-    Examples
-    --------
-    >>> import ry
-    >>> try:
-    ...     ry.parse_json('{"a": 1,\n "b": 2,}')
-    ... except ry.JSONDecodeError as e:
-    ...     print(e)
-    ...     print((e.msg, e.pos, e.lineno, e.colno, e.kind))
-    trailing comma: line 2 column 9 (char 17)
-    ('trailing comma', 17, 2, 9, 'trailing-comma')
-
-    """
-
-    def __new__(cls, msg: str, doc: Bytes | None, pos: int) -> t.NoReturn:
-        """not constructable"""
-
-    @property
-    def msg(self) -> str: ...
-    @property
-    def doc(self) -> Bytes | None: ...
-    @property
-    def pos(self) -> int: ...
-    @property
-    def lineno(self) -> int: ...
-    @property
-    def colno(self) -> int: ...
-    @property
-    def kind(
-        self,
-    ) -> t.Literal[
-        "float-expecting-int",
-        "duplicate-key",
-        "internal-error",
-        "eof-while-parsing-list",
-        "eof-while-parsing-object",
-        "eof-while-parsing-string",
-        "eof-while-parsing-value",
-        "expected-colon",
-        "expected-list-comma-or-end",
-        "expected-object-comma-or-end",
-        "expected-some-ident",
-        "expected-some-value",
-        "invalid-escape",
-        "invalid-number",
-        "number-out-of-range",
-        "invalid-unicode-code-point",
-        "control-character-while-parsing-string",
-        "key-must-be-a-string",
-        "lone-leading-surrogate-in-hex-escape",
-        "trailing-comma",
-        "trailing-characters",
-        "unexpected-end-of-hex-escape",
-        "recursion-limit-exceeded",
-    ]: ...
 
 
 def parse_json(
@@ -5685,6 +5598,102 @@ def read_json(
 ) -> _JsonValue: ...
 def json_cache_clear() -> None: ...
 def json_cache_usage() -> int: ...
+
+
+# =============================================================================
+# JSON-DECODE-ERROR
+# =============================================================================
+_JsonErrorKind: t.TypeAlias = t.Literal[
+    "float-expecting-int",
+    "duplicate-key",
+    "internal-error",
+    "eof-while-parsing-list",
+    "eof-while-parsing-object",
+    "eof-while-parsing-string",
+    "eof-while-parsing-value",
+    "expected-colon",
+    "expected-list-comma-or-end",
+    "expected-object-comma-or-end",
+    "expected-some-ident",
+    "expected-some-value",
+    "invalid-escape",
+    "invalid-number",
+    "number-out-of-range",
+    "invalid-unicode-code-point",
+    "control-character-while-parsing-string",
+    "key-must-be-a-string",
+    "lone-leading-surrogate-in-hex-escape",
+    "trailing-comma",
+    "trailing-characters",
+    "unexpected-end-of-hex-escape",
+    "recursion-limit-exceeded",
+]
+_JsonErrorKindArg: t.TypeAlias = (
+    _JsonErrorKind | tuple[t.Literal["duplicate-key", "internal-error"], str]
+)
+
+
+@t.final
+class JSONDecodeError(ValueError):
+    r"""JSON decode error; semi compatible w/ `json.JSONDecodeError`
+
+    `doc` is only set when rust owns the bytes (response bodies, `read_json`)
+    so you can still get at a consumed response body.
+
+    Note
+    ----
+    This aint a subclass of `json.JSONDecodeError`; catch `ry.JSONDecodeError`
+    or `ValueError`.
+
+    Attributes
+    ----------
+    msg : str
+        The unformatted error message.
+    doc : Bytes | None
+        The JSON document being parsed (or `None`); response bodies attach the
+        json doc
+    pos : int
+        The start (byte) index of `doc` where parsing failed.
+    lineno : int
+        The line corresponding to `pos` (1-based).
+    colno : int
+        The column corresponding to `pos` (1-based).
+    kind : str
+        The error kind (e.g. `"trailing-comma"`).
+
+    Examples
+    --------
+    >>> import ry
+    >>> try:
+    ...     ry.parse_json('{"a": 1,\n "b": 2,}')
+    ... except ry.JSONDecodeError as e:
+    ...     print(e)
+    ...     print((e.msg, e.pos, e.lineno, e.colno, e.kind))
+    trailing comma: line 2 column 9 (char 17)
+    ('trailing comma', 17, 2, 9, 'trailing-comma')
+
+    """
+
+    def __new__(
+        cls,
+        kind: _JsonErrorKindArg,
+        doc: ReadableBuffer | None = None,
+        pos: int = 0,
+        lineno: int | None = None,
+        colno: int | None = None,
+    ) -> t.Self: ...
+    @property
+    def msg(self) -> str: ...
+    @property
+    def doc(self) -> Bytes | None: ...
+    @property
+    def pos(self) -> int: ...
+    @property
+    def lineno(self) -> int: ...
+    @property
+    def colno(self) -> int: ...
+    @property
+    def kind(self) -> _JsonErrorKind: ...
 ```
 
 <h2 id="ry.ryo3._lz4rip"><code>ry.ryo3._lz4rip</code></h2>
@@ -9386,7 +9395,7 @@ from ry.ryo3._jiter import _JsonPrimitive as _JsonPrimitive
 from ry.ryo3._jiter import _JsonValue as _JsonValue
 
 
-def minify(buf: Buffer | str, /) -> Bytes:
+def minify(buf: Buffer | str, /, append_newline: bool = False) -> Bytes:
     """Return minified json data (remove whitespace, newlines)
 
     Parameters
@@ -9417,7 +9426,7 @@ def minify(buf: Buffer | str, /) -> Bytes:
     """
 
 
-def fmt(buf: Buffer | str, /) -> Bytes:
+def fmt(buf: Buffer | str, /, append_newline: bool = False) -> Bytes:
     r"""Return formatted json data (add indentation, newlines)
 
     Parameters

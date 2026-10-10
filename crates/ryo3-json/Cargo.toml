@@ -19,13 +19,9 @@ ryo3-core = { workspace = true }
 jiter = { workspace = true, features = ["serde"] }
 ryo3-jiter = { workspace = true }
 ryo3-serde = { workspace = true }
+ryo3-json-ser = { workspace = true }
 serde-transcode = { workspace = true }
-itoap = { workspace = true }
 serde_core = { workspace = true }
-zmij = { workspace = true }
-
-[dev-dependencies]
-serde_json = { workspace = true }
 
 [features]
 default = []

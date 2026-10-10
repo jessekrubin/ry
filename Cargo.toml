@@ -120,6 +120,7 @@ members = [
   "crates/ryo3-jiff",
   "crates/ryo3-jiter",
   "crates/ryo3-json",
+  "crates/ryo3-json-ser",
   "crates/ryo3-lz4rip",
   "crates/ryo3-macro-rules",
   "crates/ryo3-memchr",
@@ -172,6 +173,7 @@ ryo3-ignore = { path = "./crates/_future/ryo3-ignore" }
 ryo3-jiff = { path = "./crates/ryo3-jiff" }
 ryo3-jiter = { path = "./crates/ryo3-jiter" }
 ryo3-json = { path = "./crates/ryo3-json" }
+ryo3-json-ser = { path = "./crates/ryo3-json-ser" }
 ryo3-lz4rip = { path = "./crates/ryo3-lz4rip" }
 ryo3-macro-rules = { path = "crates/ryo3-macro-rules" }
 ryo3-memchr = { path = "crates/ryo3-memchr" }
@@ -210,7 +212,6 @@ pyo3-build-config = { version = "0.29.3", default-features = false, features = [
 mimalloc = { version = "0.1.52", default-features = false, features = [] }
 
 # external
-# ahash = { version = "0.8.12", default-features = false }
 aws-lc-rs = { version = "1.17.0", default-features = true }
 brotli = { version = "9", default-features = false }
 bytes = { version = "1.11.0", default-features = false }
@@ -219,10 +220,10 @@ cookie = { version = "0.18.1", default-features = false, features = [
   "percent-encode",
 ] }
 crc32fast = { version = "1.5.1", default-features = false, features = ["std"] }
+criterion = { version = "0.8.2", default-features = false, features = ["cargo_bench_support"] }
 dirs = { version = "7.0.0", default-features = false, features = [] }
 encoding_rs = { version = "0.8.35", default-features = false, features = [] }
 # FUTURE: switch to "zlib-rs"?
-# flate2 = { version = "1.1.8", default-features = false, features = ["miniz_oxide"] }
 flate2 = { version = "1.1.8", default-features = false, features = ["zlib-rs"] }
 futures = { version = "0.3.32", default-features = false }
 futures-channel = { version = "0.3.32", default-features = false, features = [

@@ -204,7 +204,7 @@ lint: ruff clippy
 # run mypy type checker
 mypy:
     uv run mypy --version
-    uv run mypy python/ry tests/ examples/ scripts/ bench/
+    uv run mypy --no-native-parser python/ry tests/ examples/ scripts/ bench/
 
 # run ty typechecker
 ty *ARGS:
