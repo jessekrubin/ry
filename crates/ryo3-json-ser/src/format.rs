@@ -3,6 +3,8 @@
 
 /// Controls how JSON output is formatted.
 pub trait JsonFormat: Sized {
+    const COMPACT: bool = true;
+
     fn inc(&mut self);
 
     fn dec(&mut self);
@@ -17,6 +19,8 @@ pub trait JsonFormat: Sized {
 pub struct JsonFormatCompact;
 
 impl JsonFormat for JsonFormatCompact {
+    const COMPACT: bool = true;
+
     #[inline(always)]
     fn inc(&mut self) {}
 
@@ -50,6 +54,8 @@ impl<const INDENT: usize> Default for JsonFormatPretty<INDENT> {
 }
 
 impl<const INDENT: usize> JsonFormat for JsonFormatPretty<INDENT> {
+    const COMPACT: bool = false;
+
     #[inline(always)]
     fn inc(&mut self) {
         self.depth += 1;

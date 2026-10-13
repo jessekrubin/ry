@@ -38,21 +38,14 @@ pub(crate) static ESCAPE: [u8; 256] = [
     __, __, __, __, __, __, __, __, __, __, __, __, __, __, __, __, // F
 ];
 
-// #[inline]
-// pub(crate) fn format_escaped_str(output: &mut Vec<u8>, value: &str) {
-//     output.push(b'"');
-//     format_escaped_str_contents(output, value);
-//     output.push(b'"');
-// }
-
 /// JSON escape `&str`
 ///
 /// Adapted from `serde_json`'s escape-table impl for writing to a vec
 ///
 /// ref: <https://github.com/serde-rs/json/blob/afdf6fc67247dd7fa4fcde1381e6ecc6bcc7a30e/src/ser.rs#L2079>
 #[inline]
-pub fn escape_into_scalar(output: &mut Vec<u8>, value: &str) {
-    let mut bytes = value.as_bytes();
+pub fn escape_into_scalar(src: &str, dst: &mut Vec<u8>) {
+    let mut bytes = src.as_bytes();
 
     let mut i = 0;
     while i < bytes.len() {
@@ -71,23 +64,23 @@ pub fn escape_into_scalar(output: &mut Vec<u8>, value: &str) {
         i = 0;
 
         if !string_run.is_empty() {
-            output.extend_from_slice(string_run);
+            dst.extend_from_slice(string_run);
         }
 
-        write_escape(output, byte, escape);
+        write_escape(dst, byte, escape);
     }
 
     if !bytes.is_empty() {
-        output.extend_from_slice(bytes);
+        dst.extend_from_slice(bytes);
     }
 }
 
 /// write the escape seq for `byte`; `escape` is its (non-zero) `ESCAPE` entry
 #[inline]
-fn write_escape(output: &mut Vec<u8>, byte: u8, escape: u8) {
+fn write_escape(dst: &mut Vec<u8>, byte: u8, escape: u8) {
     if escape == UU {
         const HEX_DIGITS: &[u8; 16] = b"0123456789abcdef";
-        output.extend_from_slice(&[
+        dst.extend_from_slice(&[
             b'\\',
             b'u',
             b'0',
@@ -96,7 +89,7 @@ fn write_escape(output: &mut Vec<u8>, byte: u8, escape: u8) {
             HEX_DIGITS[(byte & 0x0f) as usize],
         ]);
     } else {
-        output.extend_from_slice(&[b'\\', escape]);
+        dst.extend_from_slice(&[b'\\', escape]);
     }
 }
 
@@ -136,8 +129,8 @@ const fn json_escapable_mask(x: u64) -> u64 {
 ///
 /// if the second `split_first` below fails which it really should not (wenodis)
 #[inline]
-pub fn escape_into_swar_u64(output: &mut Vec<u8>, value: &str) {
-    let mut rest = value.as_bytes();
+pub fn escape_into_swar_u64(src: &str, dst: &mut Vec<u8>) {
+    let mut rest = src.as_bytes();
 
     loop {
         // find next byte to escape and return its index (if any)
@@ -167,8 +160,8 @@ pub fn escape_into_swar_u64(output: &mut Vec<u8>, value: &str) {
             let Some((&byte, tail)) = tail.split_first() else {
                 unreachable!("wenodis: inbounds")
             };
-            output.extend_from_slice(no_esc_run);
-            write_escape(output, byte, ESCAPE[byte as usize]);
+            dst.extend_from_slice(no_esc_run);
+            write_escape(dst, byte, ESCAPE[byte as usize]);
             rest = tail;
             // contiguous escapable bytes (eg `\r\n` (stupid windows))
             while let Some((&byte, tail)) = rest.split_first() {
@@ -176,11 +169,11 @@ pub fn escape_into_swar_u64(output: &mut Vec<u8>, value: &str) {
                 if escape == 0 {
                     break;
                 }
-                write_escape(output, byte, escape);
+                write_escape(dst, byte, escape);
                 rest = tail;
             }
         } else {
-            output.extend_from_slice(rest);
+            dst.extend_from_slice(rest);
             return;
         }
     }

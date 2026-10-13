@@ -2,6 +2,9 @@
 use super::escape;
 use super::format::JsonFormat;
 
+const RESERVE_MIN: usize = 64;
+const ZMIJ_BUF_SIZE: usize = size_of::<zmij::Buffer>();
+
 pub(crate) struct JsonWriter<F: JsonFormat> {
     buf: Vec<u8>,
     fmt: F,
@@ -11,7 +14,14 @@ macro_rules! impl_write_int {
     ($name:ident, $int_type:ty) => {
         #[inline]
         pub(crate) fn $name(&mut self, v: $int_type) {
-            itoap::write_to_vec(&mut self.buf, v);
+            self.buf.reserve(RESERVE_MIN);
+            // SAFETY: just reserved `MAX_LEN`
+            #[expect(unsafe_code)]
+            unsafe {
+                let len = self.buf.len();
+                let n = itoap::write_to_ptr(self.buf.as_mut_ptr().add(len), v);
+                self.buf.set_len(len + n);
+            }
         }
     };
 }
@@ -20,8 +30,15 @@ macro_rules! impl_write_int_key {
     ($name:ident, $int_type:ty) => {
         #[inline]
         pub(crate) fn $name(&mut self, v: $int_type) {
+            self.buf.reserve(RESERVE_MIN);
             self.raw_byte(b'"');
-            itoap::write_to_vec(&mut self.buf, v);
+            // SAFETY: just reserved `MAX_LEN`
+            #[expect(unsafe_code)]
+            unsafe {
+                let len = self.buf.len();
+                let n = itoap::write_to_ptr(self.buf.as_mut_ptr().add(len), v);
+                self.buf.set_len(len + n);
+            }
             self.raw_byte(b'"');
         }
     };
@@ -31,7 +48,7 @@ impl<F: JsonFormat> JsonWriter<F> {
     #[inline]
     pub(crate) fn with_capacity(capacity: usize, fmt: F) -> Self {
         Self {
-            buf: Vec::with_capacity(capacity),
+            buf: Vec::with_capacity(capacity.max(RESERVE_MIN)),
             fmt,
         }
     }
@@ -43,24 +60,60 @@ impl<F: JsonFormat> JsonWriter<F> {
 
     #[inline]
     pub(crate) fn reserve(&mut self, additional: usize) {
-        self.buf.reserve(additional);
+        self.buf.reserve(additional.saturating_add(RESERVE_MIN));
     }
 
     // ------------------------------------------------------------------------
     // RAW
     // ------------------------------------------------------------------------
 
+    /// write uno byte w/o capacity check
+    ///
+    /// # Safety
+    /// Caller must be sure there is enough reserved capacity in the buffer
+    #[inline]
+    #[expect(unsafe_code)]
+    unsafe fn raw_byte_unchecked(&mut self, v: u8) {
+        debug_assert!(self.buf.len() < self.buf.capacity(), "buf length invariant");
+        unsafe {
+            let len = self.buf.len();
+            self.buf.as_mut_ptr().add(len).write(v);
+            self.buf.set_len(len + 1);
+        }
+    }
+
     /// write uno byte
     #[inline]
     pub(crate) fn raw_byte(&mut self, v: u8) {
-        self.buf.push(v);
+        self.buf.reserve(1 + RESERVE_MIN);
+        // SAFETY: just reserved
+        #[expect(unsafe_code)]
+        unsafe {
+            self.raw_byte_unchecked(v);
+        }
     }
 
     /// write n+1 raw bytes
     #[inline]
+    #[expect(unsafe_code)]
     pub(crate) fn raw(&mut self, v: &[u8]) {
         debug_assert!(!v.is_empty(), "raw bytes aint not empty");
-        self.buf.extend_from_slice(v);
+        self.buf.reserve(v.len() + RESERVE_MIN);
+        // SAFETY: just reserved
+        unsafe {
+            let len = self.buf.len();
+            core::ptr::copy_nonoverlapping(v.as_ptr(), self.buf.as_mut_ptr().add(len), v.len());
+            self.buf.set_len(len + v.len());
+        }
+    }
+
+    /// format indent + restore the slack
+    #[inline]
+    fn indent(&mut self) {
+        if !F::COMPACT {
+            self.fmt.indent(&mut self.buf);
+            self.buf.reserve(RESERVE_MIN);
+        }
     }
 
     // ------------------------------------------------------------------------
@@ -95,18 +148,44 @@ impl<F: JsonFormat> JsonWriter<F> {
     // FUTURE: support optionally writing `-Infinity`/`Infinity`/`NaN`?
 
     #[inline]
+    #[expect(unsafe_code)]
     pub(crate) fn write_f32(&mut self, v: f32) {
         if v.is_finite() {
-            self.raw(zmij::Buffer::new().format_finite(v).as_bytes());
+            let mut b = zmij::Buffer::new();
+            let n = b.format_finite(v).len();
+            self.buf.reserve(ZMIJ_BUF_SIZE + RESERVE_MIN);
+            // SAFETY: reserved (see above); avoids memcpy call
+            unsafe {
+                let len = self.buf.len();
+                core::ptr::copy_nonoverlapping(
+                    (&raw const b).cast::<u8>(),
+                    self.buf.as_mut_ptr().add(len),
+                    ZMIJ_BUF_SIZE,
+                );
+                self.buf.set_len(len + n);
+            }
         } else {
             self.write_null();
         }
     }
 
     #[inline]
+    #[expect(unsafe_code)]
     pub(crate) fn write_f64(&mut self, v: f64) {
         if v.is_finite() {
-            self.raw(zmij::Buffer::new().format_finite(v).as_bytes());
+            let mut b = zmij::Buffer::new();
+            let n = b.format_finite(v).len();
+            self.buf.reserve(ZMIJ_BUF_SIZE + RESERVE_MIN);
+            // SAFETY: reserved (see above); avoids memcpy call
+            unsafe {
+                let len = self.buf.len();
+                core::ptr::copy_nonoverlapping(
+                    (&raw const b).cast::<u8>(),
+                    self.buf.as_mut_ptr().add(len),
+                    ZMIJ_BUF_SIZE,
+                );
+                self.buf.set_len(len + n);
+            }
         } else {
             self.write_null();
         }
@@ -115,17 +194,20 @@ impl<F: JsonFormat> JsonWriter<F> {
     /// write quote + escaped string + quote
     #[inline]
     pub(crate) fn write_str(&mut self, v: &str) {
-        self.buf.reserve(v.len() + 2);
+        // reserve worst case space for escaped string + quotes
+        let reserve = (v.len().wrapping_mul(6)).wrapping_add(RESERVE_MIN);
+        self.buf.reserve(reserve);
         self.raw_byte(b'"');
-        escape::escape_into_swar_u64(&mut self.buf, v);
+        escape::escape_into_swar_u64(v, &mut self.buf);
         self.raw_byte(b'"');
     }
 
     /// write escaped string w/o quotes
     #[inline]
     pub(crate) fn str_contents(&mut self, v: &str) {
-        self.buf.reserve(v.len());
-        escape::escape_into_swar_u64(&mut self.buf, v);
+        let reserve = (v.len().wrapping_mul(6)).wrapping_add(RESERVE_MIN);
+        self.buf.reserve(reserve);
+        escape::escape_into_swar_u64(v, &mut self.buf);
     }
 
     // ------------------------------------------------------------------------
@@ -181,7 +263,7 @@ impl<F: JsonFormat> JsonWriter<F> {
         self.fmt.dec();
         if self.buf.last() == Some(&b',') {
             self.buf.pop();
-            self.fmt.indent(&mut self.buf);
+            self.indent();
         }
         self.raw_byte(b']');
     }
@@ -197,24 +279,30 @@ impl<F: JsonFormat> JsonWriter<F> {
         self.fmt.dec();
         if self.buf.last() == Some(&b',') {
             self.buf.pop();
-            self.fmt.indent(&mut self.buf);
+            self.indent();
         }
         self.raw_byte(b'}');
     }
 
     #[inline]
     pub(crate) fn elem_begin(&mut self) {
-        self.fmt.indent(&mut self.buf);
+        self.indent();
     }
 
     #[inline]
+    #[expect(unsafe_code)]
     pub(crate) fn comma(&mut self) {
-        self.raw_byte(b',');
+        // SAFETY: slack invariant
+        unsafe { self.raw_byte_unchecked(b',') }
     }
 
     #[inline]
     pub(crate) fn colon(&mut self) {
+        // SAFETY: slack invariant
         self.raw_byte(b':');
-        self.fmt.sep(&mut self.buf);
+        if !F::COMPACT {
+            self.fmt.sep(&mut self.buf);
+            self.buf.reserve(RESERVE_MIN);
+        }
     }
 }

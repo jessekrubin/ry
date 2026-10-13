@@ -10,6 +10,9 @@
 ## v0.0.103 [unreleased]
 
 - python `v3.15`
+- `ryo3-json-ser`
+  - better reserving and org for writer
+  - use weird tricks to get better micro opts for ints/floats
 
 ---
 
