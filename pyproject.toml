@@ -32,6 +32,7 @@ classifiers = [
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
   "Programming Language :: Python :: 3.14",
+  "Programming Language :: Python :: 3.15",
   "Programming Language :: Python :: Implementation :: CPython",
   "Programming Language :: Python :: Implementation :: PyPy",
   "Programming Language :: Rust",
@@ -53,7 +54,6 @@ dev = [
   "ipython>=9.5.0",
   "maturin>=1.15.0",
   "mypy",
-  "orjson==3.11.4; implementation_name=='cpython'",
   "prek>=0.4.6",
   "pydantic>=2.11.7",
   "pytest>=9.0.1",
@@ -68,6 +68,8 @@ dev = [
   "websockets>=16.0",
 ]
 misc = [ "griffe>=1.12.1" ]
+# own group bc no free-threaded support (`UV_NO_GROUP=orjson`)
+orjson = [ "orjson==3.13.0; implementation_name=='cpython'" ]
 
 [tool.maturin]
 module-name = "ry.ryo3"
@@ -84,6 +86,7 @@ features = [ "pyo3/extension-module" ]
 required-version = ">=0.7.0"
 sources.ry = { workspace = true }
 package = false  # don't build package w/ uv
+default-groups = [ "dev", "orjson" ]
 
 [tool.ruff]
 extend = "./ruff.toml"
