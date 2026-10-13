@@ -7,7 +7,7 @@ use std::hint::black_box;
 use criterion::{BenchmarkId, Criterion, Throughput, criterion_group, criterion_main};
 use ryo3_json_ser::escape::{escape_into_scalar, escape_into_swar_u64};
 
-type EscapeFn = fn(&mut Vec<u8>, &str);
+type EscapeFn = fn(&str, &mut Vec<u8>);
 
 const FNS: [(&str, EscapeFn); 2] = [
     ("scalar", escape_into_scalar),
@@ -63,7 +63,7 @@ fn bench_escape(c: &mut Criterion) {
                 b.iter(|| {
                     out.clear();
                     for s in strs {
-                        f(black_box(&mut out), black_box(s));
+                        f(black_box(s), black_box(&mut out));
                     }
                     black_box(out.len())
                 });
