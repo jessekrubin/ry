@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+import datetime as pydt
+import functools
 import json
 import typing as t
 
 import pytest
-from hypothesis import given
+from hypothesis import assume, given
 from hypothesis import strategies as st
 
 import ry
@@ -18,6 +20,7 @@ try:
     _ORJSON_INSTALLED = True
 except ImportError:
     orjson = None  # type: ignore[assignment]
+
 
 _pytest_mark_skip_orjson = pytest.mark.skipif(
     not _ORJSON_INSTALLED,
@@ -117,7 +120,7 @@ def test_stringify_orjson_identical(*, data: t.Any, fmt: bool) -> None:
 def test_stringify_orjson_floats(data: float) -> None:
     """Test floats are identical aside from the `+` in positive exponents."""
     ry_json = ry_stringify(data, pybytes=True)
-    assert ry_json.replace(b"e+", b"e") == oj_stringify(data)
+    assert ry_json == oj_stringify(data)
 
 
 @_pytest_mark_skip_orjson
@@ -147,10 +150,25 @@ def test_stringify_dates(*, data: t.Any, fmt: bool) -> None:
     assert ry.Date.parse(ry_json) == ry.Date.parse(oj_json)
 
 
+@functools.lru_cache(maxsize=1)
+def _orjson_time_micros_bug() -> bool:
+    """Return `True` if orjson time microseconds is screwy.
+
+    At some point in orjson 3.12 or 3.13, there was a bug introduced
+    that causes orjson to drop the leading zero of 5 digit `time` microseconds (eg `00:00:00.010000` => `00:00:00.10000`)
+    """
+    return (
+        _ORJSON_INSTALLED
+        and oj_stringify(pydt.time(0, 0, 0, 10_000)) != b'"00:00:00.010000"'
+    )
+
+
 @_pytest_mark_skip_orjson
 @given(data=st.times())
 def test_stringify_orjson_times(data: t.Any) -> None:
     """Test orjson/ry.stringify for times."""
+    if _orjson_time_micros_bug():
+        assume(not 10_000 <= data.microsecond < 100_000)
     ry_json = ry_stringify(data, pybytes=True).decode().strip('"')
     oj_json = oj_stringify(data).decode().strip('"')
     assert ry.Time.parse(ry_json) == ry.Time.parse(oj_json)
