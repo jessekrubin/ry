@@ -5,6 +5,13 @@
 > pre-`0.1.0` releases may contain breaking changes, but imma do my best to tell
 > ya; hit me up if you find a bug/breaking-change
 
+
+---
+
+## v0.0.103 [unreleased]
+
+- python `v3.15`
+
 ---
 
 ## v0.0.102 [2026-10-09]
