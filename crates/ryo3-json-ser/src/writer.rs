@@ -89,7 +89,7 @@ impl<F: JsonFormat> JsonWriter<F> {
         // SAFETY: just reserved
         #[expect(unsafe_code)]
         unsafe {
-            self.raw_byte_unchecked(v)
+            self.raw_byte_unchecked(v);
         }
     }
 
@@ -194,7 +194,8 @@ impl<F: JsonFormat> JsonWriter<F> {
     /// write quote + escaped string + quote
     #[inline]
     pub(crate) fn write_str(&mut self, v: &str) {
-        let reserve = v.len() + 6 + 32 + 3;
+        // reserve worst case space for escaped string + quotes
+        let reserve = (v.len().wrapping_mul(6)).wrapping_add(RESERVE_MIN);
         self.buf.reserve(reserve);
         self.raw_byte(b'"');
         escape::escape_into_swar_u64(v, &mut self.buf);
@@ -204,7 +205,7 @@ impl<F: JsonFormat> JsonWriter<F> {
     /// write escaped string w/o quotes
     #[inline]
     pub(crate) fn str_contents(&mut self, v: &str) {
-        let reserve = v.len() + 6 + 32 + 3;
+        let reserve = (v.len().wrapping_mul(6)).wrapping_add(RESERVE_MIN);
         self.buf.reserve(reserve);
         escape::escape_into_swar_u64(v, &mut self.buf);
     }
@@ -289,6 +290,7 @@ impl<F: JsonFormat> JsonWriter<F> {
     }
 
     #[inline]
+    #[expect(unsafe_code)]
     pub(crate) fn comma(&mut self) {
         // SAFETY: slack invariant
         unsafe { self.raw_byte_unchecked(b',') }
@@ -297,7 +299,7 @@ impl<F: JsonFormat> JsonWriter<F> {
     #[inline]
     pub(crate) fn colon(&mut self) {
         // SAFETY: slack invariant
-        unsafe { self.raw_byte(b':') }
+        self.raw_byte(b':');
         if !F::COMPACT {
             self.fmt.sep(&mut self.buf);
             self.buf.reserve(RESERVE_MIN);

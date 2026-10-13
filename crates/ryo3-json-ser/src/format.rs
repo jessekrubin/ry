@@ -3,7 +3,7 @@
 
 /// Controls how JSON output is formatted.
 pub trait JsonFormat: Sized {
-    const COMPACT: bool;
+    const COMPACT: bool = true;
 
     fn inc(&mut self);
 
