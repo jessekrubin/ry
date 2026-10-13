@@ -1077,7 +1077,6 @@ dev = [
     { name = "ipython" },
     { name = "maturin" },
     { name = "mypy" },
-    { name = "orjson", marker = "implementation_name == 'cpython'" },
     { name = "prek" },
     { name = "pydantic" },
     { name = "pytest" },
@@ -1094,6 +1093,9 @@ dev = [
 misc = [
     { name = "griffe" },
 ]
+orjson = [
+    { name = "orjson", marker = "implementation_name == 'cpython'" },
+]
 
 [package.metadata]
 
@@ -1105,7 +1107,6 @@ dev = [
     { name = "ipython", specifier = ">=9.5.0" },
     { name = "maturin", specifier = ">=1.15.0" },
     { name = "mypy" },
-    { name = "orjson", marker = "implementation_name == 'cpython'", specifier = "==3.13.0" },
     { name = "prek", specifier = ">=0.4.6" },
     { name = "pydantic", specifier = ">=2.11.7" },
     { name = "pytest", specifier = ">=9.0.1" },
@@ -1120,6 +1121,7 @@ dev = [
     { name = "websockets", specifier = ">=16.0" },
 ]
 misc = [{ name = "griffe", specifier = ">=1.12.1" }]
+orjson = [{ name = "orjson", marker = "implementation_name == 'cpython'", specifier = "==3.13.0" }]
 
 [[package]]
 name = "sortedcontainers"

@@ -108,8 +108,8 @@ jobs:
         target: [ x86_64 ]
         python-version: [ "3.14t", "3.15t" ]
     env:
-      # no orjson on free-threaded python (also keep `uv run` from re-syncing it)
-      UV_NO_SYNC: 1
+      # no orjson on free-threaded python
+      UV_NO_GROUP: orjson
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: install-rust-stable
@@ -124,7 +124,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: install deps
         run: |
-          uv sync --no-install-package orjson
+          uv sync
       - name: install ry
         run: |
           uv run maturin develop --profile fast-build
