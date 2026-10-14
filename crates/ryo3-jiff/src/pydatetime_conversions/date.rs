@@ -36,8 +36,8 @@ pub fn date_to_pydate<'py>(
     pyo3::types::PyDate::new(
         py,
         date.year().into(),
-        date.month().try_into().expect("wenodis: month is 1..=12"),
-        date.day().try_into().expect("wenodis: day is 1..=31"),
+        date.month().cast_unsigned(),
+        date.day().cast_unsigned(),
     )
 }
 
