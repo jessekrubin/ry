@@ -13,6 +13,9 @@
 - `ryo3-json-ser`
   - better reserving and org for writer
   - use weird tricks to get better micro opts for ints/floats
+- `ryo3-jiff`
+  - cleaned up jiff-py-conversions and adopted conversion for
+    `datetime.datetime` to `jiff::Zoned` based on pyo3-v0.30.0
 
 ---
 
@@ -133,7 +136,7 @@
 - `ryo3-dirs`
   - added docstrings
 - `ryo3-jiff`
-  - update to latest jiff and fix error msg changes that occured
+  - update to latest jiff and fix error msg changes that occurred
 - `ryo3-http`
   - update to `v1.5.x` with new `Query` http method
 - `ryo3-reqwest`
