@@ -18,5 +18,5 @@ mod zoned;
 pub use date::*;
 pub use signed_duration::*;
 pub use time::*;
-pub use timezone::timezone2pyobject;
-pub use zoned::zoned2pyobject;
+pub use timezone::timezone_to_pytzinfo;
+pub use zoned::zoned_to_pydatetime;

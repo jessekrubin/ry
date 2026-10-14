@@ -1,11 +1,10 @@
-#[cfg(not(Py_LIMITED_API))]
 use jiff::civil::Time;
 use pyo3::prelude::*;
 use pyo3::types::PyTime;
 
 use crate::JiffTime;
 
-pub fn time_to_pyobject<'py>(
+pub fn time_to_pytime<'py>(
     py: Python<'py>,
     time: &jiff::civil::Time,
 ) -> PyResult<Bound<'py, PyTime>> {
@@ -18,6 +17,7 @@ pub fn time_to_pyobject<'py>(
         None,
     )
 }
+
 #[cfg(not(Py_LIMITED_API))]
 #[expect(clippy::arithmetic_side_effects)]
 pub(crate) fn pytime_to_time(time: &impl pyo3::types::PyTimeAccess) -> PyResult<Time> {
@@ -30,13 +30,16 @@ pub(crate) fn pytime_to_time(time: &impl pyo3::types::PyTimeAccess) -> PyResult<
 }
 
 #[cfg(Py_LIMITED_API)]
-pub(crate) fn pytime_to_time(time: &Bound<'_, PyAny>) -> PyResult<Time> {
+#[expect(clippy::arithmetic_side_effects)]
+pub(crate) fn pytime_to_time<'py>(time: &impl AsRef<Bound<'py, PyAny>>) -> PyResult<Time> {
+    use crate::interns;
+    let time = time.as_ref();
     let py = time.py();
     Ok(Time::new(
-        time.getattr(intern!(py, "hour"))?.extract()?,
-        time.getattr(intern!(py, "minute"))?.extract()?,
-        time.getattr(intern!(py, "second"))?.extract()?,
-        time.getattr(intern!(py, "microsecond"))?.extract::<i32>()? * 1000,
+        time.getattr(interns::hour(py))?.extract()?,
+        time.getattr(interns::minute(py))?.extract()?,
+        time.getattr(interns::second(py))?.extract()?,
+        time.getattr(interns::microsecond(py))?.extract::<i32>()? * 1000,
     )?)
 }
 
@@ -46,7 +49,7 @@ impl<'py> IntoPyObject<'py> for JiffTime {
     type Error = PyErr;
 
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
-        time_to_pyobject(py, &self.0)
+        time_to_pytime(py, &self.0)
     }
 }
 
@@ -57,21 +60,14 @@ impl<'py> IntoPyObject<'py> for &JiffTime {
 
     #[inline]
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
-        time_to_pyobject(py, &self.0)
+        time_to_pytime(py, &self.0)
     }
 }
 
 impl<'py> FromPyObject<'_, 'py> for JiffTime {
     type Error = PyErr;
     fn extract(ob: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
-        #[cfg(not(Py_LIMITED_API))]
-        {
-            let time = ob.cast::<PyTime>()?;
-            pytime_to_time(&*time).map(Self::from)
-        }
-        #[cfg(Py_LIMITED_API)]
-        {
-            pytime_to_time(ob).map(Self::from)
-        }
+        let time = ob.cast::<PyTime>()?;
+        pytime_to_time(&*time).map(Self::from)
     }
 }

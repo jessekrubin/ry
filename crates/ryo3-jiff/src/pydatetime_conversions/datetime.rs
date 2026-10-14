@@ -70,7 +70,6 @@ impl<'py> FromPyObject<'_, 'py> for JiffDateTime {
         let jiff_date = pydate_to_date(&bound_dt)?;
         let jiff_time = pytime_to_time(&bound_dt)?;
         let dt = DateTime::from_parts(jiff_date, jiff_time);
-        // ::new(date_from_pyobject(dt)?, py_time_to_jiff_time(dt)?);
         Ok(dt.into())
     }
 }

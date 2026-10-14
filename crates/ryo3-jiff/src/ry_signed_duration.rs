@@ -17,7 +17,7 @@ use ryo3_std::time::PyDuration;
 use crate::constants::{
     MINUTES_PER_HOUR, NANOSECONDS_PER_SECOND, SECONDS_PER_MINUTE, SPAN_PRINTER_FRIENDLY,
 };
-use crate::pydatetime_conversions::signed_duration_from_pyobject;
+use crate::pydatetime_conversions::pydelta_to_signed_duration;
 use crate::round::RySignedDurationRound;
 use crate::ry_span::RySpan;
 use crate::{JiffRoundMode, JiffUnit};
@@ -494,7 +494,7 @@ impl RySignedDuration {
                     .is_ok_and(|duration| self.0 == duration))
             }
         } else if let Ok(other_td) = other.cast::<pyo3::types::PyDelta>() {
-            let extract_ed = signed_duration_from_pyobject(other_td)?;
+            let extract_ed = pydelta_to_signed_duration(other_td)?;
             Ok(self.0 == extract_ed)
         } else {
             py_type_err!("comparison not supported between SignedDuration and given type")

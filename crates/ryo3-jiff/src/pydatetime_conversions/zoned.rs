@@ -1,6 +1,6 @@
 use jiff::Zoned;
 use jiff::civil::DateTime;
-use jiff::tz::{AmbiguousOffset, TimeZone};
+use jiff::tz::AmbiguousOffset;
 use pyo3::prelude::*;
 #[cfg(not(Py_LIMITED_API))]
 use pyo3::types::PyTimeAccess;
@@ -8,31 +8,8 @@ use pyo3::types::{PyDateTime, PyTzInfoAccess};
 use ryo3_core::map_py_value_err;
 use ryo3_macro_rules::py_value_err;
 
-use crate::pydatetime_conversions::{pydate_to_date, pytime_to_time};
-use crate::{JiffTimeZone, JiffTimeZoneRef, JiffZoned, JiffZonedRef};
-
-fn datetime_to_pydatetime<'py>(
-    py: Python<'py>,
-    datetime: &DateTime,
-    fold: bool,
-    timezone: Option<&TimeZone>,
-) -> PyResult<Bound<'py, PyDateTime>> {
-    let tz = timezone
-        .map(|tz| JiffTimeZoneRef(tz).into_pyobject(py))
-        .transpose()?;
-    PyDateTime::new_with_fold(
-        py,
-        datetime.year().into(),
-        datetime.month().try_into()?,
-        datetime.day().try_into()?,
-        datetime.hour().try_into()?,
-        datetime.minute().try_into()?,
-        datetime.second().try_into()?,
-        (datetime.subsec_nanosecond() / 1000).try_into()?,
-        tz.as_ref(),
-        fold,
-    )
-}
+use crate::pydatetime_conversions::{pydate_to_date, pytime_to_time, timezone_to_pytzinfo};
+use crate::{JiffTimeZone, JiffZoned, JiffZonedRef};
 
 fn fold(zoned: &Zoned) -> bool {
     match zoned
@@ -45,8 +22,21 @@ fn fold(zoned: &Zoned) -> bool {
     }
 }
 
-pub fn zoned2pyobject<'py>(py: Python<'py>, z: &Zoned) -> PyResult<Bound<'py, PyDateTime>> {
-    datetime_to_pydatetime(py, &z.datetime(), fold(z), Some(z.time_zone()))
+pub fn zoned_to_pydatetime<'py>(py: Python<'py>, z: &Zoned) -> PyResult<Bound<'py, PyDateTime>> {
+    let datetime = z.datetime();
+    let tz = timezone_to_pytzinfo(py, z.time_zone())?;
+    PyDateTime::new_with_fold(
+        py,
+        datetime.year().into(),
+        datetime.month().try_into()?,
+        datetime.day().try_into()?,
+        datetime.hour().try_into()?,
+        datetime.minute().try_into()?,
+        datetime.second().try_into()?,
+        (datetime.subsec_nanosecond() / 1000).try_into()?,
+        Some(&tz),
+        fold(z),
+    )
 }
 
 impl<'py> IntoPyObject<'py> for &JiffZonedRef<'_> {
@@ -56,7 +46,7 @@ impl<'py> IntoPyObject<'py> for &JiffZonedRef<'_> {
 
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
         let z = &self.0;
-        zoned2pyobject(py, z)
+        zoned_to_pydatetime(py, z)
     }
 }
 
@@ -78,7 +68,7 @@ impl<'py> IntoPyObject<'py> for &JiffZoned {
 
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
         let z = &self.0;
-        zoned2pyobject(py, z)
+        zoned_to_pydatetime(py, z)
     }
 }
 

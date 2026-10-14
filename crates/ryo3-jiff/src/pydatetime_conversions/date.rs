@@ -1,6 +1,5 @@
 use jiff::civil::Date;
 use pyo3::prelude::*;
-use ryo3_core::map_py_value_err;
 
 use crate::JiffDate;
 
@@ -36,6 +35,8 @@ impl<'py> FromPyObject<'_, 'py> for JiffDate {
         #[cfg(not(Py_LIMITED_API))]
         {
             use pyo3::types::PyDateAccess;
+            use ryo3_core::map_py_value_err;
+
             Date::new(
                 py_date.get_year().try_into()?,
                 py_date.get_month().try_into()?,
@@ -47,31 +48,15 @@ impl<'py> FromPyObject<'_, 'py> for JiffDate {
 
         #[cfg(Py_LIMITED_API)]
         {
-            let py = py_date.py();
-
-            Date::new(
-                py_date.getattr(intern!(py, "year"))?.extract()?,
-                py_date.getattr(intern!(py, "month"))?.extract()?,
-                py_date.getattr(intern!(py, "day"))?.extract()?,
-            )
-            .map(Self::from)
-            .map_err(map_py_value_err)
+            pydate_to_date(&*py_date).map(Self::from)
         }
     }
 }
 
-pub fn date_to_pyobject<'a>(py: Python<'a>, d: &Date) -> PyResult<Bound<'a, pyo3::types::PyDate>> {
-    let y = i32::from(d.year());
-    let m = d.month();
-
-    let m_u8 = u8::try_from(m).map_err(map_py_value_err)?;
-    let d = d.day();
-    let d_u8 = u8::try_from(d).map_err(map_py_value_err)?;
-    pyo3::types::PyDate::new(py, y, m_u8, d_u8)
-}
-
 #[cfg(not(Py_LIMITED_API))]
 pub fn pydate_to_date(py_date: &impl pyo3::types::PyDateAccess) -> PyResult<Date> {
+    use ryo3_core::map_py_value_err;
+
     let y = py_date.get_year();
     let y_i16 = i16::try_from(y).map_err(map_py_value_err)?;
     let m = py_date.get_month();
@@ -83,23 +68,13 @@ pub fn pydate_to_date(py_date: &impl pyo3::types::PyDateAccess) -> PyResult<Date
 }
 
 #[cfg(Py_LIMITED_API)]
-pub fn py_date_to_date(py_date: &Bound<'_, PyAny>) -> PyResult<Date> {
+pub fn pydate_to_date<T>(py_date: &Bound<'_, T>) -> PyResult<Date> {
     use crate::interns;
+    let py_date = py_date.as_any();
     let py = py_date.py();
     Ok(Date::new(
         py_date.getattr(interns::year(py))?.extract()?,
         py_date.getattr(interns::month(py))?.extract()?,
         py_date.getattr(interns::day(py))?.extract()?,
     )?)
-}
-
-#[cfg(not(Py_LIMITED_API))]
-pub fn py_date_to_jiff_date(py_date: &impl pyo3::types::PyDateAccess) -> PyResult<JiffDate> {
-    let d = pydate_to_date(py_date)?;
-    Ok(JiffDate::from(d))
-}
-
-#[cfg(Py_LIMITED_API)]
-pub fn py_date_to_jiff_date(py_date: &Bound<'_, PyAny>) -> PyResult<JiffDate> {
-    Ok(JiffDate::from(pydate_to_date(py_date)?))
 }
