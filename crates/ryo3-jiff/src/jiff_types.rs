@@ -34,6 +34,16 @@ pub struct JiffOffset(pub jiff::tz::Offset);
 #[derive(Clone, Copy, Debug)]
 pub struct JiffSignedDuration(pub jiff::SignedDuration);
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum JiffPyDateTime {
+    Naive(jiff::civil::DateTime),
+    Zoned(jiff::Zoned),
+}
+
+// ----------------------------------------------------------------------------
+// ENUMS ~ ENUMS ~ ENUMS ~ ENUMS ~ ENUMS ~ ENUMS ~ ENUMS ~ ENUMS ~ ENUMS
+// ----------------------------------------------------------------------------
+
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, PartialOrd, Ord)]
 pub struct JiffUnit(pub(crate) jiff::Unit);
 

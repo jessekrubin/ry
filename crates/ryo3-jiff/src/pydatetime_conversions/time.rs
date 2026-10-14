@@ -20,7 +20,7 @@ pub fn time_to_pytime<'py>(
 
 #[cfg(not(Py_LIMITED_API))]
 #[expect(clippy::arithmetic_side_effects)]
-pub(crate) fn pytime_to_time(time: &impl pyo3::types::PyTimeAccess) -> PyResult<Time> {
+pub fn pytime_to_time(time: &impl pyo3::types::PyTimeAccess) -> PyResult<Time> {
     Ok(Time::new(
         time.get_hour().try_into()?,
         time.get_minute().try_into()?,
@@ -31,7 +31,7 @@ pub(crate) fn pytime_to_time(time: &impl pyo3::types::PyTimeAccess) -> PyResult<
 
 #[cfg(Py_LIMITED_API)]
 #[expect(clippy::arithmetic_side_effects)]
-pub(crate) fn pytime_to_time<'py>(time: &impl AsRef<Bound<'py, PyAny>>) -> PyResult<Time> {
+pub fn pytime_to_time<'py>(time: &impl AsRef<Bound<'py, PyAny>>) -> PyResult<Time> {
     use crate::interns;
     let time = time.as_ref();
     let py = time.py();
