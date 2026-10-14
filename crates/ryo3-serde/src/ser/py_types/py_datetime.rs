@@ -124,16 +124,13 @@ impl Serialize for PyDateTimeSerializer<'_, '_> {
     where
         S: Serializer,
     {
-        use pyo3::types::PyTzInfoAccess;
-        // has tz?
-        // let has_tzinfo = dt.get_tzinfo().is_some();
-        if let Some(_tzinfo) = self.obj.get_tzinfo() {
-            let zdt: jiff::Zoned = self.obj.extract().map_err(pyerr2sererr)?;
-            zdt.serialize(serializer)
-        } else {
-            // if no tzinfo, use jiff to serialize
-            let dt: jiff::civil::DateTime = self.obj.extract().map_err(pyerr2sererr)?;
-            dt.serialize(serializer)
+        let pydt = self
+            .obj
+            .extract::<ryo3_jiff::JiffPyDateTime>()
+            .map_err(pyerr2sererr)?;
+        match pydt {
+            ryo3_jiff::JiffPyDateTime::Aware(zdt) => zdt.serialize(serializer),
+            ryo3_jiff::JiffPyDateTime::Naive(dt) => dt.serialize(serializer),
         }
     }
 }

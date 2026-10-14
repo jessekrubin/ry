@@ -36,8 +36,8 @@ pub struct JiffSignedDuration(pub jiff::SignedDuration);
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum JiffPyDateTime {
+    Aware(jiff::Zoned),
     Naive(jiff::civil::DateTime),
-    Zoned(jiff::Zoned),
 }
 
 // ----------------------------------------------------------------------------

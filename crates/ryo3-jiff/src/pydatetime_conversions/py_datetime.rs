@@ -15,7 +15,7 @@ impl<'py> FromPyObject<'_, 'py> for JiffPyDateTime {
         #[cfg(Py_LIMITED_API)]
         let has_tzinfo = !dt.getattr(pyo3::intern!(dt.py(), "tzinfo"))?.is_none();
         if has_tzinfo {
-            pydatetime_to_zoned(&dt).map(Self::Zoned)
+            pydatetime_to_zoned(&dt).map(Self::Aware)
         } else {
             pydatetime_to_datetime(&dt).map(Self::Naive)
         }
