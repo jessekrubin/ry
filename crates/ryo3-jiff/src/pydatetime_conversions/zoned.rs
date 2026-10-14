@@ -114,7 +114,9 @@ impl<'py> FromPyObject<'_, 'py> for JiffZoned {
             .getattr(pyo3::intern!(dt.py(), "fold"))?
             .extract::<usize>()?
             > 0;
-        if fold {
+        // REF: https://peps.python.org/pep-0495/
+        // REF: https://github.com/PyO3/pyo3/pull/6450
+        if fold ^ matches!(zoned.offset(), AmbiguousOffset::Gap { .. }) {
             Ok(Self::from(zoned.later().map_err(map_py_value_err)?))
         } else {
             Ok(Self::from(zoned.earlier().map_err(map_py_value_err)?))

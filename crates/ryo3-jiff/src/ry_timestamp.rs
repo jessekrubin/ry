@@ -17,8 +17,8 @@ use crate::series::RyTimestampSeries;
 use crate::spanish::{DurationLike, Spanish};
 use crate::util::SpanKwargs;
 use crate::{
-    JiffRoundMode, JiffUnit, RyDate, RyDateTime, RyISOWeekDate, RyOffset, RySignedDuration, RySpan,
-    RyTime, RyTimeZone, RyZoned,
+    JiffRoundMode, JiffTimestamp, JiffUnit, RyDate, RyDateTime, RyISOWeekDate, RyOffset,
+    RySignedDuration, RySpan, RyTime, RyTimeZone, RyZoned,
 };
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize), serde(transparent))]
@@ -122,8 +122,8 @@ impl RyTimestamp {
     }
 
     #[staticmethod]
-    fn from_pydatetime(datetime: Timestamp) -> Self {
-        Self(datetime)
+    fn from_pydatetime(datetime: JiffTimestamp) -> Self {
+        Self(datetime.0)
     }
 
     #[expect(clippy::wrong_self_convention)]
@@ -525,8 +525,8 @@ impl RyTimestamp {
                 .to_timestamp(dt.get().0)
                 .map(Self::from)?
                 .into_pyobject(py)
-        } else if let Ok(ts) = value.extract::<Timestamp>() {
-            Self::from(ts).into_pyobject(py)
+        } else if let Ok(ts) = value.extract::<JiffTimestamp>() {
+            Self::from(ts.0).into_pyobject(py)
         } else {
             let valtype = any_repr!(value);
             py_type_err!("Timestamp conversion error: {valtype}")
