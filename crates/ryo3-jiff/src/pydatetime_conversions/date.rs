@@ -18,9 +18,9 @@ pub fn pydate_to_date(py_date: &impl pyo3::types::PyDateAccess) -> PyResult<Date
 }
 
 #[cfg(Py_LIMITED_API)]
-pub fn pydate_to_date<T>(py_date: &Bound<'_, T>) -> PyResult<Date> {
+pub fn pydate_to_date<'py>(py_date: &impl AsRef<Bound<'py, PyAny>>) -> PyResult<Date> {
     use crate::interns;
-    let py_date = py_date.as_any();
+    let py_date = py_date.as_ref();
     let py = py_date.py();
     Ok(Date::new(
         py_date.getattr(interns::year(py))?.extract()?,

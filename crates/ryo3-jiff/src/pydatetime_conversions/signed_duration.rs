@@ -20,8 +20,7 @@ pub fn signed_duration_to_pydelta<'py>(
     PyDelta::new(py, days, seconds, microseconds, true)
 }
 
-pub fn pydelta_to_signed_duration(obj: &Bound<'_, PyAny>) -> PyResult<SignedDuration> {
-    let delta = obj.cast::<PyDelta>()?;
+pub fn pydelta_to_signed_duration(delta: &Bound<'_, PyDelta>) -> PyResult<SignedDuration> {
     #[cfg(not(Py_LIMITED_API))]
     let (days, seconds, microseconds) = {
         (
@@ -38,7 +37,7 @@ pub fn pydelta_to_signed_duration(obj: &Bound<'_, PyAny>) -> PyResult<SignedDura
         let seconds = delta
             .getattr(crate::interns::seconds(py))?
             .extract::<i64>()?;
-        let microseconds = obj
+        let microseconds = delta
             .getattr(crate::interns::microseconds(py))?
             .extract::<i32>()?;
         (days, seconds, microseconds)
@@ -81,8 +80,7 @@ impl<'py> IntoPyObject<'py> for &JiffSignedDuration {
 impl<'py> FromPyObject<'_, 'py> for JiffSignedDuration {
     type Error = PyErr;
     fn extract(obj: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
-        #[expect(clippy::explicit_auto_deref)]
-        let sdur: SignedDuration = pydelta_to_signed_duration(&*obj)?;
-        Ok(Self(sdur))
+        let delta = obj.cast::<PyDelta>()?;
+        pydelta_to_signed_duration(&delta).map(Self)
     }
 }
