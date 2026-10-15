@@ -88,16 +88,19 @@ macro_rules! impl_new_type_functions {
     ($newt:ty, $inner:ty) => {
         impl $newt {
             #[inline]
+            #[must_use]
             pub const fn new(inner: $inner) -> Self {
                 Self(inner)
             }
 
             #[inline]
+            #[must_use]
             pub const fn inner(&self) -> &$inner {
                 &self.0
             }
 
             #[inline]
+            #[must_use]
             pub fn into_inner(self) -> $inner {
                 self.0
             }
@@ -145,11 +148,13 @@ macro_rules! impl_new_type_ref_functions {
     ($newt:ident, $inner:ty) => {
         impl<'a> $newt<'a> {
             #[inline]
+            #[must_use]
             pub const fn new(inner: &'a $inner) -> Self {
                 Self(inner)
             }
 
             #[inline]
+            #[must_use]
             pub const fn inner(&self) -> &'a $inner {
                 self.0
             }
