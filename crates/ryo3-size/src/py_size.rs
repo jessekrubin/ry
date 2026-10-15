@@ -10,7 +10,7 @@ use ryo3_core::macros::{py_overflow_err, py_overflow_error, py_type_err, py_type
 use crate::types::{PyBase, PyStyle};
 
 #[derive(Debug, Clone, Copy)]
-#[pyclass(name = "Size", frozen, immutable_type, skip_from_py_object)]
+#[pyclass(name = "Size", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct PySize(size::Size);
 

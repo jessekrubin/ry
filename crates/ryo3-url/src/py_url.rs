@@ -13,7 +13,7 @@ use crate::UrlLike;
 
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize), serde(transparent))]
-#[pyclass(name = "URL", frozen, immutable_type, skip_from_py_object)]
+#[pyclass(name = "URL", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct PyUrl(pub(crate) url::Url);
 

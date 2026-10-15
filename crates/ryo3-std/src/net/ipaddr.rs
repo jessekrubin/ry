@@ -12,19 +12,19 @@ use crate::net::ipaddr_props::IpAddrProps;
 use crate::net::{PySocketAddrV4, PySocketAddrV6};
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize), serde(transparent))]
-#[pyclass(name = "Ipv4Addr", frozen, immutable_type, skip_from_py_object)]
+#[pyclass(name = "Ipv4Addr", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, PartialOrd, Ord)]
 pub struct PyIpv4Addr(pub(crate) Ipv4Addr);
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize), serde(transparent))]
-#[pyclass(name = "Ipv6Addr", frozen, immutable_type, skip_from_py_object)]
+#[pyclass(name = "Ipv6Addr", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, PartialOrd, Ord)]
 pub struct PyIpv6Addr(pub(crate) Ipv6Addr);
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize), serde(transparent))]
-#[pyclass(name = "IpAddr", frozen, immutable_type, skip_from_py_object)]
+#[pyclass(name = "IpAddr", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, PartialOrd, Ord)]
 pub struct PyIpAddr(pub(crate) IpAddr);

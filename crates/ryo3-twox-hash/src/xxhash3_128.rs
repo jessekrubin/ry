@@ -11,7 +11,7 @@ use crate::xxhash3_secret::{PyXxHash3Secret, XXH3_SECRET_EXPECT_MSG};
 
 const HASHLIB_GIL_MINSIZE: usize = 2048;
 
-#[pyclass(name = "xxh3_128", frozen, immutable_type, skip_from_py_object)]
+#[pyclass(name = "xxh3_128", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3.xxhash"))]
 pub struct PyXxHash3_128 {
     seed: u64,

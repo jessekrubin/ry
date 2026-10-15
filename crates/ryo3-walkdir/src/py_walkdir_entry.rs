@@ -5,7 +5,7 @@ use pyo3::basic::CompareOp;
 use pyo3::prelude::*;
 use ryo3_core::macros::{py_permission_error, py_type_err};
 
-#[pyclass(name = "WalkDirEntry", frozen, immutable_type, skip_from_py_object)]
+#[pyclass(name = "WalkDirEntry", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Clone, Debug)]
 pub struct PyWalkDirEntry(walkdir::DirEntry);

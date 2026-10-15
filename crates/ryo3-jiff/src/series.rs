@@ -4,7 +4,7 @@ use ryo3_macro_rules::py_value_err;
 
 use crate::{RyDate, RyDateTime, RySpan, RyTime, RyTimestamp, RyZoned};
 
-#[pyclass(name = "DateSeries", frozen, immutable_type, skip_from_py_object)]
+#[pyclass(name = "DateSeries", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyDateSeries {
     start: jiff::civil::Date,
@@ -40,7 +40,7 @@ impl std::fmt::Display for RyDateSeries {
     }
 }
 
-#[pyclass(name = "DateTimeSeries", frozen, immutable_type, skip_from_py_object)]
+#[pyclass(name = "DateTimeSeries", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyDateTimeSeries {
     start: jiff::civil::DateTime,
@@ -76,7 +76,7 @@ impl std::fmt::Display for RyDateTimeSeries {
     }
 }
 
-#[pyclass(name = "TimeSeries", frozen, immutable_type, skip_from_py_object)]
+#[pyclass(name = "TimeSeries", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyTimeSeries {
     start: jiff::civil::Time,
@@ -112,7 +112,7 @@ impl std::fmt::Display for RyTimeSeries {
     }
 }
 
-#[pyclass(name = "TimestampSeries", frozen, immutable_type, skip_from_py_object)]
+#[pyclass(name = "TimestampSeries", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyTimestampSeries {
     start: jiff::Timestamp,
@@ -148,7 +148,7 @@ impl std::fmt::Display for RyTimestampSeries {
     }
 }
 
-#[pyclass(name = "ZonedSeries", frozen, immutable_type, skip_from_py_object)]
+#[pyclass(name = "ZonedSeries", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyZonedSeries {
     start: jiff::Zoned,

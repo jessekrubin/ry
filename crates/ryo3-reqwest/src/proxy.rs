@@ -4,7 +4,7 @@ use ryo3_http::PyHeaders;
 use ryo3_macro_rules::{py_type_err, py_value_err, py_value_error};
 use ryo3_url::UrlLike;
 
-#[pyclass(name = "Proxy", frozen, immutable_type, skip_from_py_object)]
+#[pyclass(name = "Proxy", frozen, immutable_type)]
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct PyProxy {

@@ -16,7 +16,7 @@ use crate::constants::WS_MSG_PINGPONG_PAYLOAD_MAX_LEN;
 use crate::types::{PyWsCloseCode, PyWsCloseReason};
 
 #[derive(Debug, Clone)]
-#[pyclass(name = "WsMessage", frozen, immutable_type, skip_from_py_object)]
+#[pyclass(name = "WsMessage", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct PyWsMessage(pub(crate) Message);
 

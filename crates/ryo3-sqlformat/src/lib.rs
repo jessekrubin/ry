@@ -9,12 +9,7 @@ use pyo3::types::{PyDict, PyInt, PyString, PyTuple};
 use pyo3::{IntoPyObjectExt, intern};
 use sqlformat::{self, QueryParams};
 
-#[pyclass(
-    name = "SqlfmtQueryParams",
-    frozen,
-    immutable_type,
-    skip_from_py_object
-)]
+#[pyclass(name = "SqlfmtQueryParams", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Debug, Clone)]
 pub struct PySqlfmtQueryParams(QueryParams);
@@ -513,7 +508,7 @@ struct PySqlFormatterOptions {
 }
 
 #[derive(Clone)]
-#[pyclass(name = "SqlFormatter", frozen, immutable_type, skip_from_py_object)]
+#[pyclass(name = "SqlFormatter", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct PySqlFormatter(PySqlFormatterOptions);
 

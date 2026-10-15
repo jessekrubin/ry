@@ -55,7 +55,7 @@ struct ResponseStreamInner {
     pub(crate) stream: AsyncResponseStreamInner,
 }
 
-#[pyclass(name = "ResponseStream", frozen, immutable_type, skip_from_py_object)]
+#[pyclass(name = "ResponseStream", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyResponseStream {
     inner: ResponseStreamInner,
@@ -294,12 +294,7 @@ impl RyResponseStream {
     }
 }
 
-#[pyclass(
-    name = "BlockingResponseStream",
-    frozen,
-    immutable_type,
-    skip_from_py_object
-)]
+#[pyclass(name = "BlockingResponseStream", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyBlockingResponseStream {
     inner: ResponseStreamInner,

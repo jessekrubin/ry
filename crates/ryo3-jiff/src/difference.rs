@@ -95,7 +95,7 @@ impl DifferenceOptions {
 // DateDifference
 // ============================================================================
 #[derive(Debug, Clone, Copy)]
-#[pyclass(name = "DateDifference", frozen, immutable_type, skip_from_py_object)]
+#[pyclass(name = "DateDifference", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyDateDifference {
     date: RyDate,
@@ -335,12 +335,7 @@ impl DateDifferenceArg<'_, '_> {
 // ============================================================================
 
 #[derive(Debug, Clone, Copy)]
-#[pyclass(
-    name = "DateTimeDifference",
-    frozen,
-    immutable_type,
-    skip_from_py_object
-)]
+#[pyclass(name = "DateTimeDifference", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyDateTimeDifference {
     datetime: RyDateTime,
@@ -578,7 +573,7 @@ impl DateTimeDifferenceArg<'_, '_> {
 // TimeDifference
 // ============================================================================
 #[derive(Debug, Clone, Copy)]
-#[pyclass(name = "TimeDifference", frozen, immutable_type, skip_from_py_object)]
+#[pyclass(name = "TimeDifference", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyTimeDifference {
     time: RyTime,
@@ -823,12 +818,7 @@ impl TimeDifferenceArg<'_, '_> {
 // TimestampDifference
 // ============================================================================
 #[derive(Debug, Clone, Copy)]
-#[pyclass(
-    name = "TimestampDifference",
-    frozen,
-    immutable_type,
-    skip_from_py_object
-)]
+#[pyclass(name = "TimestampDifference", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyTimestampDifference {
     timestamp: RyTimestamp,
@@ -1065,12 +1055,7 @@ impl TimestampDifferenceArg<'_, '_> {
 // ZonedDateTimeDifference
 // ============================================================================
 #[derive(Debug, Clone)]
-#[pyclass(
-    name = "ZonedDateTimeDifference",
-    frozen,
-    immutable_type,
-    skip_from_py_object
-)]
+#[pyclass(name = "ZonedDateTimeDifference", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyZonedDifference {
     zoned: RyZoned,

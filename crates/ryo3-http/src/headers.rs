@@ -14,7 +14,7 @@ use crate::http_types::{
 };
 use crate::{PyHeadersLike, PyHttpHeaderMap};
 
-#[pyclass(name = "Headers", frozen, immutable_type, mapping, skip_from_py_object)]
+#[pyclass(name = "Headers", frozen, immutable_type, mapping)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Clone, Debug)]
 pub struct PyHeaders(pub Arc<RyRwLock<HeaderMap, false>>);

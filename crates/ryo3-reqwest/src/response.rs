@@ -23,7 +23,7 @@ use crate::response_head::RyResponseHead;
 use crate::response_stream::RyBlockingResponseStream;
 use crate::{RyResponseStream, pyerr_response_already_consumed};
 
-#[pyclass(name = "Response", frozen, immutable_type, skip_from_py_object)]
+#[pyclass(name = "Response", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Debug)]
 pub struct RyResponse {
@@ -34,7 +34,7 @@ pub struct RyResponse {
     head: RyResponseHead,
 }
 
-#[pyclass(name = "BlockingResponse", frozen, immutable_type, skip_from_py_object)]
+#[pyclass(name = "BlockingResponse", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Debug)]
 pub struct RyBlockingResponse {
