@@ -10,7 +10,7 @@ pub enum ReadableBuffer<'a, 'py> {
     /// python `builtins.bytes`
     PyBytes(Borrowed<'a, 'py, pyo3::types::PyBytes>),
     /// Reference to a `ryo3-bytes::RyBytes` object
-    RyBytes(Borrowed<'a, 'py, crate::RyBytes>),
+    RyBytes(Borrowed<'a, 'py, RyBytes>),
     /// Any object that supports the buffer protocol
     Buffer(::bytes::Bytes),
 }

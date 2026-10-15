@@ -54,9 +54,9 @@ const PY_HASH_NONE: isize = -1;
     weakref
 )]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
-pub struct PyBytes(Bytes, AtomicIsize);
+pub struct RyBytes(Bytes, AtomicIsize);
 
-impl Clone for PyBytes {
+impl Clone for RyBytes {
     fn clone(&self) -> Self {
         Self(
             self.0.clone(),
@@ -65,47 +65,47 @@ impl Clone for PyBytes {
     }
 }
 
-impl Hash for PyBytes {
+impl Hash for RyBytes {
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.0.hash(state);
     }
 }
 
-impl PartialEq for PyBytes {
+impl PartialEq for RyBytes {
     fn eq(&self, other: &Self) -> bool {
         self.0 == other.0
     }
 }
 
-impl Eq for PyBytes {}
+impl Eq for RyBytes {}
 
-impl PartialOrd for PyBytes {
+impl PartialOrd for RyBytes {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
         Some(self.cmp(other))
     }
 }
 
-impl Ord for PyBytes {
+impl Ord for RyBytes {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
         self.0.cmp(&other.0)
     }
 }
 
-impl PythonBytesMethods for PyBytes {}
+impl PythonBytesMethods for RyBytes {}
 
-impl AsRef<Bytes> for PyBytes {
+impl AsRef<Bytes> for RyBytes {
     fn as_ref(&self) -> &Bytes {
         self.inner()
     }
 }
 
-impl AsRef<[u8]> for PyBytes {
+impl AsRef<[u8]> for RyBytes {
     fn as_ref(&self) -> &[u8] {
         self.0.as_ref()
     }
 }
 
-impl PyBytes {
+impl RyBytes {
     /// Construct a new [`PyBytes`]
     pub fn new(buffer: Bytes) -> Self {
         Self(buffer, AtomicIsize::new(PY_HASH_NONE))
@@ -213,28 +213,28 @@ impl PyBytes {
     }
 }
 
-impl From<PyBytes> for Bytes {
+impl From<RyBytes> for Bytes {
     #[inline]
-    fn from(value: PyBytes) -> Self {
+    fn from(value: RyBytes) -> Self {
         value.0
     }
 }
 
-impl From<Vec<u8>> for PyBytes {
+impl From<Vec<u8>> for RyBytes {
     #[inline]
     fn from(value: Vec<u8>) -> Self {
         Self::new(value.into())
     }
 }
 
-impl From<Bytes> for PyBytes {
+impl From<Bytes> for RyBytes {
     #[inline]
     fn from(value: Bytes) -> Self {
         Self::new(value)
     }
 }
 
-impl From<BytesMut> for PyBytes {
+impl From<BytesMut> for RyBytes {
     #[inline]
     fn from(value: BytesMut) -> Self {
         Self::new(value.into())
@@ -242,7 +242,7 @@ impl From<BytesMut> for PyBytes {
 }
 
 #[pymethods]
-impl PyBytes {
+impl RyBytes {
     // By setting the argument to PyBytes, this means that any buffer-protocol object is supported
     // here, since it will use the FromPyObject impl.
     #[new]
@@ -861,7 +861,7 @@ impl PyBytes {
     // </::bytes::Bytes methods>
 }
 
-impl<'py> FromPyObject<'_, 'py> for PyBytes {
+impl<'py> FromPyObject<'_, 'py> for RyBytes {
     type Error = pyo3::PyErr;
 
     fn extract(ob: Borrowed<'_, 'py, PyAny>) -> Result<Self, Self::Error> {
@@ -914,7 +914,7 @@ impl From<PyBuffer<u8>> for RyBuffer<u8> {
     }
 }
 
-impl From<RyBuffer<u8>> for PyBytes {
+impl From<RyBuffer<u8>> for RyBytes {
     #[inline]
     fn from(value: RyBuffer<u8>) -> Self {
         let bytes = Bytes::from_owner(value);
@@ -959,7 +959,7 @@ impl<'py> FromPyObject<'_, 'py> for RyBuffer {
 /// isn't exactly the same either, as the python repr will switch between `'` and `"` based on the
 /// presence of the other in the string, but it's close enough AND we don't have to do a full scan
 /// of the bytes to check for that.
-impl std::fmt::Display for PyBytes {
+impl std::fmt::Display for RyBytes {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str("Bytes(b\"")?;
         for &byte in self.0.as_ref() {
@@ -981,7 +981,7 @@ impl std::fmt::Display for PyBytes {
 }
 
 // Forward to debug - possibly fix?
-impl std::fmt::Debug for PyBytes {
+impl std::fmt::Debug for RyBytes {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{self}")
     }
@@ -1000,7 +1000,7 @@ enum BytesGetItemResult {
     /// A single byte as an integer
     Byte(u8),
     /// A slice of bytes as a new `PyBytes`
-    Slice(PyBytes),
+    Slice(RyBytes),
 }
 
 impl<'py> IntoPyObject<'py> for BytesGetItemResult {
@@ -1027,8 +1027,8 @@ impl From<Bytes> for PyBytesIter {
     }
 }
 
-impl From<&PyBytes> for PyBytesIter {
-    fn from(value: &PyBytes) -> Self {
+impl From<&RyBytes> for PyBytesIter {
+    fn from(value: &RyBytes) -> Self {
         value.0.clone().into()
     }
 }
@@ -1087,49 +1087,49 @@ impl PyBytesSliceIter {
         slf
     }
 
-    fn __next__(&mut self) -> Option<PyBytes> {
+    fn __next__(&mut self) -> Option<RyBytes> {
         self.ranges
             .next()
-            .map(|range| PyBytes::from(self.bytes.slice(range)))
+            .map(|range| RyBytes::from(self.bytes.slice(range)))
     }
 
     fn __len__(&self) -> usize {
         self.remaining()
     }
 
-    fn next(&mut self) -> Option<PyBytes> {
+    fn next(&mut self) -> Option<RyBytes> {
         self.__next__()
     }
 
     #[pyo3(signature = (n = 1, /) )]
-    fn take(&mut self, n: usize) -> Vec<PyBytes> {
+    fn take(&mut self, n: usize) -> Vec<RyBytes> {
         self.ranges
             .by_ref()
             .take(n)
-            .map(|range| PyBytes::from(self.bytes.slice(range)))
+            .map(|range| RyBytes::from(self.bytes.slice(range)))
             .collect()
     }
 
-    fn collect(&mut self) -> Vec<PyBytes> {
+    fn collect(&mut self) -> Vec<RyBytes> {
         self.ranges
             .by_ref()
-            .map(|range| PyBytes::from(self.bytes.slice(range)))
+            .map(|range| RyBytes::from(self.bytes.slice(range)))
             .collect()
     }
 
     #[pyo3(signature = (n , /) )]
-    fn nth(&mut self, n: usize) -> Option<PyBytes> {
+    fn nth(&mut self, n: usize) -> Option<RyBytes> {
         self.ranges
             .by_ref()
             .nth(n)
-            .map(|range| PyBytes::from(self.bytes.slice(range)))
+            .map(|range| RyBytes::from(self.bytes.slice(range)))
     }
 
-    fn last(&mut self) -> Option<PyBytes> {
+    fn last(&mut self) -> Option<RyBytes> {
         self.ranges
             .by_ref()
             .last()
-            .map(|range| PyBytes::from(self.bytes.slice(range)))
+            .map(|range| RyBytes::from(self.bytes.slice(range)))
     }
 
     fn count(&mut self) -> usize {
