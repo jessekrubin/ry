@@ -13,12 +13,13 @@ mod search;
 pub use ::bytes::Bytes;
 pub use readable_buffer::{ExactReadableBuffer, ReadableBuffer};
 
-pub use crate::bytes::PyBytes;
-// export alias `RyBytes` to avoid confusion with `pyo3::types::PyBytes`
-pub use crate::bytes::PyBytes as RyBytes;
+pub use crate::bytes::RyBytes;
+// export alias `PyBytes` for backwards compat; the main struct used to be `PyBytes`
+// but has been renamed to avoid conflicting with `pyo3::types::PyBytes`
+pub use crate::bytes::RyBytes as PyBytes;
 
 /// ryo3-bytes python module registration
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    m.add_class::<PyBytes>()?;
+    m.add_class::<RyBytes>()?;
     Ok(())
 }

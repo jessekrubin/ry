@@ -16,7 +16,9 @@
 - `ryo3-jiff`
   - cleaned up jiff-py-conversions and adopted conversion for
     `datetime.datetime` to `jiff::Zoned` based on pyo3-v0.30.0
-
+- `ryo3-bytes`
+  - internal rename `PyBytes` struct to `RyBytes` to avoid confusion with `pyo3::types::PyBytes`
+  - flip-flopped export alias so one/you can still `use ryo3_bytes::PyBytes`
 ---
 
 ## v0.0.102 [2026-10-09]

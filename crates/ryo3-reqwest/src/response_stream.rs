@@ -116,10 +116,10 @@ impl ResponseStreamInner {
 
     /// py-next helper
     #[inline]
-    async fn py_anext(&self) -> PyResult<Option<ryo3_bytes::PyBytes>> {
+    async fn py_anext(&self) -> PyResult<Option<ryo3_bytes::RyBytes>> {
         let res = self.next().await;
         match res {
-            Ok(Some(bytes)) => Ok(Some(ryo3_bytes::PyBytes::from(bytes))),
+            Ok(Some(bytes)) => Ok(Some(ryo3_bytes::RyBytes::from(bytes))),
             Ok(None) => Err(PyStopAsyncIteration::new_err("response-stream-end")),
             Err(e) => Err(map_reqwest_err(e)),
         }
