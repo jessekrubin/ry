@@ -29,7 +29,7 @@ pub struct JiffZoned(jiff::Zoned);
 #[derive(Debug, Clone, Copy)]
 pub struct JiffSpan(jiff::Span);
 
-#[derive(Clone, Eq, PartialEq)]
+#[derive(Debug, Clone, Eq, PartialEq)]
 pub struct JiffTimeZone(jiff::tz::TimeZone);
 
 #[derive(Clone, Copy, Debug)]
@@ -39,10 +39,10 @@ pub struct JiffOffset(jiff::tz::Offset);
 pub struct JiffSignedDuration(jiff::SignedDuration);
 
 // REF NEWTS
-#[derive(Clone, Eq, PartialEq)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub struct JiffTimeZoneRef<'a>(&'a jiff::tz::TimeZone);
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub struct JiffZonedRef<'a>(&'a jiff::Zoned);
 
 // ----------------------------------------------------------------------------

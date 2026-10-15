@@ -456,7 +456,7 @@ impl RyZoned {
         signature = (
             smallest = JiffUnit::NANOSECOND,
             *,
-            mode = JiffRoundMode::new(jiff::RoundMode::HalfExpand),
+            mode = JiffRoundMode::HALF_EXPAND,
             increment = 1
         ),
         text_signature = "(self, smallest=\"nanosecond\", *, mode=\"half-expand\", increment=1)"
@@ -534,7 +534,7 @@ impl RyZoned {
     }
 
     fn era_year(&self) -> JiffEraYear {
-        JiffEraYear::from(self.0.era_year())
+        JiffEraYear::new(self.0.era_year())
     }
 
     fn first_of_month(&self) -> PyResult<Self> {

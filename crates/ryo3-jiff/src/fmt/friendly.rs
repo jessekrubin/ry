@@ -13,10 +13,10 @@ pub(crate) mod printer {
     }
 
     impl PyDesignator {
-        const VERBOSE: Self = Self::new(Designator::Verbose);
-        const SHORT: Self = Self::new(Designator::Short);
-        const COMPACT: Self = Self::new(Designator::Compact);
-        const HUMAN_TIME: Self = Self::new(Designator::HumanTime);
+        pub(crate) const VERBOSE: Self = Self::new(Designator::Verbose);
+        pub(crate) const SHORT: Self = Self::new(Designator::Short);
+        pub(crate) const COMPACT: Self = Self::new(Designator::Compact);
+        pub(crate) const HUMAN_TIME: Self = Self::new(Designator::HumanTime);
 
         pub(crate) const fn new(designator: Designator) -> Self {
             Self(designator)

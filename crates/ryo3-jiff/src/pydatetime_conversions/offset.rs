@@ -22,24 +22,16 @@ impl<'py> IntoPyObject<'py> for &JiffOffset {
     type Error = PyErr;
 
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
-        JiffTimeZone::from(self.inner().to_time_zone()).into_pyobject(py)
+        JiffTimeZone::new(self.inner().to_time_zone()).into_pyobject(py)
     }
 }
 
 impl<'py> FromPyObject<'_, 'py> for JiffOffset {
     type Error = PyErr;
-    /// Convert python tzinfo to rust [`FixedOffset`].
-    ///
-    /// Note that the conversion will result in precision lost in microseconds
-    /// as chrono offset does not supports microseconds.
+
     fn extract(obj: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
         let ob = obj.cast::<PyTzInfo>()?;
 
-        // Passing Python's None to the `utcoffset` function will only
-        // work for timezones defined as fixed offsets in Python.
-        // Any other timezone would require a datetime as the parameter, and return
-        // None if the datetime is not provided.
-        // Trying to convert None to a PyDelta in the next line will then fail.
         let py_timedelta =
             ob.call_method1(pyo3::intern!(ob.py(), "utcoffset"), (PyNone::get(ob.py()),))?;
         if py_timedelta.is_none() {

@@ -322,7 +322,7 @@ impl RyTime {
 
     #[staticmethod]
     fn from_pytime(time: JiffTime) -> Self {
-        Self::from(time.into_inner())
+        Self::from(time)
     }
 
     // =====================================================================

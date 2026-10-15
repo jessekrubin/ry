@@ -18,7 +18,7 @@ impl<'py> IntoPyObject<'py> for &JiffTimestamp {
     type Error = PyErr;
 
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
-        JiffZoned::from(self.inner().to_zoned(jiff::tz::TimeZone::UTC)).into_pyobject(py)
+        JiffZoned::new(self.inner().to_zoned(jiff::tz::TimeZone::UTC)).into_pyobject(py)
     }
 }
 

@@ -10,6 +10,7 @@ use ryo3_core::macros::{
 };
 use ryo3_core::{PyAsciiString, PyCastExactOpt, map_py_overflow_err, map_py_value_err};
 
+use crate::fmt::friendly::printer::PyDesignator;
 use crate::py_temporal_like::PyTemporalArg;
 use crate::ry_signed_duration::RySignedDuration;
 use crate::span_units::{SpanUnit, SpanUnitsMask};
@@ -234,10 +235,10 @@ impl RySpan {
     }
 
     #[pyo3(
-        signature = (designator = crate::fmt::friendly::printer::PyDesignator::default()),
+        signature = (designator = PyDesignator::COMPACT),
         text_signature = "(self, designator=\"compact\")"
     )]
-    fn friendly(&self, designator: crate::fmt::friendly::printer::PyDesignator) -> String {
+    fn friendly(&self, designator: PyDesignator) -> String {
         jiff::fmt::friendly::SpanPrinter::new()
             .designator(designator.into())
             .span_to_string(&self.0)
@@ -294,7 +295,7 @@ impl RySpan {
 
     #[expect(clippy::wrong_self_convention)]
     fn to_pytimedelta<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDelta>> {
-        JiffSpan::from(self.0).into_pyobject(py)
+        JiffSpan::new(self.0).into_pyobject(py)
     }
 
     // <UNIFORM>

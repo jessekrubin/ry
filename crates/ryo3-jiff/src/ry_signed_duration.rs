@@ -17,6 +17,7 @@ use ryo3_std::time::PyDuration;
 use crate::constants::{
     MINUTES_PER_HOUR, NANOSECONDS_PER_SECOND, SECONDS_PER_MINUTE, SPAN_PRINTER_FRIENDLY,
 };
+use crate::fmt::friendly::printer::PyDesignator;
 use crate::pydatetime_conversions::pydelta_to_signed_duration;
 use crate::round::RySignedDurationRound;
 use crate::ry_span::RySpan;
@@ -273,10 +274,10 @@ impl RySignedDuration {
     }
 
     #[pyo3(
-        signature = (designator = crate::fmt::friendly::printer::PyDesignator::default()),
+        signature = (designator = PyDesignator::COMPACT),
         text_signature = "(self, designator=\"compact\")"
     )]
-    fn friendly(&self, designator: crate::fmt::friendly::printer::PyDesignator) -> String {
+    fn friendly(&self, designator: PyDesignator) -> String {
         jiff::fmt::friendly::SpanPrinter::new()
             .designator(designator.into())
             .duration_to_string(&self.0)
