@@ -116,7 +116,7 @@ impl RoundOptions {
 // DateTimeRound
 // ----------------------------------------------------------------------------
 #[derive(Clone, Copy, Debug)]
-#[pyclass(name = "DateTimeRound", frozen, immutable_type, skip_from_py_object)]
+#[pyclass(name = "DateTimeRound", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyDateTimeRound {
     pub(crate) options: RoundOptions,
@@ -239,7 +239,6 @@ impl Display for RyDateTimeRound {
     name = "SignedDurationRound",
     frozen,
     immutable_type,
-    skip_from_py_object
 )]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RySignedDurationRound {
@@ -356,7 +355,7 @@ impl Display for RySignedDurationRound {
 // TimeRound
 // ----------------------------------------------------------------------------
 #[derive(Clone, Copy, Debug)]
-#[pyclass(name = "TimeRound", frozen, immutable_type, skip_from_py_object)]
+#[pyclass(name = "TimeRound", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyTimeRound {
     options: RoundOptions,
@@ -474,7 +473,7 @@ impl Display for RyTimeRound {
 // TimestampRound
 // ----------------------------------------------------------------------------
 #[derive(Clone, Copy, Debug)]
-#[pyclass(name = "TimestampRound", frozen, immutable_type, skip_from_py_object)]
+#[pyclass(name = "TimestampRound", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyTimestampRound {
     options: RoundOptions,
@@ -595,7 +594,6 @@ impl Display for RyTimestampRound {
     name = "ZonedDateTimeRound",
     frozen,
     immutable_type,
-    skip_from_py_object
 )]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyZonedDateTimeRound {
@@ -714,7 +712,7 @@ impl Display for RyZonedDateTimeRound {
 // OffsetRound
 // ----------------------------------------------------------------------------
 #[derive(Clone, Copy, Debug)]
-#[pyclass(name = "OffsetRound", frozen, immutable_type, skip_from_py_object)]
+#[pyclass(name = "OffsetRound", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyOffsetRound {
     options: RoundOptions,

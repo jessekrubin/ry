@@ -258,7 +258,7 @@ define_py_algorithm!(
 
 // ============================================================================
 
-#[pyclass(name = "sha256", frozen, immutable_type, skip_from_py_object)]
+#[pyclass(name = "sha256", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct PySha256(PyMutexContext<PySha256Algorithm>);
 
@@ -399,7 +399,7 @@ macro_rules! define_py_hasher {
         output_len_hex = $output_len_hex:expr,
         block_len = $block_len:expr
     ) => {
-        #[pyclass(name = $name, frozen, immutable_type, skip_from_py_object)]
+        #[pyclass(name = $name, frozen, immutable_type)]
         #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
         pub struct $py_struct(PyMutexContext<$algorithm>);
 

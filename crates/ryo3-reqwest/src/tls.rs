@@ -36,7 +36,7 @@ pub(crate) enum CertificateKind {
     Pem,
 }
 
-#[pyclass(name = "Certificate", frozen, immutable_type, skip_from_py_object)]
+#[pyclass(name = "Certificate", frozen, immutable_type)]
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct PyCertificate {
@@ -192,7 +192,6 @@ impl<'a, 'py> FromPyObject<'a, 'py> for PyCertificate {
     name = "CertificateRevocationList",
     frozen,
     immutable_type,
-    skip_from_py_object
 )]
 #[derive(Debug)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
@@ -336,7 +335,7 @@ impl From<PyCertificateRevocationList> for CertificateRevocationList {
 
 // ==== IDENTITY ====
 
-#[pyclass(name = "Identity", frozen, immutable_type, skip_from_py_object)]
+#[pyclass(name = "Identity", frozen, immutable_type)]
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct PyIdentity {

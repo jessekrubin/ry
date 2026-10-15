@@ -159,7 +159,7 @@ struct WebSocketInner {
 }
 
 #[derive(Debug, Clone)]
-#[pyclass(name = "WebSocket", frozen, immutable_type, skip_from_py_object)]
+#[pyclass(name = "WebSocket", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct PyWebSocket(Arc<WebSocketInner>);
 

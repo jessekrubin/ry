@@ -13,7 +13,6 @@ use sqlformat::{self, QueryParams};
     name = "SqlfmtQueryParams",
     frozen,
     immutable_type,
-    skip_from_py_object
 )]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Debug, Clone)]
@@ -513,7 +512,7 @@ struct PySqlFormatterOptions {
 }
 
 #[derive(Clone)]
-#[pyclass(name = "SqlFormatter", frozen, immutable_type, skip_from_py_object)]
+#[pyclass(name = "SqlFormatter", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct PySqlFormatter(PySqlFormatterOptions);
 

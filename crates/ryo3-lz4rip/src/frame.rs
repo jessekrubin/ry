@@ -313,7 +313,7 @@ impl PyLz4FrameCompressorConfig {
 /// - `finish` writes the stream terminator and returns the tail.
 /// - `reset` resets the compressor to its initial state, allowing reuse of the same config.
 /// - `copy` creates a new compressor with the same config
-#[pyclass(name = "Lz4FrameCompressor", immutable_type, skip_from_py_object)]
+#[pyclass(name = "Lz4FrameCompressor", immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct PyLz4FrameCompressor {
     config: PyLz4FrameCompressorConfig,

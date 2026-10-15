@@ -125,7 +125,6 @@ impl AsyncFileReadStreamWrapper {}
     name = "AsyncFileReadStream",
     frozen,
     immutable_type,
-    skip_from_py_object
 )]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct PyAsyncFileReadStream {

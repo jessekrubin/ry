@@ -16,7 +16,7 @@ pub(crate) const RFC_4122: &str = "specified in RFC 4122";
 pub(crate) const RESERVED_MICROSOFT: &str = "reserved for Microsoft compatibility";
 pub(crate) const RESERVED_FUTURE: &str = "reserved for future definition";
 
-#[pyclass(name = "UUID", frozen, immutable_type, skip_from_py_object, weakref)]
+#[pyclass(name = "UUID", frozen, immutable_type, weakref)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize), serde(transparent))]

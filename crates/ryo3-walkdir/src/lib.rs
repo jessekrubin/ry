@@ -10,7 +10,7 @@ use ryo3_globset::{GlobsterLike, PyGlobster};
 
 pub use crate::py_walkdir_entry::PyWalkDirEntry;
 
-#[pyclass(name = "WalkDirIter", frozen, immutable_type, skip_from_py_object)]
+#[pyclass(name = "WalkDirIter", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct PyWalkDirIter(
     RyMutex<Box<dyn Iterator<Item = ::walkdir::DirEntry> + Send + Sync>, false>,

@@ -23,7 +23,7 @@ use crate::{
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize), serde(transparent))]
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, PartialOrd, Ord)]
-#[pyclass(name = "Time", frozen, immutable_type, skip_from_py_object)]
+#[pyclass(name = "Time", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyTime(pub(crate) Time);
 

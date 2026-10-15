@@ -19,7 +19,7 @@ use ryo3_bytes::ReadableBuffer;
 ///     colno: int
 ///     def __init__(self, msg: str, doc: str, pos: int) -> None: ...
 /// ```
-#[pyclass(extends=PyValueError, name="JSONDecodeError", frozen, immutable_type, skip_from_py_object)]
+#[pyclass(extends=PyValueError, name="JSONDecodeError", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyJSONDecodeError {
     err: JsonError,

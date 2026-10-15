@@ -18,7 +18,7 @@ pub(crate) enum GlobSource {
     Pattern(String),
 }
 
-#[pyclass(name = "Globster", frozen, immutable_type, skip_from_py_object)]
+#[pyclass(name = "Globster", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Clone, Debug)]
 pub struct PyGlobster(pub Globster, pub(crate) Vec<GlobSource>);

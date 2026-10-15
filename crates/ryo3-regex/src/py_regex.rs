@@ -6,7 +6,7 @@ use regex::{Regex, RegexBuilder};
 
 use crate::py_regex_options::PyRegexOptions;
 
-#[pyclass(name = "Regex", frozen, immutable_type, skip_from_py_object)]
+#[pyclass(name = "Regex", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Clone, Debug)]
 pub struct PyRegex {

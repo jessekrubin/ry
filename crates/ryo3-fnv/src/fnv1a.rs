@@ -59,7 +59,7 @@ impl Hasher for Fnv1aHasher {
 // ~ PY ~ PY ~ PY ~ PY ~ PY ~ PY ~ PY ~ PY ~ PY ~ PY ~ PY ~ PY ~ PY ~ PY ~ PY ~
 // ============================================================================
 
-#[pyclass(name = "fnv1a", frozen, immutable_type, skip_from_py_object)]
+#[pyclass(name = "fnv1a", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct PyFnv1a(RyMutex<Fnv1aHasher>);
 

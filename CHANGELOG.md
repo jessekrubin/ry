@@ -9,6 +9,11 @@
 
 ## v0.0.103 [unreleased]
 
+- pyo3 v0.30.x
+  - rm skip_from_py_object did this:
+    - `rg "" -l | xargs -t -n1 sed -i 's///g'`
+    - `rg "    skip_from_py_object,?$" -l | xargs -t -n1 sed -i '/    skip_from_py_object,\?$/d'`
+    - `just fmt`
 - python `v3.15`
 - `ryo3-json-ser`
   - better reserving and org for writer
@@ -19,6 +24,7 @@
 - `ryo3-bytes`
   - internal rename `PyBytes` struct to `RyBytes` to avoid confusion with `pyo3::types::PyBytes`
   - flip-flopped export alias so one/you can still `use ryo3_bytes::PyBytes`
+
 ---
 
 ## v0.0.102 [2026-10-09]

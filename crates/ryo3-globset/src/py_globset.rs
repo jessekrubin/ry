@@ -11,7 +11,7 @@ use crate::py_args::VarArgs;
 use crate::py_globster::GlobSource;
 use crate::{PyGlob, PyGlobster};
 
-#[pyclass(name = "GlobSet", frozen, immutable_type, skip_from_py_object)]
+#[pyclass(name = "GlobSet", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Clone, Debug)]
 pub struct PyGlobSet {

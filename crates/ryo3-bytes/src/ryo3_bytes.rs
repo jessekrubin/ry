@@ -50,7 +50,6 @@ const PY_HASH_NONE: isize = -1;
     frozen,
     immutable_type,
     sequence,
-    skip_from_py_object,
     weakref
 )]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]

@@ -20,7 +20,7 @@ use crate::spanish::Spanish;
 use crate::util::SpanKwargs;
 use crate::{JiffOffset, JiffRoundMode, JiffSignedDuration, JiffUnit};
 
-#[pyclass(name = "Offset", frozen, immutable_type, skip_from_py_object)]
+#[pyclass(name = "Offset", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Clone, Copy, Eq, Hash, PartialEq, PartialOrd, Ord)]
 pub struct RyOffset(pub(crate) Offset);

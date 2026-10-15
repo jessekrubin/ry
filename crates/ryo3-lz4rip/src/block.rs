@@ -163,7 +163,7 @@ struct PyLz4BlockCompressorConfig {
     size: bool,
 }
 
-#[pyclass(name = "Lz4BlockCompressor", immutable_type, skip_from_py_object)]
+#[pyclass(name = "Lz4BlockCompressor", immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Debug)]
 pub struct PyLz4BlockCompressor {
@@ -240,7 +240,7 @@ impl PyLz4BlockCompressor {
     }
 }
 
-#[pyclass(name = "Lz4BlockDecompressor", immutable_type, skip_from_py_object)]
+#[pyclass(name = "Lz4BlockDecompressor", immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Debug)]
 pub struct PyLz4BlockDecompressor(lz4rip::block::Decompressor);

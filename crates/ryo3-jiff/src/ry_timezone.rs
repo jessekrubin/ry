@@ -17,7 +17,7 @@ use crate::ry_timezone_database::bundled_tzdb;
 use crate::ry_zoned::RyZoned;
 
 #[derive(Debug, Clone)]
-#[pyclass(name = "TimeZone", frozen, immutable_type, skip_from_py_object)]
+#[pyclass(name = "TimeZone", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyTimeZone(pub(crate) TimeZone);
 

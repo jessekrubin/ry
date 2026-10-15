@@ -95,7 +95,7 @@ impl DifferenceOptions {
 // DateDifference
 // ============================================================================
 #[derive(Debug, Clone, Copy)]
-#[pyclass(name = "DateDifference", frozen, immutable_type, skip_from_py_object)]
+#[pyclass(name = "DateDifference", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyDateDifference {
     date: RyDate,
@@ -339,7 +339,6 @@ impl DateDifferenceArg<'_, '_> {
     name = "DateTimeDifference",
     frozen,
     immutable_type,
-    skip_from_py_object
 )]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyDateTimeDifference {
@@ -578,7 +577,7 @@ impl DateTimeDifferenceArg<'_, '_> {
 // TimeDifference
 // ============================================================================
 #[derive(Debug, Clone, Copy)]
-#[pyclass(name = "TimeDifference", frozen, immutable_type, skip_from_py_object)]
+#[pyclass(name = "TimeDifference", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyTimeDifference {
     time: RyTime,
@@ -827,7 +826,6 @@ impl TimeDifferenceArg<'_, '_> {
     name = "TimestampDifference",
     frozen,
     immutable_type,
-    skip_from_py_object
 )]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyTimestampDifference {
@@ -1069,7 +1067,6 @@ impl TimestampDifferenceArg<'_, '_> {
     name = "ZonedDateTimeDifference",
     frozen,
     immutable_type,
-    skip_from_py_object
 )]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyZonedDifference {
