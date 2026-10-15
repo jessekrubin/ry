@@ -235,11 +235,7 @@ impl Display for RyDateTimeRound {
 // SignedDurationRound
 // ----------------------------------------------------------------------------
 #[derive(Clone, Copy, Debug)]
-#[pyclass(
-    name = "SignedDurationRound",
-    frozen,
-    immutable_type,
-)]
+#[pyclass(name = "SignedDurationRound", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RySignedDurationRound {
     options: RoundOptions,
@@ -590,11 +586,7 @@ impl Display for RyTimestampRound {
 // ZonedDateTimeRound
 // ---------------------------------------------------------------------------
 #[derive(Clone, Copy, Debug)]
-#[pyclass(
-    name = "ZonedDateTimeRound",
-    frozen,
-    immutable_type,
-)]
+#[pyclass(name = "ZonedDateTimeRound", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyZonedDateTimeRound {
     options: RoundOptions,

@@ -294,11 +294,7 @@ impl RyResponseStream {
     }
 }
 
-#[pyclass(
-    name = "BlockingResponseStream",
-    frozen,
-    immutable_type,
-)]
+#[pyclass(name = "BlockingResponseStream", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyBlockingResponseStream {
     inner: ResponseStreamInner,

@@ -23,12 +23,7 @@ use crate::{
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize), serde(transparent))]
 #[derive(Debug, Clone, Copy)]
-#[pyclass(
-    name = "TimeSpan",
-    frozen,
-    immutable_type,
-    mapping,
-)]
+#[pyclass(name = "TimeSpan", frozen, immutable_type, mapping)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RySpan(pub(crate) Span);
 
