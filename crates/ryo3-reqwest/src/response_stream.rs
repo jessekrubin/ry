@@ -15,17 +15,17 @@
 //!
 //! ---
 //!
-//! # UPDATE [2025-06-06] ~ Switch to using BoxStream:
+//! # UPDATE [2025-06-06] ~ Switch to using `BoxStream`:
 //!    In the obstore library, Kyle Barron (et al) use `BoxStream` and fuse the
 //!    stream which seems very smart.
-//!    REF: https://github.com/developmentseed/obstore/blob/50782ed782a15185a936d435d13ca0a7969154ae/obstore/src/get.rs#L219
+//!    REF: <https://github.com/developmentseed/obstore/blob/50782ed782a15185a936d435d13ca0a7969154ae/obstore/src/get.rs#L219>
 //!
 //! The inner stream type changes from:
-//! ```rust
+//! ```text
 //! type OldStreamType = `Arc<Mutex<Pin<Box<dyn Stream<Item = Result<Bytes, reqwest::Error>> + Send>>>>`
 //! ```
 //! to:
-//! ```rust
+//! ```text
 //! type NewStreamType = `Arc<Mutex<Fuse<BoxStream<'static, Result<Bytes, reqwest::Error>>>>>`
 //! ```
 use std::sync::Arc;
