@@ -34,6 +34,15 @@
   - internal rename `PyBytes` struct to `RyBytes` to avoid confusion with
     `pyo3::types::PyBytes`
   - flip-flopped export alias so one/you can still `use ryo3_bytes::PyBytes`
+- `ryo3-reqwest`
+  - async iterable request stream bodies are pumped by a faux py "coroutine"
+    that forwards the iterator's awaitables (no task per chunk(!!!))
+  - response streams are lazily read ahead by a background task (up to 8
+    chunks); `anext()` skips making a future when a chunk ready!
+  - `take()`, `collect()` and blocking `__next__` respect `min_read_size` which
+    i forgot to do previously for everything but `__anext__`
+  - `ResponseStream` does `async with` + `close()` and `BlockingResponseStream`
+    does `with` + `close()` ~ closing drops the body + stops the read-ahead
 
 ---
 
