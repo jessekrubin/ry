@@ -17,8 +17,8 @@ use crate::series::RyTimestampSeries;
 use crate::spanish::{DurationLike, Spanish};
 use crate::util::SpanKwargs;
 use crate::{
-    JiffRoundMode, JiffUnit, RyDate, RyDateTime, RyISOWeekDate, RyOffset, RySignedDuration, RySpan,
-    RyTime, RyTimeZone, RyZoned,
+    JiffRoundMode, JiffTimestamp, JiffUnit, RyDate, RyDateTime, RyISOWeekDate, RyOffset,
+    RySignedDuration, RySpan, RyTime, RyTimeZone, RyZoned,
 };
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize), serde(transparent))]
@@ -122,8 +122,8 @@ impl RyTimestamp {
     }
 
     #[staticmethod]
-    fn from_pydatetime(datetime: Timestamp) -> Self {
-        Self(datetime)
+    fn from_pydatetime(datetime: JiffTimestamp) -> Self {
+        Self::from(datetime)
     }
 
     #[expect(clippy::wrong_self_convention)]
@@ -480,9 +480,9 @@ impl RyTimestamp {
     )]
     fn round(&self, smallest: JiffUnit, mode: JiffRoundMode, increment: i64) -> PyResult<Self> {
         let ts_round = TimestampRound::new()
-            .smallest(smallest.0)
+            .smallest(smallest.into())
             .increment(increment)
-            .mode(mode.0);
+            .mode(mode.into());
         self.0
             .round(ts_round)
             .map(Self::from)
@@ -525,7 +525,7 @@ impl RyTimestamp {
                 .to_timestamp(dt.get().0)
                 .map(Self::from)?
                 .into_pyobject(py)
-        } else if let Ok(ts) = value.extract::<Timestamp>() {
+        } else if let Ok(ts) = value.extract::<JiffTimestamp>() {
             Self::from(ts).into_pyobject(py)
         } else {
             let valtype = any_repr!(value);

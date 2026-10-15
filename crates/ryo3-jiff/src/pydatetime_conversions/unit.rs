@@ -22,7 +22,7 @@ impl<'py> IntoPyObject<'py> for JiffUnit {
 
     #[inline]
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
-        let s = match self.0 {
+        let s = match self.into_inner() {
             Unit::Year => crate::interns::year(py),
             Unit::Month => crate::interns::month(py),
             Unit::Week => crate::interns::week(py),
@@ -47,30 +47,30 @@ impl<'py> FromPyObject<'_, 'py> for JiffUnit {
         // downcast to string...
         if let Ok(s) = ob.extract::<&str>() {
             match s.to_ascii_lowercase().as_str() {
-                "year" => Ok(Self(Unit::Year)),
-                "month" => Ok(Self(Unit::Month)),
-                "week" => Ok(Self(Unit::Week)),
-                "day" => Ok(Self(Unit::Day)),
-                "hour" => Ok(Self(Unit::Hour)),
-                "minute" => Ok(Self(Unit::Minute)),
-                "second" => Ok(Self(Unit::Second)),
-                "millisecond" => Ok(Self(Unit::Millisecond)),
-                "microsecond" => Ok(Self(Unit::Microsecond)),
-                "nanosecond" => Ok(Self(Unit::Nanosecond)),
+                "year" => Ok(Self::YEAR),
+                "month" => Ok(Self::MONTH),
+                "week" => Ok(Self::WEEK),
+                "day" => Ok(Self::DAY),
+                "hour" => Ok(Self::HOUR),
+                "minute" => Ok(Self::MINUTE),
+                "second" => Ok(Self::SECOND),
+                "millisecond" => Ok(Self::MILLISECOND),
+                "microsecond" => Ok(Self::MICROSECOND),
+                "nanosecond" => Ok(Self::NANOSECOND),
                 _ => py_value_err!("Invalid unit: {s} (options: {JIFF_UNIT_STRINGS})"),
             }
         } else if let Ok(i) = ob.extract::<i64>() {
             match i {
-                0 => Ok(Self(Unit::Year)),
-                1 => Ok(Self(Unit::Month)),
-                2 => Ok(Self(Unit::Week)),
-                3 => Ok(Self(Unit::Day)),
-                4 => Ok(Self(Unit::Hour)),
-                5 => Ok(Self(Unit::Minute)),
-                6 => Ok(Self(Unit::Second)),
-                7 => Ok(Self(Unit::Millisecond)),
-                8 => Ok(Self(Unit::Microsecond)),
-                9 => Ok(Self(Unit::Nanosecond)),
+                0 => Ok(Self::YEAR),
+                1 => Ok(Self::MONTH),
+                2 => Ok(Self::WEEK),
+                3 => Ok(Self::DAY),
+                4 => Ok(Self::HOUR),
+                5 => Ok(Self::MINUTE),
+                6 => Ok(Self::SECOND),
+                7 => Ok(Self::MILLISECOND),
+                8 => Ok(Self::MICROSECOND),
+                9 => Ok(Self::NANOSECOND),
                 _ => py_value_err!("Invalid unit: {i} (options: {JIFF_UNIT_OPTIONS})"),
             }
         } else {

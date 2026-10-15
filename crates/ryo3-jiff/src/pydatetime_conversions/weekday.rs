@@ -21,7 +21,7 @@ impl<'py> IntoPyObject<'py> for &JiffWeekday {
 
     #[inline]
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
-        let num: u8 = match self.0 {
+        let num: u8 = match self.into_inner() {
             jiff::civil::Weekday::Monday => 1,
             jiff::civil::Weekday::Tuesday => 2,
             jiff::civil::Weekday::Wednesday => 3,
@@ -43,24 +43,24 @@ impl<'py> FromPyObject<'_, 'py> for JiffWeekday {
     fn extract(ob: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
         if let Ok(s) = ob.extract::<&str>() {
             match s {
-                "monday" | "MONDAY" => Ok(Self(jiff::civil::Weekday::Monday)),
-                "tuesday" | "TUESDAY" => Ok(Self(jiff::civil::Weekday::Tuesday)),
-                "wednesday" | "WEDNESDAY" => Ok(Self(jiff::civil::Weekday::Wednesday)),
-                "thursday" | "THURSDAY" => Ok(Self(jiff::civil::Weekday::Thursday)),
-                "friday" | "FRIDAY" => Ok(Self(jiff::civil::Weekday::Friday)),
-                "saturday" | "SATURDAY" => Ok(Self(jiff::civil::Weekday::Saturday)),
-                "sunday" | "SUNDAY" => Ok(Self(jiff::civil::Weekday::Sunday)),
+                "monday" | "MONDAY" => Ok(Self::MONDAY),
+                "tuesday" | "TUESDAY" => Ok(Self::TUESDAY),
+                "wednesday" | "WEDNESDAY" => Ok(Self::WEDNESDAY),
+                "thursday" | "THURSDAY" => Ok(Self::THURSDAY),
+                "friday" | "FRIDAY" => Ok(Self::FRIDAY),
+                "saturday" | "SATURDAY" => Ok(Self::SATURDAY),
+                "sunday" | "SUNDAY" => Ok(Self::SUNDAY),
                 _ => py_value_err!("Invalid weekday: {s} (options: {JIFF_WEEKDAY_STRING})"),
             }
         } else if let Ok(i) = ob.extract::<u8>() {
             match i {
-                1 => Ok(Self(jiff::civil::Weekday::Monday)),
-                2 => Ok(Self(jiff::civil::Weekday::Tuesday)),
-                3 => Ok(Self(jiff::civil::Weekday::Wednesday)),
-                4 => Ok(Self(jiff::civil::Weekday::Thursday)),
-                5 => Ok(Self(jiff::civil::Weekday::Friday)),
-                6 => Ok(Self(jiff::civil::Weekday::Saturday)),
-                7 => Ok(Self(jiff::civil::Weekday::Sunday)),
+                1 => Ok(Self::MONDAY),
+                2 => Ok(Self::TUESDAY),
+                3 => Ok(Self::WEDNESDAY),
+                4 => Ok(Self::THURSDAY),
+                5 => Ok(Self::FRIDAY),
+                6 => Ok(Self::SATURDAY),
+                7 => Ok(Self::SUNDAY),
                 _ => py_value_err!("Invalid weekday: {i} (options: {JIFF_WEEKDAY_STRING})"),
             }
         } else {

@@ -137,14 +137,14 @@ impl RyOffset {
 
     #[staticmethod]
     fn from_pytimedelta(delta: JiffSignedDuration) -> PyResult<Self> {
-        Offset::try_from(delta.0)
+        Offset::try_from(delta.into_inner())
             .map(Self::from)
             .map_err(map_py_value_err)
     }
 
     #[staticmethod]
     fn from_pytzinfo(tz: JiffOffset) -> Self {
-        Self::from(tz.0)
+        Self::from(tz)
     }
 
     #[pyo3(name = "to_string")]
@@ -409,7 +409,7 @@ impl RyOffset {
             Self::from_pytimedelta(signed_dur).map(|dt| dt.into_pyobject(py))?
         } else if let Ok(d) = value.cast::<pyo3::types::PyTzInfo>() {
             let wrapped_offset = d.extract::<JiffOffset>()?;
-            Self::from(wrapped_offset.0).into_pyobject(py)
+            Self::from(wrapped_offset).into_pyobject(py)
         } else {
             let valtype = any_repr!(value);
             py_type_err!("Offset conversion error: {valtype}")

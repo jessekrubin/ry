@@ -4,9 +4,9 @@ use jiff::{SignedDuration, Span, Timestamp, Zoned};
 use ryo3_core::map_py_overflow_err;
 
 use crate::{
-    JiffOffset, JiffSignedDuration, JiffSpan, JiffTime, RyDate, RyDateTime, RyISOWeekDate,
-    RyOffset, RySignedDuration, RySpan, RyTime, RyTimeZone, RyTimeZoneDatabase, RyTimestamp,
-    RyZoned,
+    JiffDate, JiffDateTime, JiffOffset, JiffSignedDuration, JiffSpan, JiffTime, JiffTimeZone,
+    JiffTimestamp, JiffZoned, RyDate, RyDateTime, RyISOWeekDate, RyOffset, RySignedDuration,
+    RySpan, RyTime, RyTimeZone, RyTimeZoneDatabase, RyTimestamp, RyZoned,
 };
 
 // ~ ~ ~ internal crate conversions ~ ~ ~
@@ -136,29 +136,33 @@ impl_from_jiff_for_ry!(SignedDuration, RySignedDuration);
 impl_from_jiff_for_ry!(Span, RySpan);
 impl_from_jiff_for_ry!(Time, RyTime);
 impl_from_jiff_for_ry!(Timestamp, RyTimestamp);
+impl_from_jiff_for_ry!(TimeZone, RyTimeZone);
 impl_from_jiff_for_ry!(Zoned, RyZoned);
 
-impl From<JiffTime> for RyTime {
-    fn from(value: JiffTime) -> Self {
-        Self(value.0)
-    }
+macro_rules! impl_from_jiff_newt_for_ry {
+    ($jiff_newt:ty, $ryo3_type:ty) => {
+        impl From<$jiff_newt> for $ryo3_type {
+            #[inline]
+            fn from(value: $jiff_newt) -> Self {
+                Self::from_inner(value.into_inner())
+            }
+        }
+    };
 }
 
-impl From<JiffSignedDuration> for RySignedDuration {
-    fn from(d: JiffSignedDuration) -> Self {
-        Self(d.0)
-    }
-}
+impl_from_jiff_newt_for_ry!(JiffDate, RyDate);
+impl_from_jiff_newt_for_ry!(JiffTime, RyTime);
+impl_from_jiff_newt_for_ry!(JiffDateTime, RyDateTime);
+impl_from_jiff_newt_for_ry!(JiffTimestamp, RyTimestamp);
+impl_from_jiff_newt_for_ry!(JiffZoned, RyZoned);
+impl_from_jiff_newt_for_ry!(JiffSpan, RySpan);
+impl_from_jiff_newt_for_ry!(JiffOffset, RyOffset);
+impl_from_jiff_newt_for_ry!(JiffSignedDuration, RySignedDuration);
+impl_from_jiff_newt_for_ry!(JiffTimeZone, RyTimeZone);
 
 impl From<jiff::civil::Date> for RyISOWeekDate {
     fn from(date: jiff::civil::Date) -> Self {
         Self(ISOWeekDate::from(date))
-    }
-}
-
-impl From<TimeZone> for RyTimeZone {
-    fn from(value: TimeZone) -> Self {
-        Self(value)
     }
 }
 
@@ -172,18 +176,6 @@ impl From<RyTimeZone> for TimeZone {
 impl From<&RyTimeZone> for TimeZone {
     fn from(value: &RyTimeZone) -> Self {
         value.0.clone()
-    }
-}
-
-impl From<JiffOffset> for RyOffset {
-    fn from(value: JiffOffset) -> Self {
-        Self::from(value.0)
-    }
-}
-
-impl From<JiffSpan> for RySpan {
-    fn from(span: JiffSpan) -> Self {
-        Self(span.0)
     }
 }
 

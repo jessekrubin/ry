@@ -834,8 +834,8 @@ macro_rules! impl_from_round_options_for {
         impl From<&RoundOptions> for $type {
             fn from(value: &RoundOptions) -> Self {
                 Self::new()
-                    .smallest(value.smallest.0)
-                    .mode(value.mode.0)
+                    .smallest(value.smallest.into())
+                    .mode(value.mode.into())
                     .increment(value.increment)
             }
         }
@@ -843,8 +843,8 @@ macro_rules! impl_from_round_options_for {
         impl From<RoundOptions> for $type {
             fn from(value: RoundOptions) -> Self {
                 Self::new()
-                    .smallest(value.smallest.0)
-                    .mode(value.mode.0)
+                    .smallest(value.smallest.into())
+                    .mode(value.mode.into())
                     .increment(value.increment)
             }
         }

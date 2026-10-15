@@ -4,6 +4,7 @@ import datetime as pydt
 from typing import TYPE_CHECKING
 from zoneinfo import ZoneInfo
 
+import pytest
 from hypothesis import assume, given
 from hypothesis import strategies as st
 
@@ -93,3 +94,28 @@ def test_zoned_roundtrip_fold_problemo() -> None:
     assert roundtrip == dt
     assert roundtrip.fold == dt.fold
     assert roundtrip.utcoffset() == dt.utcoffset()
+
+
+@pytest.mark.parametrize("fold", [0, 1])
+@pytest.mark.parametrize(
+    ("naive", "tz"),
+    [
+        # gap ~ spring forward
+        (pydt.datetime(2020, 3, 8, 2, 30), "America/Los_Angeles"),
+        # fold ~ fall back
+        (pydt.datetime(2020, 11, 1, 1, 30), "America/Los_Angeles"),
+        (pydt.datetime(1999, 10, 31, 1, 0, 0, 1), "America/Adak"),
+    ],
+)
+def test_zoned_from_pydatetime_gap_and_fold(
+    naive: pydt.datetime, tz: str, fold: int
+) -> None:
+    """test zdt extraction for gaps/folds
+
+    REF: https://peps.python.org/pep-0495/
+    REF: https://github.com/PyO3/pyo3/pull/6450
+    """
+    dt = naive.replace(tzinfo=ZoneInfo(tz), fold=fold)
+    expected = int(dt.timestamp())
+    assert ry.ZonedDateTime.from_pydatetime(dt).timestamp().as_second() == expected
+    assert ry.Timestamp.from_pydatetime(dt).as_second() == expected

@@ -14,7 +14,7 @@ impl<'py> IntoPyObject<'py> for &JiffEra {
 
     #[inline]
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
-        let s = match self.0 {
+        let s = match self.into_inner() {
             Era::BCE => crate::interns::bce(py),
             Era::CE => crate::interns::ce(py),
         };
@@ -37,8 +37,8 @@ impl<'py> FromPyObject<'_, 'py> for JiffEra {
     fn extract(obj: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
         if let Ok(s) = obj.extract::<&str>() {
             match s {
-                "bce" | "bc" | "BCE" | "BC" => Ok(Self(Era::BCE)),
-                "ce" | "ad" | "CE" | "AD" => Ok(Self(Era::CE)),
+                "bce" | "bc" | "BCE" | "BC" => Ok(Self::BCE),
+                "ce" | "ad" | "CE" | "AD" => Ok(Self::CE),
                 _ => py_value_err!("Invalid era: {s} (options: {JIFF_ERA_STRINGS})"),
             }
         } else {

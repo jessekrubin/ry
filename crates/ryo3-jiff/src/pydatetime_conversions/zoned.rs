@@ -1,38 +1,15 @@
 use jiff::Zoned;
 use jiff::civil::DateTime;
-use jiff::tz::{AmbiguousOffset, TimeZone};
+use jiff::tz::{AmbiguousOffset, Offset, TimeZone};
 use pyo3::prelude::*;
+use pyo3::types::{PyDateTime, PyTzInfo};
 #[cfg(not(Py_LIMITED_API))]
-use pyo3::types::PyTimeAccess;
-use pyo3::types::{PyDateTime, PyTzInfoAccess};
+use pyo3::types::{PyTimeAccess, PyTzInfoAccess};
 use ryo3_core::map_py_value_err;
 use ryo3_macro_rules::py_value_err;
 
-use crate::pydatetime_conversions::{pydate_to_date, pytime_to_time};
-use crate::{JiffTimeZone, JiffTimeZoneRef, JiffZoned, JiffZonedRef};
-
-fn datetime_to_pydatetime<'py>(
-    py: Python<'py>,
-    datetime: &DateTime,
-    fold: bool,
-    timezone: Option<&TimeZone>,
-) -> PyResult<Bound<'py, PyDateTime>> {
-    let tz = timezone
-        .map(|tz| JiffTimeZoneRef(tz).into_pyobject(py))
-        .transpose()?;
-    PyDateTime::new_with_fold(
-        py,
-        datetime.year().into(),
-        datetime.month().try_into()?,
-        datetime.day().try_into()?,
-        datetime.hour().try_into()?,
-        datetime.minute().try_into()?,
-        datetime.second().try_into()?,
-        (datetime.subsec_nanosecond() / 1000).try_into()?,
-        tz.as_ref(),
-        fold,
-    )
-}
+use crate::pydatetime_conversions::{pydate_to_date, pytime_to_time, timezone_to_pytzinfo};
+use crate::{JiffTimeZone, JiffZoned, JiffZonedRef};
 
 fn fold(zoned: &Zoned) -> bool {
     match zoned
@@ -45,8 +22,65 @@ fn fold(zoned: &Zoned) -> bool {
     }
 }
 
-pub fn zoned2pyobject<'py>(py: Python<'py>, z: &Zoned) -> PyResult<Bound<'py, PyDateTime>> {
-    datetime_to_pydatetime(py, &z.datetime(), fold(z), Some(z.time_zone()))
+pub fn zoned_to_pydatetime<'py>(py: Python<'py>, z: &Zoned) -> PyResult<Bound<'py, PyDateTime>> {
+    let datetime = z.datetime();
+    let tz = timezone_to_pytzinfo(py, z.time_zone())?;
+    PyDateTime::new_with_fold(
+        py,
+        datetime.year().into(),
+        datetime.month().try_into()?,
+        datetime.day().try_into()?,
+        datetime.hour().try_into()?,
+        datetime.minute().try_into()?,
+        datetime.second().try_into()?,
+        (datetime.subsec_nanosecond() / 1000).try_into()?,
+        Some(&tz),
+        fold(z),
+    )
+}
+
+pub fn pydatetime_to_zoned(dt: &Bound<'_, PyDateTime>) -> PyResult<Zoned> {
+    #[cfg(not(Py_LIMITED_API))]
+    let tzinfo = dt.get_tzinfo();
+    #[cfg(Py_LIMITED_API)]
+    let tzinfo = {
+        let tz = dt.getattr(pyo3::intern!(dt.py(), "tzinfo"))?;
+        if tz.is_none() {
+            None
+        } else {
+            Some(tz.cast_into::<PyTzInfo>()?)
+        }
+    };
+    let Some(tzinfo) = tzinfo else {
+        return py_value_err!("expected a datetime with non-None tzinfo");
+    };
+    let datetime = DateTime::from_parts(pydate_to_date(dt)?, pytime_to_time(dt)?);
+    if tzinfo.is(PyTzInfo::utc(dt.py())?) {
+        // utc aint ambiguous... skip tz lookup + fold
+        let ts = Offset::UTC
+            .to_timestamp(datetime)
+            .map_err(map_py_value_err)?;
+        return Ok(ts.to_zoned(TimeZone::UTC));
+    }
+    let zoned = tzinfo
+        .extract::<JiffTimeZone>()?
+        .into_inner()
+        .into_ambiguous_zoned(datetime);
+    #[cfg(not(Py_LIMITED_API))]
+    let fold = dt.get_fold();
+    #[cfg(Py_LIMITED_API)]
+    let fold = dt
+        .getattr(pyo3::intern!(dt.py(), "fold"))?
+        .extract::<usize>()?
+        > 0;
+    // REF: https://peps.python.org/pep-0495/
+    // REF: https://github.com/PyO3/pyo3/pull/6450
+    if fold ^ matches!(zoned.offset(), AmbiguousOffset::Gap { .. }) {
+        zoned.later()
+    } else {
+        zoned.earlier()
+    }
+    .map_err(map_py_value_err)
 }
 
 impl<'py> IntoPyObject<'py> for &JiffZonedRef<'_> {
@@ -55,8 +89,7 @@ impl<'py> IntoPyObject<'py> for &JiffZonedRef<'_> {
     type Error = PyErr;
 
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
-        let z = &self.0;
-        zoned2pyobject(py, z)
+        zoned_to_pydatetime(py, self.inner())
     }
 }
 
@@ -77,8 +110,7 @@ impl<'py> IntoPyObject<'py> for &JiffZoned {
     type Error = PyErr;
 
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
-        let z = &self.0;
-        zoned2pyobject(py, z)
+        zoned_to_pydatetime(py, self.inner())
     }
 }
 
@@ -97,27 +129,6 @@ impl<'py> FromPyObject<'_, 'py> for JiffZoned {
     type Error = PyErr;
     fn extract(dt: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
         let dt = dt.cast::<PyDateTime>()?;
-        let tzinfo = dt.get_tzinfo().map_or_else(
-            || py_value_err!("expected a datetime with non-None tzinfo"),
-            |tz| tz.extract::<JiffTimeZone>(),
-        )?;
-        let jiff_time = pytime_to_time(&*dt)?;
-        let jiff_date = pydate_to_date(&*dt)?;
-        let datetime = DateTime::from_parts(jiff_date, jiff_time);
-        let zoned = tzinfo.0.into_ambiguous_zoned(datetime);
-
-        #[cfg(not(Py_LIMITED_API))]
-        let fold = dt.get_fold();
-
-        #[cfg(Py_LIMITED_API)]
-        let fold = dt
-            .getattr(pyo3::intern!(dt.py(), "fold"))?
-            .extract::<usize>()?
-            > 0;
-        if fold {
-            Ok(Self::from(zoned.later().map_err(map_py_value_err)?))
-        } else {
-            Ok(Self::from(zoned.earlier().map_err(map_py_value_err)?))
-        }
+        pydatetime_to_zoned(&dt).map(Self::from)
     }
 }

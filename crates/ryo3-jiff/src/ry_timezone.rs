@@ -120,7 +120,7 @@ impl RyTimeZone {
 
     #[staticmethod]
     fn from_pytzinfo(tz: JiffTimeZone) -> Self {
-        Self::from(tz.0)
+        Self::from(tz)
     }
 
     fn to_dict<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {

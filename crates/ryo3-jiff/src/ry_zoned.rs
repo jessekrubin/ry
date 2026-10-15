@@ -278,7 +278,7 @@ impl RyZoned {
     }
 
     fn to_pydatetime(&self) -> JiffZonedRef<'_> {
-        JiffZonedRef(&self.0)
+        JiffZonedRef::new(&self.0)
     }
 
     fn to_pydate(&self) -> Date {
@@ -295,7 +295,7 @@ impl RyZoned {
 
     #[staticmethod]
     fn from_pydatetime(datetime: JiffZoned) -> Self {
-        Self::from(datetime.0)
+        Self::from(datetime)
     }
 
     fn in_tz(&self, tz: &str) -> PyResult<Self> {
@@ -456,16 +456,16 @@ impl RyZoned {
         signature = (
             smallest = JiffUnit::NANOSECOND,
             *,
-            mode = JiffRoundMode(jiff::RoundMode::HalfExpand),
+            mode = JiffRoundMode::HALF_EXPAND,
             increment = 1
         ),
         text_signature = "(self, smallest=\"nanosecond\", *, mode=\"half-expand\", increment=1)"
     )]
     fn round(&self, smallest: JiffUnit, mode: JiffRoundMode, increment: i64) -> PyResult<Self> {
         let zdt_round = ZonedRound::new()
-            .smallest(smallest.0)
+            .smallest(smallest.into())
             .increment(increment)
-            .mode(mode.0);
+            .mode(mode.into());
         self.0
             .round(zdt_round)
             .map(Self::from)
@@ -534,7 +534,7 @@ impl RyZoned {
     }
 
     fn era_year(&self) -> JiffEraYear {
-        JiffEraYear(self.0.era_year())
+        JiffEraYear::new(self.0.era_year())
     }
 
     fn first_of_month(&self) -> PyResult<Self> {
@@ -553,14 +553,14 @@ impl RyZoned {
 
     fn nth_weekday(&self, nth: i32, weekday: JiffWeekday) -> PyResult<Self> {
         self.0
-            .nth_weekday(nth, weekday.0)
+            .nth_weekday(nth, weekday.into())
             .map(Self::from)
             .map_err(map_py_value_err)
     }
 
     fn nth_weekday_of_month(&self, nth: i8, weekday: JiffWeekday) -> PyResult<Self> {
         self.0
-            .nth_weekday_of_month(nth, weekday.0)
+            .nth_weekday_of_month(nth, weekday.into())
             .map(Self::from)
             .map_err(map_py_value_err)
     }
@@ -597,10 +597,10 @@ impl RyZoned {
     ) -> PyResult<RySpan> {
         let mut zdt_diff = ZonedDifference::from(&other.0)
             .increment(increment)
-            .mode(mode.0)
-            .smallest(smallest.0);
+            .mode(mode.into())
+            .smallest(smallest.into());
         if let Some(largest) = largest {
-            zdt_diff = zdt_diff.largest(largest.0);
+            zdt_diff = zdt_diff.largest(largest.into());
         }
         self.0
             .since(zdt_diff)
@@ -629,10 +629,10 @@ impl RyZoned {
     ) -> PyResult<RySpan> {
         let mut zdt_diff = ZonedDifference::from(&other.0)
             .increment(increment)
-            .mode(mode.0)
-            .smallest(smallest.0);
+            .mode(mode.into())
+            .smallest(smallest.into());
         if let Some(largest) = largest {
-            zdt_diff = zdt_diff.largest(largest.0);
+            zdt_diff = zdt_diff.largest(largest.into());
         }
         self.0
             .until(zdt_diff)
@@ -727,7 +727,7 @@ impl RyZoned {
             builder = builder.year(y);
         }
         if let Some(ey) = era_year {
-            builder = builder.era_year(ey.0, (ey.1).0);
+            builder = builder.era_year(ey.0, (ey.1).into());
         }
         if let Some(m) = month {
             builder = builder.month(m);
@@ -766,7 +766,7 @@ impl RyZoned {
             builder = builder.offset(offset.0);
         }
         if let Some(offset_conflict) = offset_conflict {
-            builder = builder.offset_conflict(offset_conflict.0);
+            builder = builder.offset_conflict(offset_conflict.into());
         }
         if let Some(disambiguation) = disambiguation {
             builder = builder.disambiguation(disambiguation.into());
@@ -869,7 +869,7 @@ impl RyZoned {
         } else if let Ok(ts) = value.cast_exact::<RyTimestamp>() {
             Self::from(ts.get()).into_pyobject(py)
         } else if let Ok(d) = value.extract::<JiffZoned>() {
-            Self::from(d.0).into_pyobject(py)
+            Self::from(d).into_pyobject(py)
         } else {
             let valtype = any_repr!(value);
             py_type_err!("ZonedDateTime conversion error: {valtype}",)

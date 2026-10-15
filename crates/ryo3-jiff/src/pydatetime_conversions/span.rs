@@ -22,7 +22,7 @@ impl<'py> IntoPyObject<'py> for &JiffSpan {
     #[inline]
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
         let signed_duration = self
-            .0
+            .into_inner()
             .to_duration(SpanRelativeTo::days_are_24_hours())
             .map(JiffSignedDuration::from)
             .map_err(map_py_value_err)?;
@@ -34,7 +34,10 @@ impl<'py> FromPyObject<'_, 'py> for JiffSpan {
     type Error = PyErr;
     fn extract(obj: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
         let signed_duration = obj.extract::<JiffSignedDuration>()?;
-        let span: Span = signed_duration.0.try_into().map_err(map_py_value_err)?;
+        let span: Span = signed_duration
+            .into_inner()
+            .try_into()
+            .map_err(map_py_value_err)?;
         Ok(Self::from(span))
     }
 }

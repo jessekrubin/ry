@@ -9,16 +9,10 @@ impl<'py> FromPyObject<'_, 'py> for JiffTzOffsetConflict {
     fn extract(ob: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
         if let Ok(s) = ob.extract::<&str>() {
             match s {
-                "always-offset" | "always_offset" => {
-                    Ok(jiff::tz::OffsetConflict::AlwaysOffset.into())
-                }
-                "always-timezone" | "always_timezone" => {
-                    Ok(jiff::tz::OffsetConflict::AlwaysTimeZone.into())
-                }
-                "prefer-offset" | "prefer_offset" => {
-                    Ok(jiff::tz::OffsetConflict::PreferOffset.into())
-                }
-                "reject" => Ok(jiff::tz::OffsetConflict::Reject.into()),
+                "always-offset" | "always_offset" => Ok(Self::ALWAYS_OFFSET),
+                "always-timezone" | "always_timezone" => Ok(Self::ALWAYS_TIME_ZONE),
+                "prefer-offset" | "prefer_offset" => Ok(Self::PREFER_OFFSET),
+                "reject" => Ok(Self::REJECT),
                 _ => py_value_err!(
                     "Invalid tz offset conflict: {s} (options: {JIFF_TZ_OFFSET_CONFLICTS})"
                 ),

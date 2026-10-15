@@ -1,5 +1,4 @@
 use jiff::tz::TimeZone;
-use pyo3::intern;
 use pyo3::prelude::*;
 use pyo3::pybacked::PyBackedStr;
 use pyo3::types::PyTzInfo;
@@ -7,7 +6,7 @@ use ryo3_core::map_py_value_err;
 
 use crate::{JiffOffset, JiffSignedDuration, JiffTimeZone, JiffTimeZoneRef};
 
-pub fn timezone2pyobject<'py>(py: Python<'py>, tz: &TimeZone) -> PyResult<Bound<'py, PyTzInfo>> {
+pub fn timezone_to_pytzinfo<'py>(py: Python<'py>, tz: &TimeZone) -> PyResult<Bound<'py, PyTzInfo>> {
     if tz == &TimeZone::UTC {
         Ok(PyTzInfo::utc(py)?.to_owned())
     } else if let Some(iana_name) = tz.iana_name() {
@@ -15,7 +14,7 @@ pub fn timezone2pyobject<'py>(py: Python<'py>, tz: &TimeZone) -> PyResult<Bound<
     } else {
         let off = tz.to_fixed_offset().map_err(map_py_value_err)?;
         let dur = off.duration_since(jiff::tz::Offset::UTC);
-        PyTzInfo::fixed_offset(py, JiffSignedDuration(dur))
+        PyTzInfo::fixed_offset(py, JiffSignedDuration::new(dur))
     }
 }
 
@@ -35,7 +34,7 @@ impl<'py> IntoPyObject<'py> for &JiffTimeZoneRef<'_> {
     type Error = PyErr;
 
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
-        timezone2pyobject(py, self.0)
+        timezone_to_pytzinfo(py, self.inner())
     }
 }
 
@@ -55,7 +54,7 @@ impl<'py> IntoPyObject<'py> for &JiffTimeZone {
     type Error = PyErr;
 
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
-        timezone2pyobject(py, &self.0)
+        timezone_to_pytzinfo(py, self.inner())
     }
 }
 
@@ -63,14 +62,18 @@ impl<'py> FromPyObject<'_, 'py> for JiffTimeZone {
     type Error = PyErr;
     fn extract(obj: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
         let ob = obj.cast::<PyTzInfo>()?;
-        let attr = intern!(ob.py(), "key");
-        if ob.hasattr(attr)? {
-            let tz_pystr = ob.getattr(attr)?.extract::<PyBackedStr>()?;
-            let tz_str = tz_pystr.to_string();
-            let tz = crate::ry_timezone::get_time_zone(&tz_str).map_err(map_py_value_err)?;
-            Ok(Self(tz))
-        } else {
-            Ok(ob.extract::<JiffOffset>()?.0.to_time_zone().into())
+        match ob.getattr_opt(::pyo3::intern!(ob.py(), "key"))? {
+            Some(key) => {
+                let key = key.extract::<PyBackedStr>()?;
+                crate::ry_timezone::get_time_zone(&key)
+                    .map(Self::from)
+                    .map_err(map_py_value_err)
+            }
+            None => Ok(ob
+                .extract::<JiffOffset>()?
+                .into_inner()
+                .to_time_zone()
+                .into()),
         }
     }
 }

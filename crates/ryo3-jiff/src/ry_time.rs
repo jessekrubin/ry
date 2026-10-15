@@ -322,7 +322,7 @@ impl RyTime {
 
     #[staticmethod]
     fn from_pytime(time: JiffTime) -> Self {
-        Self::from(time.0)
+        Self::from(time)
     }
 
     // =====================================================================
@@ -469,8 +469,8 @@ impl RyTime {
     )]
     fn round(&self, smallest: JiffUnit, mode: JiffRoundMode, increment: i64) -> PyResult<Self> {
         let timeround = TimeRound::new()
-            .smallest(smallest.0)
-            .mode(mode.0)
+            .smallest(smallest.into())
+            .mode(mode.into())
             .increment(increment);
         self.0
             .round(timeround)
