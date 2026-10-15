@@ -320,7 +320,7 @@ impl RyDate {
             builder = builder.year(y);
         }
         if let Some(ey) = era_year {
-            builder = builder.era_year(ey.0, (ey.1).0);
+            builder = builder.era_year(ey.0, (ey.1).into());
         }
         if let Some(m) = month {
             builder = builder.month(m);
@@ -408,7 +408,7 @@ impl RyDate {
     }
 
     fn era_year(&self) -> JiffEraYear {
-        JiffEraYear(self.0.era_year())
+        JiffEraYear::new(self.0.era_year())
     }
 
     fn first_of_month(&self) -> Self {
@@ -550,14 +550,14 @@ impl RyDate {
 
     fn nth_weekday(&self, nth: i32, weekday: JiffWeekday) -> PyResult<Self> {
         self.0
-            .nth_weekday(nth, weekday.0)
+            .nth_weekday(nth, weekday.into())
             .map(Self::from)
             .map_err(map_py_value_err)
     }
 
     fn nth_weekday_of_month(&self, nth: i8, weekday: JiffWeekday) -> PyResult<Self> {
         self.0
-            .nth_weekday_of_month(nth, weekday.0)
+            .nth_weekday_of_month(nth, weekday.into())
             .map(Self::from)
             .map_err(map_py_value_err)
     }

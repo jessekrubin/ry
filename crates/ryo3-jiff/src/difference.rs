@@ -128,11 +128,11 @@ impl RyDateDifference {
         increment: i64,
     ) -> Self {
         let mut diff = DateDifference::new(date.0)
-            .smallest(smallest.0)
-            .mode(mode.0)
+            .smallest(smallest.into())
+            .mode(mode.into())
             .increment(increment);
         if let Some(largest) = largest {
-            diff = diff.largest(largest.0);
+            diff = diff.largest(largest.into());
         }
         let options = DifferenceOptions {
             smallest,
@@ -199,7 +199,7 @@ impl RyDateDifference {
             mode: self.options.mode,
             increment: self.options.increment,
         };
-        let diff = self.diff.smallest(unit.0);
+        let diff = self.diff.smallest(unit.into());
         Self {
             date: self.date,
             options,
@@ -214,7 +214,7 @@ impl RyDateDifference {
             mode: self.options.mode,
             increment: self.options.increment,
         };
-        let diff = self.diff.largest(unit.0);
+        let diff = self.diff.largest(unit.into());
         Self {
             date: self.date,
             options,
@@ -229,7 +229,7 @@ impl RyDateDifference {
             mode,
             increment: self.options.increment,
         };
-        let diff = self.diff.mode(mode.0);
+        let diff = self.diff.mode(mode.into());
         Self {
             date: self.date,
             options,
@@ -321,10 +321,10 @@ impl DateDifferenceArg<'_, '_> {
     ) -> DateDifference {
         let mut diff = DateDifference::from(self)
             .increment(increment)
-            .mode(mode.0)
-            .smallest(smallest.0);
+            .mode(mode.into())
+            .smallest(smallest.into());
         if let Some(largest) = largest {
-            diff = diff.largest(largest.0);
+            diff = diff.largest(largest.into());
         }
         diff
     }
@@ -372,11 +372,11 @@ impl RyDateTimeDifference {
         increment: i64,
     ) -> Self {
         let mut diff = DateTimeDifference::new(datetime.0)
-            .smallest(smallest.0)
-            .mode(mode.0)
+            .smallest(smallest.into())
+            .mode(mode.into())
             .increment(increment);
         if let Some(largest) = largest {
-            diff = diff.largest(largest.0);
+            diff = diff.largest(largest.into());
         }
         let options = DifferenceOptions {
             smallest,
@@ -443,7 +443,7 @@ impl RyDateTimeDifference {
             mode: self.options.mode,
             increment: self.options.increment,
         };
-        let diff = self.diff.smallest(unit.0);
+        let diff = self.diff.smallest(unit.into());
         Self {
             datetime: self.datetime,
             options,
@@ -458,7 +458,7 @@ impl RyDateTimeDifference {
             mode: self.options.mode,
             increment: self.options.increment,
         };
-        let diff = self.diff.largest(unit.0);
+        let diff = self.diff.largest(unit.into());
         Self {
             datetime: self.datetime,
             options,
@@ -473,7 +473,7 @@ impl RyDateTimeDifference {
             mode,
             increment: self.options.increment,
         };
-        let diff = self.diff.mode(mode.0);
+        let diff = self.diff.mode(mode.into());
         Self {
             datetime: self.datetime,
             options,
@@ -565,10 +565,10 @@ impl DateTimeDifferenceArg<'_, '_> {
     ) -> DateTimeDifference {
         let mut diff = DateTimeDifference::from(self)
             .increment(increment)
-            .mode(mode.0)
-            .smallest(smallest.0);
+            .mode(mode.into())
+            .smallest(smallest.into());
         if let Some(largest) = largest {
-            diff = diff.largest(largest.0);
+            diff = diff.largest(largest.into());
         }
         diff
     }
@@ -611,11 +611,11 @@ impl RyTimeDifference {
         increment: i64,
     ) -> Self {
         let mut diff = TimeDifference::new(time.0)
-            .smallest(smallest.0)
-            .mode(mode.0)
+            .smallest(smallest.into())
+            .mode(mode.into())
             .increment(increment);
         if let Some(largest) = largest {
-            diff = diff.largest(largest.0);
+            diff = diff.largest(largest.into());
         }
         let options = DifferenceOptions {
             smallest,
@@ -683,7 +683,7 @@ impl RyTimeDifference {
             mode: self.options.mode,
             increment: self.options.increment,
         };
-        let diff = self.diff.smallest(unit.0);
+        let diff = self.diff.smallest(unit.into());
         Self {
             time,
             options,
@@ -699,7 +699,7 @@ impl RyTimeDifference {
             mode: self.options.mode,
             increment: self.options.increment,
         };
-        let diff = self.diff.largest(unit.0);
+        let diff = self.diff.largest(unit.into());
         Self {
             time,
             options,
@@ -714,7 +714,7 @@ impl RyTimeDifference {
             mode,
             increment: self.options.increment,
         };
-        let diff = self.diff.mode(mode.0);
+        let diff = self.diff.mode(mode.into());
         Self {
             time: self.time,
             options,
@@ -810,10 +810,10 @@ impl TimeDifferenceArg<'_, '_> {
     ) -> TimeDifference {
         let mut diff = TimeDifference::from(self)
             .increment(increment)
-            .mode(mode.0)
-            .smallest(smallest.0);
+            .mode(mode.into())
+            .smallest(smallest.into());
         if let Some(largest) = largest {
-            diff = diff.largest(largest.0);
+            diff = diff.largest(largest.into());
         }
         diff
     }
@@ -860,11 +860,11 @@ impl RyTimestampDifference {
         increment: i64,
     ) -> Self {
         let mut diff = TimestampDifference::new(timestamp.0)
-            .smallest(smallest.0)
-            .mode(mode.0)
+            .smallest(smallest.into())
+            .mode(mode.into())
             .increment(increment);
         if let Some(largest) = largest {
-            diff = diff.largest(largest.0);
+            diff = diff.largest(largest.into());
         }
         let options = DifferenceOptions {
             smallest,
@@ -931,7 +931,7 @@ impl RyTimestampDifference {
             mode: self.options.mode,
             increment: self.options.increment,
         };
-        let diff = self.diff.smallest(unit.0);
+        let diff = self.diff.smallest(unit.into());
         Self {
             timestamp: self.timestamp,
             options,
@@ -946,7 +946,7 @@ impl RyTimestampDifference {
             mode: self.options.mode,
             increment: self.options.increment,
         };
-        let diff = self.diff.largest(unit.0);
+        let diff = self.diff.largest(unit.into());
         Self {
             timestamp: self.timestamp,
             options,
@@ -961,7 +961,7 @@ impl RyTimestampDifference {
             mode,
             increment: self.options.increment,
         };
-        let diff = self.diff.mode(mode.0);
+        let diff = self.diff.mode(mode.into());
         Self {
             timestamp: self.timestamp,
             options,
@@ -1052,10 +1052,10 @@ impl TimestampDifferenceArg<'_, '_> {
     ) -> TimestampDifference {
         let mut diff = TimestampDifference::from(self)
             .increment(increment)
-            .mode(mode.0)
-            .smallest(smallest.0);
+            .mode(mode.into())
+            .smallest(smallest.into());
         if let Some(largest) = largest {
-            diff = diff.largest(largest.0);
+            diff = diff.largest(largest.into());
         }
         diff
     }

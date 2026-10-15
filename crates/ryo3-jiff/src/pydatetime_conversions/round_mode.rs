@@ -22,7 +22,7 @@ impl<'py> IntoPyObject<'py> for &JiffRoundMode {
 
     #[inline]
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
-        let s = match self.0 {
+        let s = match self.into_inner() {
             RoundMode::Ceil => crate::interns::ceil(py),
             RoundMode::Floor => crate::interns::floor(py),
             RoundMode::Expand => crate::interns::expand(py),
@@ -45,15 +45,15 @@ impl<'py> FromPyObject<'_, 'py> for JiffRoundMode {
     fn extract(ob: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
         if let Ok(str_mode) = ob.extract::<&str>() {
             match str_mode.to_ascii_lowercase().as_str() {
-                "ceil" => Ok(Self(RoundMode::Ceil)),
-                "floor" => Ok(Self(RoundMode::Floor)),
-                "expand" => Ok(Self(RoundMode::Expand)),
-                "trunc" => Ok(Self(RoundMode::Trunc)),
-                "half-ceil" | "half_ceil" => Ok(Self(RoundMode::HalfCeil)),
-                "half-floor" | "half_floor" => Ok(Self(RoundMode::HalfFloor)),
-                "half-expand" | "half_expand" => Ok(Self(RoundMode::HalfExpand)),
-                "half-trunc" | "half_trunc" => Ok(Self(RoundMode::HalfTrunc)),
-                "half-even" | "half_even" => Ok(Self(RoundMode::HalfEven)),
+                "ceil" => Ok(Self::CEIL),
+                "floor" => Ok(Self::FLOOR),
+                "expand" => Ok(Self::EXPAND),
+                "trunc" => Ok(Self::TRUNC),
+                "half-ceil" | "half_ceil" => Ok(Self::HALF_CEIL),
+                "half-floor" | "half_floor" => Ok(Self::HALF_FLOOR),
+                "half-expand" | "half_expand" => Ok(Self::HALF_EXPAND),
+                "half-trunc" | "half_trunc" => Ok(Self::HALF_TRUNC),
+                "half-even" | "half_even" => Ok(Self::HALF_EVEN),
                 _ => py_value_err!(
                     "Invalid type for round mode, expected a string (options: {JIFF_ROUND_MODE_ACCEPTED})"
                 ),

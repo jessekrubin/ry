@@ -28,10 +28,6 @@ pub fn datetime_to_pydatetime<'py>(
 }
 
 pub fn pydatetime_to_datetime(dt: &Bound<'_, PyDateTime>) -> PyResult<DateTime> {
-    // If the user tries to convert a timezone aware datetime into a naive one,
-    // we return a hard error. We could silently remove tzinfo, or assume local
-    // timezone and do a conversion, but better leave this decision to the
-    // user of the library.
     #[cfg(not(Py_LIMITED_API))]
     let has_tzinfo = dt.get_tzinfo().is_some();
     #[cfg(Py_LIMITED_API)]
@@ -62,7 +58,7 @@ impl<'py> IntoPyObject<'py> for &JiffDateTime {
 
     #[inline]
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
-        datetime_to_pydatetime(py, &self.0, false)
+        datetime_to_pydatetime(py, self.inner(), false)
     }
 }
 

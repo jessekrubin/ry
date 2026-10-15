@@ -14,7 +14,7 @@ pub fn timezone_to_pytzinfo<'py>(py: Python<'py>, tz: &TimeZone) -> PyResult<Bou
     } else {
         let off = tz.to_fixed_offset().map_err(map_py_value_err)?;
         let dur = off.duration_since(jiff::tz::Offset::UTC);
-        PyTzInfo::fixed_offset(py, JiffSignedDuration(dur))
+        PyTzInfo::fixed_offset(py, JiffSignedDuration::new(dur))
     }
 }
 
@@ -34,7 +34,7 @@ impl<'py> IntoPyObject<'py> for &JiffTimeZoneRef<'_> {
     type Error = PyErr;
 
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
-        timezone_to_pytzinfo(py, self.0)
+        timezone_to_pytzinfo(py, self.inner())
     }
 }
 
@@ -54,7 +54,7 @@ impl<'py> IntoPyObject<'py> for &JiffTimeZone {
     type Error = PyErr;
 
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
-        timezone_to_pytzinfo(py, &self.0)
+        timezone_to_pytzinfo(py, self.inner())
     }
 }
 
@@ -66,10 +66,14 @@ impl<'py> FromPyObject<'_, 'py> for JiffTimeZone {
             Some(key) => {
                 let key = key.extract::<PyBackedStr>()?;
                 crate::ry_timezone::get_time_zone(&key)
-                    .map(Self)
+                    .map(Self::from)
                     .map_err(map_py_value_err)
             }
-            None => Ok(ob.extract::<JiffOffset>()?.0.to_time_zone().into()),
+            None => Ok(ob
+                .extract::<JiffOffset>()?
+                .into_inner()
+                .to_time_zone()
+                .into()),
         }
     }
 }

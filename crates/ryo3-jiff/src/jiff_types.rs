@@ -2,37 +2,37 @@ use std::fmt::Display;
 use std::ops::Deref;
 
 #[derive(Debug, Clone, Copy)]
-pub struct JiffDate(pub jiff::civil::Date);
+pub struct JiffDate(jiff::civil::Date);
 
 #[derive(Debug, Clone, Copy)]
-pub struct JiffTime(pub jiff::civil::Time);
+pub struct JiffTime(jiff::civil::Time);
 
 #[derive(Debug, Clone, Copy)]
-pub struct JiffDateTime(pub jiff::civil::DateTime);
+pub struct JiffDateTime(jiff::civil::DateTime);
 
 #[derive(Debug, Clone, Copy)]
-pub struct JiffTimestamp(pub jiff::Timestamp);
+pub struct JiffTimestamp(jiff::Timestamp);
 
 #[derive(Debug, Clone)]
-pub struct JiffZoned(pub jiff::Zoned);
+pub struct JiffZoned(jiff::Zoned);
 
 #[derive(Debug, Clone)]
-pub struct JiffZonedRef<'a>(pub &'a jiff::Zoned);
+pub struct JiffZonedRef<'a>(&'a jiff::Zoned);
 
 #[derive(Debug, Clone, Copy)]
-pub struct JiffSpan(pub jiff::Span);
+pub struct JiffSpan(jiff::Span);
 
 #[derive(Clone, Eq, PartialEq)]
-pub struct JiffTimeZone(pub jiff::tz::TimeZone);
+pub struct JiffTimeZone(jiff::tz::TimeZone);
 
 #[derive(Clone, Eq, PartialEq)]
-pub struct JiffTimeZoneRef<'a>(pub &'a jiff::tz::TimeZone);
+pub struct JiffTimeZoneRef<'a>(&'a jiff::tz::TimeZone);
 
 #[derive(Clone, Copy, Debug)]
-pub struct JiffOffset(pub jiff::tz::Offset);
+pub struct JiffOffset(jiff::tz::Offset);
 
 #[derive(Clone, Copy, Debug)]
-pub struct JiffSignedDuration(pub jiff::SignedDuration);
+pub struct JiffSignedDuration(jiff::SignedDuration);
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum JiffPyDateTime {
@@ -45,198 +45,110 @@ pub enum JiffPyDateTime {
 // ----------------------------------------------------------------------------
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, PartialOrd, Ord)]
-pub struct JiffUnit(pub(crate) jiff::Unit);
+pub struct JiffUnit(jiff::Unit);
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
-pub struct JiffRoundMode(pub(crate) jiff::RoundMode);
+pub struct JiffRoundMode(jiff::RoundMode);
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct JiffWeekday(pub(crate) jiff::civil::Weekday);
+pub struct JiffWeekday(jiff::civil::Weekday);
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct JiffEra(pub(crate) jiff::civil::Era);
+pub struct JiffEra(jiff::civil::Era);
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct JiffEraYear(pub(crate) (i16, jiff::civil::Era));
+pub struct JiffEraYear((i16, jiff::civil::Era));
 
 #[derive(Debug, Clone, Copy)]
 pub struct JiffTzDisambiguation(jiff::tz::Disambiguation);
 
 #[derive(Debug, Clone, Copy)]
-pub struct JiffTzOffsetConflict(pub jiff::tz::OffsetConflict);
+pub struct JiffTzOffsetConflict(jiff::tz::OffsetConflict);
 
-// ============================================================================
-impl From<jiff::civil::Date> for JiffDate {
-    fn from(value: jiff::civil::Date) -> Self {
-        Self(value)
-    }
+// imp the fns `inner()` ref to inner and `into_inner()` to consume and return the inner value
+macro_rules! impl_new_type_functions {
+    ($newt:ty, $inner:ty) => {
+        impl $newt {
+            #[inline]
+            pub fn new(inner: $inner) -> Self {
+                Self(inner)
+            }
+
+            #[inline]
+            pub fn inner(&self) -> &$inner {
+                &self.0
+            }
+
+            #[inline]
+            pub fn into_inner(self) -> $inner {
+                self.0
+            }
+        }
+
+        impl From<$inner> for $newt {
+            #[inline]
+            fn from(inner: $inner) -> Self {
+                Self::new(inner)
+            }
+        }
+
+        impl From<$newt> for $inner {
+            #[inline]
+            fn from(newt: $newt) -> Self {
+                newt.into_inner()
+            }
+        }
+    };
 }
 
-impl From<jiff::civil::Time> for JiffTime {
-    fn from(value: jiff::civil::Time) -> Self {
-        Self(value)
-    }
-}
+// jiff::*
+impl_new_type_functions!(JiffSignedDuration, jiff::SignedDuration);
+impl_new_type_functions!(JiffSpan, jiff::Span);
+impl_new_type_functions!(JiffTimestamp, jiff::Timestamp);
+impl_new_type_functions!(JiffUnit, jiff::Unit);
+impl_new_type_functions!(JiffRoundMode, jiff::RoundMode);
+impl_new_type_functions!(JiffZoned, jiff::Zoned);
+// jiff::civil::*
+impl_new_type_functions!(JiffDate, jiff::civil::Date);
+impl_new_type_functions!(JiffDateTime, jiff::civil::DateTime);
+impl_new_type_functions!(JiffEra, jiff::civil::Era);
+impl_new_type_functions!(JiffTime, jiff::civil::Time);
+impl_new_type_functions!(JiffWeekday, jiff::civil::Weekday);
+// jiff::tz::*
+impl_new_type_functions!(JiffOffset, jiff::tz::Offset);
+impl_new_type_functions!(JiffTimeZone, jiff::tz::TimeZone);
+impl_new_type_functions!(JiffTzDisambiguation, jiff::tz::Disambiguation);
+impl_new_type_functions!(JiffTzOffsetConflict, jiff::tz::OffsetConflict);
+// jiff-other
+impl_new_type_functions!(JiffEraYear, (i16, jiff::civil::Era));
 
-impl From<jiff::civil::DateTime> for JiffDateTime {
-    fn from(value: jiff::civil::DateTime) -> Self {
-        Self(value)
-    }
-}
+// REFS
+macro_rules! impl_new_type_ref_functions {
+    ($newt:ident, $inner:ty) => {
+        impl<'a> $newt<'a> {
+            #[inline]
+            pub fn new(inner: &'a $inner) -> Self {
+                Self(inner)
+            }
 
-impl From<jiff::Timestamp> for JiffTimestamp {
-    fn from(value: jiff::Timestamp) -> Self {
-        Self(value)
-    }
-}
+            #[inline]
+            pub fn inner(&self) -> &'a $inner {
+                self.0
+            }
+        }
 
-impl From<jiff::civil::Era> for JiffEra {
-    fn from(value: jiff::civil::Era) -> Self {
-        Self(value)
-    }
+        impl<'a> From<&'a $inner> for $newt<'a> {
+            #[inline]
+            fn from(inner: &'a $inner) -> Self {
+                Self::new(inner)
+            }
+        }
+    };
 }
-
-impl From<jiff::tz::Disambiguation> for JiffTzDisambiguation {
-    fn from(value: jiff::tz::Disambiguation) -> Self {
-        Self(value)
-    }
-}
-
-impl From<JiffTzDisambiguation> for jiff::tz::Disambiguation {
-    fn from(value: JiffTzDisambiguation) -> Self {
-        value.0
-    }
-}
-
-impl From<jiff::Zoned> for JiffZoned {
-    fn from(value: jiff::Zoned) -> Self {
-        Self(value)
-    }
-}
-
-impl<'a> From<&'a jiff::Zoned> for JiffZonedRef<'a> {
-    fn from(value: &'a jiff::Zoned) -> Self {
-        Self(value)
-    }
-}
-
-impl From<jiff::Span> for JiffSpan {
-    fn from(value: jiff::Span) -> Self {
-        Self(value)
-    }
-}
-
-impl From<jiff::tz::TimeZone> for JiffTimeZone {
-    fn from(value: jiff::tz::TimeZone) -> Self {
-        Self(value)
-    }
-}
-
-impl<'a> From<&'a jiff::tz::TimeZone> for JiffTimeZoneRef<'a> {
-    fn from(value: &'a jiff::tz::TimeZone) -> Self {
-        Self(value)
-    }
-}
-
-impl From<jiff::tz::Offset> for JiffOffset {
-    fn from(value: jiff::tz::Offset) -> Self {
-        Self(value)
-    }
-}
-
-impl From<jiff::SignedDuration> for JiffSignedDuration {
-    fn from(value: jiff::SignedDuration) -> Self {
-        Self(value)
-    }
-}
-
-impl From<jiff::Unit> for JiffUnit {
-    fn from(value: jiff::Unit) -> Self {
-        Self(value)
-    }
-}
-
-impl From<JiffRoundMode> for jiff::RoundMode {
-    fn from(value: JiffRoundMode) -> Self {
-        value.0
-    }
-}
-
-impl From<jiff::civil::Weekday> for JiffWeekday {
-    fn from(value: jiff::civil::Weekday) -> Self {
-        Self(value)
-    }
-}
-
-impl From<jiff::tz::OffsetConflict> for JiffTzOffsetConflict {
-    fn from(value: jiff::tz::OffsetConflict) -> Self {
-        Self(value)
-    }
-}
-
+impl_new_type_ref_functions!(JiffZonedRef, jiff::Zoned);
+impl_new_type_ref_functions!(JiffTimeZoneRef, jiff::tz::TimeZone);
 // ============================================================================
 
-impl From<JiffTime> for jiff::civil::Time {
-    fn from(val: JiffTime) -> Self {
-        val.0
-    }
-}
-
-impl From<JiffDateTime> for jiff::civil::DateTime {
-    fn from(val: JiffDateTime) -> Self {
-        val.0
-    }
-}
-
-impl From<JiffZoned> for jiff::Zoned {
-    fn from(val: JiffZoned) -> Self {
-        val.0
-    }
-}
-
-impl From<JiffSpan> for jiff::Span {
-    fn from(val: JiffSpan) -> Self {
-        val.0
-    }
-}
-
-impl From<JiffTimeZone> for jiff::tz::TimeZone {
-    fn from(val: JiffTimeZone) -> Self {
-        val.0
-    }
-}
-
-impl From<JiffTimeZoneRef<'_>> for jiff::tz::TimeZone {
-    fn from(val: JiffTimeZoneRef) -> Self {
-        val.0.clone()
-    }
-}
-
-impl From<JiffOffset> for jiff::tz::Offset {
-    fn from(val: JiffOffset) -> Self {
-        val.0
-    }
-}
-
-impl From<JiffSignedDuration> for jiff::SignedDuration {
-    fn from(val: JiffSignedDuration) -> Self {
-        val.0
-    }
-}
-
-impl From<JiffUnit> for jiff::Unit {
-    fn from(val: JiffUnit) -> Self {
-        val.0
-    }
-}
-
-impl From<JiffWeekday> for jiff::civil::Weekday {
-    fn from(val: JiffWeekday) -> Self {
-        val.0
-    }
-}
-
-// ============================================================================
 // JIFF UNIT
 // ============================================================================
 impl JiffUnit {
@@ -330,6 +242,14 @@ impl Deref for JiffRoundMode {
 // WEEKDAY
 // ============================================================================
 impl JiffWeekday {
+    pub const MONDAY: Self = Self(jiff::civil::Weekday::Monday);
+    pub const TUESDAY: Self = Self(jiff::civil::Weekday::Tuesday);
+    pub const WEDNESDAY: Self = Self(jiff::civil::Weekday::Wednesday);
+    pub const THURSDAY: Self = Self(jiff::civil::Weekday::Thursday);
+    pub const FRIDAY: Self = Self(jiff::civil::Weekday::Friday);
+    pub const SATURDAY: Self = Self(jiff::civil::Weekday::Saturday);
+    pub const SUNDAY: Self = Self(jiff::civil::Weekday::Sunday);
+
     fn static_str(self) -> &'static str {
         match self.0 {
             jiff::civil::Weekday::Monday => "monday",
@@ -347,4 +267,32 @@ impl Display for JiffWeekday {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.static_str())
     }
+}
+// ============================================================================
+// ERA
+// ============================================================================
+impl JiffEra {
+    pub const BCE: Self = Self(jiff::civil::Era::BCE);
+    pub const CE: Self = Self(jiff::civil::Era::CE);
+}
+
+// ============================================================================
+// TZ DISAMBIGUATION
+// ============================================================================
+impl JiffTzDisambiguation {
+    pub const COMPATIBLE: Self = Self(jiff::tz::Disambiguation::Compatible);
+    pub const EARLIER: Self = Self(jiff::tz::Disambiguation::Earlier);
+    pub const LATER: Self = Self(jiff::tz::Disambiguation::Later);
+    pub const REJECT: Self = Self(jiff::tz::Disambiguation::Reject);
+}
+
+// ============================================================================
+// TZ OFFSET CONFLICT
+// ============================================================================
+
+impl JiffTzOffsetConflict {
+    pub const ALWAYS_OFFSET: Self = Self(jiff::tz::OffsetConflict::AlwaysOffset);
+    pub const ALWAYS_TIME_ZONE: Self = Self(jiff::tz::OffsetConflict::AlwaysTimeZone);
+    pub const PREFER_OFFSET: Self = Self(jiff::tz::OffsetConflict::PreferOffset);
+    pub const REJECT: Self = Self(jiff::tz::OffsetConflict::Reject);
 }

@@ -123,7 +123,7 @@ impl RyTimestamp {
 
     #[staticmethod]
     fn from_pydatetime(datetime: JiffTimestamp) -> Self {
-        Self(datetime.0)
+        Self::from(datetime)
     }
 
     #[expect(clippy::wrong_self_convention)]
@@ -480,9 +480,9 @@ impl RyTimestamp {
     )]
     fn round(&self, smallest: JiffUnit, mode: JiffRoundMode, increment: i64) -> PyResult<Self> {
         let ts_round = TimestampRound::new()
-            .smallest(smallest.0)
+            .smallest(smallest.into())
             .increment(increment)
-            .mode(mode.0);
+            .mode(mode.into());
         self.0
             .round(ts_round)
             .map(Self::from)
@@ -526,7 +526,7 @@ impl RyTimestamp {
                 .map(Self::from)?
                 .into_pyobject(py)
         } else if let Ok(ts) = value.extract::<JiffTimestamp>() {
-            Self::from(ts.0).into_pyobject(py)
+            Self::from(ts).into_pyobject(py)
         } else {
             let valtype = any_repr!(value);
             py_type_err!("Timestamp conversion error: {valtype}")

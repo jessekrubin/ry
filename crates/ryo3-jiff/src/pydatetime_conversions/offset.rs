@@ -22,9 +22,7 @@ impl<'py> IntoPyObject<'py> for &JiffOffset {
     type Error = PyErr;
 
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
-        let tz = self.0.to_time_zone();
-        let tz = JiffTimeZone(tz);
-        tz.into_pyobject(py)
+        JiffTimeZone::from(self.inner().to_time_zone()).into_pyobject(py)
     }
 }
 
@@ -49,7 +47,8 @@ impl<'py> FromPyObject<'_, 'py> for JiffOffset {
         }
         let total_seconds: JiffSignedDuration = py_timedelta.extract()?;
 
-        let total_seconds = i32::try_from(total_seconds.0.as_secs()).map_err(map_py_value_err)?;
+        let total_seconds =
+            i32::try_from(total_seconds.into_inner().as_secs()).map_err(map_py_value_err)?;
         Offset::from_seconds(total_seconds)
             .map(Self::from)
             .map_err(map_py_value_err)

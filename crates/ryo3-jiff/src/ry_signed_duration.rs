@@ -780,8 +780,8 @@ impl RySignedDuration {
     )]
     fn round(&self, smallest: JiffUnit, mode: JiffRoundMode, increment: i64) -> PyResult<Self> {
         let dt_round = SignedDurationRound::new()
-            .smallest(smallest.0)
-            .mode(mode.0)
+            .smallest(smallest.into())
+            .mode(mode.into())
             .increment(increment);
         self.0
             .round(dt_round)

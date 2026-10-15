@@ -62,7 +62,7 @@ impl<'py> IntoPyObject<'py> for JiffSignedDuration {
     type Error = PyErr;
 
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
-        signed_duration_to_pydelta(py, &self.0)
+        signed_duration_to_pydelta(py, self.inner())
     }
 }
 
@@ -73,7 +73,7 @@ impl<'py> IntoPyObject<'py> for &JiffSignedDuration {
 
     #[inline]
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
-        signed_duration_to_pydelta(py, &self.0)
+        signed_duration_to_pydelta(py, self.inner())
     }
 }
 
@@ -81,6 +81,6 @@ impl<'py> FromPyObject<'_, 'py> for JiffSignedDuration {
     type Error = PyErr;
     fn extract(obj: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
         let delta = obj.cast::<PyDelta>()?;
-        pydelta_to_signed_duration(&delta).map(Self)
+        pydelta_to_signed_duration(&delta).map(Self::from)
     }
 }

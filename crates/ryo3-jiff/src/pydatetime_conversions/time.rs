@@ -49,7 +49,7 @@ impl<'py> IntoPyObject<'py> for JiffTime {
     type Error = PyErr;
 
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
-        time_to_pytime(py, &self.0)
+        time_to_pytime(py, self.inner())
     }
 }
 
@@ -60,7 +60,7 @@ impl<'py> IntoPyObject<'py> for &JiffTime {
 
     #[inline]
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
-        time_to_pytime(py, &self.0)
+        time_to_pytime(py, self.inner())
     }
 }
 

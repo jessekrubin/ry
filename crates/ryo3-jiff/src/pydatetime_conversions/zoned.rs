@@ -64,7 +64,7 @@ pub fn pydatetime_to_zoned(dt: &Bound<'_, PyDateTime>) -> PyResult<Zoned> {
     }
     let zoned = tzinfo
         .extract::<JiffTimeZone>()?
-        .0
+        .into_inner()
         .into_ambiguous_zoned(datetime);
     #[cfg(not(Py_LIMITED_API))]
     let fold = dt.get_fold();
@@ -89,8 +89,7 @@ impl<'py> IntoPyObject<'py> for &JiffZonedRef<'_> {
     type Error = PyErr;
 
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
-        let z = &self.0;
-        zoned_to_pydatetime(py, z)
+        zoned_to_pydatetime(py, self.inner())
     }
 }
 
@@ -111,8 +110,7 @@ impl<'py> IntoPyObject<'py> for &JiffZoned {
     type Error = PyErr;
 
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
-        let z = &self.0;
-        zoned_to_pydatetime(py, z)
+        zoned_to_pydatetime(py, self.inner())
     }
 }
 

@@ -14,7 +14,7 @@ impl<'py> IntoPyObject<'py> for &JiffEraYear {
     type Error = PyErr;
 
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
-        let (y, e) = self.0;
+        let (y, e) = self.into_inner();
         let era_str_pyobj = match e {
             Era::BCE => crate::interns::bce(py),
             Era::CE => crate::interns::ce(py),

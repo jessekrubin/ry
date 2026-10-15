@@ -294,8 +294,7 @@ impl RySpan {
 
     #[expect(clippy::wrong_self_convention)]
     fn to_pytimedelta<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDelta>> {
-        let jiff_span = JiffSpan(self.0);
-        jiff_span.into_pyobject(py)
+        JiffSpan::from(self.0).into_pyobject(py)
     }
 
     // <UNIFORM>
@@ -829,10 +828,10 @@ impl RySpan {
         if let Some(relative) = relative {
             let mut span_round: SpanRound = SpanRound::new()
                 .increment(increment)
-                .smallest(smallest.0)
-                .mode(mode.0);
+                .smallest(smallest.into())
+                .mode(mode.into());
             if let Some(largest) = largest {
-                span_round = span_round.largest(largest.0);
+                span_round = span_round.largest(largest.into());
             }
             let rel = jiff::SpanRelativeTo::from(&relative);
             span_round = span_round.relative(rel);
@@ -843,11 +842,11 @@ impl RySpan {
         } else if days_are_24_hours {
             let mut span_round: SpanRound = SpanRound::new()
                 .increment(increment)
-                .smallest(smallest.0)
-                .mode(mode.0)
+                .smallest(smallest.into())
+                .mode(mode.into())
                 .relative(SpanRelativeTo::days_are_24_hours());
             if let Some(largest) = largest {
-                span_round = span_round.largest(largest.0);
+                span_round = span_round.largest(largest.into());
             }
             self.0
                 .round(span_round)
@@ -856,10 +855,10 @@ impl RySpan {
         } else {
             let mut span_round: SpanRound = SpanRound::new()
                 .increment(increment)
-                .smallest(smallest.0)
-                .mode(mode.0);
+                .smallest(smallest.into())
+                .mode(mode.into());
             if let Some(largest) = largest {
-                span_round = span_round.largest(largest.0);
+                span_round = span_round.largest(largest.into());
             }
             self.0
                 .round(span_round)
@@ -899,18 +898,18 @@ impl RySpan {
             let relative_to: jiff::SpanRelativeTo = (&r).into();
             let r = self
                 .0
-                .total((unit.0, relative_to))
+                .total((unit.into_inner(), relative_to))
                 .map_err(map_py_value_err)?;
             Ok(r)
         } else if days_are_24_hours {
             let span_total = SpanRelativeTo::days_are_24_hours();
             let a = self
                 .0
-                .total((unit.0, span_total))
+                .total((unit.into_inner(), span_total))
                 .map_err(map_py_value_err)?;
             Ok(a)
         } else {
-            Ok(self.0.total(unit.0).map_err(map_py_value_err)?)
+            Ok(self.0.total(unit.into_inner()).map_err(map_py_value_err)?)
         }
     }
 

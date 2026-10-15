@@ -57,7 +57,7 @@ impl<'py> IntoPyObject<'py> for &JiffDate {
     type Error = PyErr;
 
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
-        date_to_pydate(py, &self.0)
+        date_to_pydate(py, self.inner())
     }
 }
 
