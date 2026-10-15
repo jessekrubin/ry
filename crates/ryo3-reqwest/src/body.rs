@@ -442,8 +442,7 @@ impl RyRequestBodyPump {
         self.close();
     }
 
-    /// tell the gc what the pump owns (not `src` ~ shared w/ the rust side)
-    #[expect(clippy::needless_pass_by_value)]
+    /// pyo3 cleanup/gc
     fn __traverse__(&self, visit: pyo3::PyVisit<'_>) -> Result<(), pyo3::PyTraverseError> {
         if let Some(awaiting) = &self.awaiting {
             visit.call(awaiting.await_iter())?;
