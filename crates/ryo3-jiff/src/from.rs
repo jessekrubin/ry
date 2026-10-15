@@ -159,11 +159,6 @@ impl_from_jiff_newt_for_ry!(JiffSpan, RySpan);
 impl_from_jiff_newt_for_ry!(JiffOffset, RyOffset);
 impl_from_jiff_newt_for_ry!(JiffSignedDuration, RySignedDuration);
 impl_from_jiff_newt_for_ry!(JiffTimeZone, RyTimeZone);
-// impl From<JiffSignedDuration> for RySignedDuration {
-//     fn from(d: JiffSignedDuration) -> Self {
-//         Self(d.0)
-//     }
-// }
 
 impl From<jiff::civil::Date> for RyISOWeekDate {
     fn from(date: jiff::civil::Date) -> Self {
@@ -183,12 +178,6 @@ impl From<&RyTimeZone> for TimeZone {
         value.0.clone()
     }
 }
-
-// impl From<JiffOffset> for RyOffset {
-//     fn from(value: JiffOffset) -> Self {
-//         Self::from(value.0)
-//     }
-// }
 
 impl TryFrom<SignedDuration> for RySpan {
     type Error = pyo3::PyErr;

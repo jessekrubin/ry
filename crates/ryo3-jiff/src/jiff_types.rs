@@ -1,6 +1,16 @@
-use std::fmt::Display;
-use std::ops::Deref;
+//! jiff-new-types
+//!
+//! new type wrappers for the jiff types; this is how things get extracted
+//! from the jiff library...
+//!
+//! Why not use the `pyo3/jiff` feature?
+//!
+//! - i have found a few bugs (which I plan to PR into pyo3)
+//! - the ry jiff conversions actually predate the `pyo3/jiff` feature, however
+//!   they have been influenced by the official pyo3 code
+//!
 
+// NEWTS
 #[derive(Debug, Clone, Copy)]
 pub struct JiffDate(jiff::civil::Date);
 
@@ -16,17 +26,11 @@ pub struct JiffTimestamp(jiff::Timestamp);
 #[derive(Debug, Clone)]
 pub struct JiffZoned(jiff::Zoned);
 
-#[derive(Debug, Clone)]
-pub struct JiffZonedRef<'a>(&'a jiff::Zoned);
-
 #[derive(Debug, Clone, Copy)]
 pub struct JiffSpan(jiff::Span);
 
 #[derive(Clone, Eq, PartialEq)]
 pub struct JiffTimeZone(jiff::tz::TimeZone);
-
-#[derive(Clone, Eq, PartialEq)]
-pub struct JiffTimeZoneRef<'a>(&'a jiff::tz::TimeZone);
 
 #[derive(Clone, Copy, Debug)]
 pub struct JiffOffset(jiff::tz::Offset);
@@ -34,11 +38,12 @@ pub struct JiffOffset(jiff::tz::Offset);
 #[derive(Clone, Copy, Debug)]
 pub struct JiffSignedDuration(jiff::SignedDuration);
 
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum JiffPyDateTime {
-    Aware(jiff::Zoned),
-    Naive(jiff::civil::DateTime),
-}
+// REF NEWTS
+#[derive(Clone, Eq, PartialEq)]
+pub struct JiffTimeZoneRef<'a>(&'a jiff::tz::TimeZone);
+
+#[derive(Debug, Clone)]
+pub struct JiffZonedRef<'a>(&'a jiff::Zoned);
 
 // ----------------------------------------------------------------------------
 // ENUMS ~ ENUMS ~ ENUMS ~ ENUMS ~ ENUMS ~ ENUMS ~ ENUMS ~ ENUMS ~ ENUMS
@@ -65,17 +70,30 @@ pub struct JiffTzDisambiguation(jiff::tz::Disambiguation);
 #[derive(Debug, Clone, Copy)]
 pub struct JiffTzOffsetConflict(jiff::tz::OffsetConflict);
 
+/// datetime extractor for `datetime.datetime` obs
+///
+/// primarily used for extracting naive or aware datetimes
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum JiffPyDateTime {
+    Aware(jiff::Zoned),
+    Naive(jiff::civil::DateTime),
+}
+
+// ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+
 // imp the fns `inner()` ref to inner and `into_inner()` to consume and return the inner value
 macro_rules! impl_new_type_functions {
     ($newt:ty, $inner:ty) => {
         impl $newt {
             #[inline]
-            pub fn new(inner: $inner) -> Self {
+            pub const fn new(inner: $inner) -> Self {
                 Self(inner)
             }
 
             #[inline]
-            pub fn inner(&self) -> &$inner {
+            pub const fn inner(&self) -> &$inner {
                 &self.0
             }
 
@@ -127,12 +145,12 @@ macro_rules! impl_new_type_ref_functions {
     ($newt:ident, $inner:ty) => {
         impl<'a> $newt<'a> {
             #[inline]
-            pub fn new(inner: &'a $inner) -> Self {
+            pub const fn new(inner: &'a $inner) -> Self {
                 Self(inner)
             }
 
             #[inline]
-            pub fn inner(&self) -> &'a $inner {
+            pub const fn inner(&self) -> &'a $inner {
                 self.0
             }
         }
@@ -180,19 +198,12 @@ impl JiffUnit {
     }
 }
 
-impl Display for JiffUnit {
+impl std::fmt::Display for JiffUnit {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.static_str())
     }
 }
 
-impl Deref for JiffUnit {
-    type Target = jiff::Unit;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
 // ============================================================================
 // ROUND MODE
 // ============================================================================
@@ -223,18 +234,10 @@ impl JiffRoundMode {
     }
 }
 
-impl Display for JiffRoundMode {
+impl std::fmt::Display for JiffRoundMode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let s = self.static_str();
         write!(f, "{s}")
-    }
-}
-
-impl Deref for JiffRoundMode {
-    type Target = jiff::RoundMode;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
     }
 }
 
@@ -263,7 +266,7 @@ impl JiffWeekday {
     }
 }
 
-impl Display for JiffWeekday {
+impl std::fmt::Display for JiffWeekday {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.static_str())
     }
