@@ -41,6 +41,8 @@
       as opposed to erroring
     - `Bytes * n` / `n * Bytes` where `n` is too big may raise `OverflowError`
       or `MemoryError` instead of panicking/aborting
+  - `b"" in Bytes(...)` returns `True` (was a panic); `__contains__` uses the
+    same substring search as `find`/`index`
 - `ryo3-reqwest`
   - async iterable request stream bodies are pumped by a faux py "coroutine"
     that forwards the iterator's awaitables (no task per chunk(!!!))

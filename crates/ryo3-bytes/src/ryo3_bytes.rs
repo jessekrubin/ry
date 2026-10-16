@@ -289,9 +289,7 @@ impl RyBytes {
     }
 
     fn __contains__(&self, item: ReadableBuffer) -> bool {
-        self.0
-            .windows(item.len())
-            .any(|window| window == item.as_ref())
+        search::find_subslice(self.as_slice(), item.as_ref()).is_some()
     }
 
     fn __eq__(&self, other: ReadableBuffer) -> bool {

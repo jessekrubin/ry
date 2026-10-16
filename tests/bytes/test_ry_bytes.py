@@ -768,6 +768,17 @@ class TestBytesFindAndIndex:
             getattr(ry.Bytes(b"abc"), fnname)(sub=b"a")
 
 
+class TestBytesContains:
+    @pytest.mark.parametrize("haystack", [b"", b"a", b"abc"])
+    @pytest.mark.parametrize("needle", [b"", bytearray(), memoryview(b"")])
+    def test_contains_empty(self, needle: bytes, haystack: bytes) -> None:
+        assert (needle in ry.Bytes(haystack)) is True
+
+    @given(st.binary(max_size=16), st.binary(max_size=64))
+    def test_contains_matches_python(self, needle: bytes, haystack: bytes) -> None:
+        assert (needle in ry.Bytes(haystack)) == (needle in haystack)
+
+
 class TestBytesPartition:
     @given(
         b=st.binary(),
