@@ -12,16 +12,16 @@ license.workspace = true
 repository.workspace = true
 description = "python + lz4rip (https://crates.io/crates/lz4rip)"
 
-[dependencies]
-lz4rip = { workspace = true, features = ["frame"] }
-pyo3.workspace = true
-ryo3-core.workspace = true
-ryo3-bytes.workspace = true
-
 [features]
 default = ["frame"]
 frame = ["lz4rip/frame"]
 ry = ["frame"]
+
+[dependencies]
+lz4rip = { workspace = true, features = ["frame"] }
+pyo3.workspace = true
+ryo3-bytes.workspace = true
+ryo3-core.workspace = true
 
 [lints]
 workspace = true

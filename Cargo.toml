@@ -12,89 +12,6 @@ license.workspace = true
 repository.workspace = true
 description = "ry == rust | python"
 
-[lints]
-workspace = true
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-[lib]
-name = "ry"
-crate-type = ["cdylib", "rlib"]
-
-[dependencies]
-mimalloc = { workspace = true, optional = true }
-pyo3 = { workspace = true, features = [] }
-ryo3 = { workspace = true, features = ["ry"] }
-tracing = { workspace = true }
-tracing-log = { workspace = true }
-tracing-subscriber = { workspace = true }
-
-[features]
-# default = ["aws-lc-rs"]
-default = ["aws-lc-rs", "experimental-async"]
-mimalloc = ["dep:mimalloc"]
-experimental-async = ["pyo3/experimental-async", "ryo3/experimental-async"]
-ring = ["ryo3/ring"]
-aws-lc-rs = ["ryo3/aws-lc-rs"]
-# tracing  = ["dep:tracing", "dep:tracing-log", "dep:tracing-subscriber"]
-
-[build-dependencies]
-pyo3-build-config.workspace = true
-jiff.workspace = true
-
-[profile.dev]
-opt-level = 0
-strip = true
-
-[profile.release]
-opt-level = 3
-codegen-units = 1
-incremental = false
-strip = true
-debug = false
-panic = "abort"
-# __FAT_VS_THIN_LTO__?
-# tbd if this ought to be fat or thin, on one hand, 'thin' compiles MUCH faster
-# but on the other hand, I am an american...
-# there does not seem to be a noticeable difference in the performance tho
-# at the time of writing this (2024-12-20) the `fat` binary is 12.5mb and
-# the `thin` binary is 12.6mb (who's thin now!?).
-# lto = "thin" # or "fat"
-lto = "fat"
-
-[profile.release-thin]
-inherits = "release"
-opt-level = 3
-codegen-units = 1
-strip = true
-panic = "abort"
-lto = "thin"
-
-# fast build: skips debug info gen and simple opts (ty uv for idea)
-[profile.fast-build]
-inherits = "dev"
-opt-level = 1
-debug = 0
-strip = "debuginfo"
-
-[profile.bench]
-inherits = "release"
-lto = "fat"
-
-[workspace.package]
-version = "0.0.103"
-authors = [
-  "jesse k. rubin <jessekrubin@gmail.com>",
-  # hopefully you will contribute!
-]
-categories = ["api-bindings"]
-documentation = "https://github.com/jessekrubin/ry"
-edition = "2024"
-rust-version = "1.95"
-homepage = "https://github.com/jessekrubin/ry"
-keywords = ["python", "pyo3", "ryo3"]
-license = "MIT OR Apache-2.0"
-repository = "https://github.com/jessekrubin/ry"
-
 [workspace]
 resolver = "3"
 members = [
@@ -145,6 +62,21 @@ members = [
   "crates/ryo3-which",
   "crates/ryo3-zstd",
 ]
+
+[workspace.package]
+version = "0.0.103"
+authors = [
+  # hopefully you will contribute!
+  "jesse k. rubin <jessekrubin@gmail.com>",
+]
+categories = ["api-bindings"]
+documentation = "https://github.com/jessekrubin/ry"
+edition = "2024"
+rust-version = "1.95"
+homepage = "https://github.com/jessekrubin/ry"
+keywords = ["python", "pyo3", "ryo3"]
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/jessekrubin/ry"
 
 [workspace.dependencies]
 # ======
@@ -236,8 +168,8 @@ heck = { version = "0.5.0", default-features = false }
 http = { version = "1.4", default-features = false, features = ["std"] }
 http-body-util = { version = "0.1.3", default-features = false, features = [] }
 ignore = { version = "0.4.24", default-features = false, features = [] }
-itoap = { version = "1.0.1", default-features = false , features = ["std", "simd"]}
 itoa = { version = "1.0", default-features = false }
+itoap = { version = "1.0.1", default-features = false, features = ["std", "simd"] }
 jiff = { version = "0.2.38", default-features = false, features = [
   "default",
   "perf-inline",
@@ -344,6 +276,74 @@ literal_string_with_formatting_args = "warn"
 # redundant_pub_crate = "allow"
 # significant_drop_in_scrutinee = "allow"
 # significant_drop_tightening = "warn"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[lib]
+name = "ry"
+crate-type = ["cdylib", "rlib"]
+
+[features]
+# default = ["aws-lc-rs"]
+default = ["aws-lc-rs", "experimental-async"]
+mimalloc = ["dep:mimalloc"]
+experimental-async = ["pyo3/experimental-async", "ryo3/experimental-async"]
+ring = ["ryo3/ring"]
+aws-lc-rs = ["ryo3/aws-lc-rs"]
+# tracing  = ["dep:tracing", "dep:tracing-log", "dep:tracing-subscriber"]
+
+[dependencies]
+mimalloc = { workspace = true, optional = true }
+pyo3 = { workspace = true, features = [] }
+ryo3 = { workspace = true, features = ["ry"] }
+tracing = { workspace = true }
+tracing-log = { workspace = true }
+tracing-subscriber = { workspace = true }
+
+[build-dependencies]
+jiff.workspace = true
+pyo3-build-config.workspace = true
+
+[lints]
+workspace = true
+
+[profile.dev]
+opt-level = 0
+strip = true
+
+[profile.release]
+opt-level = 3
+codegen-units = 1
+incremental = false
+strip = true
+debug = false
+panic = "abort"
+# __FAT_VS_THIN_LTO__?
+# tbd if this ought to be fat or thin, on one hand, 'thin' compiles MUCH faster
+# but on the other hand, I am an american...
+# there does not seem to be a noticeable difference in the performance tho
+# at the time of writing this (2024-12-20) the `fat` binary is 12.5mb and
+# the `thin` binary is 12.6mb (who's thin now!?).
+# lto = "thin" # or "fat"
+lto = "fat"
+
+[profile.release-thin]
+inherits = "release"
+opt-level = 3
+codegen-units = 1
+strip = true
+panic = "abort"
+lto = "thin"
+
+# fast build: skips debug info gen and simple opts (ty uv for idea)
+[profile.fast-build]
+inherits = "dev"
+opt-level = 1
+debug = 0
+strip = "debuginfo"
+
+[profile.bench]
+inherits = "release"
+lto = "fat"
 
 [patch.crates-io]
 # pyo3 = { git = "https://github.com/pyo3/pyo3.git" }

@@ -12,20 +12,25 @@ license.workspace = true
 repository.workspace = true
 description = "json ~ rust-python-json"
 
-[dependencies]
-pyo3 = { workspace = true, features = [] }
-ryo3-bytes = { workspace = true }
-ryo3-core = { workspace = true }
-jiter = { workspace = true, features = ["serde"] }
-ryo3-jiter = { workspace = true }
-ryo3-serde = { workspace = true }
-ryo3-json-ser = { workspace = true }
-serde-transcode = { workspace = true }
-serde_core = { workspace = true }
-
 [features]
 default = []
 ry = []
+
+[dependencies]
+# pyo3
+pyo3 = { workspace = true, features = [] }
+
+# ryo3
+ryo3-bytes = { workspace = true }
+ryo3-core = { workspace = true }
+ryo3-jiter = { workspace = true }
+ryo3-json-ser = { workspace = true }
+ryo3-serde = { workspace = true }
+
+# external
+jiter = { workspace = true, features = ["serde"] }
+serde-transcode = { workspace = true }
+serde_core = { workspace = true }
 
 [lints]
 workspace = true

@@ -12,6 +12,12 @@ license.workspace = true
 repository.workspace = true
 description = "python + ulid crate (https://crates.io/crates/ulid)"
 
+[features]
+default = []
+ry = ["serde", "pydantic"]
+pydantic = ["ryo3-pydantic"]
+serde = ["dep:serde", "ulid/serde"]
+
 [dependencies]
 pyo3 = { workspace = true, features = [] }
 ryo3-core.workspace = true
@@ -20,18 +26,6 @@ ryo3-uuid.workspace = true
 serde = { workspace = true, optional = true, features = ["derive"] }
 ulid.workspace = true
 uuid.workspace = true
-
-[features]
-default = []
-ry = [
-  "serde",
-  "pydantic",
-]
-pydantic = ["ryo3-pydantic"]
-serde = [
-  "dep:serde",
-  "ulid/serde",
-]
 
 [lints]
 workspace = true

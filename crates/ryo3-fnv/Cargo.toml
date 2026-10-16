@@ -12,14 +12,14 @@ license.workspace = true
 repository.workspace = true
 description = "python + fnv (https://github.com/servo/rust-fnv)"
 
+[features]
+default = []
+ry = []
+
 [dependencies]
 pyo3 = { workspace = true, features = [] }
 ryo3-bytes.workspace = true
 ryo3-core.workspace = true
-
-[features]
-default = []
-ry = []
 
 [lints]
 workspace = true

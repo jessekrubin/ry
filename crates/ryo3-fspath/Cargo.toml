@@ -12,6 +12,14 @@ license.workspace = true
 repository.workspace = true
 description = "python + `std::fs::Path(Buf)`"
 
+[features]
+default = []
+ry = ["pydantic", "same-file", "which", "which-regex"]
+pydantic = ["dep:ryo3-pydantic"]
+same-file = ["dep:same-file"]
+which = ["ryo3-which"]
+which-regex = ["ryo3-which/regex"]
+
 [dependencies]
 pyo3 = { workspace = true, features = [] }
 ryo3-bytes.workspace = true
@@ -25,15 +33,3 @@ same-file = { workspace = true, optional = true }
 
 [lints]
 workspace = true
-
-[features]
-default = []
-ry = ["pydantic", "same-file", "which", "which-regex"]
-pydantic = ["dep:ryo3-pydantic"]
-same-file = ["dep:same-file"]
-which = [
-  "ryo3-which",
-]
-which-regex = [
-  "ryo3-which/regex",
-]

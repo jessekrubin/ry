@@ -12,13 +12,13 @@ license.workspace = true
 repository.workspace = true
 description = "python + size crate (https://crates.io/crates/size)"
 
+[features]
+ry = []
+
 [dependencies]
 pyo3 = { workspace = true, features = [] }
 ryo3-core.workspace = true
 size = { workspace = true, features = ["std"] }
-
-[features]
-ry = []
 
 [lints]
 workspace = true

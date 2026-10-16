@@ -12,15 +12,6 @@ license.workspace = true
 repository.workspace = true
 description = "python + twox-hash (https://docs.rs/twox-hash/latest/twox_hash/)"
 
-[dependencies]
-pyo3 = { workspace = true, features = [] }
-ryo3-bytes = { workspace = true, optional = true }
-ryo3-core = { workspace = true, optional = true }
-twox-hash = { workspace = true, features = ["alloc", "std"], optional = true }
-
-[lints]
-workspace = true
-
 [features]
 default = ["random", "xxhash32", "xxhash64", "xxhash3_64", "xxhash3_128"]
 ry = ["default"]
@@ -32,3 +23,12 @@ xxhash32 = ["twox-hash/xxhash32", "dep:ryo3-bytes", "dep:ryo3-core"]
 xxhash3_128 = ["twox-hash/xxhash3_128", "dep:ryo3-bytes", "dep:ryo3-core"]
 xxhash3_64 = ["twox-hash/xxhash3_64", "dep:ryo3-bytes", "dep:ryo3-core"]
 xxhash64 = ["twox-hash/xxhash64", "dep:ryo3-bytes", "dep:ryo3-core"]
+
+[dependencies]
+pyo3 = { workspace = true, features = [] }
+ryo3-bytes = { workspace = true, optional = true }
+ryo3-core = { workspace = true, optional = true }
+twox-hash = { workspace = true, features = ["alloc", "std"], optional = true }
+
+[lints]
+workspace = true

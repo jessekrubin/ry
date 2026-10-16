@@ -12,6 +12,13 @@ license.workspace = true
 repository.workspace = true
 description = "python + http (https://docs.rs/http/latest/http/)"
 
+[features]
+default = []
+ry = ["serde", "json", "pydantic"]
+serde = ["dep:serde"]
+json = ["serde", "dep:serde_json"]
+pydantic = ["dep:ryo3-pydantic"]
+
 [dependencies]
 http.workspace = true
 pyo3 = { workspace = true, features = [] }
@@ -25,14 +32,3 @@ pyo3-build-config = { workspace = true }
 
 [lints]
 workspace = true
-
-[features]
-default = []
-ry = [
-  "serde",
-  "json",
-  "pydantic",
-]
-serde = ["dep:serde"]
-json = ["serde", "serde_json"]
-pydantic = ["dep:ryo3-pydantic"]

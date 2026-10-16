@@ -12,6 +12,12 @@ license.workspace = true
 repository.workspace = true
 description = "ryo3 + jiff https://github.com/BurntSushi/jiff"
 
+[features]
+default = []
+ry = ["serde", "pydantic"]
+pydantic = ["ryo3-pydantic"]
+serde = ["dep:serde", "jiff/serde"]
+
 [dependencies]
 jiff = { workspace = true, features = ["default", "perf-inline"] }
 pyo3 = { workspace = true, features = [] }
@@ -27,12 +33,6 @@ serde_json.workspace = true
 
 [build-dependencies]
 pyo3-build-config = { workspace = true }
-
-[features]
-default = []
-ry = ["serde", "pydantic"]
-pydantic = ["ryo3-pydantic"]
-serde = ["dep:serde", "jiff/serde"]
 
 [lints]
 workspace = true

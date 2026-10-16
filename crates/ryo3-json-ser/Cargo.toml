@@ -15,6 +15,10 @@ description = "json serializer (serde) ~ no pyo3"
 [lib]
 bench = false
 
+[[bench]]
+name = "escape"
+harness = false
+
 [dependencies]
 itoap = { workspace = true }
 serde_core = { workspace = true }
@@ -23,10 +27,6 @@ zmij = { workspace = true }
 [dev-dependencies]
 criterion = { workspace = true }
 serde_json = { workspace = true }
-
-[[bench]]
-name = "escape"
-harness = false
 
 [lints]
 workspace = true

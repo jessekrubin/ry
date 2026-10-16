@@ -12,15 +12,15 @@ license.workspace = true
 repository.workspace = true
 description = "ryo3 + bytes (https://docs.rs/bytes/latest/bytes/)"
 
-[dependencies]
-bytes = { workspace = true }
-memchr = { workspace = true, optional = true }
-pyo3 = { workspace = true, features = [] }
-
 [features]
 default = ["memchr"]
 ry = ["memchr"]
 memchr = ["dep:memchr"]
+
+[dependencies]
+bytes = { workspace = true }
+memchr = { workspace = true, optional = true }
+pyo3 = { workspace = true, features = [] }
 
 [lints]
 workspace = true

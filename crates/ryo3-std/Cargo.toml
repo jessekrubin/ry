@@ -12,6 +12,19 @@ license.workspace = true
 repository.workspace = true
 description = "rust-std python wrappers"
 
+[features]
+default = []
+pydantic = ["ryo3-pydantic", "serde", "jiff"]
+ry = ["serde", "jiff", "time", "net", "fs", "process", "pydantic"]
+time = ["dep:ryo3-core", "dep:ryo3-macro-rules"]
+net = ["dep:ryo3-core", "dep:ryo3-macro-rules"]
+fs = ["dep:bytes", "dep:ryo3-bytes", "dep:ryo3-core", "dep:ryo3-macro-rules"]
+process = []
+
+# dep features
+jiff = ["dep:jiff"]
+serde = ["dep:serde", "jiff?/serde"]
+
 [dependencies]
 bytes = { workspace = true, optional = true }
 jiff = { workspace = true, optional = true }
@@ -21,30 +34,6 @@ ryo3-core = { workspace = true, optional = true }
 ryo3-macro-rules = { workspace = true, optional = true }
 ryo3-pydantic = { workspace = true, optional = true }
 serde = { workspace = true, features = ["derive"], optional = true }
-
-[features]
-default = []
-pydantic = ["ryo3-pydantic", "serde", "jiff"]
-ry = [
-  "serde",
-  "jiff",
-  "time",
-  "net",
-  "fs",
-  "process",
-  "pydantic",
-]
-time = [ "dep:ryo3-core", "dep:ryo3-macro-rules" ]
-net = [ "dep:ryo3-core", "dep:ryo3-macro-rules" ]
-fs = [ "dep:bytes", "dep:ryo3-bytes", "dep:ryo3-core", "dep:ryo3-macro-rules" ]
-process = []
-
-# dep features
-jiff = ["dep:jiff"]
-serde = [
-  "dep:serde",
-  "jiff?/serde",
-]
 
 [lints]
 workspace = true
