@@ -51,6 +51,20 @@ def test_read_stream_str(tmp_path: Path, *, buffered: bool) -> None:
     assert len(restante) == 386
 
 
+@pytest.mark.parametrize("buffered", [True, False])
+def test_read_stream_huge_read_size_and_take(tmp_path: Path, *, buffered: bool) -> None:
+    p = tmp_path / "test.txt"
+    string_bytes = "\n".join([str(i) for i in range(1000)]).encode()
+    p.write_bytes(string_bytes)
+
+    chunks = list(ry.read_stream(p, read_size=2**62, buffered=buffered))
+    assert chunks == [string_bytes]
+
+    taken = ry.read_stream(p, read_size=10, buffered=buffered).take(2**62)
+    assert b"".join(taken) == string_bytes
+    assert len(taken) == len(string_bytes) // 10 + 1
+
+
 def test_read_stream_file_not_found(tmp_path: Path) -> None:
     """Test that reading a file in chunks works w/ and w/o offset."""
     ry.cd(tmp_path)

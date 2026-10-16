@@ -2,27 +2,24 @@ use std::fs::File;
 use std::io::{self, BufReader, Read, Seek, SeekFrom};
 use std::path::{Path, PathBuf};
 
-use bytes::{Bytes, BytesMut};
+use bytes::Bytes;
 use pyo3::prelude::*;
 use ryo3_bytes::RyBytes;
 use ryo3_core::sync::RyMutex;
 use ryo3_macro_rules::py_value_err;
 
 pub(crate) const DEFAULT_READ_SIZE: usize = 65536;
+/// max up-front alloc per buf; bigger `read_size` will grow w/ data
+const MAX_BUFFER_PREALLOC_SIZE: usize = 8 * 1024 * 1024;
 
 pub(crate) struct FileReadStream<T: Read + Seek> {
     file: T,
     read_size: usize,
-    buffer: BytesMut,
 }
 
 impl<T: Read + Seek> FileReadStream<T> {
     pub(crate) fn new(file: T, read_size: usize) -> Self {
-        Self {
-            file,
-            read_size,
-            buffer: BytesMut::with_capacity(read_size),
-        }
+        Self { file, read_size }
     }
 }
 
@@ -36,7 +33,10 @@ impl FileReadStream<File> {
 impl FileReadStream<BufReader<File>> {
     fn from_path_buffered<P: AsRef<Path>>(path: P, read_size: usize) -> io::Result<Self> {
         let file = File::open(path)?;
-        let reader = BufReader::with_capacity(read_size * 2, file);
+        let reader = BufReader::with_capacity(
+            read_size.saturating_mul(2).min(MAX_BUFFER_PREALLOC_SIZE),
+            file,
+        );
         Ok(Self::new(reader, read_size))
     }
 }
@@ -51,11 +51,12 @@ impl<T: Read + Seek> Iterator for FileReadStream<T> {
     type Item = io::Result<Bytes>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        // can resize buffer without reallocating (I think)
-        self.buffer.resize(self.read_size, 0);
-        match self.file.read(&mut self.buffer) {
+        // read up to `read_size` (or eof); buffer grows w/ the data read
+        let mut buf = Vec::with_capacity(self.read_size.min(MAX_BUFFER_PREALLOC_SIZE));
+        let limit = u64::try_from(self.read_size).unwrap_or(u64::MAX);
+        match (&mut self.file).take(limit).read_to_end(&mut buf) {
             Ok(0) => None,
-            Ok(n) => Some(Ok(self.buffer.split_to(n).freeze())),
+            Ok(_) => Some(Ok(Bytes::from(buf))),
             Err(e) => Some(Err(e)),
         }
     }
@@ -235,7 +236,7 @@ impl PyFileReadStream {
     fn take(&self, py: Python<'_>, n: usize) -> PyResult<Vec<RyBytes>> {
         let mut inner = self.file_read_stream.py_lock_attached(py)?;
         inner.ensure_open()?;
-        let mut result = Vec::with_capacity(n);
+        let mut result = Vec::new();
         for _ in 0..n {
             match inner.next() {
                 Some(Ok(b)) => result.push(b.into()),
