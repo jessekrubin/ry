@@ -100,6 +100,7 @@ exclude = [
 
 unfixable = []
 flake8-tidy-imports.ban-relative-imports = "all"
+flake8-import-conventions.extend-aliases = { datetime = "pydt" }
 isort.known-first-party = ["ry"]
 flake8-boolean-trap.extend-allowed-calls = [
   "pydantic.Field",
