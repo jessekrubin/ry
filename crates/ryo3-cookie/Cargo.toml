@@ -12,6 +12,11 @@ license.workspace = true
 repository.workspace = true
 description = "python cookie library"
 
+[features]
+default = []
+ry = ["pydantic"]
+pydantic = ["ryo3-pydantic"]
+
 [dependencies]
 cookie.workspace = true
 pyo3 = { workspace = true, features = [] }
@@ -19,11 +24,6 @@ ryo3-core.workspace = true
 ryo3-jiff.workspace = true
 ryo3-pydantic = { workspace = true, optional = true }
 ryo3-std = { workspace = true, features = ["time"] }
-
-[features]
-default = []
-ry = ["pydantic"]
-pydantic = ["ryo3-pydantic"]
 
 [lints]
 workspace = true

@@ -1,4 +1,4 @@
-use std::time::{Duration, Instant};
+use std::time::Instant;
 
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
@@ -25,9 +25,8 @@ pub fn py_instant() -> PyInstant {
     PyInstant::from(Instant::now())
 }
 
-#[must_use]
 #[pyfunction]
 #[pyo3(name = "duration", signature = (secs = 0, nanos = 0))]
-pub fn py_duration(secs: u64, nanos: u32) -> PyDuration {
-    PyDuration::from(Duration::new(secs, nanos))
+pub fn py_duration(secs: u64, nanos: u32) -> PyResult<PyDuration> {
+    PyDuration::new(secs, nanos)
 }

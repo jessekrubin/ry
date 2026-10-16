@@ -64,3 +64,24 @@ async def test_async_sleep_can_be_cancelled(
 
     with pytest.raises(asyncio.CancelledError):
         await task
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize("sleep_fn", [ry.asleep, ry.sleep_async])
+@pytest.mark.parametrize(
+    ("secs", "exc"),
+    [
+        (-1.0, ValueError),
+        (float("-inf"), ValueError),
+        (float("nan"), ValueError),
+        (float("inf"), OverflowError),
+        (1e300, OverflowError),
+    ],
+)
+async def test_async_sleep_bad_secs(
+    sleep_fn: t.Callable[[float], t.Coroutine[t.Any, t.Any, float]],
+    secs: float,
+    exc: type[Exception],
+) -> None:
+    with pytest.raises(exc):
+        await sleep_fn(secs)

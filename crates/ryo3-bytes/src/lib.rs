@@ -3,6 +3,7 @@
 #![expect(clippy::ptr_as_ptr)]
 #![expect(clippy::needless_pass_by_value)]
 use pyo3::prelude::*;
+mod alloc;
 pub mod bytes;
 mod readable_buffer;
 mod replace;

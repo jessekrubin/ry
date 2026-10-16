@@ -68,29 +68,54 @@ class TestBytesSlice:
 
     @pytest.mark.parametrize(
         "py_bytes",
-        [b"abcdefg", b"", ALL_BYTES],
+        [b"", b"a", b"ab", b"abcdefg"],
     )
     def test_slice_o_bytes(self, py_bytes: bytes) -> None:
-        """Run slicing on both bytes and Bytes and assert they are equal."""
+        """Run every slice in range on both bytes and Bytes and assert they are equal."""
         rs_bytes = Bytes(py_bytes)
-        for start, stop, step, _sliced in self._bytes_slices(py_bytes):
+        for start, stop, step in self._bytes_slices(py_bytes):
             new_py = py_bytes[start:stop:step]
             new_rs = rs_bytes[start:stop:step]
-            assert new_rs == new_py
+            assert new_rs == new_py, f"[{start}:{stop}:{step}] ~ {py_bytes!r}"
+
+    @pytest.mark.parametrize(
+        "py_bytes",
+        [b"", b"x", ALL_BYTES],
+        ids=["empty", "one", "all_bytes"],
+    )
+    @pytest.mark.parametrize(
+        "s",
+        [
+            slice(None, None, -1),
+            slice(None, None, -2),
+            slice(None, None, -300),
+            slice(5, None, -1),
+            slice(-1, None, -1),
+            slice(0, 0, -1),
+            slice(0, None, -1),
+            slice(None, 2**62),
+            slice(-(2**62), None, -1),
+            slice(2**62, -(2**62), -3),
+            slice(-(2**62), 2**62, 7),
+        ],
+        ids=str,
+    )
+    def test_slice_edges(self, py_bytes: bytes, s: slice) -> None:
+        assert Bytes(py_bytes)[s] == py_bytes[s]
 
     @staticmethod
     def _bytes_slices(
         b: bytes,
         range_buffer: int = 3,
-    ) -> Iterable[tuple[int, int, int, bytes]]:
-        """Yield tuples (start, stop, step, sliced_result) for all slices of b."""
+    ) -> Iterable[tuple[int | None, int | None, int | None]]:
+        """Yield (start, stop, step) for all slices of b (incl. `None`s)."""
         b_len = len(b)
-        indices_range = range(-b_len - (range_buffer - 1), b_len + range_buffer)
-        steps = (i for i in range(-(b_len + 2), b_len + 3) if i != 0)
+        indices = (None, *range(-b_len - range_buffer, b_len + range_buffer + 1))
+        steps = (None, *(i for i in range(-(b_len + 2), b_len + 3) if i != 0))
         return (
-            (start, stop, step, b[start:stop:step])
-            for start in indices_range
-            for stop in indices_range
+            (start, stop, step)
+            for start in indices
+            for stop in indices
             for step in steps
         )
 

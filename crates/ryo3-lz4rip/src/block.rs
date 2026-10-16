@@ -78,12 +78,15 @@ where
     F: FnOnce(&[u8], &mut [u8]) -> Result<usize, DecompressError>,
 {
     let (input, size, size_is_exact) = if let Some(size) = size {
+        let size = size.min(input.len().saturating_mul(MAX_COMPRESSION_RATIO));
         (input, size, false)
     } else {
         let (size, rest) = read_size_prefix(input)?;
         (rest, size, true)
     };
-    let mut output = vec![0; size];
+    let mut output = Vec::new();
+    output.try_reserve_exact(size)?;
+    output.resize(size, 0);
     let written = decompress_into(input, &mut output)?;
     if size_is_exact && written != size {
         return Err(RyLz4Error::BlockPrefixMismatch {

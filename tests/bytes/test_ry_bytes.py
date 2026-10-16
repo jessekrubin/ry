@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import dataclasses
+import sys
 
 import pytest
 from hypothesis import given
@@ -70,6 +71,16 @@ def test_bytes_pickling() -> None:
     pickled = pickle.dumps(b)
     loaded = pickle.loads(pickled)
     assert loaded == b
+
+
+@given(
+    st.binary(max_size=64).flatmap(
+        lambda b: st.tuples(st.just(b), st.slices(len(b) + 8))
+    )
+)
+def test_slice(b_and_slice: tuple[bytes, slice]) -> None:
+    b, s = b_and_slice
+    assert ry.Bytes(b)[s] == b[s], f"{s} ~ {b!r}"
 
 
 class TestBytesIsFns:
@@ -157,6 +168,18 @@ def test_bytes_expandtabs_ext(
     assert rs_res.to_bytes() == py_res, f"py: {py_res!r}, rs: {rs_res!r} ~ {b!r}"
 
 
+@pytest.mark.parametrize(
+    ("b", "tabsize", "exc"),
+    [
+        (b"\t" * 16, 2**60, OverflowError),  # 2**64: doesn't fit usize
+        (b"\t" * 1024, 2**40, MemoryError),  # 2**50: past the address space
+    ],
+)
+def test_bytes_expandtabs_huge(b: bytes, tabsize: int, exc: type[Exception]) -> None:
+    with pytest.raises(exc):
+        ry.Bytes(b).expandtabs(tabsize)
+
+
 class TestBytesOperators:
     @given(st.binary())
     def test_bytes_mul(
@@ -177,6 +200,38 @@ class TestBytesOperators:
         py_res = 2 * b
         rs_res = 2 * ry_bytes
         assert rs_res == py_res, f"py: {py_res!r}, rs: {rs_res!r} ~ {b!r}"
+
+    @pytest.mark.parametrize("b", [b"", b"a", b"abc"])
+    @pytest.mark.parametrize("n", [-(2**63), -5, -1, 0, 1, 2, 7, True, False])
+    def test_bytes_mul_matches_python(self, b: bytes, n: int) -> None:
+        ry_bytes = ry.Bytes(b)
+        assert ry_bytes * n == b * n
+        assert n * ry_bytes == n * b
+
+    @pytest.mark.parametrize("n", [1.5, "2", None])
+    def test_bytes_mul_non_int_type_error(self, n: object) -> None:
+        with pytest.raises(TypeError):
+            _ = ry.Bytes(b"ab") * n  # type: ignore[operator]  # ty: ignore[unsupported-operator]
+        with pytest.raises(TypeError):
+            _ = n * ry.Bytes(b"ab")  # type: ignore[operator]  # ty: ignore[unsupported-operator]
+
+    @pytest.mark.parametrize(
+        ("b", "n", "exc"),
+        [
+            (b"ab", 2**62, OverflowError),  # len * n > isize::MAX
+            (b"abc", 2**62, OverflowError),  # len * n overflows usize
+            (b"a", 2**62, MemoryError),  # fits isize, but no allocator says yes
+        ],
+    )
+    def test_bytes_mul_too_big(self, b: bytes, n: int, exc: type[Exception]) -> None:
+        # pypy raises MemoryError not OverflowError
+        if sys.implementation.name == "cpython":
+            with pytest.raises(exc):
+                _ = b * n
+        with pytest.raises(exc):
+            _ = ry.Bytes(b) * n
+        with pytest.raises(exc):
+            _ = n * ry.Bytes(b)
 
     @given(st.binary(), st.binary())
     def test_add(
@@ -574,6 +629,25 @@ class TestBytesReplace:
         )
 
 
+class TestBytesReplaceHugeOutput:
+    """Outputs of 2**49 bytes (past the 47-bit address space) -> MemoryError, not abort."""
+
+    _BUF = ry.Bytes(b"a" * 2**23)
+    _NEW = ry.Bytes(b"b" * 2**26)
+
+    @pytest.mark.parametrize(
+        ("old", "new"),
+        [
+            pytest.param(b"", _NEW, id="empty-old"),
+            pytest.param(b"a", _NEW, id="byte-to-many"),
+            pytest.param(b"aa", _NEW, id="substring-to-many"),
+        ],
+    )
+    def test_replace_huge_output_memory_error(self, old: bytes, new: ry.Bytes) -> None:
+        with pytest.raises(MemoryError):
+            self._BUF.replace(old, new)
+
+
 class TestBytesReplaceIdentity:
     def test_replace_returns_same_object_when_no_replacement_occurs(self) -> None:
         rs_bytes = ry.Bytes(b"asdf")
@@ -707,6 +781,17 @@ class TestBytesFindAndIndex:
     def test_no_kwargs(self, fnname: str) -> None:
         with pytest.raises(TypeError):
             getattr(ry.Bytes(b"abc"), fnname)(sub=b"a")
+
+
+class TestBytesContains:
+    @pytest.mark.parametrize("haystack", [b"", b"a", b"abc"])
+    @pytest.mark.parametrize("needle", [b"", bytearray(), memoryview(b"")])
+    def test_contains_empty(self, needle: bytes, haystack: bytes) -> None:
+        assert (needle in ry.Bytes(haystack)) is True
+
+    @given(st.binary(max_size=16), st.binary(max_size=64))
+    def test_contains_matches_python(self, needle: bytes, haystack: bytes) -> None:
+        assert (needle in ry.Bytes(haystack)) == (needle in haystack)
 
 
 class TestBytesPartition:

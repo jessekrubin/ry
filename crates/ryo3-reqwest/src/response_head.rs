@@ -46,6 +46,23 @@ impl RyResponseHead {
         }
     }
 
+    /// `content-coding = token` (RFC 9110 §8.4.1) so valid values are ascii
+    ///
+    /// Non-ASCII values are decoded as latin-1 so it round-trips instead of
+    /// failing (which matches the impl of python's stdlib and other http
+    /// libraries)
+    ///
+    /// REF: <https://www.rfc-editor.org/rfc/rfc9110#section-8.4.1>
+    pub(crate) fn content_encoding(&self) -> Option<String> {
+        let headers = self.headers.py_read();
+        let hv = headers.get(reqwest::header::CONTENT_ENCODING)?;
+        let s = match hv.to_str() {
+            Ok(s) => s.to_owned(),
+            Err(_) => hv.as_bytes().iter().map(|&b| char::from(b)).collect(),
+        };
+        Some(s)
+    }
+
     pub(crate) fn py_set_cookies(&self) -> Option<Vec<PyCookie>> {
         let headers = self.headers.py_read();
         if headers.is_empty() {

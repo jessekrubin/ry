@@ -46,6 +46,20 @@ async def test_read_size(tmp_path: Path) -> None:
 
 
 @pytest.mark.anyio
+async def test_read_peek_huge_size(tmp_path: Path) -> None:
+    """Huge `read(n)`/`peek(n)` allocate for the data, not the request."""
+    (tmp_path / "file.txt").write_bytes(b"1234567890")
+    f = AsyncFile(tmp_path / "file.txt", "rb")
+    await f.open()
+    peeked = await f.peek(2**62)
+    assert b"1234567890".startswith(peeked)
+    assert len(peeked) > 0
+    assert await f.read(2**62) == b"1234567890"
+    assert await f.read(2**62) == b""
+    await f.close()
+
+
+@pytest.mark.anyio
 async def test_async_iteration(tmp_path: Path) -> None:
     temp_file_path = tmp_path / "test_file.txt"
     lines = b"line1\nline2\nline3\n"

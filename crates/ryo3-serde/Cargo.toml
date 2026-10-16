@@ -27,7 +27,6 @@ ry = [
   "ryo3-uuid",
 ]
 
-
 [dependencies]
 jiff = { workspace = true, optional = true, features = ["serde"] }
 pyo3 = { workspace = true, features = ["uuid"] }

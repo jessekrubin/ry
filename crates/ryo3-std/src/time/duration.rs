@@ -71,7 +71,7 @@ impl PyDuration {
         &self.0
     }
 
-    fn new(secs: u64, nanos: u32) -> PyResult<Self> {
+    pub(crate) fn new(secs: u64, nanos: u32) -> PyResult<Self> {
         if nanos < NANOS_PER_SEC {
             Ok(Self(Duration::new(secs, nanos)))
         } else {
@@ -90,12 +90,12 @@ impl PyDuration {
             py_value_err!("invalid value: nan")
         } else if secs.is_infinite() {
             if secs.is_sign_negative() {
-                py_type_err!("negative duration")
+                py_value_err!("negative duration")
             } else {
                 py_overflow_err!("invalid value: inf")
             }
         } else if secs < 0.0 {
-            py_type_err!("negative duration")
+            py_value_err!("negative duration")
         } else {
             Duration::try_from_secs_f32(secs)
                 .map(Self::from)
@@ -108,12 +108,12 @@ impl PyDuration {
             py_value_err!("invalid value: nan")
         } else if secs.is_infinite() {
             if secs.is_sign_negative() {
-                py_type_err!("negative duration")
+                py_value_err!("negative duration")
             } else {
                 py_overflow_err!("invalid value: inf")
             }
         } else if secs < 0.0 {
-            py_type_err!("negative duration")
+            py_value_err!("negative duration")
         } else {
             Duration::try_from_secs_f64(secs)
                 .map(Self::from)

@@ -2,7 +2,7 @@ use pyo3::prelude::*;
 use pyo3::types::PyString;
 #[cfg(feature = "experimental-async")]
 use pyo3::{coroutine::CancelHandle, exceptions::asyncio::CancelledError};
-use reqwest::header::{CONTENT_ENCODING, CONTENT_TYPE};
+use reqwest::header::CONTENT_TYPE;
 use ryo3_bytes::RyBytes;
 use ryo3_cookie::PyCookie;
 use ryo3_core::sync::RyMutex;
@@ -332,9 +332,7 @@ impl RyResponse {
 
     #[getter]
     fn content_encoding(&self) -> Option<String> {
-        (*self.head.headers.py_read())
-            .get(CONTENT_ENCODING)
-            .map(|en| en.to_str().expect("wildly unlikely").to_string())
+        self.head.content_encoding()
     }
 
     /// Return the cookies set in the response headers
@@ -536,12 +534,7 @@ impl RyResponse {
     /// Return the `content-encoding` header value of the response or `None`
     #[getter]
     fn content_encoding(&self) -> Option<String> {
-        (*self.head.headers.py_read())
-            .get(CONTENT_ENCODING)
-            .map(|en| {
-                let s = en.to_str().expect("Invalid content encoding");
-                s.to_string()
-            })
+        self.head.content_encoding()
     }
 
     /// Return the cookies set in the response headers
@@ -737,12 +730,7 @@ impl RyBlockingResponse {
 
     #[getter]
     fn content_encoding(&self) -> Option<String> {
-        (*self.head.headers.py_read())
-            .get(CONTENT_ENCODING)
-            .map(|en| {
-                let s = en.to_str().expect("Invalid content encoding");
-                s.to_string()
-            })
+        self.head.content_encoding()
     }
 
     /// Return the cookies set in the response headers

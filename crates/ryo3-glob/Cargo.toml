@@ -12,14 +12,14 @@ license.workspace = true
 repository.workspace = true
 description = "python + glob crate (https://crates.io/crates/glob)"
 
+[features]
+ry = []
+
 [dependencies]
 glob.workspace = true
 pyo3.workspace = true
 ryo3-core.workspace = true
 ryo3-fspath.workspace = true
-
-[features]
-ry = []
 
 [lints]
 workspace = true

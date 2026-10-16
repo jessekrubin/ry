@@ -10,15 +10,14 @@ use ryo3_core::macros::{
 };
 use ryo3_core::{PyAsciiString, PyCastExactOpt, map_py_overflow_err, map_py_value_err};
 
-use crate::fmt::friendly::printer::PyDesignator;
 use crate::py_temporal_like::PyTemporalArg;
 use crate::ry_signed_duration::RySignedDuration;
 use crate::span_units::{SpanUnit, SpanUnitsMask};
 use crate::spanish::{DurationLike, Spanish};
 use crate::util::SpanKwargs;
 use crate::{
-    JiffRoundMode, JiffSpan, JiffUnit, RyDate, RyDateTime, RyTime, RyTimestamp, RyZoned, constants,
-    timespan,
+    JiffFriendlyDesignator, JiffRoundMode, JiffSpan, JiffUnit, RyDate, RyDateTime, RyTime,
+    RyTimestamp, RyZoned, constants, timespan,
 };
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize), serde(transparent))]
@@ -229,10 +228,10 @@ impl RySpan {
     }
 
     #[pyo3(
-        signature = (designator = PyDesignator::COMPACT),
+        signature = (designator = JiffFriendlyDesignator::COMPACT),
         text_signature = "(self, designator=\"compact\")"
     )]
-    fn friendly(&self, designator: PyDesignator) -> String {
+    fn friendly(&self, designator: JiffFriendlyDesignator) -> String {
         jiff::fmt::friendly::SpanPrinter::new()
             .designator(designator.into())
             .span_to_string(&self.0)

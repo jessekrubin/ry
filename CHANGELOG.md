@@ -7,7 +7,7 @@
 
 ---
 
-## v0.0.103 [unreleased]
+## v0.0.103 [2026-10-16]
 
 - pyo3 v0.30.x
   - rm skip_from_py_object did this:
@@ -34,6 +34,28 @@
   - internal rename `PyBytes` struct to `RyBytes` to avoid confusion with
     `pyo3::types::PyBytes`
   - flip-flopped export alias so one/you can still `use ryo3_bytes::PyBytes`
+  - fixed panic on negative-step slices that run to index 0 (e.g. `b[::-1]`);
+    via `PySliceMethods::indices`
+  - `Bytes.__mul__` & `Bytes.__rmul__`:
+    - `Bytes * n` / `n * Bytes` where `n <= 0` returns `b""` (was `TypeError`)
+      as opposed to erroring
+    - `Bytes * n` / `n * Bytes` where `n` is too big may raise `OverflowError`
+      or `MemoryError` instead of panicking/aborting
+  - `b"" in Bytes(...)` returns `True` (was a panic); `__contains__` uses the
+    same substring search as `find`/`index`
+  - `Bytes.expandtabs` w/ a huge result raises `OverflowError`/`MemoryError`
+    (was an abort)
+- `ryo3-std`
+  - `Duration.from_secs_f32`/`from_secs_f64` raise `ValueError` for negative
+    seconds (was `TypeError`)
+  - client `timeout`/`read_timeout`/`connect_timeout` that are too big raise
+    `OverflowError` (was a panic)
+  - `FileReadStream`/`ry.read_stream` w/ a huge `read_size`/`take(n)` no longer
+    aborts; chunks are exactly `read_size` except the last
+- `ryo3-tokio`
+  - `ry.asleep`/`ry.sleep_async` raise `ValueError` for negative/nan seconds and
+    `OverflowError` for inf/too-big seconds (was a panic on a tokio worker);
+    raised before the sleep is scheduled
 - `ryo3-reqwest`
   - async iterable request stream bodies are pumped by a faux py "coroutine"
     that forwards the iterator's awaitables (no task per chunk(!!!))

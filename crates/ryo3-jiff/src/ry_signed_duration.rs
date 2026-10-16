@@ -17,11 +17,10 @@ use ryo3_std::time::PyDuration;
 use crate::constants::{
     MINUTES_PER_HOUR, NANOSECONDS_PER_SECOND, SECONDS_PER_MINUTE, SPAN_PRINTER_FRIENDLY,
 };
-use crate::fmt::friendly::printer::PyDesignator;
 use crate::pydatetime_conversions::pydelta_to_signed_duration;
 use crate::round::RySignedDurationRound;
 use crate::ry_span::RySpan;
-use crate::{JiffRoundMode, JiffSignedDuration, JiffUnit};
+use crate::{JiffFriendlyDesignator, JiffRoundMode, JiffSignedDuration, JiffUnit};
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize), serde(transparent))]
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
@@ -235,7 +234,11 @@ impl RySignedDuration {
     #[inline]
     fn abs(slf: PyRef<'_, Self>) -> PyResult<Bound<'_, Self>> {
         let py = slf.py();
+        // SignedDuration::abs panics when the seconds component of this signed duration is equal to i64::MIN.
         if slf.0.is_negative() {
+            if slf.0.as_secs() == i64::MIN {
+                return py_overflow_err!("overflow; secs == i64::MIN");
+            }
             Self(slf.0.abs()).into_pyobject(py)
         } else {
             slf.into_pyobject_or_pyerr(py)
@@ -274,10 +277,10 @@ impl RySignedDuration {
     }
 
     #[pyo3(
-        signature = (designator = PyDesignator::COMPACT),
+        signature = (designator = JiffFriendlyDesignator::COMPACT),
         text_signature = "(self, designator=\"compact\")"
     )]
-    fn friendly(&self, designator: PyDesignator) -> String {
+    fn friendly(&self, designator: JiffFriendlyDesignator) -> String {
         jiff::fmt::friendly::SpanPrinter::new()
             .designator(designator.into())
             .duration_to_string(&self.0)

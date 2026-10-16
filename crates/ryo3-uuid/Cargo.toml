@@ -12,21 +12,6 @@ license.workspace = true
 repository.workspace = true
 description = "python + uuid (https://github.com/rust-lang/uuid)"
 
-[dependencies]
-pyo3 = { workspace = true, features = ["uuid", "serde"] }
-rand = { workspace = true, optional = false, features = ["std", "std_rng", "sys_rng", "thread_rng"] }
-ryo3-bytes.workspace = true
-ryo3-core.workspace = true
-ryo3-pydantic = { workspace = true, optional = true }
-serde = { workspace = true, optional = true, features = ["derive"] }
-uuid = { workspace = true, features = ["v1", "v3", "v4", "v5", "v6", "v7", "v8"] }
-
-[build-dependencies]
-pyo3-build-config = { workspace = true }
-
-[dev-dependencies]
-serde = { workspace = true, features = ["derive"] }
-
 [features]
 default = []
 # v1 = ["uuid/v1"]
@@ -37,6 +22,21 @@ default = []
 ry = ["serde", "pydantic"]
 serde = ["dep:serde", "uuid/serde"]
 pydantic = ["serde", "ryo3-pydantic"]
+
+[dependencies]
+pyo3 = { workspace = true, features = ["uuid", "serde"] }
+rand = { workspace = true, optional = false, features = ["std", "std_rng", "sys_rng", "thread_rng"] }
+ryo3-bytes.workspace = true
+ryo3-core.workspace = true
+ryo3-pydantic = { workspace = true, optional = true }
+serde = { workspace = true, optional = true, features = ["derive"] }
+uuid = { workspace = true, features = ["v1", "v3", "v4", "v5", "v6", "v7", "v8"] }
+
+[dev-dependencies]
+serde = { workspace = true, features = ["derive"] }
+
+[build-dependencies]
+pyo3-build-config = { workspace = true }
 
 [lints]
 workspace = true

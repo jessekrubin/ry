@@ -87,6 +87,26 @@ def test_config_equality(
     assert client.config() == _DEFAULT_CONFIG
 
 
+@pytest.mark.parametrize("kwarg", ["timeout", "read_timeout", "connect_timeout"])
+@pytest.mark.parametrize(
+    ("secs", "exc"),
+    [
+        (-1.0, ValueError),
+        (float("nan"), ValueError),
+        (float("inf"), ValueError),
+        (1e300, OverflowError),
+    ],
+)
+def test_client_timeout_bad_secs(
+    client_cls: type[_TClient],
+    kwarg: str,
+    secs: float,
+    exc: type[Exception],
+) -> None:
+    with pytest.raises(exc):
+        client_cls(**{kwarg: secs})  # type: ignore[arg-type]  # ty: ignore[invalid-argument-type]
+
+
 def test_client_config_headers(
     client_cls: type[_TClient],
 ) -> None:

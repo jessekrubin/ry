@@ -13,9 +13,11 @@ use pyo3::buffer::PyBuffer;
 use pyo3::exceptions::{PyIndexError, PyValueError};
 use pyo3::prelude::*;
 use pyo3::pybacked::PyBackedBytes;
+use pyo3::types::slice::PySliceIndices;
 use pyo3::types::{PyDict, PySlice, PyString, PyTuple};
 use pyo3::{IntoPyObjectExt, ffi};
 
+use crate::alloc::{AllocError, try_with_capacity};
 use crate::python_bytes_methods::{
     BufferOrByte, PyFindResult, PyHexSep, PyIndexResult, PythonBytesMethods, PythonBytesStrip,
 };
@@ -147,60 +149,46 @@ impl RyBytes {
     ///     - If start > stop, the slice is empty
     ///
     /// This is NOT exposed to Python under the `#[pymethods]` impl
-    #[expect(
-        clippy::similar_names,
-        reason = "python idiomatic naming; start/stop/step"
-    )]
     fn slice(&self, slice: &Bound<'_, PySlice>) -> PyResult<Self> {
-        let bytes_length = isize::try_from(self.len())
+        let len = isize::try_from(self.len())
             .map_err(|_| pyo3::exceptions::PyOverflowError::new_err("bytes object too large"))?;
-        let (start, stop, step) = {
-            let slice_indices = slice.indices(bytes_length)?;
-            (slice_indices.start, slice_indices.stop, slice_indices.step)
-        };
-
-        let new_capacity = if (step > 0 && stop > start) || (step < 0 && stop < start) {
-            stop.abs_diff(start).div_ceil(step.unsigned_abs())
-        } else {
-            0
-        };
-
-        if new_capacity == 0 {
+        let PySliceIndices {
+            start,
+            step,
+            slicelength,
+            ..
+        } = slice.indices(len)?;
+        if slicelength == 0 {
             return Ok(Self::new(Bytes::new()));
         }
-        if step == 1 {
-            // if start < 0  and stop > len and step == 1 just copy?
-            if start < 0 && stop >= bytes_length {
-                let out = self.0.slice(..);
-                let py_bytes = Self::new(out);
-                return Ok(py_bytes);
-            }
-
-            if start >= 0 && stop <= bytes_length && start < stop {
-                let start = usize::try_from(start).expect("wenodis: start is non-negative");
-                let stop = usize::try_from(stop).expect("wenodis: stop is non-negative");
-                let out = self.0.slice(start..stop);
-                let py_bytes = Self::new(out);
-                return Ok(py_bytes);
-            }
-            // fall through to the general case here...
-        }
-        if step > 0 {
-            // forward
-            let mut new_buf = BytesMut::with_capacity(new_capacity);
-            let start = usize::try_from(start).expect("wenodis: start is non-negative");
-            let stop = usize::try_from(stop).expect("wenodis: stop is non-negative");
-            let step = usize::try_from(step).expect("wenodis: step is positive");
-            new_buf.extend((start..stop).step_by(step).map(|i| self.0[i]));
-            Ok(Self::new(new_buf.freeze()))
+        let start = start.unsigned_abs();
+        let step_size = step.unsigned_abs();
+        let bytes = self.as_slice();
+        if step == 0 {
+            Err(pyo3::exceptions::PyValueError::new_err(
+                "slice step cannot be zero",
+            ))
+        } else if step == 1 {
+            Ok(Self::new(self.0.slice(start..start + slicelength)))
+        } else if step > 0 {
+            Ok(Self::new(
+                bytes[start..]
+                    .iter()
+                    .step_by(step_size)
+                    .take(slicelength)
+                    .copied()
+                    .collect(),
+            ))
         } else {
-            // backward
-            let mut new_buf = BytesMut::with_capacity(new_capacity);
-            let start = usize::try_from(start).expect("wenodis: start is non-negative");
-            let stop = usize::try_from(stop).expect("wenodis: stop is non-negative");
-            let step = step.unsigned_abs();
-            new_buf.extend((stop + 1..=start).rev().step_by(step).map(|i| self.0[i]));
-            Ok(Self::new(new_buf.freeze()))
+            Ok(Self::new(
+                bytes[..=start]
+                    .iter()
+                    .rev()
+                    .step_by(step_size)
+                    .take(slicelength)
+                    .copied()
+                    .collect(),
+            ))
         }
     }
 }
@@ -301,9 +289,7 @@ impl RyBytes {
     }
 
     fn __contains__(&self, item: ReadableBuffer) -> bool {
-        self.0
-            .windows(item.len())
-            .any(|window| window == item.as_ref())
+        search::find_subslice(self.as_slice(), item.as_ref()).is_some()
     }
 
     fn __eq__(&self, other: ReadableBuffer) -> bool {
@@ -333,14 +319,24 @@ impl RyBytes {
         }
     }
 
-    fn __mul__(&self, value: usize) -> Self {
-        let mut out_buf = BytesMut::with_capacity(self.0.len() * value);
-        (0..value).for_each(|_| out_buf.extend_from_slice(self.0.as_ref()));
-        out_buf.into()
+    fn __mul__(slf: PyRef<'_, Self>, n: isize) -> PyResult<Bound<'_, Self>> {
+        let py = slf.py();
+        // python: n <= 0 -> empty
+        let n = usize::try_from(n).unwrap_or(0);
+        if n == 1 {
+            return slf.into_pyobject_or_pyerr(py);
+        }
+        if n == 0 || slf.is_empty() {
+            return Self::new(Bytes::new()).into_pyobject(py);
+        }
+        let total = slf.len().checked_mul(n).ok_or(AllocError::Overflow)?;
+        let mut out = try_with_capacity(total)?;
+        (0..n).for_each(|_| out.extend_from_slice(slf.as_slice()));
+        Self::from(out).into_pyobject(py)
     }
 
-    fn __rmul__(&self, value: usize) -> Self {
-        self.__mul__(value)
+    fn __rmul__(slf: PyRef<'_, Self>, n: isize) -> PyResult<Bound<'_, Self>> {
+        Self::__mul__(slf, n)
     }
 
     /// This is taken from opendal:
@@ -417,7 +413,7 @@ impl RyBytes {
         new: ReadableBuffer,
         count: isize,
     ) -> PyResult<Bound<'py, Self>> {
-        match replace_bytes(slf.as_slice(), old.as_slice(), new.as_slice(), count) {
+        match replace_bytes(slf.as_slice(), old.as_slice(), new.as_slice(), count)? {
             ReplaceBytes::Unchanged => {
                 let py = slf.py();
                 slf.into_pyobject_or_pyerr(py)
@@ -683,7 +679,7 @@ impl RyBytes {
     }
 
     #[pyo3(signature = (tabsize = 8))]
-    fn expandtabs(&self, tabsize: usize) -> Self {
+    fn expandtabs(&self, tabsize: usize) -> Result<Self, AllocError> {
         self.py_expandtabs(tabsize)
     }
 

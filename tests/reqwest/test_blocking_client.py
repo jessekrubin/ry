@@ -330,6 +330,13 @@ class TestStream:
         assert parts == expected
 
     @staticmethod
+    def test_get_stream_take_huge_n(server: ReqtestServer) -> None:
+        response = ry.BlockingClient().get(str(server.url) + "long")
+        expected = "".join([f"howdy partner {i}\n" for i in range(100)]).encode()
+        taken = response.bytes_stream().take(2**62)
+        assert b"".join(taken) == expected
+
+    @staticmethod
     def test_get_stream_take_collect(server: ReqtestServer) -> None:
         url = server.url
         client = ry.BlockingClient()

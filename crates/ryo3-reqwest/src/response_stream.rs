@@ -578,7 +578,7 @@ async fn take_chunks(
 ) -> Result<Vec<RyBytes>, reqwest::Error> {
     let shared = &*inner.shared;
     let mut rx = shared.rx.lock().await;
-    let mut chunks = Vec::with_capacity(n);
+    let mut chunks = Vec::new();
     for _ in 0..n {
         match rx.recv(&shared.close_sig).await {
             Some(Ok(bytes)) => chunks.push(RyBytes::from(bytes)),

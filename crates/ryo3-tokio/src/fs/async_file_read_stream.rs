@@ -6,7 +6,7 @@ use std::io;
 use std::path::PathBuf;
 use std::sync::Arc;
 
-use bytes::{Bytes, BytesMut};
+use bytes::Bytes;
 #[cfg(feature = "experimental-async")]
 use pyo3::coroutine::CancelHandle;
 use pyo3::prelude::*;
@@ -28,19 +28,17 @@ pub(crate) struct PyFileReadStreamOptions {
     pub(crate) buffered: bool,
 }
 
+/// max up-front alloc per chunk; bigger `read_size`s grow w/ the data
+const CHUNK_PREALLOC_CAP: usize = 8 * 1024 * 1024;
+
 struct AsyncFileReadStream<T> {
     file: T,
-    buffer: BytesMut,
     read_size: usize,
 }
 
 impl<T: AsyncRead + AsyncSeek + Unpin> AsyncFileReadStream<T> {
     fn new(file: T, read_size: usize) -> Self {
-        Self {
-            file,
-            buffer: BytesMut::with_capacity(read_size),
-            read_size,
-        }
+        Self { file, read_size }
     }
 
     async fn seek_to(&mut self, offset: u64) -> io::Result<u64> {
@@ -48,16 +46,14 @@ impl<T: AsyncRead + AsyncSeek + Unpin> AsyncFileReadStream<T> {
     }
 
     async fn next_chunk(&mut self) -> io::Result<Option<Bytes>> {
-        if self.buffer.capacity() < self.read_size {
-            self.buffer
-                .reserve(self.read_size.saturating_sub(self.buffer.len()));
-        }
-        let bytes_read = self.file.read_buf(&mut self.buffer).await?;
+        // read up to `read_size` (or eof); buffer grows w/ the data read
+        let mut buf = Vec::with_capacity(self.read_size.min(CHUNK_PREALLOC_CAP));
+        let limit = u64::try_from(self.read_size).unwrap_or(u64::MAX);
+        let bytes_read = (&mut self.file).take(limit).read_to_end(&mut buf).await?;
         if bytes_read == 0 {
             return Ok(None);
         }
-
-        Ok(Some(self.buffer.split_to(bytes_read).freeze()))
+        Ok(Some(Bytes::from(buf)))
     }
 }
 
@@ -242,7 +238,7 @@ impl PyAsyncFileReadStream {
         future_into_py(py, async move {
             let mut guard = inner.lock().await;
             guard.ensure_open().await.map_err(|e| map_open_error(&e))?;
-            let mut result = Vec::with_capacity(n);
+            let mut result = Vec::new();
             for _ in 0..n {
                 match guard.next_chunk().await {
                     Ok(Some(b)) => result.push(RyBytes::from(b)),
@@ -385,7 +381,7 @@ impl PyAsyncFileReadStream {
             async move {
                 let mut guard = inner.lock().await;
                 guard.ensure_open().await.map_err(|e| map_open_error(&e))?;
-                let mut result = Vec::with_capacity(n);
+                let mut result = Vec::new();
                 for _ in 0..n {
                     match guard.next_chunk().await {
                         Ok(Some(b)) => result.push(RyBytes::from(b)),

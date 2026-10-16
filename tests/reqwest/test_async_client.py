@@ -586,6 +586,15 @@ class TestStream:
         assert parts == expected
 
     @pytest.mark.anyio
+    async def test_get_stream_take_huge_n(
+        self, server: ReqtestServer, client: TClient
+    ) -> None:
+        response = await client.get(str(server.url) + "long")
+        expected = "".join([f"howdy partner {i}\n" for i in range(100)]).encode()
+        taken = await response.bytes_stream().take(2**62)
+        assert b"".join(taken) == expected
+
+    @pytest.mark.anyio
     async def test_get_stream_take_collect(
         self, server: ReqtestServer, client: TClient
     ) -> None:

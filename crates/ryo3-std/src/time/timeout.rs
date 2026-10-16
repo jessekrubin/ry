@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use pyo3::prelude::*;
 use ryo3_core::PyCastExactOpt;
-use ryo3_core::macros::{py_type_err, py_value_err};
+use ryo3_core::macros::{py_overflow_error, py_type_err, py_value_err};
 
 use super::PyDuration;
 
@@ -39,7 +39,9 @@ impl<'py> FromPyObject<'_, 'py> for PyTimeout {
             if !seconds.is_finite() || seconds < 0.0 {
                 py_value_err!("timeout must be a positive-finite-number of seconds")
             } else {
-                Ok(Self(Duration::from_secs_f64(seconds)))
+                Duration::try_from_secs_f64(seconds)
+                    .map(Self)
+                    .map_err(|e| py_overflow_error!("{e}"))
             }
         } else {
             py_type_err!(
