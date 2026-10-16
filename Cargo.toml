@@ -155,7 +155,6 @@ crc32fast = { version = "1.5.1", default-features = false, features = ["std"] }
 criterion = { version = "0.8.2", default-features = false, features = ["cargo_bench_support"] }
 dirs = { version = "7.0.0", default-features = false, features = [] }
 encoding_rs = { version = "0.8.35", default-features = false, features = [] }
-# FUTURE: switch to "zlib-rs"?
 flate2 = { version = "1.1.8", default-features = false, features = ["zlib-rs"] }
 futures-core = { version = "0.3.32", default-features = false }
 futures-util = { version = "0.3.32", default-features = false }
