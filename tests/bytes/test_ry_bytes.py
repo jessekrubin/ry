@@ -614,6 +614,25 @@ class TestBytesReplace:
         )
 
 
+class TestBytesReplaceHugeOutput:
+    """Outputs of 2**49 bytes (past the 47-bit address space) -> MemoryError, not abort."""
+
+    _BUF = ry.Bytes(b"a" * 2**23)
+    _NEW = ry.Bytes(b"b" * 2**26)
+
+    @pytest.mark.parametrize(
+        ("old", "new"),
+        [
+            pytest.param(b"", _NEW, id="empty-old"),
+            pytest.param(b"a", _NEW, id="byte-to-many"),
+            pytest.param(b"aa", _NEW, id="substring-to-many"),
+        ],
+    )
+    def test_replace_huge_output_memory_error(self, old: bytes, new: ry.Bytes) -> None:
+        with pytest.raises(MemoryError):
+            self._BUF.replace(old, new)
+
+
 class TestBytesReplaceIdentity:
     def test_replace_returns_same_object_when_no_replacement_occurs(self) -> None:
         rs_bytes = ry.Bytes(b"asdf")

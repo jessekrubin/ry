@@ -1,3 +1,4 @@
+use crate::alloc::{AllocError, try_with_capacity};
 use crate::search;
 
 pub(crate) enum ReplaceBytes {
@@ -11,12 +12,14 @@ struct ReplaceEmptyOld<'a> {
 }
 
 impl ReplaceEmptyOld<'_> {
-    fn apply(&self, buf: &[u8]) -> ReplaceBytes {
+    fn apply(&self, buf: &[u8]) -> Result<ReplaceBytes, AllocError> {
         let insertion_count = self.count.min(buf.len() + 1);
-        let mut out = Vec::with_capacity(
-            buf.len()
-                .saturating_add(self.new.len().saturating_mul(insertion_count)),
-        );
+        let mut out = try_with_capacity(replacement_capacity(
+            buf.len(),
+            0,
+            self.new.len(),
+            insertion_count,
+        )?)?;
         let mut inserted = 0usize;
 
         for &byte in buf {
@@ -31,7 +34,7 @@ impl ReplaceEmptyOld<'_> {
             out.extend_from_slice(self.new);
         }
 
-        ReplaceBytes::Replaced(out)
+        Ok(ReplaceBytes::Replaced(out))
     }
 }
 
@@ -70,18 +73,18 @@ struct Byte2Many<'a> {
 }
 
 impl Byte2Many<'_> {
-    fn apply(&self, buf: &[u8]) -> ReplaceBytes {
+    fn apply(&self, buf: &[u8]) -> Result<ReplaceBytes, AllocError> {
         let match_count = search::memchr_iter(self.old, buf).take(self.count).count();
         if match_count == 0 {
-            return ReplaceBytes::Unchanged;
+            return Ok(ReplaceBytes::Unchanged);
         }
 
-        let mut out = Vec::with_capacity(replacement_capacity(
+        let mut out = try_with_capacity(replacement_capacity(
             buf.len(),
             1,
             self.new.len(),
             match_count,
-        ));
+        )?)?;
         let mut start = 0usize;
 
         for index in search::memchr_iter(self.old, buf).take(self.count) {
@@ -91,7 +94,7 @@ impl Byte2Many<'_> {
         }
 
         out.extend_from_slice(&buf[start..]);
-        ReplaceBytes::Replaced(out)
+        Ok(ReplaceBytes::Replaced(out))
     }
 }
 
@@ -101,21 +104,21 @@ struct ReplaceUno<'a> {
 }
 
 impl ReplaceUno<'_> {
-    fn apply(&self, buf: &[u8]) -> ReplaceBytes {
+    fn apply(&self, buf: &[u8]) -> Result<ReplaceBytes, AllocError> {
         let Some(index) = search::find_subslice(buf, self.old) else {
-            return ReplaceBytes::Unchanged;
+            return Ok(ReplaceBytes::Unchanged);
         };
 
-        let mut out = Vec::with_capacity(replacement_capacity(
+        let mut out = try_with_capacity(replacement_capacity(
             buf.len(),
             self.old.len(),
             self.new.len(),
             1,
-        ));
+        )?)?;
         out.extend_from_slice(&buf[..index]);
         out.extend_from_slice(self.new);
         out.extend_from_slice(&buf[index + self.old.len()..]);
-        ReplaceBytes::Replaced(out)
+        Ok(ReplaceBytes::Replaced(out))
     }
 }
 
@@ -203,18 +206,23 @@ struct ReplaceMany<'a> {
     count: usize,
 }
 
-fn replace_substrings(buf: &[u8], old: &[u8], new: &[u8], count: usize) -> ReplaceBytes {
+fn replace_substrings(
+    buf: &[u8],
+    old: &[u8],
+    new: &[u8],
+    count: usize,
+) -> Result<ReplaceBytes, AllocError> {
     let match_count = count_subslice_matches_limit(buf, old, count);
     if match_count == 0 {
-        return ReplaceBytes::Unchanged;
+        return Ok(ReplaceBytes::Unchanged);
     }
 
-    let mut out = Vec::with_capacity(replacement_capacity(
+    let mut out = try_with_capacity(replacement_capacity(
         buf.len(),
         old.len(),
         new.len(),
         match_count,
-    ));
+    )?)?;
     let mut start = 0usize;
     let mut remainder = buf;
     let mut offset = 0usize;
@@ -234,11 +242,11 @@ fn replace_substrings(buf: &[u8], old: &[u8], new: &[u8], count: usize) -> Repla
     }
 
     out.extend_from_slice(&buf[start..]);
-    ReplaceBytes::Replaced(out)
+    Ok(ReplaceBytes::Replaced(out))
 }
 
 impl ReplaceMany<'_> {
-    fn apply(&self, buf: &[u8]) -> ReplaceBytes {
+    fn apply(&self, buf: &[u8]) -> Result<ReplaceBytes, AllocError> {
         match self.new {
             Replacement::None => replace_substrings(buf, self.old, &[], self.count),
             Replacement::Byte(new) => replace_substrings(buf, self.old, &[new], self.count),
@@ -317,21 +325,28 @@ impl<'a> ReplacePlan<'a> {
         }
     }
 
-    fn apply(self, buf: &[u8]) -> ReplaceBytes {
+    fn apply(self, buf: &[u8]) -> Result<ReplaceBytes, AllocError> {
         match self {
-            Self::NoOp => ReplaceBytes::Unchanged,
+            Self::NoOp => Ok(ReplaceBytes::Unchanged),
+            // output <= input
+            Self::SingleByteToSingleByte(plan) => Ok(plan.apply(buf)),
+            Self::RemoveByte(plan) => Ok(plan.apply(buf)),
+            Self::EqualLengthSubstring(plan) => Ok(plan.apply(buf)),
+            // output can grow
             Self::EmptyOld(plan) => plan.apply(buf),
-            Self::SingleByteToSingleByte(plan) => plan.apply(buf),
             Self::SingleByteToMany(plan) => plan.apply(buf),
-            Self::RemoveByte(plan) => plan.apply(buf),
             Self::ReplaceUno(plan) => plan.apply(buf),
-            Self::EqualLengthSubstring(plan) => plan.apply(buf),
             Self::ReplaceSubstrings(plan) => plan.apply(buf),
         }
     }
 }
 
-pub(crate) fn replace_bytes(buf: &[u8], old: &[u8], new: &[u8], count: isize) -> ReplaceBytes {
+pub(crate) fn replace_bytes(
+    buf: &[u8],
+    old: &[u8],
+    new: &[u8],
+    count: isize,
+) -> Result<ReplaceBytes, AllocError> {
     ReplacePlan::select(buf, old, new, count).apply(buf)
 }
 
@@ -350,16 +365,20 @@ fn count_subslice_matches_limit(buf: &[u8], needle: &[u8], count: usize) -> usiz
     n_replacements
 }
 
+/// exact output len; growing past `usize` -> `AllocError::Overflow`
 fn replacement_capacity(
     original_len: usize,
     old_len: usize,
     new_len: usize,
     nmatches: usize,
-) -> usize {
+) -> Result<usize, AllocError> {
     if new_len >= old_len {
-        original_len.saturating_add((new_len - old_len).saturating_mul(nmatches))
+        (new_len - old_len)
+            .checked_mul(nmatches)
+            .and_then(|grow| original_len.checked_add(grow))
+            .ok_or(AllocError::Overflow)
     } else {
-        original_len.saturating_sub((old_len - new_len).saturating_mul(nmatches))
+        Ok(original_len.saturating_sub((old_len - new_len).saturating_mul(nmatches)))
     }
 }
 
@@ -371,8 +390,8 @@ mod tests {
     fn replace_bytes_replaces_non_overlapping_matches() {
         let replaced = replace_bytes(b"aaaa", b"aa", b"b", -1);
         match replaced {
-            ReplaceBytes::Replaced(bytes) => assert_eq!(bytes.as_slice(), b"bb"),
-            ReplaceBytes::Unchanged => panic!("expected replacement"),
+            Ok(ReplaceBytes::Replaced(bytes)) => assert_eq!(bytes.as_slice(), b"bb"),
+            _ => panic!("expected replacement"),
         }
     }
 
@@ -380,8 +399,8 @@ mod tests {
     fn replace_bytes_honors_count_for_empty_old() {
         let replaced = replace_bytes(b"abc", b"", b"-", 2);
         match replaced {
-            ReplaceBytes::Replaced(bytes) => assert_eq!(bytes.as_slice(), b"-a-bc"),
-            ReplaceBytes::Unchanged => panic!("expected replacement"),
+            Ok(ReplaceBytes::Replaced(bytes)) => assert_eq!(bytes.as_slice(), b"-a-bc"),
+            _ => panic!("expected replacement"),
         }
     }
 
@@ -389,11 +408,11 @@ mod tests {
     fn replace_bytes_returns_unchanged_when_no_replacement_occurs() {
         assert!(matches!(
             replace_bytes(b"abc", b"x", b"y", -1),
-            ReplaceBytes::Unchanged
+            Ok(ReplaceBytes::Unchanged)
         ));
         assert!(matches!(
             replace_bytes(b"abc", b"a", b"b", 0),
-            ReplaceBytes::Unchanged
+            Ok(ReplaceBytes::Unchanged)
         ));
     }
 
@@ -401,11 +420,11 @@ mod tests {
     fn replace_bytes_returns_replaced_when_output_matches_input() {
         assert!(matches!(
             replace_bytes(b"abc", b"", b"", -1),
-            ReplaceBytes::Unchanged
+            Ok(ReplaceBytes::Unchanged)
         ));
         assert!(matches!(
             replace_bytes(b"abc", b"a", b"a", -1),
-            ReplaceBytes::Unchanged
+            Ok(ReplaceBytes::Unchanged)
         ));
     }
 }

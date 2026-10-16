@@ -44,9 +44,17 @@ def test_duration_new(duration_args: tuple[int, int]) -> None:
     if _duration_should_over_flow(secs, nanos):
         with pytest.raises(OverflowError):
             ry.Duration(secs, nanos)
+        with pytest.raises(OverflowError):
+            ry.duration(secs, nanos)
     else:
         dur = ry.Duration(secs, nanos)
         assert isinstance(dur, ry.Duration)
+        assert ry.duration(secs, nanos) == dur
+
+
+def test_duration_fn_nanos_carry_overflow() -> None:
+    with pytest.raises(OverflowError):
+        ry.duration(ry.U64_MAX, 2 * 10**9)
 
 
 def test_duration_match_args() -> None:

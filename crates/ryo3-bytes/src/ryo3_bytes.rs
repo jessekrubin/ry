@@ -10,14 +10,14 @@ use std::sync::atomic::{AtomicIsize, Ordering};
 
 use bytes::{Bytes, BytesMut};
 use pyo3::buffer::PyBuffer;
-use pyo3::exceptions::{PyIndexError, PyOverflowError, PyValueError};
+use pyo3::exceptions::{PyIndexError, PyValueError};
 use pyo3::prelude::*;
 use pyo3::pybacked::PyBackedBytes;
 use pyo3::types::slice::PySliceIndices;
 use pyo3::types::{PyDict, PySlice, PyString, PyTuple};
 use pyo3::{IntoPyObjectExt, ffi};
 
-use crate::alloc::py_try_with_capacity;
+use crate::alloc::{AllocError, try_with_capacity};
 use crate::python_bytes_methods::{
     BufferOrByte, PyFindResult, PyHexSep, PyIndexResult, PythonBytesMethods, PythonBytesStrip,
 };
@@ -331,11 +331,8 @@ impl RyBytes {
         if n == 0 || slf.is_empty() {
             return Self::new(Bytes::new()).into_pyobject(py);
         }
-        let total = slf
-            .len()
-            .checked_mul(n)
-            .ok_or_else(|| PyOverflowError::new_err(()))?;
-        let mut out = py_try_with_capacity(total)?;
+        let total = slf.len().checked_mul(n).ok_or(AllocError::Overflow)?;
+        let mut out = try_with_capacity(total)?;
         (0..n).for_each(|_| out.extend_from_slice(slf.as_slice()));
         Self::from(out).into_pyobject(py)
     }
@@ -418,7 +415,7 @@ impl RyBytes {
         new: ReadableBuffer,
         count: isize,
     ) -> PyResult<Bound<'py, Self>> {
-        match replace_bytes(slf.as_slice(), old.as_slice(), new.as_slice(), count) {
+        match replace_bytes(slf.as_slice(), old.as_slice(), new.as_slice(), count)? {
             ReplaceBytes::Unchanged => {
                 let py = slf.py();
                 slf.into_pyobject_or_pyerr(py)
@@ -684,7 +681,7 @@ impl RyBytes {
     }
 
     #[pyo3(signature = (tabsize = 8))]
-    fn expandtabs(&self, tabsize: usize) -> Self {
+    fn expandtabs(&self, tabsize: usize) -> Result<Self, AllocError> {
         self.py_expandtabs(tabsize)
     }
 

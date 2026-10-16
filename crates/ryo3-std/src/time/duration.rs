@@ -71,7 +71,7 @@ impl PyDuration {
         &self.0
     }
 
-    fn new(secs: u64, nanos: u32) -> PyResult<Self> {
+    pub(crate) fn new(secs: u64, nanos: u32) -> PyResult<Self> {
         if nanos < NANOS_PER_SEC {
             Ok(Self(Duration::new(secs, nanos)))
         } else {

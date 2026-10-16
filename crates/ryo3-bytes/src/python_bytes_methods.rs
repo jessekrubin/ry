@@ -9,6 +9,7 @@ use pyo3::prelude::*;
 use pyo3::types::PyString;
 use pyo3::{IntoPyObjectExt, PyClass};
 
+use crate::alloc::AllocError;
 use crate::{ReadableBuffer, search};
 
 pub(crate) trait PythonBytesMethods:
@@ -269,15 +270,39 @@ pub(crate) trait PythonBytesMethods:
     //     return NULL;
     // }
     // ```
-    fn py_expandtabs(&self, tabsize: usize) -> Self {
+    fn py_expandtabs(&self, tabsize: usize) -> Result<Self, AllocError> {
         let b = self.as_ref();
         if b.is_empty() || tabsize == 0 {
-            return Self::from(b.to_vec());
+            return Ok(Self::from(b.to_vec()));
         }
 
+        let capacity = {
+            let mut len = 0usize; // total output bytes
+            let mut col = 0usize; // column within the current line
+            for &byte in b {
+                match byte {
+                    b'\t' => {
+                        let pad = tabsize - col % tabsize;
+                        len = len.checked_add(pad).ok_or(AllocError::Overflow)?;
+                        col += pad; // col <= len, so can't overflow if len didn't
+                    }
+                    b'\n' | b'\r' => {
+                        len = len.checked_add(1).ok_or(AllocError::Overflow)?;
+                        col = 0;
+                    }
+                    _ => {
+                        len = len.checked_add(1).ok_or(AllocError::Overflow)?;
+                        col += 1;
+                    }
+                }
+            }
+            Ok(len)
+        }?;
+        if isize::try_from(capacity).is_err() {
+            return Err(AllocError::Overflow);
+        }
         let mut col = 0usize;
-        let mut out = Vec::with_capacity(b.len()); // meh -- guess len
-
+        let mut out = Vec::with_capacity(capacity); // meh -- guess len
         for &byte in b {
             match byte {
                 b'\t' => {
@@ -295,7 +320,7 @@ pub(crate) trait PythonBytesMethods:
                 }
             }
         }
-        Self::from(out)
+        Ok(Self::from(out))
     }
 
     fn py_swapcase(&self) -> Self {
