@@ -34,6 +34,7 @@
   - internal rename `PyBytes` struct to `RyBytes` to avoid confusion with
     `pyo3::types::PyBytes`
   - flip-flopped export alias so one/you can still `use ryo3_bytes::PyBytes`
+  - fixed panic on negative-step slices that run to index 0 (e.g. `b[::-1]`); via `PySliceMethods::indices`
 - `ryo3-reqwest`
   - async iterable request stream bodies are pumped by a faux py "coroutine"
     that forwards the iterator's awaitables (no task per chunk(!!!))

@@ -13,6 +13,7 @@ use pyo3::buffer::PyBuffer;
 use pyo3::exceptions::{PyIndexError, PyValueError};
 use pyo3::prelude::*;
 use pyo3::pybacked::PyBackedBytes;
+use pyo3::types::slice::PySliceIndices;
 use pyo3::types::{PyDict, PySlice, PyString, PyTuple};
 use pyo3::{IntoPyObjectExt, ffi};
 
@@ -147,60 +148,46 @@ impl RyBytes {
     ///     - If start > stop, the slice is empty
     ///
     /// This is NOT exposed to Python under the `#[pymethods]` impl
-    #[expect(
-        clippy::similar_names,
-        reason = "python idiomatic naming; start/stop/step"
-    )]
     fn slice(&self, slice: &Bound<'_, PySlice>) -> PyResult<Self> {
-        let bytes_length = isize::try_from(self.len())
+        let len = isize::try_from(self.len())
             .map_err(|_| pyo3::exceptions::PyOverflowError::new_err("bytes object too large"))?;
-        let (start, stop, step) = {
-            let slice_indices = slice.indices(bytes_length)?;
-            (slice_indices.start, slice_indices.stop, slice_indices.step)
-        };
-
-        let new_capacity = if (step > 0 && stop > start) || (step < 0 && stop < start) {
-            stop.abs_diff(start).div_ceil(step.unsigned_abs())
-        } else {
-            0
-        };
-
-        if new_capacity == 0 {
+        let PySliceIndices {
+            start,
+            step,
+            slicelength,
+            ..
+        } = slice.indices(len)?;
+        if slicelength == 0 {
             return Ok(Self::new(Bytes::new()));
         }
-        if step == 1 {
-            // if start < 0  and stop > len and step == 1 just copy?
-            if start < 0 && stop >= bytes_length {
-                let out = self.0.slice(..);
-                let py_bytes = Self::new(out);
-                return Ok(py_bytes);
-            }
-
-            if start >= 0 && stop <= bytes_length && start < stop {
-                let start = usize::try_from(start).expect("wenodis: start is non-negative");
-                let stop = usize::try_from(stop).expect("wenodis: stop is non-negative");
-                let out = self.0.slice(start..stop);
-                let py_bytes = Self::new(out);
-                return Ok(py_bytes);
-            }
-            // fall through to the general case here...
-        }
-        if step > 0 {
-            // forward
-            let mut new_buf = BytesMut::with_capacity(new_capacity);
-            let start = usize::try_from(start).expect("wenodis: start is non-negative");
-            let stop = usize::try_from(stop).expect("wenodis: stop is non-negative");
-            let step = usize::try_from(step).expect("wenodis: step is positive");
-            new_buf.extend((start..stop).step_by(step).map(|i| self.0[i]));
-            Ok(Self::new(new_buf.freeze()))
+        let start = start.unsigned_abs();
+        let step_size = step.unsigned_abs();
+        let bytes = self.as_slice();
+        if step == 0 {
+            Err(pyo3::exceptions::PyValueError::new_err(
+                "slice step cannot be zero",
+            ))
+        } else if step == 1 {
+            Ok(Self::new(self.0.slice(start..start + slicelength)))
+        } else if step > 0 {
+            Ok(Self::new(
+                bytes[start..]
+                    .iter()
+                    .step_by(step_size)
+                    .take(slicelength)
+                    .copied()
+                    .collect(),
+            ))
         } else {
-            // backward
-            let mut new_buf = BytesMut::with_capacity(new_capacity);
-            let start = usize::try_from(start).expect("wenodis: start is non-negative");
-            let stop = usize::try_from(stop).expect("wenodis: stop is non-negative");
-            let step = step.unsigned_abs();
-            new_buf.extend((stop + 1..=start).rev().step_by(step).map(|i| self.0[i]));
-            Ok(Self::new(new_buf.freeze()))
+            Ok(Self::new(
+                bytes[..=start]
+                    .iter()
+                    .rev()
+                    .step_by(step_size)
+                    .take(slicelength)
+                    .copied()
+                    .collect(),
+            ))
         }
     }
 }

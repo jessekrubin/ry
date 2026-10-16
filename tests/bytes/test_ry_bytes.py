@@ -72,6 +72,16 @@ def test_bytes_pickling() -> None:
     assert loaded == b
 
 
+@given(
+    st.binary(max_size=64).flatmap(
+        lambda b: st.tuples(st.just(b), st.slices(len(b) + 8))
+    )
+)
+def test_slice(b_and_slice: tuple[bytes, slice]) -> None:
+    b, s = b_and_slice
+    assert ry.Bytes(b)[s] == b[s], f"{s} ~ {b!r}"
+
+
 class TestBytesIsFns:
     @given(
         py_bytes=st.binary(),
