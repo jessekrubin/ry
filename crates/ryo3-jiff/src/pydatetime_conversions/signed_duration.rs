@@ -1,11 +1,9 @@
 use jiff::SignedDuration;
 use pyo3::prelude::*;
-use pyo3::types::PyDelta;
-#[cfg(not(Py_LIMITED_API))]
-use pyo3::types::PyDeltaAccess;
+use pyo3::types::{PyDelta, PyDeltaAccess};
 use ryo3_macro_rules::py_overflow_error;
 
-use crate::JiffSignedDuration;
+use crate::{JiffSignedDuration, JiffSignedDurationRef};
 const SECONDS_PER_DAY: i64 = 86_400;
 
 pub fn signed_duration_to_pydelta<'py>(
@@ -13,35 +11,21 @@ pub fn signed_duration_to_pydelta<'py>(
     duration: &SignedDuration,
 ) -> PyResult<Bound<'py, PyDelta>> {
     let total_seconds = duration.as_secs();
-    let days: i32 = (total_seconds / (24 * 60 * 60)).try_into()?;
-    let seconds: i32 = (total_seconds % (24 * 60 * 60)).try_into()?;
+    let days: i32 = (total_seconds / SECONDS_PER_DAY)
+        .try_into()
+        .map_err(|_| py_overflow_error!("SignedDuration -> datetime.timedelta"))?;
+    let seconds = (total_seconds % SECONDS_PER_DAY) as i32;
     let microseconds = duration.subsec_micros();
 
     PyDelta::new(py, days, seconds, microseconds, true)
 }
 
 pub fn pydelta_to_signed_duration(delta: &Bound<'_, PyDelta>) -> PyResult<SignedDuration> {
-    #[cfg(not(Py_LIMITED_API))]
-    let (days, seconds, microseconds) = {
-        (
-            i64::from(delta.get_days()),
-            i64::from(delta.get_seconds()),
-            delta.get_microseconds(),
-        )
-    };
-
-    #[cfg(Py_LIMITED_API)]
-    let (days, seconds, microseconds) = {
-        let py = delta.py();
-        let days = delta.getattr(crate::interns::days(py))?.extract::<i64>()?;
-        let seconds = delta
-            .getattr(crate::interns::seconds(py))?
-            .extract::<i64>()?;
-        let microseconds = delta
-            .getattr(crate::interns::microseconds(py))?
-            .extract::<i32>()?;
-        (days, seconds, microseconds)
-    };
+    let (days, seconds, microseconds) = (
+        i64::from(delta.get_days()),
+        i64::from(delta.get_seconds()),
+        delta.get_microseconds(),
+    );
 
     // Calculate total seconds
     let total_seconds = days
@@ -54,6 +38,16 @@ pub fn pydelta_to_signed_duration(delta: &Bound<'_, PyDelta>) -> PyResult<Signed
         .checked_mul(1_000)
         .ok_or_else(|| py_overflow_error!("Overflow in nanoseconds calculation"))?;
     Ok(SignedDuration::new(total_seconds, nanoseconds))
+}
+
+impl<'py> IntoPyObject<'py> for JiffSignedDurationRef<'_> {
+    type Target = PyDelta;
+    type Output = Bound<'py, Self::Target>;
+    type Error = PyErr;
+
+    fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
+        signed_duration_to_pydelta(py, self.inner())
+    }
 }
 
 impl<'py> IntoPyObject<'py> for JiffSignedDuration {

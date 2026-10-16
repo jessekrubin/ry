@@ -14,7 +14,7 @@ description = "ryo3 + jiff https://github.com/BurntSushi/jiff"
 
 [dependencies]
 jiff = { workspace = true, features = ["default", "perf-inline"] }
-pyo3 = { workspace = true, features = ["jiff-02"] }
+pyo3 = { workspace = true, features = [] }
 ryo3-core.workspace = true
 ryo3-macro-rules.workspace = true
 ryo3-pydantic = { workspace = true, optional = true }

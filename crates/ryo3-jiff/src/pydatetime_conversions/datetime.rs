@@ -1,9 +1,7 @@
 use jiff::civil::DateTime;
 use pyo3::exceptions::PyTypeError;
 use pyo3::prelude::*;
-use pyo3::types::PyDateTime;
-#[cfg(not(Py_LIMITED_API))]
-use pyo3::types::PyTzInfoAccess;
+use pyo3::types::{PyDateTime, PyTzInfoAccess};
 
 use crate::jiff_types::JiffDateTime;
 use crate::pydatetime_conversions::{pydate_to_date, pytime_to_time};
@@ -28,11 +26,7 @@ pub fn datetime_to_pydatetime<'py>(
 }
 
 pub fn pydatetime_to_datetime(dt: &Bound<'_, PyDateTime>) -> PyResult<DateTime> {
-    #[cfg(not(Py_LIMITED_API))]
-    let has_tzinfo = dt.get_tzinfo().is_some();
-    #[cfg(Py_LIMITED_API)]
-    let has_tzinfo = !dt.getattr(pyo3::intern!(dt.py(), "tzinfo"))?.is_none();
-    if has_tzinfo {
+    if dt.get_tzinfo().is_some() {
         return Err(PyTypeError::new_err("expected a datetime without tzinfo"));
     }
     Ok(DateTime::from_parts(

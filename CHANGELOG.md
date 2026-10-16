@@ -21,6 +21,15 @@
 - `ryo3-jiff`
   - cleaned up jiff-py-conversions and adopted conversion for
     `datetime.datetime` to `jiff::Zoned` based on pyo3-v0.30.0
+  - no more `pyo3/jiff-02` feature; all `datetime.*` conversions are ry
+    new-types (pyo3's `Zoned` -> `datetime` sets the wrong `fold` on fall-back)
+  - removed `Py_LIMITED_API` conversion branches (pyo3 v0.30 datetime `Access`
+    traits work on abi3)
+  - `ry.offset(hours)` raises `ValueError` for out of range hours instead of
+    panicking, whoops missed that one
+  - `SignedDuration.to_pytimedelta()` raises `OverflowError` (was `ValueError`)
+    when too big for `datetime.timedelta` (same as python)
+  - `ZonedDateTime.from_pydatetime(naive)` raises `TypeError` (was `ValueError`)
 - `ryo3-bytes`
   - internal rename `PyBytes` struct to `RyBytes` to avoid confusion with
     `pyo3::types::PyBytes`

@@ -12,31 +12,11 @@ license.workspace = true
 repository.workspace = true
 description = "python + serde"
 
-[dependencies]
-jiff = { workspace = true, optional = true, features = ["serde"] }
-pyo3 = { workspace = true, features = ["uuid"] }
-ryo3-core.workspace = true
-ryo3-http = { workspace = true, optional = true, features = ["serde"] }
-ryo3-jiff = { workspace = true, optional = true, features = ["serde"] }
-ryo3-std = { workspace = true, optional = true, features = ["serde", "net", "time"] }
-ryo3-ulid = { workspace = true, optional = true, features = ["serde"] }
-ryo3-url = { workspace = true, optional = true, features = ["serde"] }
-ryo3-uuid = { workspace = true, optional = true, features = ["serde"] }
-serde.workspace = true
-uuid = { workspace = true, features = ["serde"] }
-
-[build-dependencies]
-pyo3-build-config = { workspace = true }
-
 [features]
-default = [
-  "ry",
-]
-jiff = [
-  "dep:jiff",
-  "pyo3/jiff-02",
-]
-# ryo3-jiff = ["ryo3-jiff/serde"]
+default = ["ry"]
+# remove/shift when we use ryo3-jiff-core
+jiff = ["ryo3-jiff"]
+ryo3-std = ["dep:ryo3-std", "dep:jiff"]
 ry = [
   "jiff",
   "ryo3-std",
@@ -46,6 +26,27 @@ ry = [
   "ryo3-url",
   "ryo3-uuid",
 ]
+
+
+[dependencies]
+jiff = { workspace = true, optional = true, features = ["serde"] }
+pyo3 = { workspace = true, features = ["uuid"] }
+ryo3-core.workspace = true
+ryo3-http = { workspace = true, optional = true, features = ["serde"] }
+ryo3-jiff = { workspace = true, optional = true, features = ["serde"] }
+ryo3-std = { workspace = true, optional = true, features = [
+  "serde",
+  "net",
+  "time",
+] }
+ryo3-ulid = { workspace = true, optional = true, features = ["serde"] }
+ryo3-url = { workspace = true, optional = true, features = ["serde"] }
+ryo3-uuid = { workspace = true, optional = true, features = ["serde"] }
+serde.workspace = true
+uuid = { workspace = true, features = ["serde"] }
+
+[build-dependencies]
+pyo3-build-config = { workspace = true }
 
 [lints]
 workspace = true

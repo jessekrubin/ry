@@ -17,18 +17,26 @@ the `jiff` python api to be both ergonomic and performant.
 The structs under `ryo3-jiff` are convertible to/from python's `datetime.*`
 types and the conversions are pretty well tested (ty hypothesis).
 
-### `pyo3-v0.24.0` & `jiff-02`
+### hand rolled -> `jiff-02` -> hand rolled (again (2026-10-15))
 
 The conversions to/from python `datetime.*` types were originally hand rolled (
-by me (jesse)) using the 'new-type' pattern, HOWEVER `pyo3-v0.24.0` provides
-conversions via the `jiff-02` feature flag, which is what is used now.
+by me (jesse)) using the 'new-type' pattern and were copy-pasta-ed from the pyo3 chrono conversions.
+`pyo3-v0.24.0` added conversions via the `jiff-02` feature flag, which `ry-v0.0.38` thru `ry-v0.0.102` used pieces of internally, but they were never FULLY used.
 
-`ry-v0.0.37` will be the last version with the mostly hand rolled conversions.
+As of `ry-v0.0.103` the `jiff-02` feature is no longer used and ALL conversions
+are hand rolled new-types again (`JiffDate`, `JiffZoned`, `JiffTimeZoneRef`,
+...). Why:
 
-`ry-v0.0.38` will be the first version with the `jiff-02` feature flag.
+- a `jiff` bindings wrapper really should have its own conversions (imo)
+- `Zoned` -> `datetime.datetime` in pyo3's `jiff-02` sets the wrong `fold` for
+  the 2nd occurrence of a repeated (fall-back) hour, so python reads it as the
+  1st occurrence (an hour off); the `ry` conversion gets it right
+- `jiff-02` pins the `jiff` version to whatever `pyo3` supports
+- `pyo3` does not convert `Span` -> `datetime.timedelta`, but `ry` does
+- the hand rolled versions are as fast or faster (eg `datetime` w/
+  `timezone.utc` -> `Zoned` skips the tz lookup)
 
-As of 2025-03-12 `pyo3` does not seem to support converting `Span` ->
-`datetime.timedelta`, so that is still hand rolled.
+^those optimizations should be PR-ed into pyo3 at some point soon (TODO<@jesse>)
 
 ---
 

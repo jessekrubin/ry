@@ -2,11 +2,9 @@ use jiff::Zoned;
 use jiff::civil::DateTime;
 use jiff::tz::{AmbiguousOffset, Offset, TimeZone};
 use pyo3::prelude::*;
-use pyo3::types::{PyDateTime, PyTzInfo};
-#[cfg(not(Py_LIMITED_API))]
-use pyo3::types::{PyTimeAccess, PyTzInfoAccess};
+use pyo3::types::{PyDateTime, PyTimeAccess, PyTzInfo, PyTzInfoAccess};
 use ryo3_core::map_py_value_err;
-use ryo3_macro_rules::py_value_err;
+use ryo3_macro_rules::py_type_err;
 
 use crate::pydatetime_conversions::{pydate_to_date, pytime_to_time, timezone_to_pytzinfo};
 use crate::{JiffTimeZone, JiffZoned, JiffZonedRef};
@@ -40,19 +38,8 @@ pub fn zoned_to_pydatetime<'py>(py: Python<'py>, z: &Zoned) -> PyResult<Bound<'p
 }
 
 pub fn pydatetime_to_zoned(dt: &Bound<'_, PyDateTime>) -> PyResult<Zoned> {
-    #[cfg(not(Py_LIMITED_API))]
-    let tzinfo = dt.get_tzinfo();
-    #[cfg(Py_LIMITED_API)]
-    let tzinfo = {
-        let tz = dt.getattr(pyo3::intern!(dt.py(), "tzinfo"))?;
-        if tz.is_none() {
-            None
-        } else {
-            Some(tz.cast_into::<PyTzInfo>()?)
-        }
-    };
-    let Some(tzinfo) = tzinfo else {
-        return py_value_err!("expected a datetime with non-None tzinfo");
+    let Some(tzinfo) = dt.get_tzinfo() else {
+        return py_type_err!("expected a datetime with non-None tzinfo");
     };
     let datetime = DateTime::from_parts(pydate_to_date(dt)?, pytime_to_time(dt)?);
     if tzinfo.is(PyTzInfo::utc(dt.py())?) {
@@ -66,16 +53,9 @@ pub fn pydatetime_to_zoned(dt: &Bound<'_, PyDateTime>) -> PyResult<Zoned> {
         .extract::<JiffTimeZone>()?
         .into_inner()
         .into_ambiguous_zoned(datetime);
-    #[cfg(not(Py_LIMITED_API))]
-    let fold = dt.get_fold();
-    #[cfg(Py_LIMITED_API)]
-    let fold = dt
-        .getattr(pyo3::intern!(dt.py(), "fold"))?
-        .extract::<usize>()?
-        > 0;
     // REF: https://peps.python.org/pep-0495/
     // REF: https://github.com/PyO3/pyo3/pull/6450
-    if fold ^ matches!(zoned.offset(), AmbiguousOffset::Gap { .. }) {
+    if dt.get_fold() ^ matches!(zoned.offset(), AmbiguousOffset::Gap { .. }) {
         zoned.later()
     } else {
         zoned.earlier()

@@ -10,7 +10,45 @@
 //!   they have been influenced by the official pyo3 code
 //!
 
+// ----------------------------------------------------------------------------
 // NEWTS
+// ----------------------------------------------------------------------------
+// #[derive(Debug, Clone)]
+// pub struct JiffError(jiff::Error);
+
+// impl JiffError {
+//     #[inline]
+//     #[must_use]
+//     pub const fn new(error: jiff::Error) -> Self {
+//         Self(error)
+//     }
+
+//     #[inline]
+//     #[must_use]
+//     pub const fn inner(&self) -> &jiff::Error {
+//         &self.0
+//     }
+
+//     #[inline]
+//     #[must_use]
+//     pub fn into_inner(self) -> jiff::Error {
+//         self.0
+//     }
+// }
+
+// impl From<JiffError> for pyo3::PyErr {
+//     fn from(e: JiffError) -> Self {
+//         if  (e.inner().is_range()) {
+//             pyo3::exceptions::PyOverflowError::new_err(e.inner().to_string())
+//         } else {
+//             pyo3::exceptions::PyValueError::new_err(e.inner().to_string())
+//         }
+//     }
+// }
+
+// ----------------------------------------------------------------------------
+// NEWTS
+// ----------------------------------------------------------------------------
 #[derive(Debug, Clone, Copy)]
 pub struct JiffDate(jiff::civil::Date);
 
@@ -38,12 +76,17 @@ pub struct JiffOffset(jiff::tz::Offset);
 #[derive(Clone, Copy, Debug)]
 pub struct JiffSignedDuration(jiff::SignedDuration);
 
+// ----------------------------------------------------------------------------
 // REF NEWTS
+// ----------------------------------------------------------------------------
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub struct JiffTimeZoneRef<'a>(&'a jiff::tz::TimeZone);
 
 #[derive(Debug, Clone, Copy)]
 pub struct JiffZonedRef<'a>(&'a jiff::Zoned);
+
+#[derive(Debug, Clone, Copy)]
+pub struct JiffSignedDurationRef<'a>(&'a jiff::SignedDuration);
 
 // ----------------------------------------------------------------------------
 // ENUMS ~ ENUMS ~ ENUMS ~ ENUMS ~ ENUMS ~ ENUMS ~ ENUMS ~ ENUMS ~ ENUMS
@@ -170,6 +213,7 @@ macro_rules! impl_new_type_ref_functions {
 }
 impl_new_type_ref_functions!(JiffZonedRef, jiff::Zoned);
 impl_new_type_ref_functions!(JiffTimeZoneRef, jiff::tz::TimeZone);
+impl_new_type_ref_functions!(JiffSignedDurationRef, jiff::SignedDuration);
 // ============================================================================
 
 // JIFF UNIT

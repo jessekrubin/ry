@@ -9,7 +9,7 @@ use ryo3_core::PyCastExactOpt;
 use ryo3_macro_rules::py_type_err;
 use ryo3_std::time::PyDuration;
 
-use crate::{RySignedDuration, RySpan};
+use crate::{JiffSignedDuration, RySignedDuration, RySpan};
 
 /// `ry.Duration | datetime.timedelta`
 ///
@@ -36,7 +36,9 @@ impl<'a, 'py> FromPyObject<'a, 'py> for DurationLike<'a, 'py> {
         if let Some(duration) = ob.cast_exact_opt::<PyDuration>() {
             Ok(Self::Duration(duration))
         } else if let Some(py_delta) = ob.cast_exact_opt::<PyDelta>() {
-            py_delta.extract::<SignedDuration>().map(Self::PyTimeDelta)
+            py_delta
+                .extract::<JiffSignedDuration>()
+                .map(|sd| Self::PyTimeDelta(sd.into_inner()))
         } else {
             py_type_err!("Expected a Duration or datetime.timedelta object")
         }
@@ -55,8 +57,8 @@ impl<'a, 'py> FromPyObject<'a, 'py> for Spanish<'a, 'py> {
             Ok(Self::SignedDuration(signed_duration))
         } else if let Some(py_delta) = ob.cast_exact_opt::<PyDelta>() {
             py_delta
-                .extract::<SignedDuration>()
-                .map(|sd| Self::from(DurationLike::PyTimeDelta(sd)))
+                .extract::<JiffSignedDuration>()
+                .map(|sd| Self::from(DurationLike::PyTimeDelta(sd.into_inner())))
         } else {
             py_type_err!(
                 "Expected a Timespan, Duration, SignedDuration, or datetime.timedelta object"

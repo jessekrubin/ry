@@ -6,9 +6,6 @@ use pyo3::types::PyTuple;
 use crate::JiffEraYear;
 
 impl<'py> IntoPyObject<'py> for &JiffEraYear {
-    #[cfg(Py_LIMITED_API)]
-    type Target = PyAny;
-    #[cfg(not(Py_LIMITED_API))]
     type Target = PyTuple;
     type Output = Bound<'py, Self::Target>;
     type Error = PyErr;
@@ -23,21 +20,11 @@ impl<'py> IntoPyObject<'py> for &JiffEraYear {
         let era_str = era_str_pyobj.into_py_any(py)?;
 
         let pyobjs_vec = vec![year_py, era_str];
-        #[cfg(not(Py_LIMITED_API))]
-        {
-            PyTuple::new(py, pyobjs_vec)
-        }
-        #[cfg(Py_LIMITED_API)]
-        {
-            Ok(PyTuple::new(py, pyobjs_vec)?.into_any())
-        }
+        PyTuple::new(py, pyobjs_vec)
     }
 }
 
 impl<'py> IntoPyObject<'py> for JiffEraYear {
-    #[cfg(Py_LIMITED_API)]
-    type Target = PyAny;
-    #[cfg(not(Py_LIMITED_API))]
     type Target = PyTuple;
     type Output = Bound<'py, Self::Target>;
     type Error = PyErr;

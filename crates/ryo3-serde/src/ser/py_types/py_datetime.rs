@@ -32,7 +32,13 @@ impl Serialize for PyDateSerializer<'_, '_> {
     where
         S: Serializer,
     {
-        let date_jiff: jiff::civil::Date = self.obj.extract().map_err(pyerr2sererr)?;
+        use ryo3_jiff::JiffDate;
+
+        let date_jiff = self
+            .obj
+            .extract::<JiffDate>()
+            .map(JiffDate::into_inner)
+            .map_err(pyerr2sererr)?;
         date_jiff.serialize(serializer)
     }
 }
@@ -78,7 +84,13 @@ impl Serialize for PyTimeSerializer<'_, '_> {
     where
         S: Serializer,
     {
-        let time_jiff: jiff::civil::Time = self.obj.extract().map_err(pyerr2sererr)?;
+        use ryo3_jiff::JiffTime;
+
+        let time_jiff = self
+            .obj
+            .extract::<JiffTime>()
+            .map(JiffTime::into_inner)
+            .map_err(pyerr2sererr)?;
         time_jiff.serialize(serializer)
     }
 }
@@ -178,7 +190,13 @@ impl Serialize for PyTimeDeltaSerializer<'_, '_> {
     where
         S: Serializer,
     {
-        let signed_duration: jiff::SignedDuration = self.obj.extract().map_err(pyerr2sererr)?;
+        use ryo3_jiff::JiffSignedDuration;
+
+        let signed_duration = self
+            .obj
+            .extract::<JiffSignedDuration>()
+            .map(JiffSignedDuration::into_inner)
+            .map_err(pyerr2sererr)?;
         signed_duration.serialize(serializer)
     }
 }
