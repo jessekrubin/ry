@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import base64
 import os
+import socket
 import threading
+import time
 import typing as t
 from concurrent.futures import ThreadPoolExecutor
 from typing import TYPE_CHECKING
@@ -348,6 +350,61 @@ class TestStream:
         )
         rest_total_inner_len = sum(len(t) for t in rest)
         assert rest_total_inner_len == expected_len
+
+    @staticmethod
+    def test_get_bytes_stream_with(server: ReqtestServer) -> None:
+        client = ry.BlockingClient()
+        response = client.get(str(server.url) + "long")
+        response_stream = response.bytes_stream()
+        parts = b""
+        with response_stream as s:
+            assert s is response_stream
+            for chunk in s:
+                parts += chunk
+        expected = "".join([f"howdy partner {i}\n" for i in range(100)]).encode()
+        assert parts == expected
+        with pytest.raises(StopIteration):
+            next(response_stream)
+
+    @staticmethod
+    def test_get_bytes_stream_close_before_read(server: ReqtestServer) -> None:
+        client = ry.BlockingClient()
+        response = client.get(str(server.url) + "long")
+        response_stream = response.bytes_stream()
+        response_stream.close()
+        with pytest.raises(StopIteration):
+            next(response_stream)
+
+    @staticmethod
+    def test_get_bytes_stream_close_starts_tbd_next() -> None:
+        srv = socket.create_server(("127.0.0.1", 0))
+        port = srv.getsockname()[1]
+        stall = threading.Event()
+
+        def _headers_and_chill() -> None:
+            conn, _ = srv.accept()
+            with conn:
+                conn.recv(65536)
+                conn.sendall(b"HTTP/1.1 200 OK\r\ncontent-length: 10\r\n\r\n")
+                stall.wait(10)
+
+        server_thread = threading.Thread(target=_headers_and_chill, daemon=True)
+        server_thread.start()
+        try:
+            client = ry.BlockingClient()
+            response = client.get(f"http://127.0.0.1:{port}/")
+            response_stream = response.bytes_stream()
+            with ThreadPoolExecutor(2) as pool:
+                pending = pool.submit(next, response_stream)
+                time.sleep(0.05)
+                # close from another thread gotta wake the paused next()
+                pool.submit(response_stream.close).result(timeout=5)
+                with pytest.raises(StopIteration):
+                    pending.result(timeout=5)
+        finally:
+            stall.set()
+            server_thread.join(5)
+            srv.close()
 
     @staticmethod
     def test_get_stream_readall(server: ReqtestServer) -> None:

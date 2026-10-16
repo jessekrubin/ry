@@ -219,28 +219,20 @@ fn extract_kwargs<const BLOCKING: bool>(
         .map(|v| v.extract())
         .transpose()?;
     // extract body last as it is possibly the most expensive op
-
-    let body: PyReqwestBody = match (body, json, form, multipart) {
-        (Some(_), Some(_), _, _)
-        | (Some(_), _, Some(_), _)
-        | (Some(_), _, _, Some(_))
-        | (_, Some(_), Some(_), _)
-        | (_, Some(_), _, Some(_))
-        | (_, _, Some(_), Some(_)) => {
-            return py_value_err!("body, json, form, multipart are mutually exclusive");
-        }
-        (Some(body), None, None, None) => {
-            extract_body_from_py_body::<BLOCKING>(body.as_borrowed())?
-        }
-        (None, Some(json), None, None) => {
-            PyReqwestBody::Json(ryo3_json::py_to_vec(json.as_borrowed())?)
-        }
-        (None, None, Some(form), None) => extract_form_body(form.as_borrowed())?,
-        (None, None, None, Some(_multipart)) => {
-            pytodo!("multipart not implemented (yet)");
-        }
-        (None, None, None, None) => PyReqwestBody::None,
-    };
+    let mut body_dto: PyReqwestBodyDeferred<'_, '_> = PyReqwestBodyDeferred::None;
+    if let Some(body) = &body {
+        body_dto.try_set_body(body.as_borrowed())?;
+    }
+    if let Some(json) = &json {
+        body_dto.try_set_json(json.as_borrowed())?;
+    }
+    if let Some(form) = &form {
+        body_dto.try_set_form(form.as_borrowed())?;
+    }
+    if let Some(multipart) = &multipart {
+        body_dto.try_set_multipart(multipart.as_borrowed())?;
+    }
+    let body = body_dto.into_body::<BLOCKING>()?;
     Ok(ReqwestKwargs {
         headers,
         query,

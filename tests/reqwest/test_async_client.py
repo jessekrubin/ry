@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import base64
+import contextlib
 import typing as t
 from typing import TYPE_CHECKING
 
@@ -27,6 +28,28 @@ def client_cls(request: pytest.FixtureRequest) -> type[TClient]:
 @pytest.fixture(params=(ry.Client,))
 def client(request: pytest.FixtureRequest) -> TClient:
     return t.cast("TClient", request.param())
+
+
+@contextlib.asynccontextmanager
+async def _raw_server(
+    handler: t.Callable[
+        [asyncio.StreamReader, asyncio.StreamWriter], t.Awaitable[None]
+    ],
+) -> t.AsyncGenerator[str]:
+    """raw asyncio server for hand-rolled http responses ~ yields the url"""
+    async with await asyncio.start_server(handler, "127.0.0.1", 0) as srv:
+        port = srv.sockets[0].getsockname()[1]
+        yield f"http://127.0.0.1:{port}/"
+
+
+async def _trun_body(
+    reader: asyncio.StreamReader, writer: asyncio.StreamWriter
+) -> None:
+    """send a body shorter than its content-length then hang up"""
+    await reader.readuntil(b"\r\n\r\n")
+    writer.write(b"HTTP/1.1 200 OK\r\ncontent-length: 10\r\n\r\nshort")
+    await writer.drain()
+    writer.close()
 
 
 @pytest.mark.anyio
@@ -340,6 +363,180 @@ class TestStream:
         assert parts == expected
 
     @pytest.mark.anyio
+    async def test_stream_ready_chunk(
+        self, server: ReqtestServer, client: TClient
+    ) -> None:
+        response = await client.get(str(server.url) + "long")
+        response_stream = response.bytes_stream()
+
+        # let the res eater get ahead of the thing
+        parts = b""
+        n_ready = 0
+        while True:
+            await asyncio.sleep(0.01)
+            next_chunk = anext(response_stream)
+            n_ready += not asyncio.isfuture(next_chunk)
+            try:
+                parts += await next_chunk
+            except StopAsyncIteration:
+                break
+        expected = "".join([f"howdy partner {i}\n" for i in range(100)]).encode()
+        assert parts == expected
+        assert n_ready > 0
+
+    @pytest.mark.anyio
+    async def test_stream_end_raises_on_await(
+        self, server: ReqtestServer, client: TClient
+    ) -> None:
+        response = await client.get(str(server.url) + "long")
+        response_stream = response.bytes_stream()
+        _ = [chunk async for chunk in response_stream]
+        await asyncio.sleep(0.01)
+
+        # `anext()` gotta raise only when awaiting
+        next_chunk = anext(response_stream)
+        with pytest.raises(StopAsyncIteration):
+            await next_chunk
+
+    @pytest.mark.anyio
+    async def test_stream_error_raises_on_await(self, client: TClient) -> None:
+        async with _raw_server(_trun_body) as url:
+            response = await client.get(url)
+            response_stream = response.bytes_stream()
+            assert await anext(response_stream) == b"short"
+            # only raise here on await
+            await asyncio.sleep(0.1)
+            next_chunk = anext(response_stream)
+            with pytest.raises(ry.ReqwestError):
+                await next_chunk
+
+    @pytest.mark.anyio
+    async def test_stream_anext_cancel(self, client: TClient) -> None:
+        send_second = asyncio.Event()
+        second_sent = asyncio.Event()
+
+        async def _two_chunks(
+            reader: asyncio.StreamReader, writer: asyncio.StreamWriter
+        ) -> None:
+            await reader.readuntil(b"\r\n\r\n")
+            writer.write(
+                b"HTTP/1.1 200 OK\r\ntransfer-encoding: chunked\r\n\r\n5\r\nfirst\r\n"
+            )
+            await writer.drain()
+            await send_second.wait()
+            try:
+                writer.write(b"6\r\nsecond\r\n0\r\n\r\n")
+                await writer.drain()
+            except ConnectionError:
+                pass
+            finally:
+                second_sent.set()
+                writer.close()
+
+        async with _raw_server(_two_chunks) as url:
+            response = await client.get(url)
+            response_stream = response.bytes_stream()
+            assert await anext(response_stream) == b"first"
+
+            pending = asyncio.ensure_future(anext(response_stream))
+            await asyncio.sleep(0)
+            assert not pending.done()
+            pending.cancel()
+            with pytest.raises(asyncio.CancelledError):
+                await pending
+
+            # cancelled read must not eat the next chunk
+            send_second.set()
+            assert await asyncio.wait_for(anext(response_stream), 10) == b"second"
+            with pytest.raises(StopAsyncIteration):
+                await anext(response_stream)
+            await asyncio.wait_for(second_sent.wait(), 10)
+
+    @pytest.mark.anyio
+    async def test_stream_async_with(
+        self, server: ReqtestServer, client: TClient
+    ) -> None:
+        response = await client.get(str(server.url) + "long")
+        response_stream = response.bytes_stream()
+        parts = b""
+        async with response_stream as s:
+            assert s is response_stream
+            async for chunk in s:
+                parts += chunk
+        expected = "".join([f"howdy partner {i}\n" for i in range(100)]).encode()
+        assert parts == expected
+        with pytest.raises(StopAsyncIteration):
+            await anext(response_stream)
+
+    @pytest.mark.anyio
+    async def test_stream_async_with_starts_read_ahead(
+        self, server: ReqtestServer, client: TClient
+    ) -> None:
+        """reader start on __aenter__ ~ first chunk should be ready w/o fut"""
+        response = await client.get(str(server.url) + "long")
+        response_stream = response.bytes_stream()
+        async with response_stream:
+            await asyncio.sleep(0.05)
+            first = anext(response_stream)
+            assert not asyncio.isfuture(first)
+            assert await first
+
+    @pytest.mark.anyio
+    async def test_stream_close_b4_read(
+        self, server: ReqtestServer, client: TClient
+    ) -> None:
+        response = await client.get(str(server.url) + "long")
+        response_stream = response.bytes_stream()
+        await response_stream.close()
+        with pytest.raises(StopAsyncIteration):
+            await anext(response_stream)
+
+    @pytest.mark.anyio
+    async def test_stream_async_with_err_closes(
+        self, server: ReqtestServer, client: TClient
+    ) -> None:
+        response = await client.get(str(server.url) + "long")
+        response_stream = response.bytes_stream()
+
+        async def _read_then_bail() -> None:
+            async with response_stream:
+                assert await anext(response_stream)
+                msg = "bail"
+                raise ValueError(msg)
+
+        with pytest.raises(ValueError, match="bail"):
+            await _read_then_bail()
+        # closed on the way out even tho it blew up
+        with pytest.raises(StopAsyncIteration):
+            await anext(response_stream)
+
+    @pytest.mark.anyio
+    async def test_stream_close_wakes_pending_anext(self, client: TClient) -> None:
+        stall = asyncio.Event()
+
+        async def _headers_and_chill(
+            reader: asyncio.StreamReader, writer: asyncio.StreamWriter
+        ) -> None:
+            await reader.readuntil(b"\r\n\r\n")
+            writer.write(b"HTTP/1.1 200 OK\r\ncontent-length: 10\r\n\r\n")
+            await writer.drain()
+            await stall.wait()
+            writer.close()
+
+        async with _raw_server(_headers_and_chill) as url:
+            response = await client.get(url)
+            response_stream = response.bytes_stream()
+            try:
+                pending = asyncio.ensure_future(anext(response_stream))
+                await asyncio.sleep(0.05)
+                # close gotta wake the parked anext, not wait behind it
+                await asyncio.wait_for(response_stream.close(), 5)
+                with pytest.raises(StopAsyncIteration):
+                    await asyncio.wait_for(pending, 5)
+            finally:
+                stall.set()
+
+    @pytest.mark.anyio
     async def test_stream_min_read_size(
         self, server: ReqtestServer, client: TClient
     ) -> None:
@@ -559,6 +756,91 @@ async def test_client_post(
 
 
 class TestClientStreamingBody:
+    async def test_client_post_stream_body_invalid_anext(
+        self, server: ReqtestServer, client: TClient
+    ) -> None:
+        class _BadAsyncIterator:
+            def __aiter__(self) -> _BadAsyncIterator:
+                return self
+
+            def __anext__(self) -> object:
+                return object()
+
+        with pytest.raises(
+            ry.ReqwestError,
+            match=r"TypeError.*__anext__ returned non-awaitable of type 'object'",
+        ):
+            await client.post(str(server.url) + "echo", body=_BadAsyncIterator())  # type: ignore[arg-type]  # ty: ignore[invalid-argument-type]
+
+    async def test_client_post_stream_body_anext_await_error(
+        self, server: ReqtestServer, client: TClient
+    ) -> None:
+        class _BrokenAwaitable:
+            def __await__(self) -> t.Iterator[object]:
+                msg = "BABOOM"
+                raise RuntimeError(msg)
+
+        class _BadAsyncIterator:
+            def __aiter__(self) -> _BadAsyncIterator:
+                return self
+
+            def __anext__(self) -> _BrokenAwaitable:
+                return _BrokenAwaitable()
+
+        with pytest.raises(ry.ReqwestError, match=r"RuntimeError.*BABOOM"):
+            await client.post(
+                str(server.url) + "echo",
+                body=_BadAsyncIterator(),  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
+            )
+
+    async def test_client_post_stream_body_await_shitty_iterator(
+        self, server: ReqtestServer, client: TClient
+    ) -> None:
+        class _ListAwaitable:
+            def __await__(self) -> list[int]:
+                return [1, 2]
+
+        class _ShittyAsyncIterator:
+            def __aiter__(self) -> _ShittyAsyncIterator:
+                return self
+
+            def __anext__(self) -> _ListAwaitable:
+                return _ListAwaitable()
+
+        with pytest.raises(
+            ry.ReqwestError,
+            match=r"TypeError.*__await__\(\) returned non-iterator of type 'list'",
+        ):
+            await client.post(
+                str(server.url) + "echo",
+                body=_ShittyAsyncIterator(),  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
+            )
+
+    async def test_client_post_stream_body_pump_cancels(
+        self, server: ReqtestServer, client: TClient
+    ) -> None:
+        """cancelling the body pump task (eg loop dtor) fails req w/o nuking the body"""
+        second = asyncio.Event()
+
+        async def _body() -> t.AsyncGenerator[bytes, None]:
+            yield b"first"
+            second.set()
+            await asyncio.Event().wait()
+            yield b"never"
+
+        async def _cancel_pump() -> None:
+            await asyncio.wait_for(second.wait(), 10)
+            for task in asyncio.all_tasks():
+                if "RequestBodyPump" in repr(task):
+                    task.cancel()
+
+        canceller = asyncio.ensure_future(_cancel_pump())
+        with pytest.raises(ry.ReqwestError):
+            await asyncio.wait_for(
+                client.post(str(server.url) + "echo", body=_body()), 10
+            )
+        await canceller
+
     async def test_client_post_stream_body_cancel(
         self, server: ReqtestServer, client: TClient
     ) -> None:
@@ -603,11 +885,8 @@ class TestClientStreamingBody:
             await writer.drain()
             writer.close()
 
-        async with await asyncio.start_server(_respond_n_hangup, "127.0.0.1", 0) as srv:
-            port = srv.sockets[0].getsockname()[1]
-            response = await client.post(
-                f"http://127.0.0.1:{port}/", body=_stalled_body()
-            )
+        async with _raw_server(_respond_n_hangup) as url:
+            response = await client.post(url, body=_stalled_body())
             assert response.status_code == 200
             await asyncio.wait_for(closed.wait(), 10)
 

@@ -12,16 +12,16 @@ license.workspace = true
 repository.workspace = true
 description = "ryo3-core ~ common/shared utils/tools/things"
 
+[features]
+default = []
+experimental-inspect = ["pyo3/experimental-inspect"]
+
 [dependencies]
 pyo3 = { workspace = true, features = [] }
 ryo3-macro-rules = { workspace = true }
 
 [build-dependencies]
 pyo3-build-config = { workspace = true }
-
-[features]
-default = []
-experimental-inspect = ["pyo3/experimental-inspect"]
 
 [lints]
 workspace = true

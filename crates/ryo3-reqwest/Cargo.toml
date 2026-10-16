@@ -12,6 +12,13 @@ license.workspace = true
 repository.workspace = true
 description = "python + reqwest (https://docs.rs/reqwest/latest/reqwest/index.html)"
 
+[features]
+default = []
+experimental-async = ["pyo3/experimental-async", "ryo3-tokio-rt/experimental-async"]
+ring = ["rustls/ring"]
+aws-lc-rs = ["rustls/aws-lc-rs"]
+ry = []
+
 [dependencies]
 bytes.workspace = true
 encoding_rs.workspace = true
@@ -46,10 +53,3 @@ pyo3-build-config = { workspace = true }
 
 [lints]
 workspace = true
-
-[features]
-default = []
-experimental-async = ["pyo3/experimental-async", "ryo3-tokio-rt/experimental-async"]
-ring = ["rustls/ring"]
-aws-lc-rs = ["rustls/aws-lc-rs"]
-ry = []
