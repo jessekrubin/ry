@@ -57,12 +57,23 @@ pub fn bzip2_decode(py: Python<'_>, data: ReadableBuffer) -> PyResult<RyBytes> {
 #[derive(Copy, Clone, PartialEq, Eq, Debug, Default)]
 pub struct PyCompression(pub(crate) Compression);
 
+impl PyCompression {
+    #[must_use]
+    pub const fn try_new(level: u32) -> Option<Self> {
+        if let Some(c) = Compression::try_new(level) {
+            Some(Self(c))
+        } else {
+            None
+        }
+    }
+}
+
 impl<'py> FromPyObject<'_, 'py> for PyCompression {
     type Error = pyo3::PyErr;
     fn extract(ob: Borrowed<'_, 'py, PyAny>) -> Result<Self, Self::Error> {
         if let Ok(level) = ob.extract::<u32>() {
-            if level < 10 {
-                return Ok(Self(Compression::new(level)));
+            if let Some(c) = Compression::try_new(level) {
+                return Ok(Self(c));
             }
         } else if let Ok(c) = ob.extract::<&str>() {
             match c {
@@ -72,7 +83,7 @@ impl<'py> FromPyObject<'_, 'py> for PyCompression {
             }
         }
         Err(PyValueError::new_err(
-            "Invalid compression level; valid levels are int 0-9 or string 'fast' or 'best'",
+            "Invalid compression level; valid levels are int 1..=9 or string 'fast' or 'best'",
         ))
     }
 }
