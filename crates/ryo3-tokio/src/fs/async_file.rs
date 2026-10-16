@@ -16,6 +16,9 @@ use tokio::fs::File;
 use tokio::io::{AsyncBufReadExt, AsyncReadExt, AsyncSeekExt, AsyncWriteExt, BufStream};
 use tokio::sync::Mutex;
 
+// max up-front alloc for `read(n)`/`peek(n)`; reads grow w/ the data
+const READ_PREALLOC_CAP: usize = 8 * 1024 * 1024;
+
 enum FileState {
     Closed,
     Open(Box<BufStream<File>>),
@@ -67,7 +70,8 @@ impl PyAsyncFileInner {
             .stream_position()
             .await
             .map_err(|e| py_io_error!("Failed to get stream position: {e}"))?;
-        let mut buf = vec![0; n];
+        // peek only promises "up to n"
+        let mut buf = vec![0; n.min(READ_PREALLOC_CAP)];
         let bytes_read = file
             .read(&mut buf)
             .await
@@ -130,11 +134,17 @@ impl PyAsyncFileInner {
         Ok(buf)
     }
 
-    async fn read(&mut self, buf: &mut [u8]) -> PyResult<usize> {
+    /// read up to `n` bytes (or eof) like `BufferedReader.read(n)`; buffer
+    /// grows w/ the data read
+    async fn read_up_to(&mut self, n: usize) -> PyResult<Vec<u8>> {
         let file = self.get_file_mut()?;
-        file.read(buf)
+        let mut buf = Vec::with_capacity(n.min(READ_PREALLOC_CAP));
+        let limit = u64::try_from(n).unwrap_or(u64::MAX);
+        file.take(limit)
+            .read_to_end(&mut buf)
             .await
-            .map_err(|e| py_io_error!("Failed to read: {e}"))
+            .map_err(|e| py_io_error!("Failed to read: {e}"))?;
+        Ok(buf)
     }
 
     async fn readline(&mut self, size: Option<usize>) -> PyResult<Option<Vec<u8>>> {
@@ -386,9 +396,7 @@ impl PyAsyncFile {
         future_into_py(py, async move {
             let mut file = inner.lock().await;
             if let Some(s) = size {
-                let mut buf = vec![0u8; s];
-                let n = file.read(&mut buf).await?;
-                buf.truncate(n);
+                let buf = file.read_up_to(s).await?;
                 Ok(RyBytes::from(buf))
             } else {
                 let r = file.read_all().await?;
@@ -675,9 +683,7 @@ impl PyAsyncFile {
             async move {
                 let mut file = inner.lock().await;
                 if let Some(s) = size {
-                    let mut buf = vec![0u8; s];
-                    let n = file.read(&mut buf).await?;
-                    buf.truncate(n);
+                    let buf = file.read_up_to(s).await?;
                     Ok(RyBytes::from(buf))
                 } else {
                     let r = file.read_all().await?;

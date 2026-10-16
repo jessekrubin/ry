@@ -9,7 +9,7 @@ use pyo3::prelude::*;
 use pyo3::types::PyString;
 use pyo3::{IntoPyObjectExt, PyClass};
 
-use crate::alloc::AllocError;
+use crate::alloc::{AllocError, try_with_capacity};
 use crate::{ReadableBuffer, search};
 
 pub(crate) trait PythonBytesMethods:
@@ -298,11 +298,8 @@ pub(crate) trait PythonBytesMethods:
             }
             Ok(len)
         }?;
-        if isize::try_from(capacity).is_err() {
-            return Err(AllocError::Overflow);
-        }
         let mut col = 0usize;
-        let mut out = Vec::with_capacity(capacity); // meh -- guess len
+        let mut out = try_with_capacity(capacity)?;
         for &byte in b {
             match byte {
                 b'\t' => {

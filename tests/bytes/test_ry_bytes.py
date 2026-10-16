@@ -167,6 +167,18 @@ def test_bytes_expandtabs_ext(
     assert rs_res.to_bytes() == py_res, f"py: {py_res!r}, rs: {rs_res!r} ~ {b!r}"
 
 
+@pytest.mark.parametrize(
+    ("b", "tabsize", "exc"),
+    [
+        (b"\t" * 16, 2**60, OverflowError),  # 2**64: doesn't fit usize
+        (b"\t" * 1024, 2**40, MemoryError),  # 2**50: past the address space
+    ],
+)
+def test_bytes_expandtabs_huge(b: bytes, tabsize: int, exc: type[Exception]) -> None:
+    with pytest.raises(exc):
+        ry.Bytes(b).expandtabs(tabsize)
+
+
 class TestBytesOperators:
     @given(st.binary())
     def test_bytes_mul(

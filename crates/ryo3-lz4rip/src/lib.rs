@@ -40,6 +40,7 @@ pub mod error {
         // --------------------------------------------------------------------
         // foreign errors
         // --------------------------------------------------------------------
+        Alloc(std::collections::TryReserveError),
         Io(std::io::Error),
         BlockCompress(lz4rip::block::CompressError),
         BlockDecompress(lz4rip::block::DecompressError),
@@ -91,6 +92,7 @@ pub mod error {
         fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
             match self {
                 Self::Ry(e) => write!(f, "{e}"),
+                Self::Alloc(e) => write!(f, "{e}"),
                 Self::Io(e) => write!(f, "io error: {e}"),
                 Self::BlockCompress(e) => write!(f, "block compression error: {e}"),
                 Self::BlockDecompress(e) => write!(f, "block decompression error: {e}"),
@@ -103,6 +105,12 @@ pub mod error {
     impl From<RyLz4Error> for Error {
         fn from(err: RyLz4Error) -> Self {
             Self::Ry(err)
+        }
+    }
+
+    impl From<std::collections::TryReserveError> for Error {
+        fn from(err: std::collections::TryReserveError) -> Self {
+            Self::Alloc(err)
         }
     }
 
@@ -140,6 +148,7 @@ pub mod error {
         fn from(err: Error) -> Self {
             match err {
                 Error::Io(e) => e.into(),
+                Error::Alloc(_) => pyo3::exceptions::PyMemoryError::new_err(()),
                 _ => pyo3::exceptions::PyValueError::new_err(err.to_string()),
             }
         }

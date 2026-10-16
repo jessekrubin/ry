@@ -36,6 +36,19 @@ class TestLz4Block:
         compressed_raw = ry.lz4_compress_block(b"", size=False)
         assert ry.lz4_decompress_block(compressed_raw, 0) == b""
 
+    def test_block_huge_size_hint(self) -> None:
+        """`size` is an upper bound; a huge one is clamped, not allocated."""
+        compressed_raw = ry.lz4_compress_block(_JSONISH)
+        assert ry.lz4_decompress_block(compressed_raw, 2**63 - 1) == _JSONISH
+        decompressor = ry.Lz4BlockDecompressor()
+        assert decompressor.decompress(compressed_raw, 2**63 - 1) == _JSONISH
+
+    def test_block_huge_size_hint_max_ratio(self) -> None:
+        """the clamp (input * max-ratio) never truncates real data"""
+        zeros = bytes(16 * 1024 * 1024)
+        compressed_raw = ry.lz4_compress_block(zeros)
+        assert ry.lz4_decompress_block(compressed_raw, 2**63 - 1) == zeros
+
     def test_block_round_trip_dictionary(self) -> None:
         compressed = ry.lz4_compress_block(_JSONISH, dictionary=_DICTIONARY)
         compressed_nodict = ry.lz4_compress_block(_JSONISH)
