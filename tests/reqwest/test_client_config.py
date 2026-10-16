@@ -104,7 +104,7 @@ def test_client_timeout_bad_secs(
     exc: type[Exception],
 ) -> None:
     with pytest.raises(exc):
-        client_cls(**{kwarg: secs})
+        client_cls(**{kwarg: secs})  # type: ignore[arg-type]  # ty: ignore[invalid-argument-type]
 
 
 def test_client_config_headers(
