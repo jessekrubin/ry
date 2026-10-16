@@ -3,7 +3,7 @@ use std::hash::{DefaultHasher, Hash, Hasher};
 use std::ops::Sub;
 
 use jiff::Zoned;
-use jiff::civil::{Date, DateTime, DateTimeArithmetic, DateTimeRound, Time, Weekday};
+use jiff::civil::{DateTime, DateTimeArithmetic, DateTimeRound, Weekday};
 use pyo3::basic::CompareOp;
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyTuple};
@@ -23,8 +23,8 @@ use crate::series::RyDateTimeSeries;
 use crate::spanish::{DurationLike, Spanish};
 use crate::util::SpanKwargs;
 use crate::{
-    JiffDateTime, JiffEra, JiffEraYear, JiffRoundMode, JiffUnit, JiffWeekday, RyDate,
-    RyDateTimeRound, RyTimestamp,
+    JiffDate, JiffDateTime, JiffEra, JiffEraYear, JiffRoundMode, JiffTime, JiffUnit, JiffWeekday,
+    RyDate, RyDateTimeRound, RyTimestamp,
 };
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize), serde(transparent))]
@@ -380,27 +380,27 @@ impl RyDateTime {
     }
 
     #[expect(clippy::wrong_self_convention)]
-    fn to_py(&self) -> DateTime {
+    fn to_py(&self) -> JiffDateTime {
         self.to_pydatetime()
     }
 
     #[expect(clippy::wrong_self_convention)]
-    fn to_pydatetime(&self) -> DateTime {
-        self.0
+    fn to_pydatetime(&self) -> JiffDateTime {
+        self.0.into()
     }
 
     #[expect(clippy::wrong_self_convention)]
-    fn to_pydate(&self) -> Date {
-        self.0.date()
+    fn to_pydate(&self) -> JiffDate {
+        self.0.date().into()
     }
 
     #[expect(clippy::wrong_self_convention)]
-    fn to_pytime(&self) -> Time {
-        self.0.time()
+    fn to_pytime(&self) -> JiffTime {
+        self.0.time().into()
     }
 
     #[staticmethod]
-    fn from_pydatetime(datetime: DateTime) -> Self {
+    fn from_pydatetime(datetime: JiffDateTime) -> Self {
         Self::from(datetime)
     }
 

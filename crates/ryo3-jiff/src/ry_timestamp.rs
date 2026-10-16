@@ -17,8 +17,8 @@ use crate::series::RyTimestampSeries;
 use crate::spanish::{DurationLike, Spanish};
 use crate::util::SpanKwargs;
 use crate::{
-    JiffRoundMode, JiffTimestamp, JiffUnit, RyDate, RyDateTime, RyISOWeekDate, RyOffset,
-    RySignedDuration, RySpan, RyTime, RyTimeZone, RyZoned,
+    JiffDate, JiffRoundMode, JiffTime, JiffTimestamp, JiffUnit, RyDate, RyDateTime, RyISOWeekDate,
+    RyOffset, RySignedDuration, RySpan, RyTime, RyTimeZone, RyZoned,
 };
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize), serde(transparent))]
@@ -127,23 +127,23 @@ impl RyTimestamp {
     }
 
     #[expect(clippy::wrong_self_convention)]
-    fn to_py(&self) -> Timestamp {
-        self.0
+    fn to_py(&self) -> JiffTimestamp {
+        self.to_pydatetime()
     }
 
     #[expect(clippy::wrong_self_convention)]
-    fn to_pydatetime(&self) -> Timestamp {
-        self.0
+    fn to_pydatetime(&self) -> JiffTimestamp {
+        JiffTimestamp::new(self.0)
     }
 
     #[expect(clippy::wrong_self_convention)]
-    fn to_pydate(&self) -> jiff::civil::Date {
-        self.0.to_zoned(TimeZone::UTC).date()
+    fn to_pydate(&self) -> JiffDate {
+        self.0.to_zoned(TimeZone::UTC).date().into()
     }
 
     #[expect(clippy::wrong_self_convention)]
-    fn to_pytime(&self) -> jiff::civil::Time {
-        self.0.to_zoned(TimeZone::UTC).time()
+    fn to_pytime(&self) -> JiffTime {
+        self.0.to_zoned(TimeZone::UTC).time().into()
     }
 
     fn __richcmp__(&self, other: &Self, op: CompareOp) -> bool {
@@ -523,7 +523,8 @@ impl RyTimestamp {
         } else if let Ok(dt) = value.cast_exact::<RyDateTime>() {
             jiff::tz::Offset::UTC
                 .to_timestamp(dt.get().0)
-                .map(Self::from)?
+                .map(Self::from)
+                .map_err(map_py_value_err)?
                 .into_pyobject(py)
         } else if let Ok(ts) = value.extract::<JiffTimestamp>() {
             Self::from(ts).into_pyobject(py)

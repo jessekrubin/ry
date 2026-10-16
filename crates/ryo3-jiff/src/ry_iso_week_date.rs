@@ -9,13 +9,20 @@ use pyo3::types::{PyDict, PyTuple};
 use ryo3_core::{PyAsciiString, map_py_value_err};
 use ryo3_macro_rules::{any_repr, py_type_err};
 
-use crate::{JiffWeekday, RyDate, RyDateTime, RyTimestamp, RyZoned};
+use crate::{JiffDate, JiffWeekday, RyDate, RyDateTime, RyTimestamp, RyZoned};
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize), serde(transparent))]
 #[pyclass(name = "ISOWeekDate", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyISOWeekDate(pub(crate) ISOWeekDate);
+
+impl RyISOWeekDate {
+    #[must_use]
+    pub const fn new(date: ISOWeekDate) -> Self {
+        Self(date)
+    }
+}
 
 #[expect(clippy::trivially_copy_pass_by_ref)]
 #[pymethods]
@@ -74,8 +81,8 @@ impl RyISOWeekDate {
 
     /// Returns the `ISOWeekDate` for the given `Date`.
     #[staticmethod]
-    fn from_pydate(date: jiff::civil::Date) -> Self {
-        Self::from(date)
+    fn from_pydate(date: JiffDate) -> Self {
+        Self::from(date.into_inner())
     }
 
     /// Returns the `ISOWeekDate` for the given `Date`.
@@ -86,14 +93,14 @@ impl RyISOWeekDate {
 
     /// Convert to `datetime.date`
     #[expect(clippy::wrong_self_convention)]
-    fn to_py(&self) -> jiff::civil::Date {
+    fn to_py(&self) -> JiffDate {
         self.to_pydate()
     }
 
     /// Convert to `datetime.date`
     #[expect(clippy::wrong_self_convention)]
-    fn to_pydate(&self) -> jiff::civil::Date {
-        self.0.date()
+    fn to_pydate(&self) -> JiffDate {
+        self.0.date().into()
     }
 
     /// Returns the date today as an `ISOWeekDate`
@@ -200,8 +207,8 @@ impl RyISOWeekDate {
             Self::from(d.get()).into_pyobject(py)
         } else if let Ok(d) = value.cast_exact::<RyTimestamp>() {
             Self::from(d.get()).into_pyobject(py)
-        } else if let Ok(d) = value.extract::<jiff::civil::Date>() {
-            Self::from(d).into_pyobject(py)
+        } else if let Ok(d) = value.extract::<JiffDate>() {
+            Self::from(d.into_inner()).into_pyobject(py)
         } else {
             let valtype = any_repr!(value);
             py_type_err!("Date conversion error: {valtype}",)

@@ -9,12 +9,12 @@ use pyo3::{BoundObject, IntoPyObjectExt};
 use ryo3_core::map_py_value_err;
 use ryo3_macro_rules::{py_type_err, pytodo};
 
-use crate::JiffTimeZone;
 use crate::ry_datetime::RyDateTime;
 use crate::ry_offset::RyOffset;
 use crate::ry_timestamp::RyTimestamp;
 use crate::ry_timezone_database::bundled_tzdb;
 use crate::ry_zoned::RyZoned;
+use crate::{JiffTimeZone, JiffTimeZoneRef};
 
 #[derive(Debug, Clone)]
 #[pyclass(name = "TimeZone", frozen, immutable_type)]
@@ -96,8 +96,8 @@ impl RyTimeZone {
         if let Ok(other) = other.cast_exact::<Self>() {
             Ok(self.0.eq(&other.get().0))
         } else if let Ok(other) = other.cast::<PyTzInfo>() {
-            let tz: jiff::tz::TimeZone = other.extract()?;
-            Ok(self.0.eq(&tz))
+            let tz: JiffTimeZone = other.extract()?;
+            Ok(self.0.eq(tz.inner()))
         } else if let Ok(other) = other.cast::<PyString>() {
             let other_str = other.extract::<&str>()?;
             Ok(self.0.iana_name() == Some(other_str))
@@ -110,12 +110,12 @@ impl RyTimeZone {
     // PY-CONVERSIONS
     // =====================================================================
 
-    fn to_py(&self) -> &TimeZone {
-        &self.0
+    fn to_py(&self) -> JiffTimeZoneRef<'_> {
+        JiffTimeZoneRef::new(&self.0)
     }
 
-    fn to_pytzinfo(&self) -> &TimeZone {
-        &self.0
+    fn to_pytzinfo(&self) -> JiffTimeZoneRef<'_> {
+        JiffTimeZoneRef::new(&self.0)
     }
 
     #[staticmethod]
@@ -320,7 +320,7 @@ impl RyTimeZone {
             let s = String::from_utf8_lossy(pybytes.as_bytes());
             Self::from_str(&s).map(|dt| dt.into_pyobject(py))?
         } else if let Ok(other) = value.cast::<PyTzInfo>() {
-            let tz: jiff::tz::TimeZone = other.extract()?;
+            let tz: JiffTimeZone = other.extract()?;
             Self::from(tz).into_pyobject(py)
         } else {
             py_type_err!("expected TimeZone, tzinfo, str or bytes-like object")

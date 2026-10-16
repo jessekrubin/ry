@@ -21,7 +21,7 @@ use crate::fmt::friendly::printer::PyDesignator;
 use crate::pydatetime_conversions::pydelta_to_signed_duration;
 use crate::round::RySignedDurationRound;
 use crate::ry_span::RySpan;
-use crate::{JiffRoundMode, JiffUnit};
+use crate::{JiffRoundMode, JiffSignedDuration, JiffUnit};
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize), serde(transparent))]
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
@@ -200,16 +200,16 @@ impl RySignedDuration {
     }
 
     #[staticmethod]
-    fn from_pytimedelta(delta: SignedDuration) -> Self {
-        Self(delta)
+    fn from_pytimedelta(delta: JiffSignedDuration) -> Self {
+        Self(delta.into_inner())
     }
 
-    fn to_py(&self) -> &SignedDuration {
-        &self.0
+    fn to_py(&self) -> JiffSignedDuration {
+        self.to_pytimedelta()
     }
 
-    fn to_pytimedelta(&self) -> &SignedDuration {
-        &self.0
+    fn to_pytimedelta(&self) -> JiffSignedDuration {
+        JiffSignedDuration::new(self.0)
     }
 
     #[expect(clippy::wrong_self_convention)]
@@ -820,8 +820,8 @@ impl RySignedDuration {
         } else if let Ok(v) = value.cast_exact::<PyInt>() {
             let i = v.extract::<i64>()?;
             Self::from(SignedDuration::new(i, 0)).into_pyobject(py)
-        } else if let Ok(d) = value.extract::<SignedDuration>() {
-            Self::from(d).into_pyobject(py)
+        } else if let Ok(d) = value.extract::<JiffSignedDuration>() {
+            Self::from(d.into_inner()).into_pyobject(py)
         } else {
             let valtype = any_repr!(value);
             py_type_err!("SignedDuration conversion error: {valtype}")
@@ -895,7 +895,7 @@ mod maths {
 
     use super::RySignedDuration;
     use crate::py_temporal_like::PyTemporalArg;
-    use crate::{RyDate, RyDateTime, RyTime, RyTimestamp, RyZoned};
+    use crate::{JiffSignedDuration, RyDate, RyDateTime, RyTime, RyTimestamp, RyZoned};
 
     // ========================================================================
     // ARITHMETIC KWARGS - ADD/SUB KWARGS
@@ -1018,8 +1018,8 @@ mod maths {
             } else if let Ok(dur) = obj.cast_exact::<ryo3_std::time::PyDuration>() {
                 RySignedDuration::try_from(dur.get()).map(|rysd| Self::Delta(rysd.into()))
             } else if let Ok(d) = obj.cast::<pyo3::types::PyDelta>() {
-                let rs_dur: SignedDuration = d.extract()?;
-                Ok(Self::Delta(rs_dur))
+                let rs_dur: JiffSignedDuration = d.extract()?;
+                Ok(Self::Delta(rs_dur.into_inner()))
             } else if let Ok(date_time_type) = obj.extract::<PyTemporalArg<'a, 'py>>() {
                 Ok(Self::TemporalType(date_time_type))
             } else {
@@ -1160,8 +1160,8 @@ mod maths {
             } else if let Ok(dur) = obj.cast_exact::<ryo3_std::time::PyDuration>() {
                 RySignedDuration::try_from(dur.get()).map(|rysd| Self::Delta(rysd.into()))
             } else if let Ok(d) = obj.cast::<pyo3::types::PyDelta>() {
-                let rs_dur: SignedDuration = d.extract()?;
-                Ok(Self::Delta(rs_dur))
+                let rs_dur: JiffSignedDuration = d.extract()?;
+                Ok(Self::Delta(rs_dur.into_inner()))
             } else {
                 py_type_err!(
                     "unsupported operand type(s); must be SignedDuration | datetime.timedelta"
@@ -1310,8 +1310,8 @@ mod maths {
             } else if let Some(dur) = obj.cast_exact_opt::<ryo3_std::time::PyDuration>() {
                 RySignedDuration::try_from(dur.get()).map(|rysd| Self::SignedDuration(rysd.into()))
             } else if let Ok(d) = obj.cast::<pyo3::types::PyDelta>() {
-                let rs_dur: SignedDuration = d.extract()?;
-                Ok(Self::SignedDuration(rs_dur))
+                let rs_dur: JiffSignedDuration = d.extract()?;
+                Ok(Self::SignedDuration(rs_dur.into_inner()))
             } else if let Ok(i) = obj.extract::<i32>() {
                 Ok(Self::Int(i))
             } else if let Ok(f) = obj.extract::<f64>() {

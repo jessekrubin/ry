@@ -2,7 +2,7 @@ use jiff::civil::Weekday;
 use jiff::fmt::temporal::DateTimePrinter;
 use jiff::tz::Offset;
 use pyo3::PyResult;
-use ryo3_core::PyAsciiString;
+use ryo3_core::{PyAsciiString, map_py_value_err};
 use ryo3_macro_rules::py_value_error;
 
 use crate::{
@@ -41,7 +41,7 @@ fn iso_weekdate_to_string(iso_week_date: jiff::civil::ISOWeekDate) -> String {
 }
 
 pub(crate) fn parse_iso_week_date(s: &str) -> PyResult<jiff::civil::ISOWeekDate> {
-    if s.len() != 10 || &s[4..6] != "-W" || &s[8..9] != "-" {
+    if s.len() != 10 || !s.is_ascii() || &s[4..6] != "-W" || &s[8..9] != "-" {
         return Err(py_value_error!(
             "Invalid ISO week date format, expected 'YYYY-Www-D'",
         ));
@@ -50,7 +50,10 @@ pub(crate) fn parse_iso_week_date(s: &str) -> PyResult<jiff::civil::ISOWeekDate>
     // Extract pieces
     let year = s[0..4].parse()?;
     let week = s[6..8].parse()?;
-    let weekday = s[9..10].parse().map(Weekday::from_monday_one_offset)??;
+    let weekday = s[9..10]
+        .parse()
+        .map(Weekday::from_monday_one_offset)?
+        .map_err(map_py_value_err)?;
 
     jiff::civil::ISOWeekDate::new(year, week, weekday)
         .map_err(|e| py_value_error!("Invalid ISO week date: {e}"))

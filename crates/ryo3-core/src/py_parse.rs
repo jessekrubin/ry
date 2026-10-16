@@ -37,12 +37,12 @@ where
         // protocol?
         if let Some(s) = ob.cast_exact_opt::<pyo3::types::PyString>() {
             let s = pystr_read_fast(s)?;
-            T::py_from_str(s).map_err(map_py_value_err)
+            T::py_from_str(s)
         } else if let Some(b) = ob.cast_exact_opt::<pyo3::types::PyBytes>() {
             let bytes = b.as_bytes();
             let s = std::str::from_utf8(bytes)
                 .map_err(|e| PyUnicodeDecodeError::new_err_from_utf8(ob.py(), bytes, e))?;
-            T::py_from_str(s).map_err(map_py_value_err)
+            T::py_from_str(s)
         } else {
             Err(pyo3::exceptions::PyTypeError::new_err(
                 "Expected a str or bytes object",
@@ -72,12 +72,12 @@ where
         // protocol?
         if let Some(s) = obj.cast_exact_opt::<pyo3::types::PyString>() {
             let s = pystr_read_fast(s)?;
-            return T::py_from_str(s).map_err(map_py_value_err).map(Self);
+            return T::py_from_str(s).map(Self);
         }
 
         // extract subclass
         if let Ok(s) = obj.extract::<&str>() {
-            return T::py_from_str(s).map_err(map_py_value_err).map(Self);
+            return T::py_from_str(s).map(Self);
         }
 
         Err(pyo3::exceptions::PyTypeError::new_err("Expected a str"))

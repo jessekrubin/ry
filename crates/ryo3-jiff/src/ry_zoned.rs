@@ -2,7 +2,7 @@ use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::ops::Sub;
 
-use jiff::civil::{Date, Time, Weekday};
+use jiff::civil::{Date, Weekday};
 use jiff::tz::TimeZone;
 use jiff::{Zoned, ZonedArithmetic, ZonedDifference, ZonedRound};
 use pyo3::prelude::*;
@@ -28,8 +28,8 @@ use crate::series::RyZonedSeries;
 use crate::spanish::{DurationLike, Spanish};
 use crate::util::SpanKwargs;
 use crate::{
-    JiffEra, JiffEraYear, JiffRoundMode, JiffTzDisambiguation, JiffTzOffsetConflict, JiffUnit,
-    JiffWeekday, JiffZoned, JiffZonedRef, RyDate,
+    JiffDate, JiffEra, JiffEraYear, JiffRoundMode, JiffTime, JiffTimeZoneRef, JiffTzDisambiguation,
+    JiffTzOffsetConflict, JiffUnit, JiffWeekday, JiffZoned, JiffZonedRef, RyDate,
 };
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize), serde(transparent))]
@@ -281,16 +281,16 @@ impl RyZoned {
         JiffZonedRef::new(&self.0)
     }
 
-    fn to_pydate(&self) -> Date {
-        self.0.date()
+    fn to_pydate(&self) -> JiffDate {
+        self.0.date().into()
     }
 
-    fn to_pytime(&self) -> Time {
-        self.0.time()
+    fn to_pytime(&self) -> JiffTime {
+        self.0.time().into()
     }
 
-    fn to_pytzinfo(&self) -> &TimeZone {
-        self.0.time_zone()
+    fn to_pytzinfo(&self) -> JiffTimeZoneRef<'_> {
+        self.0.time_zone().into()
     }
 
     #[staticmethod]

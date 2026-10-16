@@ -55,13 +55,11 @@ impl FromStr for RyZoned {
 impl PyFromStr for RyISOWeekDate {
     #[inline]
     fn py_from_str(s: &str) -> pyo3::PyResult<Self> {
-        let iwd = parse_iso_week_date(s).map(Self::from);
-        // try parse as jiff::civil::Date
-        if let Ok(date) = jiff::civil::Date::from_str(s) {
-            Ok(Self::from(date.iso_week_date()))
-        } else {
-            iwd.map_err(ryo3_core::map_py_value_err)
-        }
+        parse_iso_week_date(s).map(Self::from).or_else(|e| {
+            jiff::civil::Date::from_str(s)
+                .map(|date| Self::from(date.iso_week_date()))
+                .map_err(|_| e)
+        })
     }
 }
 

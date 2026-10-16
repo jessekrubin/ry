@@ -119,8 +119,8 @@ impl RyOffset {
         self.to_pytimedelta()
     }
 
-    fn to_pytzinfo(&self) -> &Offset {
-        &self.0
+    fn to_pytzinfo(&self) -> JiffOffset {
+        self.0.into()
     }
 
     fn to_pytimedelta(&self) -> JiffSignedDuration {

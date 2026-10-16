@@ -18,29 +18,17 @@ pub fn time_to_pytime<'py>(
     )
 }
 
-#[cfg(not(Py_LIMITED_API))]
 #[expect(clippy::arithmetic_side_effects)]
 pub fn pytime_to_time(time: &impl pyo3::types::PyTimeAccess) -> PyResult<Time> {
-    Ok(Time::new(
+    use ryo3_core::map_py_value_err;
+
+    Time::new(
         time.get_hour().try_into()?,
         time.get_minute().try_into()?,
         time.get_second().try_into()?,
         (time.get_microsecond() * 1000).try_into()?,
-    )?)
-}
-
-#[cfg(Py_LIMITED_API)]
-#[expect(clippy::arithmetic_side_effects)]
-pub fn pytime_to_time<'py>(time: &impl AsRef<Bound<'py, PyAny>>) -> PyResult<Time> {
-    use crate::interns;
-    let time = time.as_ref();
-    let py = time.py();
-    Ok(Time::new(
-        time.getattr(interns::hour(py))?.extract()?,
-        time.getattr(interns::minute(py))?.extract()?,
-        time.getattr(interns::second(py))?.extract()?,
-        time.getattr(interns::microsecond(py))?.extract::<i32>()? * 1000,
-    )?)
+    )
+    .map_err(map_py_value_err)
 }
 
 impl<'py> IntoPyObject<'py> for JiffTime {

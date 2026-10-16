@@ -8,9 +8,10 @@ use ryo3_macro_rules::py_overflow_error;
 use crate::{RyDate, RyDateTime, RyOffset, RySpan, RyTime, RyZoned};
 
 #[pyfunction]
-#[must_use]
-pub fn offset(hours: i8) -> RyOffset {
-    RyOffset::from(jiff::tz::offset(hours))
+pub fn offset(hours: i8) -> PyResult<RyOffset> {
+    jiff::tz::Offset::from_hours(hours)
+        .map(RyOffset::from)
+        .map_err(map_py_value_err)
 }
 
 #[pyfunction]

@@ -278,8 +278,8 @@ impl RySpan {
     }
 
     #[staticmethod]
-    fn from_pytimedelta(delta: Span) -> Self {
-        Self(delta)
+    fn from_pytimedelta(delta: JiffSpan) -> Self {
+        Self::from(delta.into_inner())
     }
 
     #[expect(clippy::wrong_self_convention)]
@@ -931,7 +931,7 @@ impl RySpan {
                 .map(Self::from)
                 .map_err(map_py_overflow_err)
                 .and_then(|dt| dt.into_pyobject(py))
-        } else if let Ok(d) = value.extract::<Span>() {
+        } else if let Ok(d) = value.extract::<JiffSpan>() {
             Self::from(d).into_pyobject(py)
         } else {
             let valtype = any_repr!(value);

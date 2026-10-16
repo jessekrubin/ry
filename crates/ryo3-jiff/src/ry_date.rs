@@ -23,7 +23,7 @@ use crate::ry_zoned::RyZoned;
 use crate::series::RyDateSeries;
 use crate::spanish::{DurationLike, Spanish};
 use crate::util::SpanKwargs;
-use crate::{JiffEra, JiffEraYear, JiffRoundMode, JiffUnit, JiffWeekday, RyTimestamp};
+use crate::{JiffDate, JiffEra, JiffEraYear, JiffRoundMode, JiffUnit, JiffWeekday, RyTimestamp};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize), serde(transparent))]
@@ -339,18 +339,18 @@ impl RyDate {
     }
 
     #[staticmethod]
-    fn from_pydate(date: Date) -> Self {
-        Self(date)
+    fn from_pydate(date: JiffDate) -> Self {
+        Self::from(date.into_inner())
     }
 
     #[expect(clippy::wrong_self_convention)]
-    fn to_py(&self) -> Date {
+    fn to_py(&self) -> JiffDate {
         self.to_pydate()
     }
 
     #[expect(clippy::wrong_self_convention)]
-    fn to_pydate(&self) -> Date {
-        self.0
+    fn to_pydate(&self) -> JiffDate {
+        self.0.into()
     }
 
     fn astuple<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
@@ -583,7 +583,7 @@ impl RyDate {
             Self::from(ts.get()).into_pyobject(py)
         } else if let Ok(d) = value.cast_exact::<RyDateTime>() {
             Self::from(d.get()).into_pyobject(py)
-        } else if let Ok(d) = value.extract::<Date>() {
+        } else if let Ok(d) = value.extract::<JiffDate>() {
             Self::from(d).into_pyobject(py)
         } else {
             let valtype = any_repr!(value);
