@@ -2,6 +2,7 @@ mod date;
 mod datetime;
 mod era;
 mod era_year;
+mod friendly_designator;
 mod offset;
 mod py_datetime;
 mod round_mode;

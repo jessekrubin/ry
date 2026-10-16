@@ -113,6 +113,9 @@ pub struct JiffTzDisambiguation(jiff::tz::Disambiguation);
 #[derive(Debug, Clone, Copy)]
 pub struct JiffTzOffsetConflict(jiff::tz::OffsetConflict);
 
+#[derive(Debug, Clone, Copy)]
+pub struct JiffFriendlyDesignator(jiff::fmt::friendly::Designator);
+
 /// datetime extractor for `datetime.datetime` obs
 ///
 /// primarily used for extracting naive or aware datetimes
@@ -183,6 +186,8 @@ impl_new_type_functions!(JiffOffset, jiff::tz::Offset);
 impl_new_type_functions!(JiffTimeZone, jiff::tz::TimeZone);
 impl_new_type_functions!(JiffTzDisambiguation, jiff::tz::Disambiguation);
 impl_new_type_functions!(JiffTzOffsetConflict, jiff::tz::OffsetConflict);
+// jiff::fmt::friendly::*
+impl_new_type_functions!(JiffFriendlyDesignator, jiff::fmt::friendly::Designator);
 // jiff-other
 impl_new_type_functions!(JiffEraYear, (i16, jiff::civil::Era));
 
@@ -288,6 +293,16 @@ impl std::fmt::Display for JiffRoundMode {
         let s = self.static_str();
         write!(f, "{s}")
     }
+}
+
+// ============================================================================
+// FRIENDLY DESIGNATOR
+// ============================================================================
+impl JiffFriendlyDesignator {
+    pub const VERBOSE: Self = Self(jiff::fmt::friendly::Designator::Verbose);
+    pub const SHORT: Self = Self(jiff::fmt::friendly::Designator::Short);
+    pub const COMPACT: Self = Self(jiff::fmt::friendly::Designator::Compact);
+    pub const HUMAN_TIME: Self = Self(jiff::fmt::friendly::Designator::HumanTime);
 }
 
 // ============================================================================

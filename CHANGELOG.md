@@ -7,7 +7,7 @@
 
 ---
 
-## v0.0.103 [unreleased]
+## v0.0.103 [2026-10-16]
 
 - pyo3 v0.30.x
   - rm skip_from_py_object did this:
