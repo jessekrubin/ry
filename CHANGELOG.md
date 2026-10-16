@@ -43,6 +43,15 @@
       or `MemoryError` instead of panicking/aborting
   - `b"" in Bytes(...)` returns `True` (was a panic); `__contains__` uses the
     same substring search as `find`/`index`
+- `ryo3-std`
+  - `Duration.from_secs_f32`/`from_secs_f64` raise `ValueError` for negative
+    seconds (was `TypeError`)
+  - client `timeout`/`read_timeout`/`connect_timeout` that are too big raise
+    `OverflowError` (was a panic)
+- `ryo3-tokio`
+  - `ry.asleep`/`ry.sleep_async` raise `ValueError` for negative/nan seconds and
+    `OverflowError` for inf/too-big seconds (was a panic on a tokio worker);
+    raised before the sleep is scheduled
 - `ryo3-reqwest`
   - async iterable request stream bodies are pumped by a faux py "coroutine"
     that forwards the iterator's awaitables (no task per chunk(!!!))

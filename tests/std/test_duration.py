@@ -718,7 +718,7 @@ class TestDurationFromIntegers:
             with pytest.raises(ValueError, match="invalid value: nan"):
                 _dur = ry.Duration.from_secs_f32(secs)
         elif secs < 0.0:
-            with pytest.raises((TypeError, OverflowError)):
+            with pytest.raises(ValueError, match="negative duration"):
                 _dur = ry.Duration.from_secs_f32(secs)
         elif secs == float("inf"):
             with pytest.raises(OverflowError):
@@ -736,7 +736,7 @@ class TestDurationFromIntegers:
             with pytest.raises(ValueError, match="invalid value: nan"):
                 _dur = ry.Duration.from_secs_f64(secs)
         elif secs < 0.0:
-            with pytest.raises((TypeError, OverflowError)):
+            with pytest.raises(ValueError, match="negative duration"):
                 _dur = ry.Duration.from_secs_f64(secs)
         elif secs == float("inf"):
             with pytest.raises(OverflowError):

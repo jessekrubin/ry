@@ -58,9 +58,7 @@ def test_bzip2_compression_quality(
 
 @pytest.mark.parametrize("quality", [-1, 10, "invalid", 5.5, None])
 def test_bzip2_compression_level_invalid(quality: str | float | None) -> None:
-    _match = (
-        "Invalid compression level; valid levels are int 0-9 or string 'fast' or 'best'"
-    )
+    _match = "Invalid compression level; valid levels are int 1..=9 or string 'fast' or 'best'"
     with pytest.raises(ValueError, match=_match):
         ry.bzip2_encode(b"data", quality=quality)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
     with pytest.raises(ValueError, match=_match):
