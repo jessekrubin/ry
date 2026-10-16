@@ -13,7 +13,6 @@ use bytes::Bytes;
 use pyo3::exceptions::{PyAttributeError, PyStopAsyncIteration, PyStopIteration};
 use pyo3::prelude::*;
 use pyo3::sync::PyOnceLock;
-use pyo3::types::iterator::PySendResult;
 use pyo3::types::{PyDict, PyIterator};
 use pyo3_async_runtimes::TaskLocals;
 use ryo3_bytes::{ReadableBuffer, RyBytes};
@@ -203,6 +202,45 @@ fn await_iter_for<'py>(awaitable: &Bound<'py, PyAny>) -> PyResult<Bound<'py, PyI
         })
 }
 
+/// pypy friendly version of [`pyo3::types::iterator::PySendResult`]
+enum RySendResult<'py> {
+    Next(Bound<'py, PyAny>),
+    Return(Bound<'py, PyAny>),
+}
+
+/// hacky work around to [`pyo3::types::iterator::PySendResult`] not being pypy friendly
+fn send_to<'py>(
+    iter: &Bound<'py, PyIterator>,
+    value: &Bound<'py, PyAny>,
+) -> PyResult<RySendResult<'py>> {
+    cfg_select! {
+        // same cfg as pyop3's `PySendResult`
+        all(not(PyPy), Py_3_10) => {
+            use pyo3::types::iterator::PySendResult;
+            Ok(match iter.send(value)? {
+                PySendResult::Next(yielded) => RySendResult::Next(yielded),
+                PySendResult::Return(returned) => RySendResult::Return(returned),
+            })
+        }
+        _ => {
+            let py = iter.py();
+            // `None` is `__next__` for some reason on plain iters
+            let res = if value.is_none() {
+                iter.call_method0(pyo3::intern!(py, "__next__"))
+            } else {
+                iter.call_method1(pyo3::intern!(py, "send"), (value,))
+            };
+            match res {
+                Ok(yielded) => Ok(RySendResult::Next(yielded)),
+                Err(e) if e.is_instance_of::<PyStopIteration>(py) => Ok(RySendResult::Return(
+                    e.value(py).getattr(pyo3::intern!(py, "value"))?,
+                )),
+                Err(e) => Err(e),
+            }
+        }
+    }
+}
+
 /// a python "coroutine" for the whole body
 ///
 /// this took a while to figure out, it is a weird imitation async iterator
@@ -340,13 +378,13 @@ impl RyRequestBodyPump {
                 sent = py.None().into_bound(py);
                 continue;
             };
-            let result = awaiting.await_iter().bind(py).send(&sent);
+            let result = send_to(awaiting.await_iter().bind(py), &sent);
             match result {
-                Ok(PySendResult::Next(yielded)) => {
+                Ok(RySendResult::Next(yielded)) => {
                     self.awaiting = Some(awaiting);
                     return Ok(yielded.unbind());
                 }
-                Ok(PySendResult::Return(value)) => {
+                Ok(RySendResult::Return(value)) => {
                     if !self.on_return(py, &awaiting, &value)? {
                         return self.done();
                     }
