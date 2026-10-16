@@ -188,6 +188,36 @@ class TestBytesOperators:
         rs_res = 2 * ry_bytes
         assert rs_res == py_res, f"py: {py_res!r}, rs: {rs_res!r} ~ {b!r}"
 
+    @pytest.mark.parametrize("b", [b"", b"a", b"abc"])
+    @pytest.mark.parametrize("n", [-(2**63), -5, -1, 0, 1, 2, 7, True, False])
+    def test_bytes_mul_matches_python(self, b: bytes, n: int) -> None:
+        ry_bytes = ry.Bytes(b)
+        assert ry_bytes * n == b * n
+        assert n * ry_bytes == n * b
+
+    @pytest.mark.parametrize("n", [1.5, "2", None])
+    def test_bytes_mul_non_int_type_error(self, n: object) -> None:
+        with pytest.raises(TypeError):
+            _ = ry.Bytes(b"ab") * n  # type: ignore[operator]  # ty: ignore[unsupported-operator]
+        with pytest.raises(TypeError):
+            _ = n * ry.Bytes(b"ab")  # type: ignore[operator]  # ty: ignore[unsupported-operator]
+
+    @pytest.mark.parametrize(
+        ("b", "n", "exc"),
+        [
+            (b"ab", 2**62, OverflowError),  # len * n > isize::MAX
+            (b"abc", 2**62, OverflowError),  # len * n overflows usize
+            (b"a", 2**62, MemoryError),  # fits isize, but no allocator says yes
+        ],
+    )
+    def test_bytes_mul_too_big(self, b: bytes, n: int, exc: type[Exception]) -> None:
+        with pytest.raises(exc):
+            _ = b * n
+        with pytest.raises(exc):
+            _ = ry.Bytes(b) * n
+        with pytest.raises(exc):
+            _ = n * ry.Bytes(b)
+
     @given(st.binary(), st.binary())
     def test_add(
         self,
