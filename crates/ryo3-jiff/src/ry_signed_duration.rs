@@ -235,7 +235,11 @@ impl RySignedDuration {
     #[inline]
     fn abs(slf: PyRef<'_, Self>) -> PyResult<Bound<'_, Self>> {
         let py = slf.py();
+        // SignedDuration::abs panics when the seconds component of this signed duration is equal to i64::MIN.
         if slf.0.is_negative() {
+            if slf.0.as_secs() == i64::MIN {
+                return py_overflow_err!("overflow; secs == i64::MIN");
+            }
             Self(slf.0.abs()).into_pyobject(py)
         } else {
             slf.into_pyobject_or_pyerr(py)
