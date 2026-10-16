@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import dataclasses
+import sys
 
 import pytest
 from hypothesis import given
@@ -223,8 +224,10 @@ class TestBytesOperators:
         ],
     )
     def test_bytes_mul_too_big(self, b: bytes, n: int, exc: type[Exception]) -> None:
-        with pytest.raises(exc):
-            _ = b * n
+        # pypy raises MemoryError not OverflowError
+        if sys.implementation.name == "cpython":
+            with pytest.raises(exc):
+                _ = b * n
         with pytest.raises(exc):
             _ = ry.Bytes(b) * n
         with pytest.raises(exc):
