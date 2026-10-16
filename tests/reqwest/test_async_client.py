@@ -35,7 +35,7 @@ async def _raw_server(
     handler: t.Callable[
         [asyncio.StreamReader, asyncio.StreamWriter], t.Awaitable[None]
     ],
-) -> t.AsyncIterator[str]:
+) -> t.AsyncGenerator[str]:
     """raw asyncio server for hand-rolled http responses ~ yields the url"""
     async with await asyncio.start_server(handler, "127.0.0.1", 0) as srv:
         port = srv.sockets[0].getsockname()[1]
