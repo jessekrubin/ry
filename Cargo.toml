@@ -64,7 +64,7 @@ members = [
 ]
 
 [workspace.package]
-version = "0.0.103"
+version = "0.0.104"
 authors = [
   # hopefully you will contribute!
   "jesse k. rubin <jessekrubin@gmail.com>",
@@ -159,9 +159,9 @@ flate2 = { version = "1.1.8", default-features = false, features = ["zlib-rs"] }
 futures-core = { version = "0.3.32", default-features = false }
 futures-util = { version = "0.3.32", default-features = false }
 glob = { version = "0.3", default-features = false, features = [] }
-globset = { version = "0.4.17", default-features = false, features = ["serde"] }
+globset = { version = "0.4.17", default-features = false, features = [] }
 heck = { version = "0.5.0", default-features = false }
-http = { version = "1.4", default-features = false, features = ["std"] }
+http = { version = "1.5.0", default-features = false, features = ["std"] }
 http-body-util = { version = "0.1.3", default-features = false, features = [] }
 ignore = { version = "0.4.24", default-features = false, features = [] }
 itoap = { version = "1.0.1", default-features = false, features = ["std", "simd"] }
@@ -171,7 +171,7 @@ jiff = { version = "0.2.38", default-features = false, features = [
   "tzdb-bundle-always",
 ] }
 jiter = { version = "0.18", default-features = false, features = ["python"] }
-lz4rip = { version = "0.11.1", default-features = false, features = ["std"] }
+lz4rip = { version = "0.11.12", default-features = false, features = ["std"] }
 memchr = { version = "2.7.5", default-features = false, features = [] }
 mime = { version = "0.3.17", default-features = false, features = [] }
 rand = { version = "0.10.1", default-features = false, features = [] }
@@ -188,7 +188,7 @@ serde_json = { version = "1.0", default-features = false, features = ["std"] }
 serde_urlencoded = { version = "0.7.1", default-features = false, features = [
 ] }
 shlex = { version = "2.0.1", default-features = false, features = [] }
-size = { version = "0.5.0", default-features = false, features = [] }
+size = { version = "0.6.0", default-features = false, features = [] }
 sqlformat = { version = "0.5.0", default-features = false, features = [] }
 tokio = { version = "1.52.3", default-features = false, features = [
   "bytes",
@@ -201,13 +201,10 @@ tokio = { version = "1.52.3", default-features = false, features = [
 tokio-websockets = { version = "0.13.1", features = [] }
 tracing = { version = "0.1.44", default-features = false, features = [
   "std",
-  "attributes",
 ] }
 tracing-log = { version = "0.2.0", default-features = false, features = [] }
 tracing-subscriber = { version = "0.3.23", default-features = false, features = [
   "default",
-  "serde",
-  "serde_json",
 ] }
 twox-hash = { version = "2.1.2", default-features = false, features = [] }
 ulid = { version = "3.0.0", default-features = false, features = ["std"] }

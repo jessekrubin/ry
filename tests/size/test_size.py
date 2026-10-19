@@ -68,25 +68,35 @@ _SIZES = [
     *(10**i for i in range(19)),
     *(-n for n in (10**i for i in range(19))),
 ]
+# i64::MAX fmts to "8 EiB" which is 2**63 parsing errs
+_ROUNDTRIP_SIZES = [n for n in _SIZES if n != (2**63) - 1]
+
+
+def _assert_roundtrip_close(size: int, formatted: str, parsed: int) -> None:
+    # parsed wont be EXACTLY the same as size, but it should be close
+    # enough for the purposes of this test
+    lowered = formatted.lower()
+    if lowered.endswith((" bytes", " b")):
+        assert parsed == size
+    elif lowered.endswith((" eb", " eib", "exabytes", "exbibytes")):
+        # exa-units are formatted w/ 0 decimals (size>=0.6) so allow more slop
+        assert abs(parsed - size) / abs(size) < 0.05
+    else:
+        # make sure it is at most 1% off
+        assert abs(parsed - size) / abs(size) < 0.01
 
 
 def test_fmt_parse_roundtrip(fmt_options: _FmtOptions) -> None:
-    for size in _SIZES:
+    for size in _ROUNDTRIP_SIZES:
         formatted = ry.fmt_size(size, **fmt_options.as_kwargs())
         parsed = ry.parse_size(formatted)
-        # parsed won't be EXACTLY the same as size, but it should be close
-        # enough for the purposes of this test
-        if formatted.lower().endswith(" bytes") or formatted.lower().endswith(" b"):
-            assert parsed == size
-        else:
-            # make sure it is at most 1% off
-            assert abs(parsed - size) / size < 0.01
+        _assert_roundtrip_close(size, formatted, parsed)
 
 
 def test_fmt_parse_formatter(fmt_options: _FmtOptions) -> None:
     formatter = ry.SizeFormatter(**fmt_options.as_kwargs())
 
-    for size in _SIZES:
+    for size in _ROUNDTRIP_SIZES:
         formatted = formatter.format(size)
         formatted_via_call = formatter(size)
         assert formatted == formatted_via_call
@@ -94,13 +104,7 @@ def test_fmt_parse_formatter(fmt_options: _FmtOptions) -> None:
         size_obj = Size(size)
         formatted_struct = size_obj.format(**fmt_options.as_kwargs())
         assert formatted == formatted_struct
-        # parsed won't be EXACTLY the same as size, but it should be close
-        # enough for the purposes of this test
-        if formatted.lower().endswith(" bytes") or formatted.lower().endswith(" b"):
-            assert parsed == size
-        else:
-            # make sure it is at most 1% off
-            assert abs(parsed - size) / size < 0.01
+        _assert_roundtrip_close(size, formatted, parsed)
 
 
 class TestSizeObj:
@@ -206,13 +210,67 @@ def test_size_formatter_equality(fmt_options: _FmtOptions) -> None:
     # ] = "default" if style is None or style is Ellipsis else style.replace("_", "-")
     assert (
         repr(formatter)
-        == f"SizeFormatter(base={_base_expected!r}, style={_style_expected!r})"
+        == f"SizeFormatter(base={_base_expected!r}, style={_style_expected!r}, scale=None)"
     )
     assert formatter == ry.SizeFormatter(base=_base_expected, style=_style_expected)
 
     assert formatter.base == _base_expected
     assert formatter.style == _style_expected
+    assert formatter.scale is None
     assert formatter == eval(repr(formatter), {"SizeFormatter": ry.SizeFormatter})
+
+
+class TestScale:
+    def test_fmt_size_scale(self) -> None:
+        assert ry.fmt_size(1536) == "1.50 KiB"
+        assert ry.fmt_size(1536, scale=0) == "2 KiB"
+        assert ry.fmt_size(1536, scale=3) == "1.500 KiB"
+        assert ry.fmt_size(1500, base=10, scale=1) == "1.5 KB"
+        # bytes are always whole numbers
+        assert ry.fmt_size(10, scale=3) == "10 bytes"
+
+    def test_size_format_scale(self) -> None:
+        assert Size(1536).format(scale=3) == ry.fmt_size(1536, scale=3)
+
+    def test_formatter_scale(self) -> None:
+        formatter = ry.SizeFormatter(scale=3)
+        assert formatter.scale == 3
+        assert formatter(1536) == "1.500 KiB"
+        assert repr(formatter) == "SizeFormatter(base=2, style='default', scale=3)"
+        assert formatter == eval(repr(formatter), {"SizeFormatter": ry.SizeFormatter})
+        assert formatter != ry.SizeFormatter()
+        assert formatter.with_scale(None) == ry.SizeFormatter()
+        assert ry.SizeFormatter().with_scale(3) == formatter
+        # scale survives with_base/with_style
+        assert formatter.with_base(10).scale == 3
+        assert formatter.with_style("full").scale == 3
+
+    def test_formatter_scale_pickle(self) -> None:
+        formatter = ry.SizeFormatter(base=10, style="full", scale=1)
+        unpickled = pickle.loads(pickle.dumps(formatter))
+        assert unpickled == formatter
+        assert unpickled.scale == 1
+
+    def test_scale_max(self) -> None:
+        assert len(ry.fmt_size(1536, scale=255)) == len("1.") + 255 + len(" KiB")
+
+    @pytest.mark.parametrize("scale", [-1, 256, 65_536, 2**64])
+    def test_scale_out_of_range(self, scale: int) -> None:
+        with pytest.raises(OverflowError):
+            ry.fmt_size(1536, scale=scale)
+        with pytest.raises(OverflowError):
+            Size(1536).format(scale=scale)
+        with pytest.raises(OverflowError):
+            ry.SizeFormatter(scale=scale)
+        with pytest.raises(OverflowError):
+            ry.SizeFormatter().with_scale(scale)
+
+
+@pytest.mark.parametrize("s", ["1.5 GB 😱", "1234‍MB", "1é"])
+def test_parse_size_non_ascii_errors(s: str) -> None:
+    # used to panic in size<0.6 (split_at on a non-char boundary)
+    with pytest.raises(ValueError, match="parse size error"):
+        ry.parse_size(s)
 
 
 def test_size_reflected() -> None:

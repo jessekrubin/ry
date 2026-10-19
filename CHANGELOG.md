@@ -7,6 +7,18 @@
 
 ---
 
+## v0.0.104 [unreleased]
+
+- `ryo3-size`
+  - bump `size` to v0.6.0
+  - `scale: int | None` (0-255) for `fmt_size`, `Size.format`, and
+    `SizeFormatter`
+- `ryo3-tokio`
+  - fix `AsyncFile.readline(size: int)` bug causing readline to throw away line
+    part(s) beyond the buffer limit
+
+---
+
 ## v0.0.103 [2026-10-16]
 
 - pyo3 v0.30.x
