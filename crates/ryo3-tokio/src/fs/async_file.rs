@@ -150,28 +150,24 @@ impl PyAsyncFileInner {
     async fn readline(&mut self, size: Option<usize>) -> PyResult<Option<Vec<u8>>> {
         let file = self.get_file_mut()?;
         let mut buf = Vec::new();
-        if let Some(s) = size {
-            let bytes_read = file
-                .read_until(b'\n', &mut buf)
-                .await
-                .map_err(|e| py_io_error!("Failed to read line: {e}"))?;
-            if bytes_read == 0 {
-                return Ok(None);
+        let bytes_read = match size {
+            // python returns b"" for size=0
+            Some(0) => return Ok(Some(buf)),
+            // keep the read below the requested size so rest of the line stays
+            // buffered for the next call
+            Some(s) => {
+                (&mut *file)
+                    .take(s as u64)
+                    .read_until(b'\n', &mut buf)
+                    .await
             }
-            if buf.len() > s {
-                buf.truncate(s);
-            }
-            Ok(Some(buf))
+            None => file.read_until(b'\n', &mut buf).await,
+        }
+        .map_err(|e| py_io_error!("Failed to read line: {e}"))?;
+        if bytes_read == 0 {
+            Ok(None)
         } else {
-            let bytes_read = file
-                .read_until(b'\n', &mut buf)
-                .await
-                .map_err(|e| py_io_error!("Failed to read line: {e}"))?;
-            if bytes_read == 0 {
-                Ok(None)
-            } else {
-                Ok(Some(buf))
-            }
+            Ok(Some(buf))
         }
     }
 

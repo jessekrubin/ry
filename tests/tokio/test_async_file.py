@@ -166,6 +166,18 @@ class TestAsyncFileAiopen:
         assert file.closed
 
     @pytest.mark.anyio
+    async def test_readline_size_keeps_rest_of_line(
+        self, aopen_fixtures: FileFixtures
+    ) -> None:
+        async with aopen(aopen_fixtures.multiline_file_path, mode="rb") as file:
+            assert bytes(await file.readline(0)) == b""
+            assert bytes(await file.readline(3)) == b"lin"
+            assert bytes(await file.readline(3)) == b"e 1"
+            assert bytes(await file.readline(3)) == b"\n"
+            assert bytes(await file.readline()) == b"line 2\n"
+            assert bytes(await file.readline(100)) == b"line 3\n"
+
+    @pytest.mark.anyio
     @pytest.mark.parametrize("mode", _mode_permutations(["rb", "rb+", "ab+"]))
     @pytest.mark.parametrize("buffering", [-1, 0])
     async def test_simple_readlines(
