@@ -11,6 +11,7 @@
 
 - `ryo3-size`
   - bump `size` to v0.6.0
+  - `scale: int | None` (0-255) for `fmt_size`, `Size.format`, and `SizeFormatter`
 - `ryo3-tokio`
   - fix `AsyncFile.readline(size: int)` bug causing readline to throw away line
     part(s) beyond the buffer limit

@@ -19,8 +19,32 @@ def fmt_size(
     *,
     base: _TFormatSizeBase = 2,
     style: _TFormatSizeStyle = "default",
+    scale: int | None = None,
 ) -> str:
     """Return human-readable string representation of bytes-size.
+
+    Parameters
+    ----------
+    n : int
+        Size in bytes.
+    base : {2, 10}, default 2
+        Base 2 (KiB, MiB, ...) or base 10 (KB, MB, ...) units.
+    style : {"default", "abbreviated", "abbreviated-lowercase", "full", "full-lowercase"}, default "default"
+        Unit style.
+    scale : int or None, default None
+        Number of decimal places (0-255); `None` uses the per-unit default.
+
+    Returns
+    -------
+    str
+        Human-readable size string.
+
+    Raises
+    ------
+    ValueError
+        If `base` or `style` is invalid.
+    OverflowError
+        If `scale` is not in 0-255.
 
     Examples
     --------
@@ -33,6 +57,8 @@ def fmt_size(
     '1.00 KB'
     >>> fmt_size(1024, base=2)
     '1.00 KiB'
+    >>> fmt_size(1536, scale=3)
+    '1.500 KiB'
 
     """
 
@@ -56,14 +82,33 @@ def parse_size(s: str) -> int:
 
 @t.final
 class SizeFormatter:
-    """Human-readable bytes-size formatter.ihh"""
+    """Human-readable bytes-size formatter."""
 
     def __new__(
         cls,
         base: _TFormatSizeBase = 2,
         style: _TFormatSizeStyle = "default",
+        scale: int | None = None,
     ) -> t.Self:
-        """Initialize human-readable bytes-size formatter."""
+        """Initialize human-readable bytes-size formatter.
+
+        Parameters
+        ----------
+        base : {2, 10}, default 2
+            Base 2 (KiB, MiB, ...) or base 10 (KB, MB, ...) units.
+        style : {"default", "abbreviated", "abbreviated-lowercase", "full", "full-lowercase"}, default "default"
+            Unit style.
+        scale : int or None, default None
+            Number of decimal places (0-255); `None` uses the per-unit default.
+
+        Raises
+        ------
+        ValueError
+            If `base` or `style` is invalid.
+        OverflowError
+            If `scale` is not in 0-255.
+
+        """
 
     def format(self, n: int) -> str:
         """Return human-readable string representation of bytes-size."""
@@ -77,12 +122,35 @@ class SizeFormatter:
     @property
     def style(self) -> _TFormatSizeStyle:
         """Return style used by formatter."""
+    @property
+    def scale(self) -> int | None:
+        """Return scale (decimal places) used by formatter."""
 
     def with_base(self, base: _TFormatSizeBase) -> SizeFormatter:
         """Return new `SizeFormatter` with specified base."""
 
     def with_style(self, style: _TFormatSizeStyle) -> SizeFormatter:
         """Return new `SizeFormatter` with specified style."""
+
+    def with_scale(self, scale: int | None) -> SizeFormatter:
+        """Return new `SizeFormatter` with specified scale.
+
+        Parameters
+        ----------
+        scale : int or None
+            Number of decimal places (0-255); `None` uses the per-unit default.
+
+        Returns
+        -------
+        SizeFormatter
+            New formatter with the same base and style.
+
+        Raises
+        ------
+        OverflowError
+            If `scale` is not in 0-255.
+
+        """
 
 @t.final
 class Size(FromStr, _Parse):
@@ -96,7 +164,38 @@ class Size(FromStr, _Parse):
         *,
         base: _TFormatSizeBase = 2,
         style: _TFormatSizeStyle = "default",
-    ) -> str: ...
+        scale: int | None = None,
+    ) -> str:
+        """Return human-readable string representation of the size.
+
+        Parameters
+        ----------
+        base : {2, 10}, default 2
+            Base 2 (KiB, MiB, ...) or base 10 (KB, MB, ...) units.
+        style : {"default", "abbreviated", "abbreviated-lowercase", "full", "full-lowercase"}, default "default"
+            Unit style.
+        scale : int or None, default None
+            Number of decimal places (0-255); `None` uses the per-unit default.
+
+        Returns
+        -------
+        str
+            Human-readable size string.
+
+        Raises
+        ------
+        ValueError
+            If `base` or `style` is invalid.
+        OverflowError
+            If `scale` is not in 0-255.
+
+        Examples
+        --------
+        >>> from ry import Size
+        >>> Size(1536).format(scale=1)
+        '1.5 KiB'
+
+        """
 
     # =========================================================================
     # CLASS-METHODS

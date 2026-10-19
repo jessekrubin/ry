@@ -83,14 +83,15 @@ impl PySize {
     }
 
     #[pyo3(
-        signature = (*, base = PyBase::default(), style = PyStyle::default()),
-        text_signature = "(self, *, base=2, style='default')"
+        signature = (*, base = PyBase::default(), style = PyStyle::default(), scale = None),
+        text_signature = "(self, *, base=2, style='default', scale=None)"
     )]
-    fn format(&self, base: PyBase, style: PyStyle) -> PyAsciiString {
+    fn format(&self, base: PyBase, style: PyStyle, scale: Option<u8>) -> PyAsciiString {
         self.0
             .format()
             .with_base(base.into())
             .with_style(style.into())
+            .with_scale(scale.map(usize::from))
             .to_string()
             .into()
     }
