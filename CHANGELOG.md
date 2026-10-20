@@ -9,6 +9,8 @@
 
 ## v0.0.104 [unreleased]
 
+- misc
+  - clean up `pyo3::intern!()` usage
 - `ryo3-size`
   - bump `size` to v0.6.0
   - `scale: int | None` (0-255) for `fmt_size`, `Size.format`, and

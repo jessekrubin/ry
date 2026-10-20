@@ -42,12 +42,11 @@ const CRYPTO_PROVIDER: &str = "ring";
 #[pyfunction]
 fn warn_debug_build(py: Python) -> PyResult<()> {
     use pyo3::exceptions::PyRuntimeWarning;
-    use pyo3::intern;
     use pyo3::types::PyTuple;
-    let warnings_mod = py.import(intern!(py, "warnings"))?;
+    let warnings_mod = py.import("warnings")?;
     let warning = PyRuntimeWarning::new_err("ry not compiled in release mode");
     let args = PyTuple::new(py, vec![warning])?;
-    warnings_mod.call_method1(intern!(py, "warn"), args)?;
+    warnings_mod.call_method1("warn", args)?;
     tracing::warn!("ry not compiled in release mode");
     Ok(())
 }

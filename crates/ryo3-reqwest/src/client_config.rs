@@ -1,4 +1,3 @@
-use pyo3::intern;
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyString};
 use reqwest::header::HeaderValue;
@@ -498,7 +497,7 @@ impl ClientConfig {
         let dict = PyDict::new(py);
         macro_rules! set_item {
             ($key:expr, $value:expr) => {
-                dict.set_item(intern!(py, $key), $value)?
+                dict.set_item(pyo3::intern!(py, $key), $value)?
             };
         }
         macro_rules! set_items {

@@ -4,9 +4,9 @@
 //! streaming one-byte streaming hasher
 use std::hash::Hasher;
 
+use pyo3::IntoPyObjectExt;
 use pyo3::prelude::*;
 use pyo3::types::{PyString, PyTuple};
-use pyo3::{IntoPyObjectExt, intern};
 use ryo3_bytes::ReadableBuffer;
 use ryo3_core::PyAsciiString;
 use ryo3_core::macros::py_type_err;
@@ -100,7 +100,7 @@ impl PyCrc32Fast {
 
     #[classattr]
     fn name(py: Python<'_>) -> &Bound<'_, PyString> {
-        intern!(py, "crc32")
+        pyo3::intern!(py, "crc32")
     }
 
     #[classattr]

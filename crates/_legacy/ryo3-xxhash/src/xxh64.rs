@@ -1,5 +1,4 @@
 #![expect(clippy::needless_pass_by_value)]
-use pyo3::intern;
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyModule, PyModuleMethods, PyString};
 use pyo3::{Bound, PyResult, Python, pyfunction, wrap_pyfunction};
@@ -50,7 +49,7 @@ impl PyXxh64 {
     /// Return the name of the hasher ('xxh64')
     #[classattr]
     fn name(py: Python<'_>) -> &Bound<'_, PyString> {
-        intern!(py, "xxh64")
+        pyo3::intern!(py, "xxh64")
     }
 
     #[classattr]

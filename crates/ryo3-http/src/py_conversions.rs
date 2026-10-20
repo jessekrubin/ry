@@ -3,9 +3,9 @@ use std::collections::HashMap;
 use std::convert::Infallible;
 
 use http::HeaderMap;
+use pyo3::BoundObject;
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyDict, PyList, PyString};
-use pyo3::{BoundObject, intern};
 use ryo3_core::macros::{py_type_err, py_value_err, py_value_error};
 
 use crate::headers_like::HeaderValueOrValues;
@@ -22,16 +22,16 @@ impl<'py> IntoPyObject<'py> for &PyHttpMethod {
     #[inline]
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
         let s = match self.0 {
-            http::Method::GET => Ok(intern!(py, "GET")),
-            http::Method::POST => Ok(intern!(py, "POST")),
-            http::Method::PUT => Ok(intern!(py, "PUT")),
-            http::Method::DELETE => Ok(intern!(py, "DELETE")),
-            http::Method::HEAD => Ok(intern!(py, "HEAD")),
-            http::Method::OPTIONS => Ok(intern!(py, "OPTIONS")),
-            http::Method::CONNECT => Ok(intern!(py, "CONNECT")),
-            http::Method::PATCH => Ok(intern!(py, "PATCH")),
-            http::Method::TRACE => Ok(intern!(py, "TRACE")),
-            http::Method::QUERY => Ok(intern!(py, "QUERY")),
+            http::Method::GET => Ok(pyo3::intern!(py, "GET")),
+            http::Method::POST => Ok(pyo3::intern!(py, "POST")),
+            http::Method::PUT => Ok(pyo3::intern!(py, "PUT")),
+            http::Method::DELETE => Ok(pyo3::intern!(py, "DELETE")),
+            http::Method::HEAD => Ok(pyo3::intern!(py, "HEAD")),
+            http::Method::OPTIONS => Ok(pyo3::intern!(py, "OPTIONS")),
+            http::Method::CONNECT => Ok(pyo3::intern!(py, "CONNECT")),
+            http::Method::PATCH => Ok(pyo3::intern!(py, "PATCH")),
+            http::Method::TRACE => Ok(pyo3::intern!(py, "TRACE")),
+            http::Method::QUERY => Ok(pyo3::intern!(py, "QUERY")),
             _ => py_value_err!("UNSUPPORTED HTTP METHOD"),
         }?;
         let b = s.as_borrowed();

@@ -1,6 +1,5 @@
 use std::hash::Hasher;
 
-use pyo3::intern;
 use pyo3::prelude::*;
 use pyo3::types::PyString;
 use ryo3_bytes::ReadableBuffer;
@@ -64,7 +63,7 @@ impl PyXxHash3_64 {
 
     #[classattr]
     fn name(py: Python<'_>) -> &Bound<'_, PyString> {
-        intern!(py, "xxh3_64")
+        pyo3::intern!(py, "xxh3_64")
     }
 
     #[classattr]

@@ -6,11 +6,11 @@ use std::fmt::Write as _;
 use std::hash::{Hash, Hasher};
 use std::path::{Path, PathBuf};
 
+use pyo3::BoundObject;
 use pyo3::basic::CompareOp;
 use pyo3::exceptions::{PyFileExistsError, PyFileNotFoundError, PyNotADirectoryError};
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyTuple};
-use pyo3::{BoundObject, intern};
 use ryo3_bytes::{ReadableBuffer, RyBytes};
 use ryo3_core::PyCastExactOpt;
 use ryo3_core::sync::RyMutex;
@@ -585,7 +585,7 @@ impl PyFsPath {
     ) -> PyResult<Bound<'py, PyAny>> {
         // forward to python's built-in open function
         let pypathlib_ob = crate::pathlib::path2pathlib(py, self.path())?;
-        pypathlib_ob.call_method(intern!(py, "open"), args, kwargs)
+        pypathlib_ob.call_method(pyo3::intern!(py, "open"), args, kwargs)
     }
 
     #[expect(clippy::unused_self, reason = "not implemented")]

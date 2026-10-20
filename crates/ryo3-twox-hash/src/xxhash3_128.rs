@@ -1,4 +1,3 @@
-use pyo3::intern;
 use pyo3::prelude::*;
 use pyo3::types::PyString;
 use ryo3_bytes::ReadableBuffer;
@@ -62,7 +61,7 @@ impl PyXxHash3_128 {
 
     #[classattr]
     fn name(py: Python<'_>) -> &Bound<'_, PyString> {
-        intern!(py, "xxh3_128")
+        pyo3::intern!(py, "xxh3_128")
     }
 
     #[classattr]
@@ -244,7 +243,6 @@ pub fn xxh128_hexdigest(
 }
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    let py = m.py();
     m.add_class::<PyXxHash3_128>()?;
 
     m.add_function(wrap_pyfunction!(xxh3_128_digest, m)?)?;
@@ -257,8 +255,8 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(xxh128_intdigest, m)?)?;
 
     // alias xxh3_128 as xxh128 (matches `xxhash` python package)
-    let attr = m.getattr(intern!(py, "xxh3_128"))?;
-    m.add(intern!(py, "xxh128"), attr)?;
+    let attr = m.getattr("xxh3_128")?;
+    m.add("xxh128", attr)?;
 
     Ok(())
 }
