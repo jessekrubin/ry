@@ -8,7 +8,6 @@ use std::time::SystemTime;
 
 pub use file_type::PyFileType;
 use pyo3::exceptions::{PyIOError, PyIsADirectoryError, PyNotADirectoryError, PyRuntimeError};
-use pyo3::intern;
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyDict};
 use ryo3_bytes::RyBytes;
@@ -64,17 +63,17 @@ impl PyMetadata {
 
     fn to_py<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
         let metadata_dict = PyDict::new(py);
-        metadata_dict.set_item(intern!(py, "is_dir"), self.is_dir())?;
-        metadata_dict.set_item(intern!(py, "is_file"), self.is_file())?;
-        metadata_dict.set_item(intern!(py, "is_symlink"), self.is_symlink())?;
-        metadata_dict.set_item(intern!(py, "len"), self.len())?;
-        metadata_dict.set_item(intern!(py, "readonly"), self.readonly())?;
-        metadata_dict.set_item(intern!(py, "file_type"), self.file_type().to_py(py))?;
-        metadata_dict.set_item(intern!(py, "accessed"), self.accessed()?)?;
+        metadata_dict.set_item(pyo3::intern!(py, "is_dir"), self.is_dir())?;
+        metadata_dict.set_item(pyo3::intern!(py, "is_file"), self.is_file())?;
+        metadata_dict.set_item(pyo3::intern!(py, "is_symlink"), self.is_symlink())?;
+        metadata_dict.set_item(pyo3::intern!(py, "len"), self.len())?;
+        metadata_dict.set_item(pyo3::intern!(py, "readonly"), self.readonly())?;
+        metadata_dict.set_item(pyo3::intern!(py, "file_type"), self.file_type().to_py(py))?;
+        metadata_dict.set_item(pyo3::intern!(py, "accessed"), self.accessed()?)?;
         if let Ok(created) = self.created() {
-            metadata_dict.set_item(intern!(py, "created"), created)?;
+            metadata_dict.set_item(pyo3::intern!(py, "created"), created)?;
         }
-        metadata_dict.set_item(intern!(py, "modified"), self.modified()?)?;
+        metadata_dict.set_item(pyo3::intern!(py, "modified"), self.modified()?)?;
         Ok(metadata_dict)
     }
 

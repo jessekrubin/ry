@@ -4,9 +4,9 @@ use std::convert::Infallible;
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::hash::{Hash, Hasher};
 
+use pyo3::IntoPyObjectExt;
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyInt, PyString, PyTuple};
-use pyo3::{IntoPyObjectExt, intern};
 use sqlformat::{self, QueryParams};
 
 #[pyclass(name = "SqlfmtQueryParams", frozen, immutable_type)]
@@ -451,9 +451,9 @@ impl<'py> IntoPyObject<'py> for &PyDialect {
     #[inline]
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
         let s = match self.0 {
-            sqlformat::Dialect::Generic => intern!(py, "generic"),
-            sqlformat::Dialect::PostgreSql => intern!(py, "postgresql"),
-            sqlformat::Dialect::SQLServer => intern!(py, "sqlserver"),
+            sqlformat::Dialect::Generic => pyo3::intern!(py, "generic"),
+            sqlformat::Dialect::PostgreSql => pyo3::intern!(py, "postgresql"),
+            sqlformat::Dialect::SQLServer => pyo3::intern!(py, "sqlserver"),
         };
         Ok(s.as_borrowed())
     }
@@ -587,31 +587,37 @@ impl PySqlFormatter {
 
     fn to_dict<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
         let dict = PyDict::new(py);
-        dict.set_item(intern!(py, "indent"), self.0.indent)?;
-        dict.set_item(intern!(py, "uppercase"), self.0.uppercase)?;
+        dict.set_item(pyo3::intern!(py, "indent"), self.0.indent)?;
+        dict.set_item(pyo3::intern!(py, "uppercase"), self.0.uppercase)?;
         dict.set_item(
-            intern!(py, "lines_between_queries"),
+            pyo3::intern!(py, "lines_between_queries"),
             self.0.lines_between_queries,
         )?;
-        let ignore_case_convert_py_str = intern!(py, "ignore_case_convert");
+        let ignore_case_convert_py_str = pyo3::intern!(py, "ignore_case_convert");
         if let Some(v) = &self.0.ignore_case_convert {
             let pylist = pyo3::types::PyList::new(py, v)?;
             dict.set_item(ignore_case_convert_py_str, pylist)?;
         } else {
             dict.set_item(ignore_case_convert_py_str, py.None())?;
         }
-        dict.set_item(intern!(py, "inline"), self.0.inline)?;
-        dict.set_item(intern!(py, "max_inline_block"), self.0.max_inline_block)?;
+        dict.set_item(pyo3::intern!(py, "inline"), self.0.inline)?;
         dict.set_item(
-            intern!(py, "max_inline_arguments"),
+            pyo3::intern!(py, "max_inline_block"),
+            self.0.max_inline_block,
+        )?;
+        dict.set_item(
+            pyo3::intern!(py, "max_inline_arguments"),
             self.0.max_inline_arguments,
         )?;
         dict.set_item(
-            intern!(py, "max_inline_top_level"),
+            pyo3::intern!(py, "max_inline_top_level"),
             self.0.max_inline_top_level,
         )?;
-        dict.set_item(intern!(py, "joins_as_top_level"), self.0.joins_as_top_level)?;
-        dict.set_item(intern!(py, "dialect"), self.0.dialect)?;
+        dict.set_item(
+            pyo3::intern!(py, "joins_as_top_level"),
+            self.0.joins_as_top_level,
+        )?;
+        dict.set_item(pyo3::intern!(py, "dialect"), self.0.dialect)?;
         Ok(dict)
     }
 

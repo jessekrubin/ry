@@ -2,7 +2,6 @@
 //!
 //! Caches instances to avoid duplicating them when you are say scraping the
 //! web and getting a ton of 200s or 404s or whatever...
-use pyo3::intern;
 use pyo3::prelude::*;
 use pyo3::pyclass::CompareOp;
 use pyo3::sync::PyOnceLock;
@@ -672,7 +671,7 @@ macro_rules! status_code_match {
     }) => {
         match $code {
             $(
-                $num => Some(intern!($py, $msg)),
+                $num => Some(pyo3::intern!($py, $msg)),
             )*
             _ => None,
         }

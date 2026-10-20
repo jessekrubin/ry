@@ -167,18 +167,18 @@ impl GetPydanticCoreSchemaCls for RySpan {
 //         let py = source.py();
 //         let core_schema = ryo3_pydantic::core_schema(py)?;
 //         let timedelta_schema =
-//             core_schema.call_method(intern!(py, "timedelta_schema"), (), None)?;
-//         let validation_fn = cls.getattr(intern!(py, "_pydantic_validate"))?;
+//             core_schema.call_method(pyo3::intern!(py, "timedelta_schema"), (), None)?;
+//         let validation_fn = cls.getattr(pyo3::intern!(py, "_pydantic_validate"))?;
 //         let args = PyTuple::new(py, vec![&validation_fn, &timedelta_schema])?;
 //         let string_serialization_schema =
-//             core_schema.call_method(intern!(py, "to_string_ser_schema"), (), None)?;
+//             core_schema.call_method(pyo3::intern!(py, "to_string_ser_schema"), (), None)?;
 //         let serialization_kwargs = PyDict::new(py);
 //         serialization_kwargs
-//             .set_item(intern!(py, "serialization"), &string_serialization_schema)?;
-//         // serialization_kwargs.set_item(intern!(py, "when_used"), intern!(py, "json-unless-none"))?;
-//         // string_serialization_schema.call_method(intern!(py, "update"), (serialization_kwargs,), None)?;
+//             .set_item(pyo3::intern!(py, "serialization"), &string_serialization_schema)?;
+//         // serialization_kwargs.set_item(pyo3::intern!(py, "when_used"), pyo3::intern!(py, "json-unless-none"))?;
+//         // string_serialization_schema.call_method(pyo3::intern!(py, "update"), (serialization_kwargs,), None)?;
 //         core_schema.call_method(
-//             intern!(py, "no_info_wrap_validator_function"),
+//             pyo3::intern!(py, "no_info_wrap_validator_function"),
 //             args,
 //             Some(&serialization_kwargs),
 //         )

@@ -4,9 +4,9 @@
 //! the core logic outweighs pulling in another dep.
 use std::hash::Hasher;
 
+use pyo3::IntoPyObjectExt;
 use pyo3::prelude::*;
 use pyo3::types::{PyString, PyTuple};
-use pyo3::{IntoPyObjectExt, intern};
 use ryo3_bytes::ReadableBuffer;
 use ryo3_core::PyAsciiString;
 use ryo3_core::macros::py_type_err;
@@ -127,7 +127,7 @@ impl PyFnv1a {
 
     #[classattr]
     fn name(py: Python<'_>) -> &Bound<'_, PyString> {
-        intern!(py, "fnv1a")
+        pyo3::intern!(py, "fnv1a")
     }
 
     #[classattr]

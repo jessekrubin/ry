@@ -1,6 +1,6 @@
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyString};
-use pyo3::{intern};
+
 use ryo3_core::PyLock;
 use std::sync::Mutex;
 use xxhash_rust::xxh3::{Xxh3, Xxh3Builder, xxh3_64_with_seed, xxh3_128_with_seed};
@@ -54,7 +54,7 @@ impl PyXxh3 {
 
     #[classattr]
     fn name(py: Python<'_>) -> &Bound<'_, PyString> {
-        intern!(py, "xxh3")
+        pyo3::intern!(py, "xxh3")
     }
 
     #[classattr]

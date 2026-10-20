@@ -1,5 +1,5 @@
 use pyo3::prelude::*;
-use pyo3::{Borrowed, PyAny, intern};
+use pyo3::{Borrowed, PyAny};
 use serde::ser::{Serialize, Serializer};
 
 use crate::errors::pyerr2sererr;
@@ -41,7 +41,7 @@ where
         // TODO: use `getattr_opt` ?
         let value = self
             .obj
-            .getattr(intern!(self.obj.py(), "value"))
+            .getattr(pyo3::intern!(self.obj.py(), "value"))
             .map_err(pyerr2sererr)?;
         PyAnySerializer::new_with_depth(value.as_borrowed(), self.ctx, self.depth)
             .serialize(serializer)

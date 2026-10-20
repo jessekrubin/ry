@@ -1,10 +1,10 @@
 #![doc = include_str!("../README.md")]
 use std::sync::OnceLock;
 
+use pyo3::BoundObject;
 use pyo3::prelude::*;
 use pyo3::sync::PyOnceLock;
 use pyo3::types::PyTuple;
-use pyo3::{BoundObject, intern};
 use ryo3_bytes::ExactReadableBuffer;
 use ryo3_core::PyAsciiString;
 use ryo3_core::macros::{any_repr, py_type_err, py_value_err, py_value_error, pytodo};
@@ -691,7 +691,7 @@ fn py_uuid_type_ptr(py: Python) -> usize {
 //         let uuid_cls = get_uuid_cls(py)?;
 
 //         if obj.is_instance(uuid_cls)? {
-//             let uuid_int: u128 = obj.getattr(intern!(py, "int"))?.extract()?;
+//             let uuid_int: u128 = obj.getattr(pyo3::intern!(py, "int"))?.extract()?;
 //             let bytes = uuid_int.to_be_bytes();
 //             Ok(Self(uuid::Uuid::from_bytes(bytes)))
 //         } else {
@@ -710,7 +710,7 @@ impl<'py> FromPyObject<'_, 'py> for CPythonUuid {
         let uuid_cls_ptr = py_uuid_type_ptr(obj.py());
         let obj_ptr = obj.get_type().as_type_ptr() as usize;
         if obj_ptr == uuid_cls_ptr {
-            let uuid_int: u128 = obj.getattr(intern!(py, "int"))?.extract()?;
+            let uuid_int: u128 = obj.getattr(pyo3::intern!(py, "int"))?.extract()?;
             let bytes = uuid_int.to_be_bytes();
             Ok(Self(uuid::Uuid::from_bytes(bytes)))
         } else {
@@ -730,7 +730,7 @@ impl ryo3_pydantic::GetPydanticCoreSchemaCls for PyUuid {
 
         let py = source.py();
         let core_schema = ryo3_pydantic::core_schema(py)?;
-        let uuid_schema = core_schema.call_method(intern!(py, "uuid_schema"), (), None)?;
+        let uuid_schema = core_schema.call_method(pyo3::intern!(py, "uuid_schema"), (), None)?;
         let validation_fn = cls.getattr(interns::_pydantic_validate(py))?;
         let string_serialization_schema =
             core_schema.call_method(interns::to_string_ser_schema(py), (), None)?;

@@ -4,7 +4,6 @@ use std::sync::Arc;
 
 #[cfg(feature = "experimental-async")]
 use pyo3::coroutine::CancelHandle;
-use pyo3::intern;
 use pyo3::prelude::*;
 use ryo3_bytes::RyBytes;
 use ryo3_core::types::{PyOpenMode, PyOpenOptions};
@@ -279,7 +278,7 @@ impl PyAsyncFile {
     /// This is a coroutine that returns `self` when awaited... so you
     /// can `await` to open the file
     fn __await__(slf: Py<Self>, py: Python<'_>) -> PyResult<Bound<'_, PyAny>> {
-        Self::open_awaitable(slf, py)?.call_method0(intern!(py, "__await__"))
+        Self::open_awaitable(slf, py)?.call_method0(pyo3::intern!(py, "__await__"))
     }
 
     fn __aenter__(slf: Py<Self>, py: Python) -> PyResult<Bound<PyAny>> {
@@ -550,7 +549,7 @@ impl PyAsyncFile {
     /// This is a coroutine that returns `self` when awaited... so you
     /// can `await` to open the file
     fn __await__(slf: Py<Self>, py: Python<'_>) -> PyResult<Bound<'_, PyAny>> {
-        Self::open_awaitable(slf, py)?.call_method0(intern!(py, "__await__"))
+        Self::open_awaitable(slf, py)?.call_method0(pyo3::intern!(py, "__await__"))
     }
 
     fn __aenter__(slf: Py<Self>, py: Python) -> PyResult<Bound<PyAny>> {

@@ -1,7 +1,7 @@
+use pyo3::Bound;
 use pyo3::prelude::*;
 use pyo3::sync::PyOnceLock;
 use pyo3::types::{PyDict, PyString};
-use pyo3::{Bound, intern};
 use serde::ser::{Error as SerError, Serialize, SerializeMap, Serializer};
 
 use crate::errors::pyerr2sererr;
@@ -54,7 +54,7 @@ where
 
         let py = self.obj.py();
         // check for __dict__
-        if let Ok(dunder_dict) = self.obj.getattr(intern!(py, "__dict__")) {
+        if let Ok(dunder_dict) = self.obj.getattr(pyo3::intern!(py, "__dict__")) {
             if let Ok(dict) = dunder_dict.cast::<PyDict>() {
                 // serialize the __dict__ as a dict (unsorted)
                 PyDictSerializer::new(dict.as_borrowed(), self.ctx, self.depth + 1)
@@ -68,7 +68,7 @@ where
             for (field_name, field) in fields.iter() {
                 // check if the field is a dataclass field
                 let field_type = field
-                    .getattr(intern!(py, "_field_type"))
+                    .getattr(pyo3::intern!(py, "_field_type"))
                     .map_err(pyerr2sererr)?;
                 if field_type.is(field_marker) {
                     // this is a dataclass field

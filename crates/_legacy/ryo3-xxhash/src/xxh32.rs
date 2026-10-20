@@ -1,5 +1,4 @@
 #![expect(clippy::needless_pass_by_value)]
-use pyo3::intern;
 use pyo3::prelude::*;
 use pyo3::types::PyBytes;
 use pyo3::types::PyString;
@@ -47,7 +46,7 @@ impl PyXxh32 {
 
     #[classattr]
     fn name(py: Python<'_>) -> &Bound<'_, PyString> {
-        intern!(py, "xxh32")
+        pyo3::intern!(py, "xxh32")
     }
 
     #[classattr]

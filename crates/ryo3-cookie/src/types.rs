@@ -2,9 +2,9 @@
 
 use std::convert::Infallible;
 
+use pyo3::IntoPyObjectExt;
 use pyo3::prelude::*;
 use pyo3::types::PyString;
-use pyo3::{IntoPyObjectExt, intern};
 use ryo3_core::macros::{py_type_err, py_value_err};
 use ryo3_core::map_py_overflow_err;
 use ryo3_jiff::RyTimestamp;
@@ -30,9 +30,9 @@ impl<'py> IntoPyObject<'py> for &PyCookieSameSite {
     #[inline]
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
         let s = match self.0 {
-            cookie::SameSite::Lax => intern!(py, "Lax"),
-            cookie::SameSite::Strict => intern!(py, "Strict"),
-            cookie::SameSite::None => intern!(py, "None"),
+            cookie::SameSite::Lax => pyo3::intern!(py, "Lax"),
+            cookie::SameSite::Strict => pyo3::intern!(py, "Strict"),
+            cookie::SameSite::None => pyo3::intern!(py, "None"),
         };
         Ok(s.as_borrowed())
     }
