@@ -3,25 +3,25 @@ use pyo3::types::PyString;
 use ryo3_macro_rules::{py_type_err, py_value_err};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub(crate) enum TlsVersion {
+pub(crate) enum PyTlsVersion {
     Tlsv1_0,
     Tlsv1_1,
     Tlsv1_2,
     Tlsv1_3,
 }
 
-impl From<&TlsVersion> for reqwest::tls::Version {
-    fn from(value: &TlsVersion) -> Self {
+impl From<&PyTlsVersion> for reqwest::tls::Version {
+    fn from(value: &PyTlsVersion) -> Self {
         match value {
-            TlsVersion::Tlsv1_0 => Self::TLS_1_0,
-            TlsVersion::Tlsv1_1 => Self::TLS_1_1,
-            TlsVersion::Tlsv1_2 => Self::TLS_1_2,
-            TlsVersion::Tlsv1_3 => Self::TLS_1_3,
+            PyTlsVersion::Tlsv1_0 => Self::TLS_1_0,
+            PyTlsVersion::Tlsv1_1 => Self::TLS_1_1,
+            PyTlsVersion::Tlsv1_2 => Self::TLS_1_2,
+            PyTlsVersion::Tlsv1_3 => Self::TLS_1_3,
         }
     }
 }
 
-impl<'py> IntoPyObject<'py> for TlsVersion {
+impl<'py> IntoPyObject<'py> for PyTlsVersion {
     type Target = PyString;
     type Output = Borrowed<'py, 'py, Self::Target>;
     type Error = std::convert::Infallible;
@@ -40,7 +40,7 @@ impl<'py> IntoPyObject<'py> for TlsVersion {
 
 const TLS_VERSION_STRINGS: &str = "'1.0', '1.1', '1.2', '1.3'";
 
-impl<'py> FromPyObject<'_, 'py> for TlsVersion {
+impl<'py> FromPyObject<'_, 'py> for PyTlsVersion {
     type Error = pyo3::PyErr;
     fn extract(ob: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
         // downcast to string...

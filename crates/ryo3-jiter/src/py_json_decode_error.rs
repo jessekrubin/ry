@@ -88,7 +88,7 @@ impl RyJSONDecodeError {
         lineno: Option<usize>,
         colno: Option<usize>,
     ) -> Self {
-        let data = doc.map(|d| d.to_bytes());
+        let data = doc.map(ryo3_bytes::ReadableBuffer::into_bytes);
         let err = JsonError {
             error_type: kind.0,
             index: pos,

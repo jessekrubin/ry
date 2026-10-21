@@ -36,15 +36,16 @@ pub(crate) enum CertificateKind {
     Pem,
 }
 
-#[pyclass(name = "Certificate", frozen, immutable_type)]
 #[derive(Debug, Clone)]
+#[pyclass(name = "Certificate", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
-pub struct PyCertificate {
+pub struct RyCertificate {
     pub(crate) kind: CertificateKind,
     pub(crate) bin: bytes::Bytes,
     pub(crate) cert: ::reqwest::Certificate,
 }
-impl PyCertificate {
+
+impl RyCertificate {
     pub fn inner(&self) -> &::reqwest::Certificate {
         &self.cert
     }
@@ -85,7 +86,7 @@ impl PyCertificate {
     }
 }
 
-impl std::hash::Hash for PyCertificate {
+impl std::hash::Hash for RyCertificate {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
         self.kind.hash(state);
         self.bin.hash(state);
@@ -93,7 +94,7 @@ impl std::hash::Hash for PyCertificate {
 }
 
 #[pymethods]
-impl PyCertificate {
+impl RyCertificate {
     #[new]
     fn py_new() -> PyResult<Self> {
         Err(py_value_error!(
@@ -138,7 +139,7 @@ impl PyCertificate {
     }
 }
 
-impl std::fmt::Display for PyCertificate {
+impl std::fmt::Display for RyCertificate {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self.kind {
             CertificateKind::Der => {
@@ -159,13 +160,13 @@ impl std::fmt::Display for PyCertificate {
     }
 }
 
-impl PartialEq for PyCertificate {
+impl PartialEq for RyCertificate {
     fn eq(&self, other: &Self) -> bool {
         self.kind == other.kind && self.bin == other.bin
     }
 }
 
-impl<'a, 'py> FromPyObject<'a, 'py> for PyCertificate {
+impl<'a, 'py> FromPyObject<'a, 'py> for RyCertificate {
     type Error = PyErr;
     fn extract(obj: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
         if let Ok(cert) = obj.cast_exact::<Self>() {
@@ -188,15 +189,15 @@ impl<'a, 'py> FromPyObject<'a, 'py> for PyCertificate {
 
 // ==== CERTIFICATE REVOCATION LIST ====
 
-#[pyclass(name = "CertificateRevocationList", frozen, immutable_type)]
 #[derive(Debug)]
+#[pyclass(name = "CertificateRevocationList", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
-pub struct PyCertificateRevocationList {
+pub struct RyCertificateRevocationList {
     pub(crate) bin: bytes::Bytes,
     pub(crate) crl: ::reqwest::tls::CertificateRevocationList,
 }
 
-impl PyCertificateRevocationList {
+impl RyCertificateRevocationList {
     fn from_pem(pem: &[u8]) -> PyResult<Self> {
         ::reqwest::tls::CertificateRevocationList::from_pem(pem)
             .map(|crl| Self {
@@ -227,13 +228,13 @@ impl PyCertificateRevocationList {
     }
 }
 
-impl std::hash::Hash for PyCertificateRevocationList {
+impl std::hash::Hash for RyCertificateRevocationList {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
         self.bin.hash(state);
     }
 }
 
-impl Clone for PyCertificateRevocationList {
+impl Clone for RyCertificateRevocationList {
     fn clone(&self) -> Self {
         Self {
             bin: self.bin.clone(),
@@ -243,7 +244,7 @@ impl Clone for PyCertificateRevocationList {
 }
 
 #[pymethods]
-impl PyCertificateRevocationList {
+impl RyCertificateRevocationList {
     #[new]
     #[expect(clippy::needless_pass_by_value)]
     fn py_new(pem: ReadableBuffer) -> PyResult<Self> {
@@ -267,7 +268,7 @@ impl PyCertificateRevocationList {
     fn py_from_pem(pem: ReadableBuffer) -> PyResult<Self> {
         ::reqwest::tls::CertificateRevocationList::from_pem(pem.as_ref())
             .map(|crl| Self {
-                bin: bytes::Bytes::copy_from_slice(pem.as_ref()),
+                bin: pem.copy_to_bytes(),
                 crl,
             })
             .map_err(|e| {
@@ -287,7 +288,7 @@ impl PyCertificateRevocationList {
     }
 }
 
-impl std::fmt::Display for PyCertificateRevocationList {
+impl std::fmt::Display for RyCertificateRevocationList {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
@@ -297,13 +298,13 @@ impl std::fmt::Display for PyCertificateRevocationList {
     }
 }
 
-impl PartialEq for PyCertificateRevocationList {
+impl PartialEq for RyCertificateRevocationList {
     fn eq(&self, other: &Self) -> bool {
         self.bin == other.bin
     }
 }
 
-impl<'a, 'py> FromPyObject<'a, 'py> for PyCertificateRevocationList {
+impl<'a, 'py> FromPyObject<'a, 'py> for RyCertificateRevocationList {
     type Error = PyErr;
     fn extract(obj: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
         if let Ok(cert) = obj.cast_exact::<Self>() {
@@ -316,30 +317,30 @@ impl<'a, 'py> FromPyObject<'a, 'py> for PyCertificateRevocationList {
     }
 }
 
-impl From<&PyCertificateRevocationList> for CertificateRevocationList {
-    fn from(py_crl: &PyCertificateRevocationList) -> Self {
-        Self::from_pem(py_crl.bin.as_ref())
+impl From<&RyCertificateRevocationList> for CertificateRevocationList {
+    fn from(ry_crl: &RyCertificateRevocationList) -> Self {
+        Self::from_pem(ry_crl.bin.as_ref())
             .expect("wenodis: it already was constructed from valid pem")
     }
 }
 
-impl From<PyCertificateRevocationList> for CertificateRevocationList {
-    fn from(py_crl: PyCertificateRevocationList) -> Self {
-        py_crl.crl
+impl From<RyCertificateRevocationList> for CertificateRevocationList {
+    fn from(ry_crl: RyCertificateRevocationList) -> Self {
+        ry_crl.crl
     }
 }
 
 // ==== IDENTITY ====
 
-#[pyclass(name = "Identity", frozen, immutable_type)]
 #[derive(Debug, Clone)]
+#[pyclass(name = "Identity", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
-pub struct PyIdentity {
+pub struct RyIdentity {
     pub(crate) bin: bytes::Bytes,
     pub(crate) cert: ::reqwest::Identity,
 }
 
-impl PyIdentity {
+impl RyIdentity {
     pub fn inner(&self) -> &::reqwest::Identity {
         &self.cert
     }
@@ -354,14 +355,14 @@ impl PyIdentity {
     }
 }
 
-impl std::hash::Hash for PyIdentity {
+impl std::hash::Hash for RyIdentity {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
         self.bin.hash(state);
     }
 }
 
 #[pymethods]
-impl PyIdentity {
+impl RyIdentity {
     #[new]
     #[expect(clippy::needless_pass_by_value)]
     fn py_new(pem: ReadableBuffer) -> PyResult<Self> {
@@ -399,19 +400,19 @@ impl PyIdentity {
     }
 }
 
-impl std::fmt::Display for PyIdentity {
+impl std::fmt::Display for RyIdentity {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "Identity<PEM; {:p}>", std::ptr::from_ref::<Self>(self))
     }
 }
 
-impl PartialEq for PyIdentity {
+impl PartialEq for RyIdentity {
     fn eq(&self, other: &Self) -> bool {
         self.bin == other.bin
     }
 }
 
-impl<'a, 'py> FromPyObject<'a, 'py> for PyIdentity {
+impl<'a, 'py> FromPyObject<'a, 'py> for RyIdentity {
     type Error = PyErr;
     fn extract(obj: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
         if let Ok(cert) = obj.cast_exact::<Self>() {
@@ -434,6 +435,6 @@ macro_rules! impl_as_ref_bytes {
     };
 }
 
-impl_as_ref_bytes!(PyCertificate);
-impl_as_ref_bytes!(PyCertificateRevocationList);
-impl_as_ref_bytes!(PyIdentity);
+impl_as_ref_bytes!(RyCertificate);
+impl_as_ref_bytes!(RyCertificateRevocationList);
+impl_as_ref_bytes!(RyIdentity);

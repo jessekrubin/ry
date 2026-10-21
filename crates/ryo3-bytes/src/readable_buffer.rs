@@ -34,6 +34,12 @@ impl ReadableBuffer<'_, '_> {
         self.len() == 0
     }
 
+    /// Copy buffer into a new `bytes::Bytes` instance (always allocates)
+    #[inline]
+    pub fn copy_to_bytes(&self) -> bytes::Bytes {
+        bytes::Bytes::copy_from_slice(self.as_slice())
+    }
+
     /// Convert to `bytes::Bytes`, potentially zero-copy (cheap clone and refcount bump)
     #[inline]
     pub fn to_bytes(&self) -> bytes::Bytes {
@@ -50,10 +56,33 @@ impl ReadableBuffer<'_, '_> {
         }
     }
 
+    /// Consume and convert to `bytes::Bytes`; same as `to_bytes` but moves
+    /// the `Buffer` variant instead of cloning/ref-bumping it
+    #[inline]
+    pub fn into_bytes(self) -> bytes::Bytes {
+        match self {
+            ReadableBuffer::PyBytes(pb) => {
+                let pbb = pyo3::pybacked::PyBackedBytes::from(pb.into_bound());
+                bytes::Bytes::from_owner(pbb)
+            }
+            ReadableBuffer::RyBytes(rb) => {
+                let rbb: &bytes::Bytes = rb.get().as_ref();
+                rbb.clone()
+            }
+            ReadableBuffer::Buffer(b) => b,
+        }
+    }
+
     /// Convert to `ryo3-bytes::RyBytes`, potentially zero-copy (cheap clone and refcount bump)
     #[inline]
     pub fn to_rybytes(&self) -> RyBytes {
-        RyBytes::from(self.to_bytes())
+        RyBytes::new(self.to_bytes())
+    }
+
+    /// Consume and convert to `ryo3-bytes::RyBytes` (see `into_bytes`)
+    #[inline]
+    pub fn into_rybytes(self) -> RyBytes {
+        RyBytes::new(self.into_bytes())
     }
 }
 

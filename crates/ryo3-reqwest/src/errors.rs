@@ -163,6 +163,7 @@ impl From<RyReqwestError> for pyo3::PyErr {
 /// Python interpreter is shutting down
 ///
 /// Should prevent panics during interpreter shutdown when background threads
+#[cold]
 pub(crate) fn map_reqwest_err(e: reqwest::Error) -> pyo3::PyErr {
     #[expect(unsafe_code)]
     if unsafe { pyo3::ffi::Py_IsInitialized() } == 0 {

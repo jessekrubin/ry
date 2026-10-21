@@ -101,7 +101,7 @@ impl AsRef<[u8]> for RyBytes {
 
 impl RyBytes {
     /// Construct a new [`PyBytes`]
-    pub fn new(buffer: Bytes) -> Self {
+    pub const fn new(buffer: Bytes) -> Self {
         Self(buffer, AtomicIsize::new(PY_HASH_NONE))
     }
 
@@ -281,11 +281,10 @@ impl RyBytes {
             return other.to_rybytes().into_pyobject(py);
         }
         let total_length = slf.len() + other.len();
-        let mut outbuf = BytesMut::with_capacity(total_length);
-        outbuf.extend_from_slice(slf.0.as_ref());
-        outbuf.extend_from_slice(other.as_ref());
-        let a = outbuf.freeze();
-        Self::new(a).into_pyobject(py)
+        let mut vec = try_with_capacity(total_length)?;
+        vec.extend_from_slice(slf.as_slice());
+        vec.extend_from_slice(other.as_ref());
+        Self::from(vec).into_pyobject(py)
     }
 
     fn __contains__(&self, item: ReadableBuffer) -> bool {

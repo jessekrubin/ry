@@ -357,7 +357,7 @@ impl<'py> FromPyObject<'_, 'py> for PyMessageLike {
         } else if let Ok(text) = obj.extract::<PyBackedStr>() {
             Ok(Self::Text(text))
         } else if let Ok(bytes) = obj.extract::<ReadableBuffer>() {
-            Ok(Self::Bytes(bytes.to_rybytes()))
+            Ok(Self::Bytes(bytes.into_rybytes()))
         } else {
             py_type_err!("expected Message, str, or bytes-like object")
         }
@@ -378,7 +378,7 @@ impl PyTryFrom<ReadableBuffer<'_, '_>> for PyPingPayload {
         if value.as_slice().len() > WS_MSG_PINGPONG_PAYLOAD_MAX_LEN {
             py_value_err!("ping-payload exceeds the websocket limit of 125 bytes")
         } else {
-            Ok(Self(Message::ping(value.to_bytes())))
+            Ok(Self(Message::ping(value.into_bytes())))
         }
     }
 }
@@ -417,7 +417,7 @@ impl PyTryFrom<ReadableBuffer<'_, '_>> for PyPongPayload {
         if value.as_slice().len() > WS_MSG_PINGPONG_PAYLOAD_MAX_LEN {
             py_value_err!("pong-payload exceeds the websocket limit of 125 bytes")
         } else {
-            Ok(Self(Message::pong(value.to_bytes())))
+            Ok(Self(Message::pong(value.into_bytes())))
         }
     }
 }

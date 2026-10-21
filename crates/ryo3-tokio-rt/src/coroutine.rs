@@ -35,11 +35,20 @@ use pyo3::{IntoPyObjectExt, PyTraverseError, PyVisit};
 
 use crate::get_ry_tokio_runtime;
 
-const REUSED: &str = "cannot reuse already awaited coroutine";
+const COROUTINE_REUSED_EMSG: &str = "cannot reuse already awaited coroutine";
+const COROUTINE_EXECUTING_EMSG: &str = "coroutine already executing";
 
 #[inline]
 fn lock<T>(mutex: &Mutex<T>) -> MutexGuard<'_, T> {
     mutex.lock().unwrap_or_else(PoisonError::into_inner)
+}
+
+/// Get the currently running asyncio event loop via `asyncio.get_running_loop()`
+fn asyncio_get_running_loop(py: Python<'_>) -> PyResult<Bound<'_, PyAny>> {
+    static GET_RUNNING_LOOP: PyOnceLock<Py<PyAny>> = PyOnceLock::new();
+    GET_RUNNING_LOOP
+        .import(py, "asyncio", "get_running_loop")?
+        .call0()
 }
 
 fn empty_context(py: Python<'_>) -> PyResult<Bound<'_, PyAny>> {
@@ -87,6 +96,7 @@ struct LoopHub {
 }
 
 impl LoopHub {
+    #[cold]
     fn new(event_loop: &Bound<'_, PyAny>) -> PyResult<Arc<Self>> {
         let py = event_loop.py();
         let context = empty_context(py)?;
@@ -225,7 +235,8 @@ fn register_reader(
     Some((rx, tx))
 }
 
-#[pyclass(name = "CoroutineFlush", frozen, immutable_type)]
+#[pyclass(name = "CoroutineFlush", frozen)]
+#[cfg_attr(any(not(Py_LIMITED_API), Py_3_14), pyo3(immutable_type))]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 struct FlushCallback(OnceLock<Weak<LoopHub>>);
 
@@ -250,10 +261,7 @@ pub struct LoopHandle(Arc<LoopHub>);
 impl LoopHandle {
     /// errs if there is no running loop
     pub fn current(py: Python<'_>) -> PyResult<Self> {
-        static GET_RUNNING_LOOP: PyOnceLock<Py<PyAny>> = PyOnceLock::new();
-        let event_loop = GET_RUNNING_LOOP
-            .import(py, "asyncio", "get_running_loop")?
-            .call0()?;
+        let event_loop = asyncio_get_running_loop(py)?;
         if let Some(hub) = LOOP_HUBS.with(|hubs| {
             hubs.borrow()
                 .iter()
@@ -263,6 +271,12 @@ impl LoopHandle {
             return Ok(Self(hub));
         }
 
+        Self::register_loop(&event_loop)
+    }
+
+    #[cold]
+    fn register_loop(event_loop: &Bound<'_, PyAny>) -> PyResult<Self> {
+        let py = event_loop.py();
         // RefCell stays unborrowed while python runs (`is_closed`/`new` can
         // end up back in here)
         let mut hubs = LOOP_HUBS.with(RefCell::take);
@@ -273,7 +287,7 @@ impl LoopHandle {
             }
             open
         });
-        let hub = LoopHub::new(&event_loop);
+        let hub = LoopHub::new(event_loop);
         if let Ok(hub) = &hub {
             hubs.push(Arc::clone(hub));
         }
@@ -375,18 +389,26 @@ impl CoroutineWaker {
                     .call_method1(pyo3::intern!(py, "run"), (callback.bind(py), &py_future)),
                 None => callback.bind(py).call1((&py_future,)),
             };
-            match result {
-                Ok(_) => {}
-                Err(error)
-                    if error.is_instance_of::<PyKeyboardInterrupt>(py)
-                        || error.is_instance_of::<PySystemExit>(py) =>
-                {
-                    fatal_err.get_or_insert(error);
-                }
-                Err(error) => error.write_unraisable(py, Some(&py_future)),
+            if let Err(error) = result {
+                Self::on_callback_pyerr(py, error, &py_future, &mut fatal_err);
             }
         }
         fatal_err.map_or(Ok(()), Err)
+    }
+
+    fn on_callback_pyerr(
+        py: Python<'_>,
+        error: PyErr,
+        py_future: &Bound<'_, PyAny>,
+        fatal_err: &mut Option<PyErr>,
+    ) {
+        if error.is_instance_of::<PyKeyboardInterrupt>(py)
+            || error.is_instance_of::<PySystemExit>(py)
+        {
+            fatal_err.get_or_insert(error);
+        } else {
+            error.write_unraisable(py, Some(py_future));
+        }
     }
 
     fn traverse(&self, visit: &PyVisit<'_>) -> Result<(), PyTraverseError> {
@@ -408,7 +430,8 @@ impl CoroutineWaker {
 ///
 /// This aint a python `asyncio.Future` subclass; tokio waker resolves it and
 /// runs the tasks done-cbs on the loop thread to avoid a `call_soon` py
-#[pyclass(name = "CoroutineFuture", frozen, immutable_type)]
+#[pyclass(name = "CoroutineFuture", frozen)]
+#[cfg_attr(any(not(Py_LIMITED_API), Py_3_14), pyo3(immutable_type))]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 struct RyCoroutineFuture {
     waker: Arc<CoroutineWaker>,
@@ -594,7 +617,8 @@ enum CoroutineState {
 }
 
 /// Python "coroutine" that drives Rust futures
-#[pyclass(name = "Coroutine", frozen, immutable_type, weakref)]
+#[pyclass(name = "Coroutine", frozen, weakref)]
+#[cfg_attr(any(not(Py_LIMITED_API), Py_3_14), pyo3(immutable_type))]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyCoroutine {
     qualname: &'static str,
@@ -620,9 +644,7 @@ impl RyCoroutine {
         match self.state.try_lock() {
             Ok(state) => Ok(state),
             Err(TryLockError::Poisoned(error)) => Ok(error.into_inner()),
-            Err(TryLockError::WouldBlock) => {
-                Err(PyRuntimeError::new_err("coroutine already executing"))
-            }
+            Err(TryLockError::WouldBlock) => Err(PyRuntimeError::new_err(COROUTINE_EXECUTING_EMSG)),
         }
     }
 
@@ -638,7 +660,9 @@ impl RyCoroutine {
     fn poll_once(&self, py: Python<'_>) -> PyResult<Py<PyAny>> {
         let mut state = self.state()?;
         let (mut future, waker) = match std::mem::replace(&mut *state, CoroutineState::Consumed) {
-            CoroutineState::Consumed => return Err(PyRuntimeError::new_err(REUSED)),
+            CoroutineState::Consumed => {
+                return Err(PyRuntimeError::new_err(COROUTINE_REUSED_EMSG));
+            }
             CoroutineState::Immediate(result) => {
                 return Err(
                     result.map_or_else(|error| error, |value| PyStopIteration::new_err((value,)))
