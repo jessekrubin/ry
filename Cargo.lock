@@ -435,9 +435,9 @@ dependencies = [
 
 [[package]]
 name = "crc32fast"
-version = "1.5.2"
+version = "1.5.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "01a7799fd6b852db0e61728dde9a204c423b44d689dbd432522543614b490e78"
+checksum = "0ba106e844045ddc02c20768ac4b0b7cb45f2cc2ecbd833ac9f5dacb183c2055"
 dependencies = [
  "cfg-if",
 ]
@@ -1452,9 +1452,9 @@ dependencies = [
 
 [[package]]
 name = "lz4rip-core"
-version = "0.6.0"
+version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3a0db28ac02bab14bd1c008a850c271686acbe8055303f5a48bd5162ce98c16a"
+checksum = "687eec55dae7866f9a8cf785555aa81ea02ebed8a13c7079c4a4f59c2de46e92"
 
 [[package]]
 name = "lz4rip-decode"
@@ -1467,9 +1467,9 @@ dependencies = [
 
 [[package]]
 name = "lz4rip-encode"
-version = "0.10.10"
+version = "0.10.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "674ab643d55f149564c810e797d6789f3111fd4acfcf41f3706d2923c54e7a3f"
+checksum = "19d07fb7d01f4fe624c9b63f942671e32088794647bce814d3960b89580554b2"
 dependencies = [
  "lz4rip-core",
 ]
@@ -1774,11 +1774,10 @@ dependencies = [
 [[package]]
 name = "pyo3-async-runtimes"
 version = "0.30.0"
-source = "git+https://github.com/PyO3/pyo3-async-runtimes#ae43efd860cf0f7a9697b99449fa747536e1415d"
+source = "git+https://github.com/PyO3/pyo3-async-runtimes#137f180df167987b27537c4ded024c1c68b65175"
 dependencies = [
  "futures-channel",
  "futures-util",
- "once_cell",
  "pin-project-lite",
  "pyo3",
  "tokio",
@@ -2062,9 +2061,9 @@ checksum = "eec689c0bc40ff2458a5977b6619cb718087084a18e02a131c599b62d05e1a5f"
 
 [[package]]
 name = "rustls-webpki"
-version = "0.103.15"
+version = "0.103.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f3c3cf1d8b1e7d4927e2d154c3fcb02979afb9939629c62cd9048d4f07b60ac2"
+checksum = "4443b1b6d39d7c663139942cc4558262562d2c84123bb6282ef177009ca8b281"
 dependencies = [
  "aws-lc-rs",
  "ring",
@@ -3422,9 +3421,9 @@ dependencies = [
 
 [[package]]
 name = "webpki-root-certs"
-version = "1.0.9"
+version = "1.0.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b96554aa2acc8ccdb7e1c9a58a7a68dd5d13bccc69cd124cb09406db612a1c9b"
+checksum = "58ec80e73fd8baf57bf0d9615554c75348bda990d6d5bbeab964dd068319fecb"
 dependencies = [
  "rustls-pki-types",
 ]
