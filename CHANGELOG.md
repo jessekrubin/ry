@@ -18,6 +18,42 @@
 - `ryo3-tokio`
   - fix `AsyncFile.readline(size: int)` bug causing readline to throw away line
     part(s) beyond the buffer limit
+- `ryo3-tokio-rt`
+  - `RyJoinHandle` aborts the tokio task on drop; so they dont leave their tasks
+    running in the bg
+  - `ry.ryo3.Coroutine`:
+    - this is the core of this entire refactor and is something I have been
+      percolating on since introducing usage of pyo3's `experimental-async`
+      feature
+    - the `ry.ryo3.Coroutine` is based on the pyo3 `PyCoroutine` implementation
+      but builds it out quite a bit
+    - it is specifically designed to be used w/ tokio and the primary api
+      consists of:
+      - `ryo3_tokio_rt::done_coro`: coroutine that is "done" and immediately
+        ready
+      - `ryo3_tokio_rt::pyloop_coro`: coroutine that runs on the python asyncio
+        loop
+      - `ryo3_tokio_rt::tokio_coro`: coroutine that runs on the Tokio runtime
+- `ryo3-reqwest`
+  - small bodies (known length <= 64kb) that are already there get read w/ the
+    head so `bytes()`/`text()`/`json()`/`stream()` dont need another round trip;
+    never waits on a slow body and body errors still raise on read
+  - same small-body prefetch for the `BlockingClient` ~ ~30-40% faster blocking
+    requests for bodies <= 64kb (no body-pump task per response)
+  - async `Client` methods, `fetch`, `Response.bytes/text/json` and
+    `ResponseStream.readall/take/collect` return `ry.Coroutine`
+  - no more gil grabbing on tokio threads: async iterable request bodies get
+    started/cancelled via `LoopHandle`
+  - async iterable request bodies start pumping (in their own eager task on
+    3.12+) as soon as a request is `await`-ed
+  - requests w/ an async iterable body can be made w/o a running loop and/or
+    awaited on a different loop (eg `run_coroutine_threadsafe`) ~ the body runs
+    on whichever loop awaits the request
+  - `http2_max_frame_size` default was upped to 64kb (was previously 16kb as
+    defined by hyper); pass `None` for the old behavior
+  - fewer copies: `text()` decodes straight into the python `str` (was body ->
+    `String` -> `str`) and `ResponseStream.readall()` hands back a lone chunk
+    w/o copying it (which is sick)
 
 ---
 
