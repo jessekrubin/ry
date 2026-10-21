@@ -7,14 +7,10 @@ use std::path::PathBuf;
 use std::sync::Arc;
 
 use bytes::Bytes;
-#[cfg(feature = "experimental-async")]
-use pyo3::coroutine::CancelHandle;
 use pyo3::prelude::*;
 use ryo3_bytes::RyBytes;
 use ryo3_macro_rules::{py_io_error, py_stop_async_iteration_err, py_value_err};
-use ryo3_tokio_rt::future_into_py;
-#[cfg(feature = "experimental-async")]
-use ryo3_tokio_rt::on_tokio_py_cancel;
+use ryo3_tokio_rt::{RyCoroutine, pyloop_coro, tokio_coro};
 use tokio::fs::File;
 use tokio::io::{AsyncRead, AsyncReadExt, AsyncSeek, AsyncSeekExt, BufReader, SeekFrom};
 use tokio::sync::Mutex;
@@ -140,7 +136,37 @@ fn map_open_error(e: &std::io::Error) -> PyErr {
     }
 }
 
-#[cfg(not(feature = "experimental-async"))]
+impl PyAsyncFileReadStream {
+    /// opens the file (if not already open) and resolves to the stream itself
+    fn ensure_open_coro<'py>(
+        slf: Py<Self>,
+        py: Python<'py>,
+        qualname: &'static str,
+    ) -> PyResult<Bound<'py, RyCoroutine>> {
+        tokio_coro(py, qualname, async move {
+            let this = slf.get();
+            let mut guard = this.inner.lock().await;
+            guard.ensure_open().await.map_err(|e| map_open_error(&e))?;
+            drop(guard);
+            Ok(slf)
+        })
+    }
+
+    /// back to `Closed`
+    fn close_coro<'py>(
+        &self,
+        py: Python<'py>,
+        qualname: &'static str,
+    ) -> PyResult<Bound<'py, RyCoroutine>> {
+        let inner = Arc::clone(&self.inner);
+        let options = Arc::clone(&self.options);
+        pyloop_coro(py, qualname, async move {
+            *inner.lock().await = AsyncFileReadStreamWrapper::Closed(options);
+            Ok(())
+        })
+    }
+}
+
 #[pymethods]
 impl PyAsyncFileReadStream {
     #[new]
@@ -173,59 +199,39 @@ impl PyAsyncFileReadStream {
         })
     }
 
-    fn __await__(slf: Py<Self>, py: Python<'_>) -> PyResult<Bound<'_, PyAny>> {
-        let inner = slf.borrow(py).inner.clone();
-
-        let fut = future_into_py(py, async move {
-            let mut guard = inner.lock().await;
-            guard.ensure_open().await.map_err(|e| map_open_error(&e))?;
-            Ok(slf)
-        })?;
-        fut.getattr(pyo3::intern!(py, "__await__"))?.call0()
+    fn __await__(slf: Py<Self>, py: Python<'_>) -> PyResult<Bound<'_, RyCoroutine>> {
+        Self::ensure_open_coro(slf, py, "AsyncFileReadStream.__await__")
     }
 
     fn __eq__(&self, other: &Self) -> bool {
         self.options == other.options
     }
 
-    fn __aenter__(slf: Py<Self>, py: Python<'_>) -> PyResult<Bound<'_, PyAny>> {
-        let inner = slf.borrow(py).inner.clone();
-        future_into_py(py, async move {
-            let mut guard = inner.lock().await;
-            guard.ensure_open().await.map_err(|e| map_open_error(&e))?;
-            Ok(slf)
-        })
+    fn __aenter__(slf: Py<Self>, py: Python<'_>) -> PyResult<Bound<'_, RyCoroutine>> {
+        Self::ensure_open_coro(slf, py, "AsyncFileReadStream.__aenter__")
     }
 
-    #[pyo3(name = "__aexit__")]
     fn __aexit__<'py>(
         &self,
         py: Python<'py>,
         _exc_type: &Bound<'py, PyAny>,
         _exc_value: &Bound<'py, PyAny>,
         _traceback: &Bound<'py, PyAny>,
-    ) -> PyResult<Bound<'py, PyAny>> {
-        let inner = self.inner.clone();
-        let options = self.options.clone();
-        future_into_py(py, async move {
-            let mut guard = inner.lock().await;
-            *guard = AsyncFileReadStreamWrapper::Closed(options);
-            Ok(())
-        })
+    ) -> PyResult<Bound<'py, RyCoroutine>> {
+        self.close_coro(py, "AsyncFileReadStream.__aexit__")
     }
 
     fn __aiter__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {
         slf
     }
 
-    fn __anext__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
+    fn __anext__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, RyCoroutine>> {
         let inner = Arc::clone(&self.inner);
-
-        future_into_py(py, async move {
+        tokio_coro(py, "AsyncFileReadStream.__anext__", async move {
             let mut guard = inner.lock().await;
             guard.ensure_open().await.map_err(|e| map_open_error(&e))?;
             match guard.next_chunk().await {
-                Ok(Some(bytes)) => Ok(Some(RyBytes::from(bytes))),
+                Ok(Some(bytes)) => Ok(RyBytes::from(bytes)),
                 Ok(None) => py_stop_async_iteration_err!("stream exhausted"),
                 Err(e) => Err(e.into()),
             }
@@ -233,26 +239,25 @@ impl PyAsyncFileReadStream {
     }
 
     #[pyo3(signature = (n = 1))]
-    fn take<'py>(&self, py: Python<'py>, n: usize) -> PyResult<Bound<'py, PyAny>> {
-        let inner = self.inner.clone();
-        future_into_py(py, async move {
+    fn take<'py>(&self, py: Python<'py>, n: usize) -> PyResult<Bound<'py, RyCoroutine>> {
+        let inner = Arc::clone(&self.inner);
+        tokio_coro(py, "AsyncFileReadStream.take", async move {
             let mut guard = inner.lock().await;
             guard.ensure_open().await.map_err(|e| map_open_error(&e))?;
             let mut result = Vec::new();
             for _ in 0..n {
-                match guard.next_chunk().await {
-                    Ok(Some(b)) => result.push(RyBytes::from(b)),
-                    Ok(None) => break,
-                    Err(e) => return Err(e.into()),
+                match guard.next_chunk().await? {
+                    Some(b) => result.push(RyBytes::from(b)),
+                    None => break,
                 }
             }
             Ok(result)
         })
     }
 
-    fn collect<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
-        let inner = self.inner.clone();
-        future_into_py(py, async move {
+    fn collect<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, RyCoroutine>> {
+        let inner = Arc::clone(&self.inner);
+        tokio_coro(py, "AsyncFileReadStream.collect", async move {
             let mut guard = inner.lock().await;
             guard.ensure_open().await.map_err(|e| map_open_error(&e))?;
             let mut result = Vec::new();
@@ -263,168 +268,8 @@ impl PyAsyncFileReadStream {
         })
     }
 
-    fn close<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
-        let inner = self.inner.clone();
-        let options = self.options.clone();
-        future_into_py(py, async move {
-            let mut guard = inner.lock().await;
-            *guard = AsyncFileReadStreamWrapper::Closed(options);
-            Ok(())
-        })
-    }
-
-    fn __repr__(&self) -> String {
-        format!("{self}")
-    }
-}
-
-#[cfg(feature = "experimental-async")]
-#[pymethods]
-impl PyAsyncFileReadStream {
-    #[new]
-    #[pyo3(signature = (path, *, read_size = 65536, offset = 0, buffered = true, strict = true))]
-    pub fn py_new(
-        path: PathBuf,
-        read_size: usize,
-        offset: u64,
-        buffered: bool,
-        strict: bool,
-    ) -> PyResult<Self> {
-        if read_size == 0 {
-            return py_value_err!("read_size must be greater than 0");
-        }
-        let options = PyFileReadStreamOptions {
-            strict,
-            path,
-            read_size,
-            offset,
-            buffered,
-        };
-        let arc_options = Arc::new(options);
-
-        let inner = Arc::new(Mutex::new(AsyncFileReadStreamWrapper::Closed(
-            arc_options.clone(),
-        )));
-        Ok(Self {
-            options: arc_options,
-            inner,
-        })
-    }
-
-    fn __await__(slf: Py<Self>, py: Python<'_>) -> PyResult<Bound<'_, PyAny>> {
-        let inner = slf.borrow(py).inner.clone();
-
-        let fut = future_into_py(py, async move {
-            let mut guard = inner.lock().await;
-            guard.ensure_open().await.map_err(|e| map_open_error(&e))?;
-            Ok(slf)
-        })?;
-        fut.getattr(pyo3::intern!(py, "__await__"))?.call0()
-    }
-
-    fn __eq__(&self, other: &Self) -> bool {
-        self.options == other.options
-    }
-
-    fn __aenter__(slf: Py<Self>, py: Python<'_>) -> PyResult<Bound<'_, PyAny>> {
-        let inner = slf.borrow(py).inner.clone();
-        future_into_py(py, async move {
-            let mut guard = inner.lock().await;
-            guard.ensure_open().await.map_err(|e| map_open_error(&e))?;
-            Ok(slf)
-        })
-    }
-
-    #[pyo3(name = "__aexit__")]
-    fn __aexit__<'py>(
-        &self,
-        py: Python<'py>,
-        _exc_type: &Bound<'py, PyAny>,
-        _exc_value: &Bound<'py, PyAny>,
-        _traceback: &Bound<'py, PyAny>,
-    ) -> PyResult<Bound<'py, PyAny>> {
-        let inner = self.inner.clone();
-        let options = self.options.clone();
-        future_into_py(py, async move {
-            let mut guard = inner.lock().await;
-            *guard = AsyncFileReadStreamWrapper::Closed(options);
-            Ok(())
-        })
-    }
-
-    fn __aiter__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {
-        slf
-    }
-
-    fn __anext__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
-        let inner = Arc::clone(&self.inner);
-
-        future_into_py(py, async move {
-            let mut guard = inner.lock().await;
-            guard.ensure_open().await.map_err(|e| map_open_error(&e))?;
-            match guard.next_chunk().await {
-                Ok(Some(bytes)) => Ok(Some(RyBytes::from(bytes))),
-                Ok(None) => py_stop_async_iteration_err!("stream exhausted"),
-                Err(e) => Err(e.into()),
-            }
-        })
-    }
-
-    #[pyo3(signature = (n = 1))]
-    async fn take(
-        &self,
-        n: usize,
-        #[pyo3(cancel_handle)] cancel: CancelHandle,
-    ) -> PyResult<Vec<RyBytes>> {
-        let inner = self.inner.clone();
-        on_tokio_py_cancel(
-            async move {
-                let mut guard = inner.lock().await;
-                guard.ensure_open().await.map_err(|e| map_open_error(&e))?;
-                let mut result = Vec::new();
-                for _ in 0..n {
-                    match guard.next_chunk().await {
-                        Ok(Some(b)) => result.push(RyBytes::from(b)),
-                        Ok(None) => break,
-                        Err(e) => return Err(e.into()),
-                    }
-                }
-                Ok(result)
-            },
-            cancel,
-        )
-        .await
-    }
-
-    async fn collect(&self, #[pyo3(cancel_handle)] cancel: CancelHandle) -> PyResult<Vec<RyBytes>> {
-        let inner = self.inner.clone();
-        on_tokio_py_cancel(
-            async move {
-                let mut guard = inner.lock().await;
-                guard.ensure_open().await.map_err(|e| map_open_error(&e))?;
-                let mut result = Vec::new();
-                while let Ok(Some(b)) = guard.next_chunk().await {
-                    result.push(RyBytes::from(b));
-                }
-                Ok::<_, PyErr>(result)
-            },
-            cancel,
-        )
-        .await
-    }
-
-    async fn close(&self, #[pyo3(cancel_handle)] cancel: CancelHandle) -> PyResult<()> {
-        let inner = self.inner.clone();
-        let options = self.options.clone();
-        on_tokio_py_cancel(
-            async move {
-                let mut guard = inner.lock().await;
-                *guard = AsyncFileReadStreamWrapper::Closed(options);
-                Ok::<_, PyErr>(())
-            },
-            cancel,
-        )
-        .await
+    fn close<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, RyCoroutine>> {
+        self.close_coro(py, "AsyncFileReadStream.close")
     }
 
     fn __repr__(&self) -> String {

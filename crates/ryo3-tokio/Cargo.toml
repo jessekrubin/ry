@@ -14,7 +14,7 @@ description = "python + tokio (https://docs.rs/tokio/latest/tokio/)"
 
 [features]
 default = []
-ry = ["fs", "time"]
+ry = ["fs", "time", "ryo3-tokio-rt?/ry"]
 fs = [
   "dep:bytes",
   "dep:ryo3-bytes",
