@@ -547,3 +547,151 @@ async def test_async_file_flushes_on_drop(tmp_path: Path) -> None:
     # check that got flusshed
     contents = ry.read_bytes(temp_file_path)
     assert contents == b"some data"
+
+
+class TestAsyncFileCoroutines:
+    """`ry.Coroutine` shape + cancel-safety (cancel == the rust future is dropped)"""
+
+    async def test_qualnames(self, tmp_path: Path) -> None:
+        p = tmp_path / "f.bin"
+        p.write_bytes(b"0123456789")
+        f = await aopen(p, "rb+")
+        coros = {
+            "AsyncFile.__await__": f.__await__(),  # noqa: PLC2801
+            "AsyncFile.__aenter__": f.__aenter__(),  # noqa: PLC2801
+            "AsyncFile.__aexit__": f.__aexit__(None, None, None),  # noqa: PLC2801
+            "AsyncFile.__anext__": anext(f),
+            "AsyncFile.close": f.close(),
+            "AsyncFile.flush": f.flush(),
+            "AsyncFile.isatty": f.isatty(),
+            "AsyncFile.open": f.open(),
+            "AsyncFile.peek": f.peek(),
+            "AsyncFile.read": f.read(),
+            "AsyncFile.readall": f.readall(),
+            "AsyncFile.readline": f.readline(),
+            "AsyncFile.readlines": f.readlines(),
+            "AsyncFile.seek": f.seek(0),
+            "AsyncFile.tell": f.tell(),
+            "AsyncFile.truncate": f.truncate(),
+            "AsyncFile.write": f.write(b""),
+        }
+        for qualname, coro in coros.items():
+            assert asyncio.iscoroutine(coro)
+            assert coro.__qualname__ == qualname
+            coro.close()
+        await f.close()
+
+    async def test_isatty_raises_on_await(self, tmp_path: Path) -> None:
+        f = AsyncFile(tmp_path / "f.bin", "wb")
+        coro = f.isatty()  # no raise on call
+        with pytest.raises(NotImplementedError):
+            await coro
+
+    async def test_await_again_does_not_reopen(self, tmp_path: Path) -> None:
+        p = tmp_path / "f.bin"
+        f = await aopen(p, "wb")
+        await f.write(b"keep me")
+        assert await f is f  # already open ~ must not truncate/drop the buffer
+        await f.close()
+        assert p.read_bytes() == b"keep me"
+
+    async def test_readlines_raises_io_errors(self, tmp_path: Path) -> None:
+        async with aopen(tmp_path / "f.bin", "wb") as f:
+            with pytest.raises(OSError):  # noqa: PT011
+                await f.readlines()
+
+    async def test_cancelled_seek_does_not_wedge(self, tmp_path: Path) -> None:
+        p = tmp_path / "f.bin"
+        p.write_bytes(b"x" * 4096)
+        async with aopen(p, "rb") as f:
+            for i in range(300):
+                task = asyncio.create_task(f.seek(i))
+                await asyncio.sleep(0)
+                task.cancel()
+                await asyncio.gather(task, return_exceptions=True)
+                assert await f.seek(7) == 7
+                assert await f.tell() == 7
+
+    async def test_cancelled_peek_keeps_position(self, tmp_path: Path) -> None:
+        p = tmp_path / "f.bin"
+        p.write_bytes(b"0123456789" * 1000)
+        async with aopen(p, "rb") as f:
+            for _ in range(300):
+                await f.seek(0)
+                task = asyncio.create_task(f.peek(4))
+                await asyncio.sleep(0)
+                task.cancel()
+                await asyncio.gather(task, return_exceptions=True)
+                assert await f.tell() == 0
+                assert await f.read(1) == b"0"
+
+    async def test_cancelled_close_keeps_data(self, tmp_path: Path) -> None:
+        data = b"z" * (1024 * 1024)
+        for i in range(50):
+            p = tmp_path / f"f{i}.bin"
+            f = await aopen(p, "wb")
+            await f.write(data)
+            task = asyncio.create_task(f.close())
+            await asyncio.sleep(0)
+            task.cancel()
+            await asyncio.gather(task, return_exceptions=True)
+            await f.close()  # no-op if the first one got there
+            assert f.closed
+            assert p.read_bytes() == data
+
+    async def test_dropped_mid_write_still_flushes(self, tmp_path: Path) -> None:
+        """last ref can go away on a tokio thread (aborted op) ~ no block_on panic"""
+        import gc  # noqa: PLC0415
+
+        for i in range(50):
+            p = tmp_path / f"f{i}.bin"
+            f = await aopen(p, "wb")
+            await f.write(b"head")
+            task = asyncio.create_task(f.write(b"t" * (1024 * 1024)))
+            await asyncio.sleep(0)
+            task.cancel()
+            del f
+            await asyncio.gather(task, return_exceptions=True)
+            del task
+            gc.collect()
+            for _ in range(100):
+                if p.read_bytes().startswith(b"head"):
+                    break
+                await asyncio.sleep(0.01)
+            assert p.read_bytes().startswith(b"head")
+
+
+class TestAsyncFileErrors:
+    """errors match the builtin `open()`/`BufferedReader` ones"""
+
+    @pytest.mark.parametrize("mode", ["rb", "wb"])
+    async def test_open_missing(self, tmp_path: Path, mode: str) -> None:
+        p = tmp_path / "nope" / "f.bin"
+        with pytest.raises(FileNotFoundError) as ry_exc:
+            await aopen(p, mode)
+        with pytest.raises(FileNotFoundError) as py_exc:
+            open(p, mode)  # noqa: SIM115, PTH123
+        assert ry_exc.value.errno == py_exc.value.errno
+        assert ry_exc.value.filename == str(p)
+        assert str(ry_exc.value) == str(py_exc.value).replace(repr(p), repr(str(p)))
+
+    async def test_open_exists_exclusive(self, tmp_path: Path) -> None:
+        p = tmp_path / "f.bin"
+        p.write_bytes(b"")
+        with pytest.raises(FileExistsError) as exc:
+            await aopen(p, "xb")
+        assert exc.value.filename == str(p)
+
+    async def test_seek_invalid_whence(self, tmp_path: Path) -> None:
+        p = tmp_path / "f.bin"
+        p.write_bytes(b"0123")
+        async with aopen(p, "rb") as f:
+            with pytest.raises(ValueError, match=r"invalid whence \(5"):
+                await f.seek(0, 5)
+
+    async def test_seek_negative_position(self, tmp_path: Path) -> None:
+        p = tmp_path / "f.bin"
+        p.write_bytes(b"0123")
+        async with aopen(p, "rb") as f:
+            with pytest.raises(ValueError, match="negative seek position -1"):
+                await f.seek(-1)
