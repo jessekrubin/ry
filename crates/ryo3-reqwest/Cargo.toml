@@ -14,7 +14,6 @@ description = "python + reqwest (https://docs.rs/reqwest/latest/reqwest/index.ht
 
 [features]
 default = []
-experimental-async = ["pyo3/experimental-async", "ryo3-tokio-rt/experimental-async"]
 ring = ["rustls/ring"]
 aws-lc-rs = ["rustls/aws-lc-rs"]
 ry = ["ryo3-tokio-rt/ry"]
@@ -44,7 +43,7 @@ ryo3-std = { workspace = true, features = ["time"] }
 ryo3-tokio-rt.workspace = true
 ryo3-url.workspace = true
 serde_urlencoded.workspace = true
-tokio.workspace = true
+tokio = { workspace = true, features = ["macros"] }
 tracing.workspace = true
 
 [build-dependencies]

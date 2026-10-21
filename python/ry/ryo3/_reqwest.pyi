@@ -98,7 +98,7 @@ class ClientConfig(t.TypedDict):
 
 @t.final
 class Client:
-    """experimental client using the `pyo3/experimental-async` feature"""
+    """async http client"""
     def __new__(
         cls,
         *,

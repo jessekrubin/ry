@@ -135,9 +135,6 @@ ryo3-zstd = { path = "./crates/ryo3-zstd" }
 
 # pyo3 et al
 pyo3 = { version = "0.30.1", features = ["macros", "serde"] }
-pyo3-async-runtimes = { git = "https://github.com/PyO3/pyo3-async-runtimes ", default-features = false, features = [
-  "tokio-runtime",
-] }
 pyo3-build-config = { version = "0.30.1", default-features = false, features = [
   "resolve-config",
 ] }
@@ -276,10 +273,8 @@ name = "ry"
 crate-type = ["cdylib", "rlib"]
 
 [features]
-# default = ["aws-lc-rs"]
-default = ["aws-lc-rs", "experimental-async"]
+default = ["aws-lc-rs"]
 mimalloc = ["dep:mimalloc"]
-experimental-async = ["pyo3/experimental-async", "ryo3/experimental-async"]
 ring = ["ryo3/ring"]
 aws-lc-rs = ["ryo3/aws-lc-rs"]
 # tracing  = ["dep:tracing", "dep:tracing-log", "dep:tracing-subscriber"]

@@ -45,8 +45,8 @@ def _build_fn_args(fn: t.Callable[..., t.Any], tmp_path: Path) -> tuple[t.Any, .
 def test_is_coroutine(fn: t.Any, tmp_path: Path) -> None:
     coro = fn(*_build_fn_args(fn, tmp_path))
     assert type(coro).__name__ == "Coroutine"
-    assert asyncio.iscoroutine(coro)
     assert coro.__qualname__ == fn.__name__
+    assert asyncio.iscoroutine(coro)
     coro.close()
 
 

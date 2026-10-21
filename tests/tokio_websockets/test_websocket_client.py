@@ -110,7 +110,7 @@ async def test_close_never_opened(websocket_server: WsTestServer) -> None:
     ws = ry.websocket(websocket_server.url("/echo"))
     assert ws.ready_state == 0
     await ws.close()
-    assert ws.ready_state == 3
+    assert ws.ready_state == 3  # type: ignore[comparison-overlap]
     assert ws.closed
     assert websocket_server.requests == []  # never connected bummer
 
@@ -269,8 +269,8 @@ class TestWebSocketCoroutines:
             "WebSocket.pong": ws.pong(),
         }
         for qualname, coro in coros.items():
-            assert asyncio.iscoroutine(coro)
             assert coro.__qualname__ == qualname
+            assert asyncio.iscoroutine(coro)
             coro.close()
         assert ws.ready_state == 0  # never awaited
 
@@ -320,7 +320,7 @@ class TestWebSocketCoroutines:
             assert ws.ready_state == 1
             task = asyncio.create_task(ws.close())
             await asyncio.sleep(0.05)
-            assert ws.ready_state == 2
+            assert ws.ready_state == 2  # type: ignore[comparison-overlap]
             task.cancel()
             with pytest.raises(asyncio.CancelledError):
                 await task

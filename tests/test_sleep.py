@@ -80,9 +80,9 @@ def test_async_sleep_is_coroutine(
 ) -> None:
     coro: t.Any = sleep_fn(0)
     assert type(coro).__name__ == "Coroutine"
-    assert asyncio.iscoroutine(coro)
     assert coro.__qualname__ == name
     assert coro.__name__ == name
+    assert asyncio.iscoroutine(coro)
     coro.close()
 
 

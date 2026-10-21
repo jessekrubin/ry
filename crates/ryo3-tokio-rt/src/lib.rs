@@ -3,10 +3,10 @@ mod coroutine;
 
 use std::future::Future;
 use std::pin::Pin;
+use std::sync::OnceLock;
 use std::task::{Context, Poll, ready};
 
 use pyo3::exceptions::PyRuntimeError;
-pub use pyo3_async_runtimes::tokio::future_into_py;
 use tokio::runtime::Runtime;
 
 pub use crate::coroutine::{
@@ -69,10 +69,23 @@ impl<T> Future for RyJoinHandle<T> {
     }
 }
 
+/// the shared multi-thread runtime (all drivers on), built on first use
+///
+/// adapted from `pyo3-async-runtimes`
+///
+/// # Panics
+///
+/// if the runtime can't be built (eg the os won't give us threads)
 #[inline]
 #[must_use]
 pub fn get_tokio_runtime<'r>() -> &'r Runtime {
-    pyo3_async_runtimes::tokio::get_runtime()
+    static TOKIO_RUNTIME: OnceLock<Runtime> = OnceLock::new();
+    TOKIO_RUNTIME.get_or_init(|| {
+        tokio::runtime::Builder::new_multi_thread()
+            .enable_all()
+            .build()
+            .expect("failed to build the tokio runtime")
+    })
 }
 
 #[inline]
@@ -105,51 +118,6 @@ where
     T: Send + 'static,
 {
     get_ry_tokio_runtime().py_spawn(fut).await?
-}
-/// Execute future w/ tokio rt and listen for cancellation via the provided
-/// `pyo3::coroutine::CancelHandle`.
-///
-/// This is the orig version that AFAICT when benchmarking a ton of cancels
-/// is slower than spanwning a task, selecting the cancel/task and then
-/// finally, manually nuking that taks...
-///
-/// ```rust,ignore
-/// #[cfg(feature = "experimental-async")]
-/// #[inline]
-/// pub async fn on_tokio_py_cancel<F, T>(
-///     fut: F,
-///     mut cancel: ::pyo3::coroutine::CancelHandle,
-/// ) -> pyo3::PyResult<T>
-/// where
-///     F: Future<Output = pyo3::PyResult<T>> + Send + 'static,
-///     T: Send + 'static,
-/// {
-///     use pyo3::exceptions::asyncio::CancelledError;
-///     tokio::select! {
-///         res = on_tokio_py(fut) => res,
-///         _ = cancel.cancelled() => Err(CancelledError::new_err("Operation was cancelled")),
-///     }
-/// }
-/// ```
-#[cfg(feature = "experimental-async")]
-#[inline]
-pub async fn on_tokio_py_cancel<F, T>(
-    fut: F,
-    mut cancel: ::pyo3::coroutine::CancelHandle,
-) -> pyo3::PyResult<T>
-where
-    F: Future<Output = pyo3::PyResult<T>> + Send + 'static,
-    T: Send + 'static,
-{
-    use pyo3::exceptions::asyncio::CancelledError;
-    let mut task = get_ry_tokio_runtime().py_spawn(fut);
-    tokio::select! {
-        result = &mut task => result?,
-        _ = cancel.cancelled() => {
-            task.0.abort();
-            Err(CancelledError::new_err("Operation was cancelled"))
-        }
-    }
 }
 
 // ==========================================================================

@@ -25,7 +25,6 @@ fs = [
   "tokio/fs",
 ]
 time = ["tokio/time", "dep:ryo3-tokio-rt"]
-experimental-async = ["pyo3/experimental-async", "ryo3-tokio-rt/experimental-async"]
 
 [dependencies]
 bytes = { workspace = true, optional = true }

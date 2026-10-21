@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import os
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import pytest
 
@@ -73,7 +73,7 @@ async def test_cancelled_read_dir_collect_releases_lock(tmp_path: Path) -> None:
 async def test_read_dir_methods_are_coroutines() -> None:
     read_dir = await ry.read_dir_async(PWD)
     entry = await anext(read_dir)
-    coros = {
+    coros: dict[str, Any] = {
         "AsyncReadDir.__anext__": anext(read_dir),
         "AsyncReadDir.collect": read_dir.collect(),
         "AsyncReadDir.take": read_dir.take(),
@@ -81,8 +81,8 @@ async def test_read_dir_methods_are_coroutines() -> None:
         "AsyncDirEntry.file_type": entry.file_type(),
     }
     for qualname, coro in coros.items():
-        assert asyncio.iscoroutine(coro)
         assert coro.__qualname__ == qualname
+        assert asyncio.iscoroutine(coro)
         coro.close()
 
 

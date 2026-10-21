@@ -289,8 +289,8 @@ class TestAsyncFileReadStreamCoroutines:
             "AsyncFileReadStream.close": stream.close(),
         }
         for qualname, coro in coros.items():
-            assert asyncio.iscoroutine(coro)
             assert coro.__qualname__ == qualname
+            assert asyncio.iscoroutine(coro)
             coro.close()
 
     async def test_await_returns_self(self, path: Path) -> None:

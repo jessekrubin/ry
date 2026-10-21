@@ -1772,18 +1772,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "pyo3-async-runtimes"
-version = "0.30.0"
-source = "git+https://github.com/PyO3/pyo3-async-runtimes#137f180df167987b27537c4ded024c1c68b65175"
-dependencies = [
- "futures-channel",
- "futures-util",
- "pin-project-lite",
- "pyo3",
- "tokio",
-]
-
-[[package]]
 name = "pyo3-build-config"
 version = "0.30.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2537,7 +2525,6 @@ name = "ryo3-tokio-rt"
 version = "0.0.104"
 dependencies = [
  "pyo3",
- "pyo3-async-runtimes",
  "pyo3-build-config",
  "tokio",
 ]

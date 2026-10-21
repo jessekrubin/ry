@@ -577,8 +577,8 @@ class TestAsyncFileCoroutines:
             "AsyncFile.write": f.write(b""),
         }
         for qualname, coro in coros.items():
-            assert asyncio.iscoroutine(coro)
             assert coro.__qualname__ == qualname
+            assert asyncio.iscoroutine(coro)
             coro.close()
         await f.close()
 
