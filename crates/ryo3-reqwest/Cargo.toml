@@ -17,7 +17,7 @@ default = []
 experimental-async = ["pyo3/experimental-async", "ryo3-tokio-rt/experimental-async"]
 ring = ["rustls/ring"]
 aws-lc-rs = ["rustls/aws-lc-rs"]
-ry = []
+ry = ["ryo3-tokio-rt/ry"]
 
 [dependencies]
 bytes.workspace = true
@@ -29,7 +29,6 @@ http-body-util.workspace = true
 jiter.workspace = true
 mime.workspace = true
 pyo3 = { workspace = true, features = [] }
-pyo3-async-runtimes.workspace = true
 reqwest = { workspace = true, default-features = false, features = ["brotli", "charset", "cookies", "deflate", "form", "gzip", "hickory-dns", "http2", "json", "multipart", "query", "rustls-no-provider", "socks", "stream", "zstd"] }
 rustls = { workspace = true, features = ["logging", "prefer-post-quantum", "std", "tls12"] }
 rustls-native-certs.workspace = true

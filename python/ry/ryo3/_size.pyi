@@ -32,7 +32,7 @@ def fmt_size(
     style : {"default", "abbreviated", "abbreviated-lowercase", "full", "full-lowercase"}, default "default"
         Unit style.
     scale : int or None, default None
-        Number of decimal places (0-255); `None` uses the per-unit default.
+        Number of decimal places 0..=255; `None` uses the per-unit default.
 
     Returns
     -------
@@ -44,7 +44,7 @@ def fmt_size(
     ValueError
         If `base` or `style` is invalid.
     OverflowError
-        If `scale` is not in 0-255.
+        If `scale` is not in 0..=255.
 
     Examples
     --------
@@ -99,14 +99,14 @@ class SizeFormatter:
         style : {"default", "abbreviated", "abbreviated-lowercase", "full", "full-lowercase"}, default "default"
             Unit style.
         scale : int or None, default None
-            Number of decimal places (0-255); `None` uses the per-unit default.
+            Number of decimal places 0..=255; `None` uses the per-unit default.
 
         Raises
         ------
         ValueError
             If `base` or `style` is invalid.
         OverflowError
-            If `scale` is not in 0-255.
+            If `scale` is not in 0..=255.
 
         """
 
@@ -138,7 +138,7 @@ class SizeFormatter:
         Parameters
         ----------
         scale : int or None
-            Number of decimal places (0-255); `None` uses the per-unit default.
+            Number of decimal places 0..=255; `None` uses the per-unit default.
 
         Returns
         -------
@@ -148,13 +148,13 @@ class SizeFormatter:
         Raises
         ------
         OverflowError
-            If `scale` is not in 0-255.
+            If `scale` is not in 0..=255.
 
         """
 
 @t.final
 class Size(FromStr, _Parse):
-    """Bytes-size object."""
+    """Bytes-size object"""
 
     def __new__(cls, size: int) -> t.Self: ...
     @property
@@ -175,7 +175,7 @@ class Size(FromStr, _Parse):
         style : {"default", "abbreviated", "abbreviated-lowercase", "full", "full-lowercase"}, default "default"
             Unit style.
         scale : int or None, default None
-            Number of decimal places (0-255); `None` uses the per-unit default.
+            Number of decimal places 0..=255; `None` uses the per-unit default.
 
         Returns
         -------
@@ -187,7 +187,7 @@ class Size(FromStr, _Parse):
         ValueError
             If `base` or `style` is invalid.
         OverflowError
-            If `scale` is not in 0-255.
+            If `scale` is not in 0..=255.
 
         Examples
         --------

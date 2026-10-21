@@ -525,6 +525,65 @@ def test_client_post_json_and_form_errors(server: ReqtestServer) -> None:
         _response = client.post(url, json={"body": "BABOOM"}, form={"a": 1})
 
 
+class TestBlockingSyncBodyPull:
+    """small sync bodies get pulled on the calling thread (blocking client)"""
+
+    @pytest.mark.parametrize("n_chunks", [0, 1, 4, 64])
+    def test_generator_body(self, server: ReqtestServer, n_chunks: int) -> None:
+        chunk = b"x" * 1024
+
+        def _body() -> t.Iterator[bytes]:
+            for _ in range(n_chunks):
+                yield chunk
+
+        client = ry.BlockingClient()
+        response = client.post(str(server.url) + "echo", body=_body())
+        assert response.status_code == 200
+        assert len(response.json()["body"]) == n_chunks * len(chunk)
+
+    def test_big_generator_body(self, server: ReqtestServer) -> None:
+        # way over the pull limit ~ pulled head + pumped rest
+        chunk = b"x" * (64 * 1024)
+
+        def _body() -> t.Iterator[bytes]:
+            for _ in range(32):
+                yield chunk
+
+        client = ry.BlockingClient()
+        response = client.post(str(server.url) + "echo", body=_body())
+        assert len(response.json()["body"]) == 32 * len(chunk)
+
+    @pytest.mark.parametrize("n_chunks", [0, 1, 32])
+    def test_generator_body_raises(self, server: ReqtestServer, n_chunks: int) -> None:
+        chunk = b"x" * (64 * 1024)
+
+        def _body() -> t.Iterator[bytes]:
+            for _ in range(n_chunks):
+                yield chunk
+            msg = "BABOOM"
+            raise RuntimeError(msg)
+
+        client = ry.BlockingClient()
+        with pytest.raises(Exception, match="BABOOM"):
+            client.post(str(server.url) + "echo", body=_body())
+
+    def test_bad_chunk_type(self, server: ReqtestServer) -> None:
+        client = ry.BlockingClient()
+        with pytest.raises(Exception):  # noqa: B017, PT011
+            client.post(str(server.url) + "echo", body=iter([b"ok", 12345]))  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
+
+
+class TestPrefetch:
+    """small known-length bodies come back w/ the head"""
+
+    def test_blocking_small_body(self, server: ReqtestServer) -> None:
+        client = ry.BlockingClient()
+        url = str(server.url) + "howdy"
+        expected = bytes(client.get(url).bytes())
+        assert b"".join(bytes(c) for c in client.get(url).stream()) == expected
+        assert client.get(url).text() == expected.decode()
+
+
 class TestTimeout:
     def test_client_timeout_get_both_same_time(self, server: ReqtestServer) -> None:
         url = server.url

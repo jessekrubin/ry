@@ -38,10 +38,9 @@ use pyo3::exceptions::{PyStopAsyncIteration, PyStopIteration};
 use pyo3::prelude::*;
 use reqwest::StatusCode;
 use ryo3_bytes::RyBytes;
-use ryo3_macro_rules::py_runtime_error;
-#[cfg(feature = "experimental-async")]
-use ryo3_tokio_rt::on_tokio_py;
-use ryo3_tokio_rt::{future_into_py, get_tokio_runtime};
+use ryo3_tokio_rt::{
+    RyCoroutine, done_coro, failed_coro, get_tokio_runtime, pyloop_coro, tokio_coro,
+};
 use tokio::sync::mpsc::error::TryRecvError;
 use tokio::sync::{Mutex, Notify, mpsc};
 use tokio::task::AbortHandle;
@@ -95,6 +94,8 @@ enum ResponseRx {
         min_read_size: usize,
     },
     Running(RunningPump),
+    /// small body that was read along w/ the head ~ no pump needed
+    Buffered(Option<Bytes>),
     Closed,
 }
 
@@ -133,6 +134,7 @@ impl ResponseRx {
                 item = pump.rx.recv() => item,
                 () = closed => None,
             },
+            Self::Buffered(bytes) => bytes.take().map(Ok),
             _ => None,
         }
     }
@@ -145,6 +147,7 @@ impl ResponseRx {
         self.start();
         match self {
             Self::Running(pump) => pump.rx.try_recv(),
+            Self::Buffered(bytes) => bytes.take().map(Ok).ok_or(TryRecvError::Disconnected),
             _ => Err(TryRecvError::Disconnected),
         }
     }
@@ -167,6 +170,18 @@ impl ResponseStreamInner {
             body,
             min_read_size,
         };
+        Self {
+            status,
+            shared: Arc::new(ResponseShared {
+                rx: Mutex::new(rx),
+                close_sig: CloseSignal::default(),
+            }),
+        }
+    }
+
+    fn from_bytes(status: StatusCode, bytes: Bytes) -> Self {
+        // empty body == nothing to yield (same as the pump)
+        let rx = ResponseRx::Buffered((!bytes.is_empty()).then_some(bytes));
         Self {
             status,
             shared: Arc::new(ResponseShared {
@@ -240,6 +255,16 @@ async fn pump_response_body(
     tx: mpsc::Sender<ResponseItem>,
 ) {
     let mut stream = http_body_util::BodyDataStream::new(body);
+    // no collection/copying w/ 0
+    if min_read_size == 0 {
+        while let Some(item) = stream.next().await {
+            let is_err = item.is_err();
+            if tx.send(item).await.is_err() || is_err {
+                return;
+            }
+        }
+        return;
+    }
     let mut chunks = Vec::with_capacity(8);
     let mut total_size = 0;
     while let Some(item) = stream.next().await {
@@ -280,94 +305,44 @@ fn join_bytes_chunks(chunks: &mut Vec<Bytes>, total_size: usize) -> Bytes {
     bytes_mut.freeze()
 }
 
-/// already-done awaitable
-///
-/// skips making an asyncio future when the value is ready (a chunk the pump
-/// already has, `self` from `__aenter__`, ...)
-#[pyclass(name = "Ready", immutable_type)]
-struct RyReady(Option<PyResult<Py<PyAny>>>);
-
-impl RyReady {
-    #[inline]
-    fn new_bound(py: Python<'_>, res: PyResult<Py<PyAny>>) -> PyResult<Bound<'_, PyAny>> {
-        Ok(Bound::new(py, Self(Some(res)))?.into_any())
-    }
-}
-
-#[pymethods]
-impl RyReady {
-    fn __await__(slf: Py<Self>) -> Py<Self> {
-        slf
-    }
-
-    fn __iter__(slf: Py<Self>) -> Py<Self> {
-        slf
-    }
-
-    fn __next__(&mut self) -> PyResult<()> {
-        match self.0.take() {
-            // an awaitable returns its value via StopIteration
-            Some(Ok(value)) => Err(PyStopIteration::new_err((value,))),
-            Some(Err(e)) => Err(e),
-            None => Err(py_runtime_error!("cannot reuse already awaited coroutine")),
-        }
-    }
-}
-
 #[pyclass(name = "ResponseStream", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
-pub struct RyResponseStream {
-    inner: ResponseStreamInner,
-}
+pub struct RyResponseStream(ResponseStreamInner);
 
 impl RyResponseStream {
     pub(crate) fn from_body(status: StatusCode, body: reqwest::Body, min_read_size: usize) -> Self {
         let inner = ResponseStreamInner::from_body(status, body, min_read_size);
-        Self { inner }
+        Self(inner)
     }
 
-    fn py_anext<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
-        if let Some(res) = self.inner.try_next() {
-            let res = py_anext_result(res).and_then(|bytes| bytes.into_py_any(py));
-            return RyReady::new_bound(py, res);
-        }
-        let inner = self.inner.clone();
-        future_into_py(py, async move { py_anext_result(inner.next().await) })
-    }
-
-    fn py_aenter(slf: Py<Self>, py: Python<'_>) -> PyResult<Bound<'_, PyAny>> {
-        slf.get().inner.start();
-        RyReady::new_bound(py, Ok(slf.into_any()))
-    }
-
-    fn py_close<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
-        let inner = self.inner.clone();
-        future_into_py(py, async move {
-            inner.close().await;
-            Ok(())
-        })
+    pub(crate) fn from_bytes(status: StatusCode, bytes: Bytes) -> Self {
+        Self(ResponseStreamInner::from_bytes(status, bytes))
     }
 }
 
 impl std::fmt::Display for RyResponseStream {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "ResponseStream<{}>", self.inner.status)
+        write!(f, "ResponseStream<{}>", self.0.status)
     }
 }
 
-#[cfg(feature = "experimental-async")]
 #[pymethods]
 impl RyResponseStream {
-    fn close<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
-        self.py_close(py)
+    fn close<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, RyCoroutine>> {
+        let inner = self.0.clone();
+        pyloop_coro(py, "ResponseStream.close", async move {
+            inner.close().await;
+            Ok(())
+        })
     }
 
     fn __repr__(&self) -> String {
         format!("{self}")
     }
 
-    fn __aenter__(slf: Py<Self>, py: Python<'_>) -> PyResult<Bound<'_, PyAny>> {
-        Self::py_aenter(slf, py)
+    fn __aenter__(slf: Py<Self>, py: Python<'_>) -> PyResult<Bound<'_, RyCoroutine>> {
+        slf.get().0.start();
+        done_coro(py, "ResponseStream.__aenter__", slf)
     }
 
     #[pyo3(name = "__aexit__")]
@@ -377,108 +352,37 @@ impl RyResponseStream {
         _exc_type: &Bound<'py, PyAny>,
         _exc_value: &Bound<'py, PyAny>,
         _traceback: &Bound<'py, PyAny>,
-    ) -> PyResult<Bound<'py, PyAny>> {
-        self.py_close(py)
+    ) -> PyResult<Bound<'py, RyCoroutine>> {
+        self.close(py)
     }
 
     fn __aiter__(this: PyRef<Self>) -> PyRef<Self> {
         this
     }
 
-    fn __anext__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
-        self.py_anext(py)
+    fn __anext__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, RyCoroutine>> {
+        const QUALNAME: &str = "ResponseStream.__anext__";
+        // chunk (or the end) is already here ~ no pause/suspend
+        if let Some(res) = self.0.try_next() {
+            return match py_anext_result(res) {
+                Ok(bytes) => done_coro(py, QUALNAME, bytes),
+                Err(e) => failed_coro(py, QUALNAME, e),
+            };
+        }
+        let inner = self.0.clone();
+        // the pump task does the io; this is just a channel recv
+        pyloop_coro(
+            py,
+            QUALNAME,
+            async move { py_anext_result(inner.next().await) },
+        )
     }
 
-    async fn readall(
-        &self,
-        #[pyo3(cancel_handle)] mut cancel: pyo3::coroutine::CancelHandle,
-    ) -> PyResult<RyBytes> {
-        let inner = self.inner.clone();
-        on_tokio_py(async move {
-            tokio::select! {
-                res = readall_bytes(&inner) => res.map(RyBytes::from).map_err(map_reqwest_err),
-                _ = cancel.cancelled() => Err(pyo3::exceptions::asyncio::CancelledError::new_err("Response stream read was cancelled")),
-            }
-        })
-        .await
-    }
-
-    #[pyo3(signature = (n = 1))]
-    async fn take(
-        &self,
-        n: usize,
-        #[pyo3(cancel_handle)] mut cancel: pyo3::coroutine::CancelHandle,
-    ) -> PyResult<Vec<RyBytes>> {
-        let inner = self.inner.clone();
-        on_tokio_py(async move {
-            tokio::select! {
-                res = take_chunks(&inner, n) => res.map_err(map_reqwest_err),
-                _ = cancel.cancelled() => Err(pyo3::exceptions::asyncio::CancelledError::new_err("Response stream read was cancelled")),
-            }
-        })
-        .await
-    }
-
-    async fn collect(
-        &self,
-        #[pyo3(cancel_handle)] mut cancel: pyo3::coroutine::CancelHandle,
-    ) -> PyResult<Vec<RyBytes>> {
-        let inner = self.inner.clone();
-        on_tokio_py(async move {
-            tokio::select! {
-                res = collect_chunks(&inner) => res.map_err(map_reqwest_err),
-                _ = cancel.cancelled() => Err(pyo3::exceptions::asyncio::CancelledError::new_err("Response stream read was cancelled")),
-            }
-        })
-        .await
-    }
-}
-
-#[cfg(not(feature = "experimental-async"))]
-#[pymethods]
-impl RyResponseStream {
-    fn close<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
-        self.py_close(py)
-    }
-
-    fn __repr__(&self) -> String {
-        format!("{self}")
-    }
-
-    fn __aenter__(slf: Py<Self>, py: Python<'_>) -> PyResult<Bound<'_, PyAny>> {
-        Self::py_aenter(slf, py)
-    }
-
-    #[pyo3(name = "__aexit__")]
-    fn __aexit__<'py>(
-        &self,
-        py: Python<'py>,
-        _exc_type: &Bound<'py, PyAny>,
-        _exc_value: &Bound<'py, PyAny>,
-        _traceback: &Bound<'py, PyAny>,
-    ) -> PyResult<Bound<'py, PyAny>> {
-        self.py_close(py)
-    }
-
-    fn __aiter__(this: PyRef<Self>) -> PyRef<Self> {
-        this
-    }
-
-    fn __anext__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
-        self.py_anext(py)
-    }
-
-    #[pyo3(signature = (n = 1))]
-    fn take<'py>(&self, py: Python<'py>, n: usize) -> PyResult<Bound<'py, PyAny>> {
-        let inner = self.inner.clone();
-        future_into_py(py, async move {
-            take_chunks(&inner, n).await.map_err(map_reqwest_err)
-        })
-    }
-
-    fn readall<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
-        let inner = self.inner.clone();
-        future_into_py(py, async move {
+    // readall/take/collect run on tokio (not the loop) ~ they copy/collect
+    // the whole rest of the body
+    fn readall<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, RyCoroutine>> {
+        let inner = self.0.clone();
+        tokio_coro(py, "ResponseStream.readall", async move {
             readall_bytes(&inner)
                 .await
                 .map(RyBytes::from)
@@ -486,9 +390,17 @@ impl RyResponseStream {
         })
     }
 
-    fn collect<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
-        let inner = self.inner.clone();
-        future_into_py(py, async move {
+    #[pyo3(signature = (n = 1))]
+    fn take<'py>(&self, py: Python<'py>, n: usize) -> PyResult<Bound<'py, RyCoroutine>> {
+        let inner = self.0.clone();
+        tokio_coro(py, "ResponseStream.take", async move {
+            take_chunks(&inner, n).await.map_err(map_reqwest_err)
+        })
+    }
+
+    fn collect<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, RyCoroutine>> {
+        let inner = self.0.clone();
+        tokio_coro(py, "ResponseStream.collect", async move {
             collect_chunks(&inner).await.map_err(map_reqwest_err)
         })
     }
@@ -496,25 +408,26 @@ impl RyResponseStream {
 
 #[pyclass(name = "BlockingResponseStream", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
-pub struct RyBlockingResponseStream {
-    inner: ResponseStreamInner,
-}
+pub struct RyBlockingResponseStream(ResponseStreamInner);
 
 impl RyBlockingResponseStream {
     pub(crate) fn from_body(status: StatusCode, body: reqwest::Body, min_read_size: usize) -> Self {
-        let inner = ResponseStreamInner::from_body(status, body, min_read_size);
-        Self { inner }
+        Self(ResponseStreamInner::from_body(status, body, min_read_size))
+    }
+
+    pub(crate) fn from_bytes(status: StatusCode, bytes: Bytes) -> Self {
+        Self(ResponseStreamInner::from_bytes(status, bytes))
     }
 }
 
 #[pymethods]
 impl RyBlockingResponseStream {
     fn __repr__(&self) -> String {
-        format!("BlockingResponseStream<{}>", self.inner.status)
+        format!("BlockingResponseStream<{}>", self.0.status)
     }
 
     fn __enter__(slf: Py<Self>) -> Py<Self> {
-        slf.get().inner.start();
+        slf.get().0.start();
         slf
     }
 
@@ -530,7 +443,7 @@ impl RyBlockingResponseStream {
     }
 
     fn close(&self, py: Python<'_>) {
-        py.detach(|| get_tokio_runtime().block_on(self.inner.close()));
+        py.detach(|| get_tokio_runtime().block_on(self.0.close()));
     }
 
     fn __iter__(this: PyRef<Self>) -> PyRef<Self> {
@@ -538,9 +451,9 @@ impl RyBlockingResponseStream {
     }
 
     fn __next__(&self, py: Python<'_>) -> PyResult<RyBytes> {
-        let result = match self.inner.try_next() {
+        let result = match self.0.try_next() {
             Some(result) => result,
-            None => py.detach(|| get_tokio_runtime().block_on(self.inner.next())),
+            None => py.detach(|| get_tokio_runtime().block_on(self.0.next())),
         };
         match result {
             Ok(Some(bytes)) => Ok(RyBytes::from(bytes)),
@@ -551,23 +464,21 @@ impl RyBlockingResponseStream {
 
     #[pyo3(signature = (n = 1))]
     fn take(&self, py: Python<'_>, n: usize) -> PyResult<Vec<RyBytes>> {
-        py.detach(|| get_tokio_runtime().block_on(take_chunks(&self.inner, n)))
+        py.detach(|| get_tokio_runtime().block_on(take_chunks(&self.0, n)))
             .map_err(map_reqwest_err)
     }
 
     fn readall<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
-        let bytes = py
-            .detach(|| get_tokio_runtime().block_on(readall_bytes(&self.inner)))
+        py.detach(|| get_tokio_runtime().block_on(readall_bytes(&self.0)))
             .map(RyBytes::from)
-            .map_err(map_reqwest_err)?;
-        bytes.into_bound_py_any(py)
+            .map_err(map_reqwest_err)?
+            .into_bound_py_any(py)
     }
 
     fn collect<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
-        let bytes = py
-            .detach(|| get_tokio_runtime().block_on(collect_chunks(&self.inner)))
-            .map_err(map_reqwest_err)?;
-        bytes.into_bound_py_any(py)
+        py.detach(|| get_tokio_runtime().block_on(collect_chunks(&self.0)))
+            .map_err(map_reqwest_err)?
+            .into_bound_py_any(py)
     }
 }
 
@@ -593,14 +504,14 @@ async fn take_chunks(
 async fn readall_bytes(inner: &ResponseStreamInner) -> Result<Bytes, reqwest::Error> {
     let shared = &*inner.shared;
     let mut rx = shared.rx.lock().await;
-    let mut bytes_mut = BytesMut::new();
+    let mut chunks = Vec::new();
+    let mut total_size = 0;
     while let Some(item) = rx.recv(&shared.close_sig).await {
-        match item {
-            Ok(bytes) => bytes_mut.extend_from_slice(&bytes),
-            Err(e) => return Err(e),
-        }
+        let bytes = item?;
+        total_size += bytes.len();
+        chunks.push(bytes);
     }
-    Ok(bytes_mut.freeze())
+    Ok(join_bytes_chunks(&mut chunks, total_size))
 }
 
 #[inline]

@@ -1,4 +1,6 @@
 //! tokio-runtime + python
+mod coroutine;
+
 use std::future::Future;
 use std::pin::Pin;
 use std::task::{Context, Poll, ready};
@@ -7,9 +9,25 @@ use pyo3::exceptions::PyRuntimeError;
 pub use pyo3_async_runtimes::tokio::future_into_py;
 use tokio::runtime::Runtime;
 
+pub use crate::coroutine::{
+    LoopHandle, RyCoroutine, done_coro, failed_coro, pyloop_coro, tokio_coro,
+};
+
 pub struct RyRuntime<'r>(pub &'r Runtime);
 
+/// join handle that maps join errors to `PyErr` and aborts the task on drop
+///
+/// abort-on-drop is the cancel story ~ if whoever is awaiting this goes away
+/// (cancelled task, dropped coroutine, ...) the tokio task gets nuked instead
+/// of running detached in the background
 pub struct RyJoinHandle<T>(pub tokio::task::JoinHandle<T>);
+
+impl<T> Drop for RyJoinHandle<T> {
+    fn drop(&mut self) {
+        // noop if the task already finished
+        self.0.abort();
+    }
+}
 
 impl RyRuntime<'_> {
     #[inline]
@@ -137,12 +155,7 @@ where
 // ==========================================================================
 // FROM ~ FROM ~ FROM ~ FROM ~ FROM ~ FROM ~ FROM ~ FROM ~ FROM ~ FROM ~ FROM
 // ==========================================================================
-impl<T> From<RyJoinHandle<T>> for tokio::task::JoinHandle<T> {
-    fn from(handle: RyJoinHandle<T>) -> Self {
-        handle.0
-    }
-}
-
+// NOTE: no `RyJoinHandle -> JoinHandle` bc `RyJoinHandle` aborts on drop
 impl<T> From<tokio::task::JoinHandle<T>> for RyJoinHandle<T> {
     fn from(handle: tokio::task::JoinHandle<T>) -> Self {
         Self(handle)

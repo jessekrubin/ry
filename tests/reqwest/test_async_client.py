@@ -3,6 +3,9 @@ from __future__ import annotations
 import asyncio
 import base64
 import contextlib
+import contextvars
+import gc
+import types
 import typing as t
 from typing import TYPE_CHECKING
 
@@ -629,6 +632,211 @@ class TestStream:
         assert isinstance(collected, ry.Bytes)
         assert collected == expected
 
+    @pytest.mark.anyio
+    @pytest.mark.parametrize("method", ["readall", "take", "collect"])
+    async def test_consumers_are_coroutines(
+        self, server: ReqtestServer, method: str
+    ) -> None:
+        response = await ry.Client().get(str(server.url) + "long")
+        coro = getattr(response.bytes_stream(), method)()
+        assert coro.__qualname__ == f"ResponseStream.{method}"
+        assert asyncio.iscoroutine(coro)
+        await coro
+
+    @pytest.mark.anyio
+    async def test_yield_from_await_adapter(self, server: ReqtestServer) -> None:
+        """generator-based adapters do `yield from aw.__await__()` ~ needs `__iter__`"""
+
+        @types.coroutine
+        def _yield_from_awaitable(aw: t.Any) -> t.Generator[t.Any, t.Any, t.Any]:
+            return (yield from aw.__await__())
+
+        response = await _yield_from_awaitable(
+            ry.Client().get(str(server.url) + "echo")
+        )
+        stream = response.bytes_stream()
+        assert await _yield_from_awaitable(stream.__aenter__()) is stream  # noqa: PLC2801
+        assert b'"method": "GET"' in bytes(await _yield_from_awaitable(anext(stream)))
+        with pytest.raises(StopAsyncIteration):
+            await _yield_from_awaitable(anext(stream))
+
+    @pytest.mark.anyio
+    async def test_anext_fast_path(self, server: ReqtestServer) -> None:
+        # small known-length body ~ prefetched, every step is already done
+        response = await ry.Client().get(str(server.url) + "echo")
+        stream = response.bytes_stream()
+        async with stream as entered:
+            assert entered is stream
+            chunk = anext(stream)
+            assert chunk.__qualname__ == "ResponseStream.__anext__"  # type: ignore[attr-defined]
+            assert b'"method": "GET"' in bytes(await chunk)
+            with pytest.raises(StopAsyncIteration):
+                await anext(stream)
+
+    @pytest.mark.anyio
+    async def test_consumed_raises_on_await_not_call(
+        self, server: ReqtestServer
+    ) -> None:
+        response = await ry.Client().get(str(server.url) + "echo")
+        await response.bytes()
+        coro = response.bytes()  # no raise here...
+        with pytest.raises(Exception, match="consumed"):  # noqa: PT011
+            await coro  # ...but here raise!
+
+    @pytest.mark.anyio
+    async def test_readall_cancel_aborts(self) -> None:
+        hung_up = asyncio.Event()
+
+        async def _http_body_hang(
+            reader: asyncio.StreamReader, writer: asyncio.StreamWriter
+        ) -> None:
+            await reader.readuntil(b"\r\n\r\n")
+            writer.write(b"HTTP/1.1 200 OK\r\ntransfer-encoding: chunked\r\n\r\n")
+            writer.write(b"5\r\nhowdy\r\n")
+            await writer.drain()
+            # never finish the body; wait for the client to go away
+            await reader.read()
+            hung_up.set()
+            writer.close()
+
+        async with _raw_server(_http_body_hang) as url:
+            response = await ry.Client().get(url)
+            stream = response.bytes_stream()
+            with pytest.raises(TimeoutError):
+                await asyncio.wait_for(stream.readall(), 0.2)
+            await stream.close()
+            del response, stream
+            gc.collect()
+            await asyncio.wait_for(hung_up.wait(), 5)
+
+    @pytest.mark.anyio
+    async def test_err_after_chunks_still_raises(self) -> None:
+        """chunks that are ready get glued; a trailing err still comes out"""
+
+        async def _ok_then_oshit(
+            reader: asyncio.StreamReader, writer: asyncio.StreamWriter
+        ) -> None:
+            await reader.readuntil(b"\r\n\r\n")
+            # chunked so the client cant prefetch it
+            writer.write(b"HTTP/1.1 200 OK\r\ntransfer-encoding: chunked\r\n\r\n")
+            for _ in range(8):
+                writer.write(b"5\r\nhowdy\r\n")
+            await writer.drain()
+            writer.close()
+
+        async with _raw_server(_ok_then_oshit) as url:
+            response = await ry.Client().get(url)
+            got: list[bytes] = []
+
+            async def _drain() -> None:
+                async for chunk in response.stream():
+                    got.append(bytes(chunk))
+
+            with pytest.raises(ry.ReqwestError):
+                await _drain()
+            assert b"".join(got) == b"howdy" * 8
+
+
+class TestPrefetch:
+    """small known-length bodies come back w/ the head"""
+
+    @pytest.mark.anyio
+    async def test_prefetch_head(self, server: ReqtestServer) -> None:
+        client = ry.Client()
+        url = str(server.url) + "echo"
+        response = await client.get(url)
+        assert (await response.json())["method"] == "GET"
+        response = await client.get(url)
+        assert '"method": "GET"' in await response.text()
+        response = await client.get(url)
+        assert b'"method": "GET"' in bytes(await response.bytes())
+
+    @pytest.mark.anyio
+    async def test_streamed(self, server: ReqtestServer) -> None:
+        client = ry.Client()
+        url = str(server.url) + "long"
+        expected = "".join([f"howdy partner {i}\n" for i in range(100)])
+        response = await client.get(url)
+        assert await response.text() == expected
+        response = await client.get(url)
+        assert bytes(await response.bytes()) == expected.encode()
+
+    @pytest.mark.anyio
+    async def test_streamed_json(self) -> None:
+        async def _chunked_json_body(
+            reader: asyncio.StreamReader, writer: asyncio.StreamWriter
+        ) -> None:
+            await reader.readuntil(b"\r\n\r\n")
+            writer.write(b"HTTP/1.1 200 OK\r\ntransfer-encoding: chunked\r\n\r\n")
+            for part in (b'{"dingo":', b" true}"):
+                writer.write(f"{len(part):x}\r\n".encode() + part + b"\r\n")
+            writer.write(b"0\r\n\r\n")
+            await writer.drain()
+            writer.close()
+
+        async with _raw_server(_chunked_json_body) as url:
+            response = await ry.Client().get(url)
+            assert await response.json() == {"dingo": True}
+
+    @pytest.mark.anyio
+    async def test_broken_json_raises_on_await(self, server: ReqtestServer) -> None:
+        response = await ry.Client().get(str(server.url) + "broken-json")
+        coro = response.json()
+        with pytest.raises(ValueError):  # noqa: PT011
+            await coro
+
+    @pytest.mark.anyio
+    async def test_small_body_methods(self, server: ReqtestServer) -> None:
+        client = ry.Client()
+        url = str(server.url) + "howdy"
+        expected = bytes(await (await client.get(url)).bytes())
+        assert await (await client.get(url)).text() == expected.decode()
+        chunks = [bytes(c) async for c in (await client.get(url)).stream()]
+        assert b"".join(chunks) == expected
+
+    @pytest.mark.anyio
+    async def test_body_used_after_read(self, server: ReqtestServer) -> None:
+        response = await ry.Client().get(str(server.url) + "howdy")
+        assert not response.body_used
+        await response.bytes()
+        assert response.body_used
+
+    @pytest.mark.anyio
+    async def test_empty_body(self) -> None:
+        async def _empty_af_body(
+            reader: asyncio.StreamReader, writer: asyncio.StreamWriter
+        ) -> None:
+            await reader.readuntil(b"\r\n\r\n")
+            writer.write(b"HTTP/1.1 204 No Content\r\ncontent-length: 0\r\n\r\n")
+            await writer.drain()
+            writer.close()
+
+        async with _raw_server(_empty_af_body) as url:
+            response = await ry.Client().get(url)
+            assert response.status == 204
+            assert [c async for c in response.stream()] == []
+
+    @pytest.mark.anyio
+    async def test_slow_body_does_not_hold_the_request(self) -> None:
+        """the head comes back right away even if the (small) body is slow"""
+        send_body = asyncio.Event()
+
+        async def _slow_af_body(
+            reader: asyncio.StreamReader, writer: asyncio.StreamWriter
+        ) -> None:
+            await reader.readuntil(b"\r\n\r\n")
+            writer.write(b"HTTP/1.1 200 OK\r\ncontent-length: 5\r\n\r\n")
+            await writer.drain()
+            await send_body.wait()
+            writer.write(b"howdy")
+            await writer.drain()
+            writer.close()
+
+        async with _raw_server(_slow_af_body) as url:
+            response = await asyncio.wait_for(ry.Client().get(url), 2)
+            send_body.set()
+            assert bytes(await asyncio.wait_for(response.bytes(), 2)) == b"howdy"
+
 
 async def test_client_headers_req(server: ReqtestServer, client: TClient) -> None:
     """Test that headers are sent with the request and work good"""
@@ -762,6 +970,9 @@ async def test_client_post(
     assert response.status_code == 200
     res_json = await response.json()
     assert res_json["body"] == "BABYDOG"
+
+
+_BODY_VAR: contextvars.ContextVar[str] = contextvars.ContextVar("_BODY_VAR")
 
 
 class TestClientStreamingBody:
@@ -927,6 +1138,127 @@ class TestClientStreamingBody:
 
         with pytest.raises(Exception, match="BABOOM"):
             await client.post(str(server.url) + "echo", body=_body())
+
+    @staticmethod
+    async def _echoed(client: ry.Client, url: str, body: t.Any) -> str:
+        response = await client.post(url, body=body)
+        data = await response.json()
+        return t.cast("str", data["body"])
+
+    @pytest.mark.anyio
+    async def test_overflows_channel(self, server: ReqtestServer) -> None:
+        # more chunks than the channel holds w/o ever awaiting
+        async def _body() -> t.AsyncGenerator[bytes]:
+            for i in range(500):
+                yield f"{i},".encode()
+
+        expected = "".join(f"{i}," for i in range(500))
+        url = str(server.url) + "echo"
+        assert await self._echoed(ry.Client(), url, _body()) == expected
+
+    @pytest.mark.anyio
+    async def test_awaits_mid_body(self, server: ReqtestServer) -> None:
+        async def _body() -> t.AsyncGenerator[bytes]:
+            yield b"a"
+            await asyncio.sleep(0.01)
+            yield b"b"
+            await asyncio.sleep(0)
+            yield b"c"
+
+        url = str(server.url) + "echo"
+        assert await self._echoed(ry.Client(), url, _body()) == "abc"
+
+    @pytest.mark.anyio
+    async def test_one_task_and_context_across_suspensions(
+        self, server: ReqtestServer
+    ) -> None:
+        # token set before the first suspension + reset after it ~ needs the
+        # same Context (and the same task) the whole way thru
+        tasks: list[asyncio.Task[t.Any] | None] = []
+
+        async def _body() -> t.AsyncGenerator[bytes]:
+            token = _BODY_VAR.set("in-body")
+            tasks.append(asyncio.current_task())
+            yield b"a"
+            await asyncio.sleep(0.01)
+            tasks.append(asyncio.current_task())
+            _BODY_VAR.reset(token)
+            yield b"b"
+
+        _BODY_VAR.set("caller")
+        caller = asyncio.current_task()
+        url = str(server.url) + "echo"
+        assert await self._echoed(ry.Client(), url, _body()) == "ab"
+        assert tasks[0] is tasks[1]
+        assert tasks[0] is not caller
+        # body's sets dont leak into the caller
+        assert _BODY_VAR.get() == "caller"
+
+    @staticmethod
+    async def _gen_body() -> t.AsyncGenerator[bytes]:
+        yield b"a"
+        await asyncio.sleep(0.01)
+        yield b"b"
+
+    @pytest.mark.anyio
+    async def test_made_without_a_loop(self, server: ReqtestServer) -> None:
+        # eg built in a plain thread for `run_coroutine_threadsafe`
+        client = ry.Client()
+        url = str(server.url) + "echo"
+        coro = await asyncio.to_thread(lambda: client.post(url, body=self._gen_body()))
+        response = await coro
+        assert (await response.json())["body"] == "ab"
+
+    @pytest.mark.anyio
+    async def test_made_on_other_loop(self, server: ReqtestServer) -> None:
+        # made on loop A (now closed), awaited here ~ runs on the awaiting loop
+        client = ry.Client()
+        url = str(server.url) + "echo"
+
+        async def _make() -> t.Any:
+            return client.post(url, body=self._gen_body())
+
+        # annotated bc ty cant solve `asyncio.run`'s `_T` thru `to_thread`
+        coro: t.Any = await asyncio.to_thread(asyncio.run, _make())
+        response = await coro
+        assert (await response.json())["body"] == "ab"
+
+    @pytest.mark.anyio
+    async def test_sees_contextvars(self, server: ReqtestServer) -> None:
+        async def _body() -> t.AsyncGenerator[bytes]:
+            yield _BODY_VAR.get().encode()
+            await asyncio.sleep(0)
+            yield _BODY_VAR.get().encode()
+
+        _BODY_VAR.set("x")
+        url = str(server.url) + "echo"
+        assert await self._echoed(ry.Client(), url, _body()) == "xx"
+
+    @pytest.mark.anyio
+    async def test_never_awaited_never_pulled(self, server: ReqtestServer) -> None:
+        pulled = False
+
+        async def _body() -> t.AsyncGenerator[bytes]:
+            nonlocal pulled
+            pulled = True
+            yield b"nope"
+
+        coro = ry.Client().post(str(server.url) + "echo", body=_body())
+        coro.close()
+        del coro
+        gc.collect()
+        await asyncio.sleep(0.01)
+        assert not pulled
+
+    @pytest.mark.anyio
+    async def test_raises_mid_body(self, server: ReqtestServer) -> None:
+        async def _body() -> t.AsyncGenerator[bytes]:
+            yield b"a"
+            msg = "body boom"
+            raise ValueError(msg)
+
+        with pytest.raises(ry.ReqwestError):
+            await ry.Client().post(str(server.url) + "echo", body=_body())
 
 
 @pytest.mark.parametrize(

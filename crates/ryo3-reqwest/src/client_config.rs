@@ -118,7 +118,9 @@ impl Default for ClientConfig {
             http2_initial_stream_window_size: None,
             http2_initial_connection_window_size: None,
             http2_adaptive_window: false,
-            http2_max_frame_size: None,
+            // hyper default is 16kb ~ bigger frames == way less cpu on big bodies
+            // (for us and the server)
+            http2_max_frame_size: Some(64 * 1024),
             http2_max_header_list_size: None,
             http2_keep_alive_interval: None,
             http2_keep_alive_timeout: None,

@@ -1,11 +1,9 @@
 use pyo3::IntoPyObjectExt;
-#[cfg(feature = "experimental-async")]
-use pyo3::coroutine::CancelHandle;
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyTuple};
 use reqwest::{Method, RequestBuilder};
 use ryo3_http::PyHttpMethod;
-use ryo3_tokio_rt::get_tokio_runtime;
+use ryo3_tokio_rt::{RyCoroutine, get_tokio_runtime};
 use ryo3_url::UrlLike;
 
 use crate::errors::map_reqwest_err;
@@ -38,99 +36,34 @@ impl RyClient {
         Ok(Self { client, cfg })
     }
 
+    /// the awaitable for a request ~ nothing is sent until it is awaited
     #[inline]
-    fn send_sync(req: RequestBuilder) -> PyResult<RyBlockingResponse> {
-        get_tokio_runtime().block_on(async {
-            req.send()
-                .await
-                .map(RyBlockingResponse::from)
-                .map_err(map_reqwest_err)
-        })
-    }
-
-    /// Return the reqwest builder instance...
-    #[inline]
-    fn request_builder(
-        &self,
-        url: UrlLike,
-        method: Method,
-        kwargs: Option<ReqwestKwargs>,
-    ) -> PyResult<RequestBuilder> {
-        // we can avoid the weird little hackyh query serde song and dance
-        // TODO: FIX THIS?
-        // Cases are:
-        //    - query for the url is set from the UrlLike and query in kwargs is None --
-        //      we are done
-        //    - query in kwargs is Some -- and the url already has a query -- here we do
-        //      the song and dance
-        //    - query in kwargs is Some -- and the url has NO query so we can just set
-        //      the string I think
-        // url is empty and the kwargs do not contain a
-        let url = url.into_inner();
-        if let Some(kwargs) = kwargs {
-            kwargs.apply(self.client.request(method, url))
-        } else {
-            Ok(self.client.request(method, url))
-        }
-    }
-
-    #[inline]
-    fn request_builder_sync(
-        &self,
-        url: UrlLike,
-        method: Method,
-        kwargs: Option<BlockingReqwestKwargs>,
-    ) -> PyResult<RequestBuilder> {
-        let url = url.into_inner();
-        if let Some(kwargs) = kwargs {
-            kwargs.apply(self.client.request(method, url))
-        } else {
-            Ok(self.client.request(method, url))
-        }
-    }
-
-    #[cfg(not(feature = "experimental-async"))]
-    #[inline]
-    fn request<'py>(
+    pub(crate) fn request<'py>(
         &self,
         py: Python<'py>,
+        qualname: &'static str,
         url: UrlLike,
         method: Method,
         kwargs: Option<ReqwestKwargs>,
-    ) -> PyResult<Bound<'py, PyAny>> {
-        let rb = self.request_builder(url, method, kwargs)?;
-        ryo3_tokio_rt::future_into_py(py, async move {
-            rb.send()
-                .await
-                .map(RyResponse::from)
-                .map_err(map_reqwest_err)
+    ) -> PyResult<Bound<'py, RyCoroutine>> {
+        let primer = kwargs.as_ref().and_then(ReqwestKwargs::body_primer);
+        let rb = match build_request(&self.client, url, method, kwargs) {
+            Ok(rb) => rb,
+            // raised on await like it would be from an `async def`
+            Err(e) => return ryo3_tokio_rt::failed_coro(py, qualname, e),
+        };
+        let send = async move {
+            let response = rb.send().await.map_err(map_reqwest_err)?;
+            Ok(RyResponse::from_response(response).await)
+        };
+        // first poll is on the loop thread ~ pull any async body there before
+        // the request goes over to tokio (saves a tokio -> loop round trip)
+        ryo3_tokio_rt::pyloop_coro(py, qualname, async move {
+            if let Some(primer) = primer {
+                Python::attach(|py| primer.prime(py));
+            }
+            ryo3_tokio_rt::on_tokio_py(send).await
         })
-    }
-
-    #[cfg(feature = "experimental-async")]
-    async fn send_request(req: RequestBuilder, mut cancel: CancelHandle) -> PyResult<RyResponse> {
-        tokio::select! {
-            res = req.send() => {
-                res.map(RyResponse::from).map_err(map_reqwest_err)
-            }
-            _ = cancel.cancelled() => {
-                Err(pyo3::exceptions::asyncio::CancelledError::new_err("Request was cancelled"))
-            }
-        }
-    }
-
-    #[cfg(feature = "experimental-async")]
-    #[inline]
-    async fn request(
-        &self,
-        url: UrlLike,
-        method: Method,
-        kwargs: Option<ReqwestKwargs>,
-        cancel: CancelHandle,
-    ) -> PyResult<RyResponse> {
-        use ryo3_tokio_rt::on_tokio_py;
-        let req = self.request_builder(url, method, kwargs)?;
-        on_tokio_py(async move { Self::send_request(req, cancel).await }).await
     }
 
     #[inline]
@@ -140,8 +73,7 @@ impl RyClient {
         method: Method,
         kwargs: Option<BlockingReqwestKwargs>,
     ) -> PyResult<RyBlockingResponse> {
-        let req = self.request_builder_sync(url, method, kwargs)?;
-        Self::send_sync(req)
+        build_request(&self.client, url, method, kwargs).map(send_sync)?
     }
 }
 
@@ -155,197 +87,16 @@ impl RyBlockingClient {
     }
 
     #[inline]
-    fn send_sync(req: RequestBuilder) -> PyResult<RyBlockingResponse> {
-        let a = get_tokio_runtime().block_on(async { req.send().await });
-        a.map(RyBlockingResponse::from).map_err(map_reqwest_err)
-    }
-
-    #[inline]
-    fn request_builder_sync(
-        &self,
-        url: UrlLike,
-        method: Method,
-        kwargs: Option<BlockingReqwestKwargs>,
-    ) -> PyResult<RequestBuilder> {
-        let url = url.into_inner();
-        if let Some(kwargs) = kwargs {
-            kwargs.apply(self.client.request(method, url))
-        } else {
-            Ok(self.client.request(method, url))
-        }
-    }
-
-    #[inline]
     fn request_sync(
         &self,
         url: UrlLike,
         method: Method,
         kwargs: Option<BlockingReqwestKwargs>,
     ) -> PyResult<RyBlockingResponse> {
-        self.request_builder_sync(url, method, kwargs)
-            .map(Self::send_sync)?
+        build_request(&self.client, url, method, kwargs).map(send_sync)?
     }
 }
 
-#[cfg(feature = "experimental-async")]
-#[pymethods]
-impl RyClient {
-    #[new]
-    #[pyo3(signature = (**kwargs))]
-    fn py_new(py: Python<'_>, kwargs: Option<ClientConfig>) -> PyResult<Self> {
-        let client_cfg = kwargs.unwrap_or_default();
-        let client = py
-            .detach(|| client_cfg.client_builder().build())
-            .map_err(map_reqwest_err)?;
-        Ok(Self {
-            client,
-            cfg: client_cfg,
-        })
-    }
-
-    fn __repr__(&self) -> String {
-        format!("Client<{:?}>", self.cfg)
-    }
-
-    fn __getnewargs_ex__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
-        let args = PyTuple::empty(py).into_bound_py_any(py)?;
-        let kwargs = self.cfg.into_bound_py_any(py)?;
-        PyTuple::new(py, vec![args, kwargs])
-    }
-
-    fn config<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
-        self.cfg.into_pyobject(py)
-    }
-
-    fn __eq__(&self, other: &Self) -> bool {
-        self.cfg == other.cfg
-    }
-
-    fn __ne__(&self, other: &Self) -> bool {
-        self.cfg != other.cfg
-    }
-
-    #[pyo3(signature = (url, **kwargs))]
-    async fn get(
-        &self,
-        url: UrlLike,
-        kwargs: Option<ReqwestKwargs>,
-        #[pyo3(cancel_handle)] cancel: CancelHandle,
-    ) -> PyResult<RyResponse> {
-        self.request(url, Method::GET, kwargs, cancel).await
-    }
-
-    #[pyo3(signature = (url, **kwargs))]
-    async fn post(
-        &self,
-        url: UrlLike,
-        kwargs: Option<ReqwestKwargs>,
-        #[pyo3(cancel_handle)] cancel: CancelHandle,
-    ) -> PyResult<RyResponse> {
-        self.request(url, Method::POST, kwargs, cancel).await
-    }
-
-    #[pyo3(signature = (url, **kwargs))]
-    async fn put(
-        &self,
-        url: UrlLike,
-        kwargs: Option<ReqwestKwargs>,
-        #[pyo3(cancel_handle)] cancel: CancelHandle,
-    ) -> PyResult<RyResponse> {
-        self.request(url, Method::PUT, kwargs, cancel).await
-    }
-
-    #[pyo3(signature = (url, **kwargs))]
-    async fn delete(
-        &self,
-        url: UrlLike,
-        kwargs: Option<ReqwestKwargs>,
-        #[pyo3(cancel_handle)] cancel: CancelHandle,
-    ) -> PyResult<RyResponse> {
-        self.request(url, Method::DELETE, kwargs, cancel).await
-    }
-
-    #[pyo3(signature = (url, **kwargs))]
-    async fn head(
-        &self,
-        url: UrlLike,
-        kwargs: Option<ReqwestKwargs>,
-        #[pyo3(cancel_handle)] cancel: CancelHandle,
-    ) -> PyResult<RyResponse> {
-        self.request(url, Method::HEAD, kwargs, cancel).await
-    }
-
-    #[pyo3(signature = (url, **kwargs))]
-    async fn options(
-        &self,
-        url: UrlLike,
-        kwargs: Option<ReqwestKwargs>,
-        #[pyo3(cancel_handle)] cancel: CancelHandle,
-    ) -> PyResult<RyResponse> {
-        self.request(url, Method::OPTIONS, kwargs, cancel).await
-    }
-
-    #[pyo3(signature = (url, **kwargs))]
-    async fn patch(
-        &self,
-        url: UrlLike,
-        kwargs: Option<ReqwestKwargs>,
-        #[pyo3(cancel_handle)] cancel: CancelHandle,
-    ) -> PyResult<RyResponse> {
-        self.request(url, Method::PATCH, kwargs, cancel).await
-    }
-
-    #[pyo3(signature = (url, **kwargs))]
-    async fn query(
-        &self,
-        url: UrlLike,
-        kwargs: Option<ReqwestKwargs>,
-        #[pyo3(cancel_handle)] cancel: CancelHandle,
-    ) -> PyResult<RyResponse> {
-        self.request(url, Method::QUERY, kwargs, cancel).await
-    }
-
-    #[pyo3(
-        signature = (url, *, method = PyHttpMethod::GET, **kwargs),
-        text_signature = "($self, url, *, method=\"GET\", **kwargs)"
-    )]
-    pub(crate) async fn fetch(
-        &self,
-        url: UrlLike,
-        method: PyHttpMethod,
-        kwargs: Option<ReqwestKwargs>,
-        #[pyo3(cancel_handle)] cancel: CancelHandle,
-    ) -> PyResult<RyResponse> {
-        self.request(url, method.into(), kwargs, cancel).await
-    }
-
-    #[pyo3(signature = (url, *, method = PyHttpMethod::GET, **kwargs))]
-    async fn __call__(
-        &self,
-        url: UrlLike,
-        method: PyHttpMethod,
-        kwargs: Option<ReqwestKwargs>,
-        #[pyo3(cancel_handle)] cancel: CancelHandle,
-    ) -> PyResult<RyResponse> {
-        self.request(url, method.into(), kwargs, cancel).await
-    }
-
-    #[pyo3(
-        signature = (url, *, method = PyHttpMethod::GET, **kwargs),
-        text_signature = "($self, url, *, method=\"GET\", **kwargs)"
-    )]
-    pub(crate) fn fetch_sync(
-        &self,
-        py: Python<'_>,
-        url: UrlLike,
-        method: PyHttpMethod,
-        kwargs: Option<ReqwestKwargs<true>>,
-    ) -> PyResult<RyBlockingResponse> {
-        py.detach(|| self.request_sync(url, method.into(), kwargs))
-    }
-}
-
-#[cfg(not(feature = "experimental-async"))]
 #[pymethods]
 impl RyClient {
     #[new]
@@ -389,8 +140,8 @@ impl RyClient {
         py: Python<'py>,
         url: UrlLike,
         kwargs: Option<ReqwestKwargs>,
-    ) -> PyResult<Bound<'py, PyAny>> {
-        self.request(py, url, Method::GET, kwargs)
+    ) -> PyResult<Bound<'py, RyCoroutine>> {
+        self.request(py, "Client.get", url, Method::GET, kwargs)
     }
 
     #[pyo3(signature = (url, **kwargs))]
@@ -399,8 +150,8 @@ impl RyClient {
         py: Python<'py>,
         url: UrlLike,
         kwargs: Option<ReqwestKwargs>,
-    ) -> PyResult<Bound<'py, PyAny>> {
-        self.request(py, url, Method::POST, kwargs)
+    ) -> PyResult<Bound<'py, RyCoroutine>> {
+        self.request(py, "Client.post", url, Method::POST, kwargs)
     }
 
     #[pyo3(signature = (url, **kwargs))]
@@ -409,8 +160,8 @@ impl RyClient {
         py: Python<'py>,
         url: UrlLike,
         kwargs: Option<ReqwestKwargs>,
-    ) -> PyResult<Bound<'py, PyAny>> {
-        self.request(py, url, Method::PUT, kwargs)
+    ) -> PyResult<Bound<'py, RyCoroutine>> {
+        self.request(py, "Client.put", url, Method::PUT, kwargs)
     }
 
     #[pyo3(signature = (url, **kwargs))]
@@ -419,8 +170,8 @@ impl RyClient {
         py: Python<'py>,
         url: UrlLike,
         kwargs: Option<ReqwestKwargs>,
-    ) -> PyResult<Bound<'py, PyAny>> {
-        self.request(py, url, Method::DELETE, kwargs)
+    ) -> PyResult<Bound<'py, RyCoroutine>> {
+        self.request(py, "Client.delete", url, Method::DELETE, kwargs)
     }
 
     #[pyo3(signature = (url, **kwargs))]
@@ -429,8 +180,8 @@ impl RyClient {
         py: Python<'py>,
         url: UrlLike,
         kwargs: Option<ReqwestKwargs>,
-    ) -> PyResult<Bound<'py, PyAny>> {
-        self.request(py, url, Method::HEAD, kwargs)
+    ) -> PyResult<Bound<'py, RyCoroutine>> {
+        self.request(py, "Client.head", url, Method::HEAD, kwargs)
     }
 
     #[pyo3(signature = (url, **kwargs))]
@@ -439,8 +190,8 @@ impl RyClient {
         py: Python<'py>,
         url: UrlLike,
         kwargs: Option<ReqwestKwargs>,
-    ) -> PyResult<Bound<'py, PyAny>> {
-        self.request(py, url, Method::OPTIONS, kwargs)
+    ) -> PyResult<Bound<'py, RyCoroutine>> {
+        self.request(py, "Client.options", url, Method::OPTIONS, kwargs)
     }
 
     #[pyo3(signature = (url, **kwargs))]
@@ -449,8 +200,8 @@ impl RyClient {
         py: Python<'py>,
         url: UrlLike,
         kwargs: Option<ReqwestKwargs>,
-    ) -> PyResult<Bound<'py, PyAny>> {
-        self.request(py, url, Method::PATCH, kwargs)
+    ) -> PyResult<Bound<'py, RyCoroutine>> {
+        self.request(py, "Client.patch", url, Method::PATCH, kwargs)
     }
 
     #[pyo3(signature = (url, **kwargs))]
@@ -459,8 +210,8 @@ impl RyClient {
         py: Python<'py>,
         url: UrlLike,
         kwargs: Option<ReqwestKwargs>,
-    ) -> PyResult<Bound<'py, PyAny>> {
-        self.request(py, url, Method::QUERY, kwargs)
+    ) -> PyResult<Bound<'py, RyCoroutine>> {
+        self.request(py, "Client.query", url, Method::QUERY, kwargs)
     }
 
     #[pyo3(
@@ -468,24 +219,24 @@ impl RyClient {
         text_signature = "($self, url, *, method=\"GET\", **kwargs)"
     )]
     pub(crate) fn fetch<'py>(
-        &'py self,
+        &self,
         py: Python<'py>,
         url: UrlLike,
         method: PyHttpMethod,
         kwargs: Option<ReqwestKwargs>,
-    ) -> PyResult<Bound<'py, PyAny>> {
-        self.request(py, url, method.into(), kwargs)
+    ) -> PyResult<Bound<'py, RyCoroutine>> {
+        self.request(py, "Client.fetch", url, method.into(), kwargs)
     }
 
     #[pyo3(signature = (url, *, method = PyHttpMethod::GET, **kwargs))]
     fn __call__<'py>(
-        &'py self,
+        &self,
         py: Python<'py>,
         url: UrlLike,
         method: PyHttpMethod,
         kwargs: Option<ReqwestKwargs>,
-    ) -> PyResult<Bound<'py, PyAny>> {
-        self.request(py, url, method.into(), kwargs)
+    ) -> PyResult<Bound<'py, RyCoroutine>> {
+        self.request(py, "Client.__call__", url, method.into(), kwargs)
     }
 
     #[pyo3(
@@ -497,7 +248,7 @@ impl RyClient {
         py: Python<'_>,
         url: UrlLike,
         method: PyHttpMethod,
-        kwargs: Option<BlockingReqwestKwargs>,
+        kwargs: Option<ReqwestKwargs<true>>,
     ) -> PyResult<RyBlockingResponse> {
         py.detach(|| self.request_sync(url, method.into(), kwargs))
     }
@@ -644,4 +395,41 @@ impl RyBlockingClient {
     ) -> PyResult<RyBlockingResponse> {
         py.detach(|| self.request_sync(url, method.into(), kwargs))
     }
+}
+
+/// the reqwest builder for one request w/ the kwargs applied
+#[inline]
+fn build_request<const BLOCKING: bool>(
+    client: &reqwest::Client,
+    url: UrlLike,
+    method: Method,
+    kwargs: Option<ReqwestKwargs<BLOCKING>>,
+) -> PyResult<RequestBuilder> {
+    // we can avoid the weird little hackyh query serde song and dance
+    // TODO: FIX THIS?
+    // Cases are:
+    //    - query for the url is set from the UrlLike and query in kwargs is None --
+    //      we are done
+    //    - query in kwargs is Some -- and the url already has a query -- here we do
+    //      the song and dance
+    //    - query in kwargs is Some -- and the url has NO query so we can just set
+    //      the string I think
+    // url is empty and the kwargs do not contain a
+    let rb = client.request(method, url.into_inner());
+    match kwargs {
+        Some(kwargs) => kwargs.apply(rb),
+        None => Ok(rb),
+    }
+}
+
+/// send + wait (blocking; caller has already let go of the gil)
+#[inline]
+fn send_sync(req: RequestBuilder) -> PyResult<RyBlockingResponse> {
+    // `send()` MUST be called inside the async block ~ w/ a timeout set reqwest
+    // makes a `tokio::time::sleep` right in `send()`, which panics (== abort in
+    // release) when there is no tokio rt context
+    get_tokio_runtime().block_on(async {
+        let response = req.send().await.map_err(map_reqwest_err)?;
+        Ok(RyBlockingResponse::from_response(response).await)
+    })
 }

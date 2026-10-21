@@ -1,13 +1,10 @@
 //! ry `reqwest` based global `fetch` and `fetch_sync` functions
 use std::sync::OnceLock;
 
-#[cfg(feature = "experimental-async")]
-use pyo3::coroutine::CancelHandle;
 use pyo3::prelude::*;
 use ryo3_http::PyHttpMethod;
+use ryo3_tokio_rt::RyCoroutine;
 
-#[cfg(feature = "experimental-async")]
-use crate::RyResponse;
 use crate::request::{BlockingReqwestKwargs, ReqwestKwargs};
 use crate::{RyBlockingResponse, RyClient};
 
@@ -19,7 +16,6 @@ pub(crate) fn fetch_client() -> &'static RyClient {
     })
 }
 
-#[cfg(not(feature = "experimental-async"))]
 #[pyfunction(
     signature = (url, *, method = PyHttpMethod::GET, **kwargs),
     text_signature = "(url, *, method=\"GET\", body=None, headers=None, query=None, json=None, form=None, multipart=None, timeout=None, basic_auth=None, bearer_auth=None, version=None)"
@@ -29,22 +25,8 @@ pub(crate) fn fetch(
     url: ryo3_url::UrlLike,
     method: PyHttpMethod,
     kwargs: Option<ReqwestKwargs>,
-) -> PyResult<Bound<'_, PyAny>> {
-    fetch_client().fetch(py, url, method, kwargs)
-}
-
-#[cfg(feature = "experimental-async")]
-#[pyfunction(
-    signature = (url, *, method = PyHttpMethod::GET, **kwargs),
-    text_signature = "(url, *, method=\"GET\", body=None, headers=None, query=None, json=None, form=None, multipart=None, timeout=None, basic_auth=None, bearer_auth=None, version=None)"
-)]
-pub(crate) async fn fetch(
-    url: ryo3_url::UrlLike,
-    method: PyHttpMethod,
-    kwargs: Option<ReqwestKwargs>,
-    #[pyo3(cancel_handle)] cancel: CancelHandle,
-) -> PyResult<RyResponse> {
-    fetch_client().fetch(url, method, kwargs, cancel).await
+) -> PyResult<Bound<'_, RyCoroutine>> {
+    fetch_client().request(py, "fetch", url, method.into(), kwargs)
 }
 
 #[pyfunction(
