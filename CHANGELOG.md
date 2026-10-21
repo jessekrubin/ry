@@ -26,6 +26,19 @@
 - `ryo3-tokio`
   - fix `AsyncFile.readline(size: int)` bug causing readline to throw away line
     part(s) beyond the buffer limit
+  - the `*_async` fs fns now use `ry.Coroutine` w/ properly working cancelations
+  - `AsyncReadDir.take()` defaults to `n=1` like the stub says (this was broke)
+  - `AsyncFile` fixes:
+    - no more process abort when an `AsyncFile` gets dropped w/ an op in flight
+      (flush-on-drop called `block_on` from a tokio thread)
+    - cancelled `close()` no longer loses unflushed writes
+    - `await f` on an already-open file no longer re-opens it (which truncated
+      `wb` files and tossed the write buffer which was dumb)
+    - `seek()` w/ a bad `whence` or a negative position raises `ValueError` (not
+      an `OSError`)
+    - open errors are the right `OSError` subclass w/ `errno`/`filename` (same
+      as builtin `open()`)
+    - `closed` doesnt block the event loop if anothe file op is in flight
 - `ryo3-tokio-rt`
   - `RyJoinHandle` aborts the tokio task on drop; so they dont leave their tasks
     running in the bg
@@ -42,6 +55,18 @@
       - `ryo3_tokio_rt::pyloop_coro`: coroutine that runs on the python asyncio
         loop
       - `ryo3_tokio_rt::tokio_coro`: coroutine that runs on the Tokio runtime
+- `ryo3-tokio-websockets`
+  - `WebSocket` methods return `ry.Coroutine`
+  - `ready_state` follows mdn
+    ([readyState](https://developer.mozilla.org/en-US/docs/Web/API/WebSocket/readyState)):
+    - a new (not yet awaited) ws is `0`/CONNECTING and `closed` is `False` (was
+      `3`/`True`)
+    - a failed connect leaves it `3`/CLOSED
+    - `close()` on a never-opened ws -> `3`
+  - cancelling `recv`/`send`/connect works in every build and the ws is
+    ok/usable
+  - `close()` always finishes (bounded by `close_timeout`), even if the
+    `close()` call itself gets cancelled
 - `ryo3-reqwest`
   - small bodies (known length <= 64kb) that are already there get read w/ the
     head so `bytes()`/`text()`/`json()`/`stream()` dont need another round trip;

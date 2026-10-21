@@ -279,7 +279,7 @@ class TestAsyncFileReadStreamCoroutines:
 
     async def test_qualnames(self, path: Path) -> None:
         stream = ry.read_stream_async(path, read_size=10)
-        coros = {
+        coros: dict[str, t.Any] = {
             "AsyncFileReadStream.__await__": stream.__await__(),  # noqa: PLC2801
             "AsyncFileReadStream.__aenter__": stream.__aenter__(),  # noqa: PLC2801
             "AsyncFileReadStream.__aexit__": stream.__aexit__(None, None, None),  # noqa: PLC2801

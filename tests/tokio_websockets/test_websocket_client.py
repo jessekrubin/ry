@@ -1,6 +1,10 @@
 from __future__ import annotations
 
 import asyncio
+import base64
+import contextlib
+import hashlib
+import types
 import typing as t
 
 import pytest
@@ -22,9 +26,9 @@ async def test_ws_ctx_manager_handshake_stuff(websocket_server: WsTestServer) ->
     )
     assert bool(ws) is False
     assert ws.uri == websocket_server.url("/echo?mode=roundtrip")
-    assert ws.closed is True
+    assert ws.closed is False
     assert ws.open is False
-    assert ws.ready_state == 3
+    assert ws.ready_state == 0  # CONNECTING
     assert ws.status is None
     assert ws.headers is None
 
@@ -102,6 +106,41 @@ async def test_websocket_send_requires_an_open_connection(
         await ws.send("before-connect")
 
 
+async def test_close_never_opened(websocket_server: WsTestServer) -> None:
+    ws = ry.websocket(websocket_server.url("/echo"))
+    assert ws.ready_state == 0
+    await ws.close()
+    assert ws.ready_state == 3
+    assert ws.closed
+    assert websocket_server.requests == []  # never connected bummer
+
+
+async def test_close_already_closed_is_noop(websocket_server: WsTestServer) -> None:
+    async with ry.websocket(websocket_server.url("/echo")) as ws:
+        pass
+    assert ws.ready_state == 3
+    await ws.close()
+    await ws.close()
+    assert ws.ready_state == 3
+
+
+@pytest.mark.parametrize("read_close_frame", [True, False])
+async def test_async_with_exit_after_server_closed(
+    websocket_server: WsTestServer, *, read_close_frame: bool
+) -> None:
+    async with ry.websocket(websocket_server.url("/push-close")) as ws:
+        if read_close_frame:
+            kinds = [(await ws.recv()).kind for _ in range(3)]
+            assert kinds == ["text", "binary", "close"]
+            assert ws.ready_state == 3
+        else:
+            # server already closed; exit does the close w/o reading shit
+            await asyncio.sleep(0.05)
+            assert ws.ready_state == 1
+    assert ws.ready_state == 3
+    assert ws.closed
+
+
 async def test_websocket_send_parse_json(websocket_server: WsTestServer) -> None:
     ws = ry.websocket(websocket_server.url("/echo?mode=roundtrip"))
     await ws
@@ -113,17 +152,10 @@ async def test_websocket_send_parse_json(websocket_server: WsTestServer) -> None
     assert msg1.json() == {"data": 123}
 
 
-@pytest.mark.skipif(
-    not ry.__pyo3_experimental_async__,
-    reason="coroutine cancel requires `experimental-async` feat",
-)
 async def test_cancelled_recv_releases_underlying_conn_thingy(
     websocket_server: WsTestServer,
 ) -> None:
     """test that we dont get in bad state w/ cancel"""
-    if not ry.__pyo3_experimental_async__:
-        pytest.skip("native coroutine cancellation requires experimental-async")
-
     ws = ry.websocket(websocket_server.url("/echo"))
     await ws
     recv_task = asyncio.create_task(ws.recv())
@@ -179,3 +211,136 @@ def test_websocket_rejects_invalid_close_timeout(
 ) -> None:
     with pytest.raises(err_type, match=err_match):
         ry.WebSocket("ws://example.com", close_timeout=close_timeout)
+
+
+_WS_GUID = b"258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
+
+
+@contextlib.asynccontextmanager
+async def _raw_ws_server(*, handshake: bool) -> t.AsyncGenerator[str]:
+    """Handshakes (or not), then ignores everything."""
+    writers: list[asyncio.StreamWriter] = []
+
+    async def handle(
+        reader: asyncio.StreamReader, writer: asyncio.StreamWriter
+    ) -> None:
+        writers.append(writer)
+        request = await reader.readuntil(b"\r\n\r\n")
+        if handshake:
+            key = next(
+                line.split(b":", 1)[1].strip()
+                for line in request.split(b"\r\n")
+                if line.lower().startswith(b"sec-websocket-key:")
+            )
+            accept = base64.b64encode(hashlib.sha1(key + _WS_GUID).digest())  # noqa: S324
+            writer.write(
+                b"HTTP/1.1 101 Switching Protocols\r\n"
+                b"Upgrade: websocket\r\nConnection: Upgrade\r\n"
+                b"Sec-WebSocket-Accept: " + accept + b"\r\n\r\n"
+            )
+            await writer.drain()
+        await asyncio.Event().wait()
+
+    server = await asyncio.start_server(handle, "127.0.0.1", 0)
+    port = server.sockets[0].getsockname()[1]
+    try:
+        yield f"ws://127.0.0.1:{port}/"
+    finally:
+        for writer in writers:
+            writer.close()
+        server.close()
+
+
+class TestWebSocketCoroutines:
+    """Coroutine shape + cancel behavior."""
+
+    def test_qualnames(self) -> None:
+        ws = ry.websocket("ws://127.0.0.1:1/")
+        coros: dict[str, t.Any] = {
+            "WebSocket.__await__": ws.__await__(),  # noqa: PLC2801
+            "WebSocket.__aenter__": ws.__aenter__(),  # noqa: PLC2801
+            "WebSocket.__aexit__": ws.__aexit__(None, None, None),  # noqa: PLC2801
+            "WebSocket.__anext__": anext(ws),
+            "WebSocket.recv": ws.recv(),
+            "WebSocket.receive": ws.receive(),
+            "WebSocket.send": ws.send("x"),
+            "WebSocket.close": ws.close(),
+            "WebSocket.ping": ws.ping(),
+            "WebSocket.pong": ws.pong(),
+        }
+        for qualname, coro in coros.items():
+            assert asyncio.iscoroutine(coro)
+            assert coro.__qualname__ == qualname
+            coro.close()
+        assert ws.ready_state == 0  # never awaited
+
+    async def test_yield_from_await_adapter(
+        self, websocket_server: WsTestServer
+    ) -> None:
+        @types.coroutine
+        def _yield_from(aw: t.Any) -> t.Generator[t.Any, t.Any, t.Any]:
+            return (yield from aw.__await__())
+
+        ws = ry.websocket(websocket_server.url("/echo"))
+        assert await _yield_from(ws) is ws
+        await _yield_from(ws.send("adapter"))
+        msg = await _yield_from(ws.recv())
+        assert msg.data == "adapter"
+        await ws.close()
+
+    async def test_failed_connect_is_closed(self) -> None:
+        ws = ry.websocket("ws://127.0.0.1:1/")  # nothing listening
+        with pytest.raises(OSError):  # noqa: PT011
+            await ws
+        assert ws.ready_state == 3
+
+    async def test_cancelled_connect_changes_nothing(self) -> None:
+        async with _raw_ws_server(handshake=False) as url:
+            ws = ry.websocket(url)
+
+            async def connect() -> None:
+                await ws
+
+            task = asyncio.create_task(connect())
+            await asyncio.sleep(0.05)  # handshake in flight
+            assert ws.ready_state == 0
+            task.cancel()
+            with pytest.raises(asyncio.CancelledError):
+                await task
+            assert ws.ready_state == 0
+
+            # can retry
+            with pytest.raises(TimeoutError):
+                await asyncio.wait_for(connect(), timeout=0.1)
+            assert ws.ready_state == 0
+
+    async def test_close_runs_to_the_end_even_if_cancelled(self) -> None:
+        async with _raw_ws_server(handshake=True) as url:
+            ws = await ry.websocket(url, close_timeout=0.2)
+            assert ws.ready_state == 1
+            task = asyncio.create_task(ws.close())
+            await asyncio.sleep(0.05)
+            assert ws.ready_state == 2
+            task.cancel()
+            with pytest.raises(asyncio.CancelledError):
+                await task
+            assert ws.ready_state == 2  # STILLLLLLL closing
+            for _ in range(100):
+                if ws.ready_state == 3:
+                    break
+                await asyncio.sleep(0.01)
+            assert ws.ready_state == 3  # close_timeout hit
+            assert ws.closed
+
+    async def test_cancelled_recv_keeps_socket_usable(
+        self, websocket_server: WsTestServer
+    ) -> None:
+        async with ry.websocket(websocket_server.url("/echo")) as ws:
+            for i in range(50):
+                task = asyncio.create_task(ws.recv())
+                await asyncio.sleep(0)
+                task.cancel()
+                await asyncio.gather(task, return_exceptions=True)
+                await ws.send(f"msg-{i}")
+                msg = await asyncio.wait_for(ws.recv(), timeout=1)
+                assert msg.data == f"msg-{i}"

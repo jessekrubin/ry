@@ -211,6 +211,11 @@ class WebSocket:
 
         Based on the `WebSocket.readyState` property from the Web API:
         <https://developer.mozilla.org/en-US/docs/Web/API/WebSocket/readyState>
+
+        - `0` CONNECTING: created, not connected yet (`await ws` connects)
+        - `1` OPEN
+        - `2` CLOSING: a started close always finishes (see `close_timeout`)
+        - `3` CLOSED: closed or failed to connect; `await ws` reconnects
         """
     def __bool__(self) -> bool:
         """Return `True` if the WebSocket is open, `False` otherwise"""
@@ -225,6 +230,11 @@ class WebSocket:
         self, code: int = 1_000, reason: str | Buffer | None = None
     ) -> None:
         """Close the WebSocket connection.
+
+        Sends the close frame and waits for the peer's. A started close always
+        finishes, even if this call is cancelled; it gives up after
+        `close_timeout` (`None` waits forever, so a peer that never answers
+        keeps the connection open).
 
         Parameters
         ----------
@@ -252,7 +262,7 @@ def websocket(
     uri: URL | str,
     *,
     headers: Headers | dict[str, str] | None = None,
-    close_timeout: _TimeoutLike = 10,
+    close_timeout: _TimeoutLike | None = 10,
     recv_timeout: _TimeoutLike | None = None,
     flush_threshold: int = 8_192,
     frame_size: int = 4_194_304,

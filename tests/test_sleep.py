@@ -78,7 +78,7 @@ async def test_async_sleep_wait_for_timeout() -> None:
 def test_async_sleep_is_coroutine(
     sleep_fn: t.Callable[[float], t.Coroutine[t.Any, t.Any, float]], name: str
 ) -> None:
-    coro = sleep_fn(0)
+    coro: t.Any = sleep_fn(0)
     assert type(coro).__name__ == "Coroutine"
     assert asyncio.iscoroutine(coro)
     assert coro.__qualname__ == name

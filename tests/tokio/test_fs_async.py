@@ -42,7 +42,7 @@ def _build_fn_args(fn: t.Callable[..., t.Any], tmp_path: Path) -> tuple[t.Any, .
 
 
 @pytest.mark.parametrize("fn", _TOKIO_FS_AIO_FNS, ids=lambda fn: fn.__name__)
-def test_is_coroutine(fn: t.Callable[..., t.Any], tmp_path: Path) -> None:
+def test_is_coroutine(fn: t.Any, tmp_path: Path) -> None:
     coro = fn(*_build_fn_args(fn, tmp_path))
     assert type(coro).__name__ == "Coroutine"
     assert asyncio.iscoroutine(coro)

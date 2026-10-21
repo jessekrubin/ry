@@ -2,10 +2,11 @@ from __future__ import annotations
 
 import asyncio
 import dataclasses
+import gc
 import io
 import sys
 from itertools import permutations
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import pytest
 
@@ -543,7 +544,7 @@ async def test_async_file_flushes_on_drop(tmp_path: Path) -> None:
     await f
     await f.write(b"some data")
     del f
-    await asyncio.sleep(0.1)
+
     # check that got flusshed
     contents = ry.read_bytes(temp_file_path)
     assert contents == b"some data"
@@ -556,7 +557,7 @@ class TestAsyncFileCoroutines:
         p = tmp_path / "f.bin"
         p.write_bytes(b"0123456789")
         f = await aopen(p, "rb+")
-        coros = {
+        coros: dict[str, Any] = {
             "AsyncFile.__await__": f.__await__(),  # noqa: PLC2801
             "AsyncFile.__aenter__": f.__aenter__(),  # noqa: PLC2801
             "AsyncFile.__aexit__": f.__aexit__(None, None, None),  # noqa: PLC2801
@@ -641,8 +642,6 @@ class TestAsyncFileCoroutines:
 
     async def test_dropped_mid_write_still_flushes(self, tmp_path: Path) -> None:
         """last ref can go away on a tokio thread (aborted op) ~ no block_on panic"""
-        import gc  # noqa: PLC0415
-
         for i in range(50):
             p = tmp_path / f"f{i}.bin"
             f = await aopen(p, "wb")
@@ -657,6 +656,7 @@ class TestAsyncFileCoroutines:
             for _ in range(100):
                 if p.read_bytes().startswith(b"head"):
                     break
+                gc.collect()
                 await asyncio.sleep(0.01)
             assert p.read_bytes().startswith(b"head")
 
