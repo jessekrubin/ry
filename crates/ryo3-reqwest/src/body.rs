@@ -5,6 +5,14 @@
 //! python iterables are pulled from off of the tokio workers (sync iterables
 //! on the blocking pool, async iterables on the python event loop) and
 //! handed to reqwest via channel
+//!
+//! async ones: the client primes the body on the loop thread before the
+//! request goes to tokio ~ the pump is its own (eager `Py_3_12`) task so it
+//! runs right there until the iterator actually has to wait on something
+//! (generators over in-memory chunks never do, so the whole body is queued
+//! before the request even goes out). a pump task left running when the body
+//! is dropped gets cancelled via `LoopHandle::call_soon` ~ no gil grabbing on
+//! tokio threads
 use std::pin::Pin;
 use std::sync::{Arc, Mutex, MutexGuard, PoisonError};
 use std::task::{Context, Poll};
@@ -12,12 +20,10 @@ use std::task::{Context, Poll};
 use bytes::Bytes;
 use pyo3::exceptions::{PyAttributeError, PyStopAsyncIteration, PyStopIteration};
 use pyo3::prelude::*;
-use pyo3::sync::PyOnceLock;
-use pyo3::types::{PyDict, PyIterator};
-use pyo3_async_runtimes::TaskLocals;
+use pyo3::types::PyIterator;
 use ryo3_bytes::{ReadableBuffer, RyBytes};
 use ryo3_macro_rules::{py_runtime_error, py_type_err, py_type_error};
-use ryo3_tokio_rt::get_tokio_runtime;
+use ryo3_tokio_rt::{LoopHandle, get_tokio_runtime, pyloop_coro};
 use tokio::sync::mpsc;
 use tokio::sync::mpsc::error::TrySendError;
 
@@ -28,40 +34,18 @@ const REQ_BODY_CHANNEL_CAP_ASYNC: usize = 64;
 
 type BodyItem = PyResult<Bytes>;
 
-enum RequestBodyRx<Src> {
-    Idle(Src),
+/// sync iterable body ~ pumped on the blocking pool once reqwest first polls it
+pub(crate) enum PyBodySyncStream {
+    Idle(Py<PyAny>),
     Running(mpsc::Receiver<BodyItem>),
 }
 
-impl<Src> RequestBodyRx<Src> {
-    #[inline]
-    fn poll_recv(
-        &mut self,
-        cx: &mut Context<'_>,
-        capacity: usize,
-        spawn: impl FnOnce(Src, mpsc::Sender<BodyItem>),
-    ) -> Poll<Option<BodyItem>> {
-        if let Self::Idle(_) = self {
-            let (tx, rx) = mpsc::channel(capacity);
-            let Self::Idle(src) = std::mem::replace(self, Self::Running(rx)) else {
-                unreachable!()
-            };
-            spawn(src, tx);
-        }
-        let Self::Running(rx) = self else {
-            // can t get here bc we just replaced self with Self::Running(rx) above
-            unreachable!()
-        };
-        rx.poll_recv(cx)
-    }
-}
-
-type PyBodySyncRx = RequestBodyRx<Py<PyAny>>;
-type PyBodyAsyncRx = RequestBodyRx<Arc<AsyncBodySrc>>;
-pub(crate) struct PyBodySyncStream(PyBodySyncRx);
+/// async iterable body
 pub(crate) struct PyBodyAsyncStream {
-    rx: PyBodyAsyncRx,
+    rx: mpsc::Receiver<BodyItem>,
     src: Arc<AsyncBodySrc>,
+    /// first poll checks that the body was primed
+    polled: bool,
 }
 pub(crate) enum PyBodyStream {
     Sync(PyBodySyncStream),
@@ -72,6 +56,14 @@ impl PyBodyStream {
     #[inline]
     pub(crate) fn is_async(&self) -> bool {
         matches!(self, Self::Async(_))
+    }
+
+    #[inline]
+    pub(crate) fn primer(&self) -> Option<BodyPrimer> {
+        match self {
+            Self::Async(s) => Some(BodyPrimer(Arc::clone(&s.src))),
+            Self::Sync(_) => None,
+        }
     }
 }
 
@@ -121,39 +113,89 @@ fn pump_request_body_sync(iter: &Py<PyAny>, tx: &mpsc::Sender<BodyItem>) {
     }
 }
 
-fn ensure_future_pyfn(py: Python<'_>) -> PyResult<&Bound<'_, PyAny>> {
-    static ENSURE_FUTURE: PyOnceLock<Py<PyAny>> = PyOnceLock::new();
-    ENSURE_FUTURE.import(py, "asyncio", "ensure_future")
-}
-
-/// The thing `BodyRx` holds while idle, and the thing the pump pulls from
+/// The thing the pump pulls from
 struct AsyncBodySrc {
     /// the python `__anext__` coroutine for the async iterator
     anext: Py<PyAny>,
-    /// the aio task locals for the iterator
-    locals: TaskLocals,
-    /// the currently running aio task
-    task: Mutex<Option<Py<PyAny>>>,
+    /// the running pump task + its loop (loop that awaited the req, not
+    /// the one the body was made on)
+    aio_task: Mutex<Option<(LoopHandle, Py<PyAny>)>>,
+    /// the pump's end of the channel ~ taken by [`BodyPrimer::prime`]
+    tx: Mutex<Option<mpsc::Sender<BodyItem>>>,
 }
 
 impl AsyncBodySrc {
-    fn task(&self) -> MutexGuard<'_, Option<Py<PyAny>>> {
-        self.task.lock().unwrap_or_else(PoisonError::into_inner)
+    fn aio_task(&self) -> MutexGuard<'_, Option<(LoopHandle, Py<PyAny>)>> {
+        self.aio_task.lock().unwrap_or_else(PoisonError::into_inner)
     }
 
-    fn call_soon<'py>(
-        &self,
-        py: Python<'py>,
-        args: impl pyo3::call::PyCallArgs<'py>,
-    ) -> PyResult<()> {
-        let kwargs = PyDict::new(py);
-        kwargs.set_item(pyo3::intern!(py, "context"), self.locals.context(py))?;
-        self.locals.event_loop(py).call_method(
-            pyo3::intern!(py, "call_soon_threadsafe"),
-            args,
-            Some(&kwargs),
-        )?;
-        Ok(())
+    fn tx(&self) -> MutexGuard<'_, Option<mpsc::Sender<BodyItem>>> {
+        self.tx.lock().unwrap_or_else(PoisonError::into_inner)
+    }
+}
+
+/// starts an async body's pump (on the loop thread)
+pub(crate) struct BodyPrimer(Arc<AsyncBodySrc>);
+
+impl BodyPrimer {
+    /// loop thread ~ call before the request is handed to tokio
+    pub(crate) fn prime(self, py: Python<'_>) {
+        let src = self.0;
+        let Some(tx) = src.tx().take() else {
+            return;
+        };
+        // loop is picked here (on first await) not when the body was made
+        let event_loop = match LoopHandle::current(py) {
+            Ok(event_loop) => event_loop,
+            Err(e) => {
+                let _ = tx.try_send(Err(e));
+                return;
+            }
+        };
+        let pump = RyRequestBodyPump {
+            src: Arc::clone(&src),
+            tx: Some(tx.clone()),
+            awaiting: None,
+        };
+        let pump = match Bound::new(py, pump) {
+            Ok(pump) => pump,
+            Err(e) => {
+                let _ = tx.try_send(Err(e));
+                return;
+            }
+        };
+        match spawn_pump(event_loop.event_loop(py), &pump) {
+            // pump may have finished already (eager) ~ dont keep if done/dead
+            Ok(task) => {
+                if pump.borrow().tx.is_some() {
+                    *src.aio_task() = Some((event_loop, task.unbind()));
+                }
+            }
+            Err(e) => pump.borrow_mut().ofuk(py, &e),
+        }
+    }
+}
+
+/// the pump gets its own task (+ context) from its very first step so
+/// contextvar tokens, `current_task()`, cancel scopes etc all line up; eager on
+/// 3.12+ so a body that never waits is fully queued right here
+fn spawn_pump<'py>(
+    event_loop: &Bound<'py, PyAny>,
+    pump: &Bound<'py, RyRequestBodyPump>,
+) -> PyResult<Bound<'py, PyAny>> {
+    cfg_select! {
+        Py_3_12 => {
+            use pyo3::sync::PyOnceLock;
+            use pyo3::types::PyDict;
+            static TASK: PyOnceLock<Py<PyAny>> = PyOnceLock::new();
+            let py = event_loop.py();
+            let kwargs = PyDict::new(py);
+            kwargs.set_item(pyo3::intern!(py, "loop"), event_loop)?;
+            kwargs.set_item(pyo3::intern!(py, "eager_start"), true)?;
+            TASK.import(py, "asyncio", "Task")?
+                .call((pump,), Some(&kwargs))
+        }
+        _ => event_loop.call_method1(pyo3::intern!(event_loop.py(), "create_task"), (pump,)),
     }
 }
 
@@ -266,7 +308,7 @@ impl RyRequestBodyPump {
     fn close(&mut self) {
         self.awaiting.take();
         self.tx.take();
-        self.src.task().take();
+        self.src.aio_task().take();
     }
 
     #[cold]
@@ -306,14 +348,13 @@ impl RyRequestBodyPump {
         item: BodyItem,
         last: bool,
     ) -> PyResult<()> {
-        let fut = pyo3_async_runtimes::tokio::future_into_py_with_locals(
-            py,
-            self.src.locals.clone(),
-            // the rx is gone/dropped
-            async move { Ok(tx.send(item).await.is_ok()) },
-        )?;
+        // false => the rx is gone/dropped
+        let coro = pyloop_coro(py, "RequestBodyPump.wait_for_capacity", async move {
+            Ok(tx.send(item).await.is_ok())
+        })?;
         self.awaiting = Some(Awaiting::Paused {
-            iter: await_iter_for(&fut)?.unbind(),
+            // our own coroutine is an iterator so use that
+            iter: coro.into_any().cast_into::<PyIterator>()?.unbind(),
             last,
         });
         Ok(())
@@ -361,7 +402,7 @@ impl RyRequestBodyPump {
         }
     }
 
-    fn step<'py>(&mut self, py: Python<'py>, value: &Bound<'py, PyAny>) -> PyResult<Py<PyAny>> {
+    fn advance<'py>(&mut self, py: Python<'py>, value: &Bound<'py, PyAny>) -> PyResult<Py<PyAny>> {
         if self.tx.is_none() {
             return Err(py_runtime_error!("cannot reuse already awaited coroutine"));
         }
@@ -418,7 +459,7 @@ impl RyRequestBodyPump {
             Err(e) if e.is_instance_of::<PyStopIteration>(py) => {
                 let value = e.value(py).getattr(pyo3::intern!(py, "value"))?;
                 if self.on_return(py, &awaiting, &value)? {
-                    self.step(py, py.None().bind(py))
+                    self.advance(py, py.None().bind(py))
                 } else {
                     self.done()
                 }
@@ -431,41 +472,18 @@ impl RyRequestBodyPump {
 
 #[pymethods]
 impl RyRequestBodyPump {
-    fn __call__(slf: &Bound<'_, Self>) -> PyResult<()> {
-        let py = slf.py();
-        let src = {
-            let pump = slf.borrow();
-            if pump.is_closed() {
-                return Ok(());
-            }
-            Arc::clone(&pump.src)
-        };
-        let task = match ensure_future_pyfn(py).and_then(|f| f.call1((slf,))) {
-            Ok(task) => task,
-            Err(e) => {
-                slf.borrow_mut().ofuk(py, &e);
-                return Err(e);
-            }
-        };
-        // pump may have finished ~ dont keep if done/dead
-        if slf.borrow().tx.is_some() {
-            *src.task() = Some(task.unbind());
-        }
-        Ok(())
-    }
-
     fn __await__(slf: Py<Self>) -> Py<Self> {
         slf
     }
 
     fn __next__(&mut self, py: Python<'_>) -> PyResult<Py<PyAny>> {
-        let res = self.step(py, py.None().bind(py));
+        let res = self.advance(py, py.None().bind(py));
         self.fwd_pyerr(py, res)
     }
 
     #[pyo3(name = "send")]
     fn py_send(&mut self, py: Python<'_>, value: &Bound<'_, PyAny>) -> PyResult<Py<PyAny>> {
-        let res = self.step(py, value);
+        let res = self.advance(py, value);
         self.fwd_pyerr(py, res)
     }
 
@@ -497,24 +515,19 @@ impl futures_core::Stream for PyBodySyncStream {
     type Item = BodyItem;
 
     #[inline]
-    fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
-        self.0.poll_recv(cx, REQ_BODY_CHANNEL_CAP_SYNC, |iter, tx| {
-            get_tokio_runtime().spawn_blocking(move || pump_request_body_sync(&iter, &tx));
-        })
-    }
-}
-
-fn start_request_body_pump(src: &Arc<AsyncBodySrc>, tx: &mpsc::Sender<BodyItem>) {
-    Python::attach(|py| {
-        let pump = RyRequestBodyPump {
-            src: Arc::clone(src),
-            tx: Some(tx.clone()),
-            awaiting: None,
-        };
-        if let Err(e) = Bound::new(py, pump).and_then(|pump| src.call_soon(py, (pump,))) {
-            let _ = tx.try_send(Err(e));
+    fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
+        let this = self.get_mut();
+        if let Self::Idle(_) = this {
+            let (tx, rx) = mpsc::channel(REQ_BODY_CHANNEL_CAP_SYNC);
+            if let Self::Idle(iter) = std::mem::replace(this, Self::Running(rx)) {
+                get_tokio_runtime().spawn_blocking(move || pump_request_body_sync(&iter, &tx));
+            }
         }
-    });
+        let Self::Running(rx) = this else {
+            unreachable!("started right above")
+        };
+        rx.poll_recv(cx)
+    }
 }
 
 impl futures_core::Stream for PyBodyAsyncStream {
@@ -522,29 +535,28 @@ impl futures_core::Stream for PyBodyAsyncStream {
 
     #[inline]
     fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
-        self.rx
-            .poll_recv(cx, REQ_BODY_CHANNEL_CAP_ASYNC, |src, tx| {
-                get_tokio_runtime().spawn_blocking(move || start_request_body_pump(&src, &tx));
-            })
+        if !self.polled {
+            self.polled = true;
+            // never primed => nobody will ever send; err instead of hanging
+            if self.src.tx().take().is_some() {
+                return Poll::Ready(Some(Err(py_runtime_error!(
+                    "async request body was never started"
+                ))));
+            }
+        }
+        self.rx.poll_recv(cx)
     }
 }
 
 impl Drop for PyBodyAsyncStream {
     fn drop(&mut self) {
-        if let RequestBodyRx::Running(rx) = &mut self.rx {
-            rx.close();
-        }
-        // dropped mid `__anext__` ~ cancel it (not on a tokio bc gil)
-        let Some(task) = self.src.task().take() else {
+        self.rx.close();
+        // dropped mid `__anext__` ~ cancel it over on the loop (no gil here)
+        let Some((event_loop, task)) = self.src.aio_task().take() else {
             return;
         };
-        let src = Arc::clone(&self.src);
-        get_tokio_runtime().spawn_blocking(move || {
-            Python::attach(move |py| {
-                let _ = task
-                    .getattr(py, pyo3::intern!(py, "cancel"))
-                    .and_then(|cancel| src.call_soon(py, (cancel,)));
-            });
+        event_loop.call_soon(move |py| {
+            let _ = task.call_method0(py, pyo3::intern!(py, "cancel"));
         });
     }
 }
@@ -552,24 +564,23 @@ impl Drop for PyBodyAsyncStream {
 impl PyBody {
     #[inline]
     fn sync_stream(iter: Py<PyAny>) -> Self {
-        Self::Stream(PyBodyStream::Sync(PyBodySyncStream(PyBodySyncRx::Idle(
-            iter,
-        ))))
+        Self::Stream(PyBodyStream::Sync(PyBodySyncStream::Idle(iter)))
     }
 
     #[inline]
     fn async_stream(aiter: &Bound<'_, PyAny>) -> PyResult<Self> {
         let py = aiter.py();
-        let locals = pyo3_async_runtimes::tokio::get_current_locals(py)?;
         let anext = aiter.getattr(pyo3::intern!(py, "__anext__"))?.unbind();
+        let (tx, rx) = mpsc::channel(REQ_BODY_CHANNEL_CAP_ASYNC);
         let src = Arc::new(AsyncBodySrc {
             anext,
-            locals,
-            task: Mutex::new(None),
+            aio_task: Mutex::new(None),
+            tx: Mutex::new(Some(tx)),
         });
         Ok(Self::Stream(PyBodyStream::Async(PyBodyAsyncStream {
-            rx: PyBodyAsyncRx::Idle(Arc::clone(&src)),
+            rx,
             src,
+            polled: false,
         })))
     }
 }

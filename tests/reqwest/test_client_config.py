@@ -38,7 +38,7 @@ _DEFAULT_CONFIG: ClientConfig = {
     "http2_initial_stream_window_size": None,
     "http2_initial_connection_window_size": None,
     "http2_adaptive_window": False,
-    "http2_max_frame_size": None,
+    "http2_max_frame_size": 65536,
     "http2_max_header_list_size": None,
     "http2_keep_alive_interval": None,
     "http2_keep_alive_timeout": None,

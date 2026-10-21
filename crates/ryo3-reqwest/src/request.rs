@@ -23,6 +23,17 @@ pub(crate) struct ReqwestKwargs<const BLOCKING: bool = false> {
 
 pub(crate) type BlockingReqwestKwargs = ReqwestKwargs<true>;
 
+impl ReqwestKwargs {
+    /// async iterable body ~ the thing that starts it on the loop thread
+    #[inline]
+    pub(crate) fn body_primer(&self) -> Option<crate::body::BodyPrimer> {
+        match &self.body {
+            PyReqwestBody::Stream(s) => s.primer(),
+            _ => None,
+        }
+    }
+}
+
 impl<const BLOCKING: bool> ReqwestKwargs<BLOCKING> {
     /// Apply the kwargs to the `reqwest::RequestBuilder`
     #[inline]
