@@ -8,6 +8,7 @@ use pyo3::prelude::*;
 use pyo3::pyclass::CompareOp;
 use pyo3::types::{PyDict, PyTuple};
 use ryo3_core::{PyAsciiString, map_py_overflow_err, map_py_value_err};
+use ryo3_jiff_core::{JiffOffset, JiffRoundMode, JiffSignedDuration, JiffUnit};
 use ryo3_macro_rules::{any_repr, py_type_err};
 
 use crate::round::RyOffsetRound;
@@ -18,7 +19,6 @@ use crate::ry_timestamp::RyTimestamp;
 use crate::ry_timezone::RyTimeZone;
 use crate::spanish::Spanish;
 use crate::util::SpanKwargs;
-use crate::{JiffOffset, JiffRoundMode, JiffSignedDuration, JiffUnit};
 
 #[pyclass(name = "Offset", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]

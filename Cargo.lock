@@ -2313,11 +2313,23 @@ dependencies = [
  "pyo3",
  "pyo3-build-config",
  "ryo3-core",
+ "ryo3-jiff-core",
  "ryo3-macro-rules",
  "ryo3-pydantic",
  "ryo3-std",
  "serde",
  "serde_json",
+]
+
+[[package]]
+name = "ryo3-jiff-core"
+version = "0.0.104"
+dependencies = [
+ "jiff",
+ "pyo3",
+ "pyo3-build-config",
+ "ryo3-core",
+ "ryo3-macro-rules",
 ]
 
 [[package]]
@@ -2457,6 +2469,7 @@ dependencies = [
  "ryo3-core",
  "ryo3-http",
  "ryo3-jiff",
+ "ryo3-jiff-core",
  "ryo3-std",
  "ryo3-ulid",
  "ryo3-url",
@@ -2499,6 +2512,7 @@ dependencies = [
  "pyo3",
  "ryo3-bytes",
  "ryo3-core",
+ "ryo3-jiff-core",
  "ryo3-macro-rules",
  "ryo3-pydantic",
  "serde",

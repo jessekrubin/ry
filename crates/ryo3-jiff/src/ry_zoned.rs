@@ -10,8 +10,13 @@ use pyo3::pyclass::CompareOp;
 use pyo3::types::{PyDict, PyTuple};
 use pyo3::{BoundObject, IntoPyObjectExt};
 use ryo3_core::{PyAsciiString, map_py_overflow_err, map_py_value_err};
+use ryo3_jiff_core::{
+    JiffDate, JiffEra, JiffEraYear, JiffRoundMode, JiffTime, JiffTimeZoneRef, JiffTzDisambiguation,
+    JiffTzOffsetConflict, JiffUnit, JiffWeekday, JiffZoned, JiffZonedRef, bundled_tzdb,
+};
 use ryo3_macro_rules::{any_repr, py_type_err};
 
+use crate::RyDate;
 use crate::isoformat::PyIsoFormat;
 use crate::py_temporal_like::{TemporalSubInput, TemporalSubOutput};
 use crate::round::RyZonedDateTimeRound;
@@ -23,14 +28,9 @@ use crate::ry_span::RySpan;
 use crate::ry_time::RyTime;
 use crate::ry_timestamp::RyTimestamp;
 use crate::ry_timezone::RyTimeZone;
-use crate::ry_timezone_database::bundled_tzdb;
 use crate::series::RyZonedSeries;
 use crate::spanish::{DurationLike, Spanish};
 use crate::util::SpanKwargs;
-use crate::{
-    JiffDate, JiffEra, JiffEraYear, JiffRoundMode, JiffTime, JiffTimeZoneRef, JiffTzDisambiguation,
-    JiffTzOffsetConflict, JiffUnit, JiffWeekday, JiffZoned, JiffZonedRef, RyDate,
-};
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize), serde(transparent))]
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -71,7 +71,7 @@ impl RyZoned {
         tz: Option<&str>,
     ) -> PyResult<Self> {
         if let Some(tz) = tz {
-            let tz = crate::ry_timezone::get_time_zone(tz).map_err(map_py_value_err)?;
+            let tz = ryo3_jiff_core::get_time_zone(tz).map_err(map_py_value_err)?;
             Date::new(year, month, day)
                 .map_err(map_py_value_err)?
                 .at(hour, minute, second, nanosecond)
@@ -136,7 +136,7 @@ impl RyZoned {
     #[pyo3(signature = (tz = None))]
     fn now(tz: Option<&str>) -> PyResult<Self> {
         if let Some(tz) = tz {
-            let tz = crate::ry_timezone::get_time_zone(tz).map_err(map_py_value_err)?;
+            let tz = ryo3_jiff_core::get_time_zone(tz).map_err(map_py_value_err)?;
             Ok(Self::from(Zoned::now().with_time_zone(tz)))
         } else {
             Ok(Self::from(Zoned::now()))
@@ -299,7 +299,7 @@ impl RyZoned {
     }
 
     fn in_tz(&self, tz: &str) -> PyResult<Self> {
-        let tz = crate::ry_timezone::get_time_zone(tz).map_err(map_py_value_err)?;
+        let tz = ryo3_jiff_core::get_time_zone(tz).map_err(map_py_value_err)?;
         Ok(Self::from(self.0.with_time_zone(tz)))
     }
 

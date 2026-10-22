@@ -53,7 +53,7 @@ pub fn zoned(
     tz: Option<&str>,
 ) -> PyResult<RyZoned> {
     if let Some(tz) = tz {
-        let tz = crate::ry_timezone::get_time_zone(tz).map_err(map_py_value_err)?;
+        let tz = ryo3_jiff_core::get_time_zone(tz).map_err(map_py_value_err)?;
         Date::new(year, month, day)
             .map_err(map_py_value_err)?
             .at(hour, minute, second, nanosecond)

@@ -2,13 +2,17 @@ use std::hash::{DefaultHasher, Hash, Hasher};
 use std::ops::{Div, Mul};
 use std::time::Duration;
 
-#[cfg(feature = "jiff")]
-use jiff::fmt::friendly::Designator;
 use pyo3::basic::CompareOp;
 use pyo3::prelude::*;
 use pyo3::types::{PyAnyMethods, PyDict, PyDictMethods, PyTuple};
 use pyo3::{BoundObject, IntoPyObjectExt};
-use ryo3_core::{PyAsciiString, PyFromStr};
+use ryo3_core::{PyAsciiString, PyCastExactOpt, PyFromStr};
+#[cfg(feature = "jiff")]
+use ryo3_jiff_core::JiffFriendlyDesignator;
+#[cfg(feature = "jiff")]
+use ryo3_jiff_core::fmt::{
+    FRIENDLY_SPAN_PARSER, FRIENDLY_SPAN_PRINTER, TEMPORAL_SPAN_PARSER, TEMPORAL_SPAN_PRINTER,
+};
 use ryo3_macro_rules::{
     py_key_err, py_overflow_err, py_overflow_error, py_type_err, py_value_err, py_zero_division_err,
 };
@@ -22,37 +26,6 @@ const HOURS_PER_DAY: u64 = 24;
 const DAYS_PER_WEEK: u64 = 7;
 const MAX_DAYS: u64 = u64::MAX / (SECS_PER_MINUTE * MINS_PER_HOUR * HOURS_PER_DAY);
 const SECS_PER_WEEK: u64 = SECS_PER_MINUTE * MINS_PER_HOUR * HOURS_PER_DAY * DAYS_PER_WEEK;
-
-// jiff
-#[cfg(feature = "jiff")]
-const TEMPORAL_SPAN_PARSER: jiff::fmt::temporal::SpanParser =
-    jiff::fmt::temporal::SpanParser::new();
-#[cfg(feature = "jiff")]
-const TEMPORAL_SPAN_PRINTER: jiff::fmt::temporal::SpanPrinter =
-    jiff::fmt::temporal::SpanPrinter::new();
-#[cfg(feature = "jiff")]
-const FRIENDLY_SPAN_PARSER: jiff::fmt::friendly::SpanParser =
-    jiff::fmt::friendly::SpanParser::new();
-
-// Maybe use?`HumanTime` designator for friendly parser/printer to avoid
-// ambiguous `µ`:w REF: https://github.com/jessekrubin/ry/discussions/229#discussioncomment-14928815
-// ```txt
-// RUF001 String contains ambiguous `µ` (MICRO SIGN). Did you mean `μ` (GREEK SMALL LETTER MU)?
-//   --> tests\std\test_duration_str.py:45:59
-//    |
-// 43 |         max_dur = ry.Duration.MAX
-// 44 |         iso_str = max_dur.friendly()
-// 45 |         assert iso_str == "5124095576030431h 15s 999ms 999µs 999ns"
-//    |                                                           ^
-// 46 |         parsed_max_dur = ry.Duration.from_str(iso_str)
-// 47 |         assert parsed_max_dur == max_dur
-//    |
-//
-// Found 1 error.
-// ```
-#[cfg(feature = "jiff")]
-const FRIENDLY_SPAN_PRINTER: jiff::fmt::friendly::SpanPrinter =
-    jiff::fmt::friendly::SpanPrinter::new();
 
 #[derive(Copy, Clone, PartialEq, Eq)]
 #[pyclass(name = "Duration", frozen, immutable_type)]
@@ -592,25 +565,14 @@ impl PyDuration {
     }
 
     #[cfg(feature = "jiff")]
-    #[pyo3(signature = (designator = "compact"))]
-    fn friendly(&self, designator: &str) -> PyResult<String> {
-        match designator {
-            "human-time" | "human" => Ok(FRIENDLY_SPAN_PRINTER
-                .designator(Designator::HumanTime)
-                .unsigned_duration_to_string(&self.0)),
-            "short" => Ok(FRIENDLY_SPAN_PRINTER
-                .designator(Designator::Short)
-                .unsigned_duration_to_string(&self.0)),
-            "compact" => Ok(FRIENDLY_SPAN_PRINTER.unsigned_duration_to_string(&self.0)),
-            "verbose" => Ok(FRIENDLY_SPAN_PRINTER
-                .designator(Designator::Verbose)
-                .unsigned_duration_to_string(&self.0)),
-            other => {
-                py_value_err!(
-                    "invalid designator: {other} (expected 'human'/'human-time', 'short', 'compact', or 'verbose')"
-                )
-            }
-        }
+    #[pyo3(
+        signature = (designator = JiffFriendlyDesignator::COMPACT),
+        text_signature = "(self, designator=\"compact\")"
+    )]
+    fn friendly(&self, designator: JiffFriendlyDesignator) -> String {
+        FRIENDLY_SPAN_PRINTER
+            .designator(designator.into())
+            .unsigned_duration_to_string(&self.0)
     }
 
     #[pyo3(signature = (*, secs = None, nanos = None))]
@@ -777,7 +739,7 @@ impl PyDuration {
     #[staticmethod]
     fn from_any<'py>(value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, Self>> {
         let py = value.py();
-        if let Ok(val) = value.cast_exact::<Self>() {
+        if let Some(val) = value.cast_exact_opt::<Self>() {
             Ok(val.as_borrowed().into_bound())
         } else if let Ok(pystr) = value.cast::<pyo3::types::PyString>() {
             let s = pystr.extract::<&str>()?;

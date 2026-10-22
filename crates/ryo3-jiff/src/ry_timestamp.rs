@@ -8,6 +8,7 @@ use pyo3::basic::CompareOp;
 use pyo3::prelude::*;
 use pyo3::types::PyTuple;
 use ryo3_core::{PyAsciiString, map_py_overflow_err, map_py_value_err};
+use ryo3_jiff_core::{JiffDate, JiffRoundMode, JiffTime, JiffTimestamp, JiffUnit};
 use ryo3_macro_rules::{any_repr, py_type_err};
 
 use crate::difference::{RyTimestampDifference, TimestampDifferenceArg};
@@ -17,8 +18,8 @@ use crate::series::RyTimestampSeries;
 use crate::spanish::{DurationLike, Spanish};
 use crate::util::SpanKwargs;
 use crate::{
-    JiffDate, JiffRoundMode, JiffTime, JiffTimestamp, JiffUnit, RyDate, RyDateTime, RyISOWeekDate,
-    RyOffset, RySignedDuration, RySpan, RyTime, RyTimeZone, RyZoned,
+    RyDate, RyDateTime, RyISOWeekDate, RyOffset, RySignedDuration, RySpan, RyTime, RyTimeZone,
+    RyZoned,
 };
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize), serde(transparent))]
@@ -337,7 +338,7 @@ impl RyTimestamp {
     }
 
     fn in_tz(&self, tz: &str) -> PyResult<RyZoned> {
-        let tz = crate::ry_timezone::get_time_zone(tz).map_err(map_py_value_err)?;
+        let tz = ryo3_jiff_core::get_time_zone(tz).map_err(map_py_value_err)?;
         Ok(RyZoned::from(self.0.to_zoned(tz)))
     }
 

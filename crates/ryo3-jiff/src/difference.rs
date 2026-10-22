@@ -57,12 +57,13 @@ use pyo3::IntoPyObjectExt;
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyTuple};
 use ryo3_core::{PyAsciiString, PyCastExactOpt};
+use ryo3_jiff_core::{JiffRoundMode, JiffUnit};
 use ryo3_macro_rules::py_type_err;
 
 use crate::ry_datetime::RyDateTime;
 use crate::ry_time::RyTime;
 use crate::ry_zoned::RyZoned;
-use crate::{JiffRoundMode, JiffUnit, RyDate, RyTimestamp};
+use crate::{RyDate, RyTimestamp};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 struct DifferenceOptions {

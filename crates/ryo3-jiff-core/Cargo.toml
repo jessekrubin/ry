@@ -1,0 +1,31 @@
+[package]
+name = "ryo3-jiff-core"
+version.workspace = true
+authors.workspace = true
+categories.workspace = true
+documentation.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+homepage.workspace = true
+keywords.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "jiff <-> python conversions for ryo3 (no pyclasses)"
+
+[features]
+default = []
+# TODO: type inspection stuff
+# experimental-inspect = ["pyo3/experimental-inspect"]
+serde = ["jiff/serde"]
+
+[dependencies]
+jiff = { workspace = true, features = ["default", "perf-inline"] }
+pyo3 = { workspace = true, features = [] }
+ryo3-core.workspace = true
+ryo3-macro-rules.workspace = true
+
+[build-dependencies]
+pyo3-build-config = { workspace = true }
+
+[lints]
+workspace = true

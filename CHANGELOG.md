@@ -12,6 +12,13 @@
 - misc
   - clean up `pyo3::intern!()` usage
   - fix cert 4 https://emudhra.we-have-a-problem.com/ :wq
+- `ryo3-jiff-core` (new crate)
+  - all `Jiff*` new-types + their python conversions moved out of `ryo3-jiff`
+    into `newts.rs`/`fns.rs`/`to_py.rs`/`from_py.rs`
+  - `JiffPyDateTime` renamed to `JiffAnyDateTime`
+  - `get_time_zone`/`bundled_tzdb` live here now
+  - `ryo3-serde`'s `jiff` feature uses `ryo3-jiff-core` instead of `ryo3-jiff`
+  - fix infinite recursion in `IntoPyObject for &JiffUnit`
 - `ryo3-size`
   - bump `size` to v0.6.0
   - `scale: int | None` (0-255) for `fmt_size`, `Size.format`, and

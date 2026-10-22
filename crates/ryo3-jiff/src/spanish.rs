@@ -6,10 +6,11 @@ use jiff::{SignedDuration, TimestampArithmetic, ZonedArithmetic};
 use pyo3::prelude::*;
 use pyo3::types::PyDelta;
 use ryo3_core::PyCastExactOpt;
+use ryo3_jiff_core::JiffSignedDuration;
 use ryo3_macro_rules::py_type_err;
 use ryo3_std::time::PyDuration;
 
-use crate::{JiffSignedDuration, RySignedDuration, RySpan};
+use crate::{RySignedDuration, RySpan};
 
 /// `ry.Duration | datetime.timedelta`
 ///

@@ -111,14 +111,14 @@ impl PyIsoFormat for RyOffset {
     fn isoformat(&self) -> PyAsciiString {
         let offset: Offset = self.0;
         let mut s = String::with_capacity(6);
-        print_isoformat_offset(offset, &mut s).expect("will not fail bc we're writing to a string");
+        print_isoformat_offset(offset, &mut s).expect("wenodis: write 2 string");
         s.into()
     }
 }
 
 impl PyIsoFormat for RySignedDuration {
     fn isoformat(&self) -> PyAsciiString {
-        crate::constants::SPAN_PRINTER_TEMPORAL
+        ryo3_jiff_core::fmt::TEMPORAL_SPAN_PRINTER
             .duration_to_string(&self.0)
             .into()
     }
@@ -126,7 +126,7 @@ impl PyIsoFormat for RySignedDuration {
 
 impl PyIsoFormat for RySpan {
     fn isoformat(&self) -> PyAsciiString {
-        crate::constants::SPAN_PRINTER_TEMPORAL
+        ryo3_jiff_core::fmt::TEMPORAL_SPAN_PRINTER
             .span_to_string(&self.0)
             .into()
     }
@@ -163,13 +163,13 @@ impl PyIsoFormat for RyZoned {
         if self.0.datetime().microsecond() == 0 && self.0.subsec_nanosecond() == 0 {
             ISOFORMAT_PRINTER_NO_MICROS
                 .print_datetime(&dattie, &mut s)
-                .expect("will not fail bc we're writing to a string");
+                .expect("wenodis: write 2 string");
         } else {
             ISOFORMAT_PRINTER
                 .print_datetime(&dattie, &mut s)
-                .expect("will not fail bc we're writing to a string");
+                .expect("wenodis: write 2 string");
         }
-        print_isoformat_offset(offset, &mut s).expect("will not fail bc we're writing to a string");
+        print_isoformat_offset(offset, &mut s).expect("wenodis: write 2 string");
         s.into()
     }
 }

@@ -56,11 +56,10 @@ use pyo3::IntoPyObjectExt;
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyTuple};
 use ryo3_core::PyAsciiString;
+use ryo3_jiff_core::{JiffRoundMode, JiffUnit};
 use ryo3_macro_rules::py_value_error;
 
-use crate::{
-    JiffRoundMode, JiffUnit, RyDateTime, RyOffset, RySignedDuration, RyTime, RyTimestamp, RyZoned,
-};
+use crate::{RyDateTime, RyOffset, RySignedDuration, RyTime, RyTimestamp, RyZoned};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub(crate) struct RoundOptions {

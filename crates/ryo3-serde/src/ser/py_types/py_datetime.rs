@@ -32,7 +32,7 @@ impl Serialize for PyDateSerializer<'_, '_> {
     where
         S: Serializer,
     {
-        use ryo3_jiff::JiffDate;
+        use ryo3_jiff_core::JiffDate;
 
         let date_jiff = self
             .obj
@@ -84,7 +84,7 @@ impl Serialize for PyTimeSerializer<'_, '_> {
     where
         S: Serializer,
     {
-        use ryo3_jiff::JiffTime;
+        use ryo3_jiff_core::JiffTime;
 
         let time_jiff = self
             .obj
@@ -138,11 +138,11 @@ impl Serialize for PyDateTimeSerializer<'_, '_> {
     {
         let pydt = self
             .obj
-            .extract::<ryo3_jiff::JiffPyDateTime>()
+            .extract::<ryo3_jiff_core::JiffDateTimeOrZoned>()
             .map_err(pyerr2sererr)?;
         match pydt {
-            ryo3_jiff::JiffPyDateTime::Aware(zdt) => zdt.serialize(serializer),
-            ryo3_jiff::JiffPyDateTime::Naive(dt) => dt.serialize(serializer),
+            ryo3_jiff_core::JiffDateTimeOrZoned::Aware(zdt) => zdt.serialize(serializer),
+            ryo3_jiff_core::JiffDateTimeOrZoned::Naive(dt) => dt.serialize(serializer),
         }
     }
 }
@@ -190,7 +190,7 @@ impl Serialize for PyTimeDeltaSerializer<'_, '_> {
     where
         S: Serializer,
     {
-        use ryo3_jiff::JiffSignedDuration;
+        use ryo3_jiff_core::JiffSignedDuration;
 
         let signed_duration = self
             .obj

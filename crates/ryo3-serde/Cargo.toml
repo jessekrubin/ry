@@ -14,8 +14,7 @@ description = "python + serde"
 
 [features]
 default = ["ry"]
-# remove/shift when we use ryo3-jiff-core
-jiff = ["ryo3-jiff"]
+jiff = ["dep:ryo3-jiff-core"]
 ryo3-std = ["dep:ryo3-std", "dep:jiff"]
 ry = [
   "jiff",
@@ -33,6 +32,7 @@ pyo3 = { workspace = true, features = ["uuid"] }
 ryo3-core.workspace = true
 ryo3-http = { workspace = true, optional = true, features = ["serde"] }
 ryo3-jiff = { workspace = true, optional = true, features = ["serde"] }
+ryo3-jiff-core = { workspace = true, optional = true, features = ["serde"] }
 ryo3-std = { workspace = true, optional = true, features = [
   "serde",
   "net",

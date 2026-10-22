@@ -188,6 +188,7 @@ jobs:
             -p ryo3-http
             -p ryo3-ignore
             -p ryo3-jiff
+            -p ryo3-jiff-core
             -p ryo3-jiter
             -p ryo3-json
             -p ryo3-json-ser

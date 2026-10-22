@@ -4,9 +4,9 @@ use jiff::Zoned;
 use jiff::civil::DateTime;
 use jiff::tz::TimeZone;
 use ryo3_core::PyFromStr;
+use ryo3_jiff_core::bundled_tzdb;
 
 use crate::isoformat::parse_iso_week_date;
-use crate::ry_timezone_database::bundled_tzdb;
 use crate::{
     RyDate, RyDateTime, RyISOWeekDate, RyOffset, RySignedDuration, RySpan, RyTime, RyTimeZone,
     RyTimestamp, RyZoned,
@@ -66,7 +66,7 @@ impl PyFromStr for RyISOWeekDate {
 impl PyFromStr for RyTimeZone {
     #[inline]
     fn py_from_str(s: &str) -> pyo3::PyResult<Self> {
-        crate::ry_timezone::get_time_zone(s)
+        ryo3_jiff_core::get_time_zone(s)
             .map(Self::from)
             .map_err(ryo3_core::map_py_value_err)
     }

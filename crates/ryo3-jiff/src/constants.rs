@@ -1,11 +1,5 @@
-pub(crate) static DATETIME_PARSER: jiff::fmt::temporal::DateTimeParser =
+pub(crate) const DATETIME_PARSER: jiff::fmt::temporal::DateTimeParser =
     jiff::fmt::temporal::DateTimeParser::new();
-pub(crate) static SPAN_PARSER: jiff::fmt::temporal::SpanParser =
-    jiff::fmt::temporal::SpanParser::new();
-pub(crate) static SPAN_PRINTER_TEMPORAL: jiff::fmt::temporal::SpanPrinter =
-    jiff::fmt::temporal::SpanPrinter::new();
-pub(crate) static SPAN_PRINTER_FRIENDLY: jiff::fmt::friendly::SpanPrinter =
-    jiff::fmt::friendly::SpanPrinter::new();
 
 // UNITS
 pub(crate) const NANOSECONDS_PER_SECOND: i32 = 1_000_000_000;
