@@ -10,7 +10,7 @@ use crate::py_regex_options::PyRegexOptions;
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Clone, Debug)]
 pub struct PyRegex {
-    pub re: std::sync::Arc<Regex>,
+    pub re: Regex,
     pub options: Option<PyRegexOptions>,
 }
 
@@ -19,10 +19,7 @@ impl TryFrom<&str> for PyRegex {
 
     fn try_from(s: &str) -> Result<Self, Self::Error> {
         Regex::new(s)
-            .map(|re| Self {
-                re: std::sync::Arc::new(re),
-                options: None,
-            })
+            .map(|re| Self { re, options: None })
             .map_err(|e| {
                 PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Invalid regex: {e}"))
             })
@@ -31,10 +28,7 @@ impl TryFrom<&str> for PyRegex {
 
 impl From<Regex> for PyRegex {
     fn from(re: Regex) -> Self {
-        Self {
-            re: std::sync::Arc::new(re),
-            options: None,
-        }
+        Self { re, options: None }
     }
 }
 
@@ -43,10 +37,7 @@ impl TryFrom<RegexBuilder> for PyRegex {
 
     fn try_from(rb: RegexBuilder) -> Result<Self, Self::Error> {
         rb.build()
-            .map(|re| Self {
-                re: std::sync::Arc::new(re),
-                options: None,
-            })
+            .map(|re| Self { re, options: None })
             .map_err(|e| {
                 PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Invalid regex: {e}"))
             })
@@ -102,7 +93,7 @@ impl PyRegex {
 
         let re = options.build_pattern(pattern)?;
         Ok(Self {
-            re: std::sync::Arc::new(re),
+            re,
             options: Some(options),
         })
     }

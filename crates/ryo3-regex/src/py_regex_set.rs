@@ -7,14 +7,14 @@ use std::borrow::{Borrow, Cow};
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Clone, Debug)]
 pub struct PyRegexSet {
-    pub re: std::sync::Arc<RegexSet>,
+    pub re: RegexSet,
     pub options: Option<PyRegexOptions>,
 }
 
 impl From<RegexSet> for PyRegexSet {
     fn from(re: RegexSet) -> Self {
         Self {
-            re: std::sync::Arc::new(re),
+            re,
             options: None,
         }
     }
@@ -26,7 +26,7 @@ impl TryFrom<RegexSetBuilder> for PyRegexSet {
     fn try_from(rb: RegexSetBuilder) -> Result<Self, Self::Error> {
         rb.build()
             .map(|re| Self {
-                re: std::sync::Arc::new(re),
+                re,
                 options: None,
             })
             .map_err(|e| {
@@ -84,7 +84,7 @@ impl PyRegexSet {
 
         let re = options.build_patterns(pattern)?;
         Ok(Self {
-            re: std::sync::Arc::new(re),
+            re,
             options: Some(options),
         })
     }

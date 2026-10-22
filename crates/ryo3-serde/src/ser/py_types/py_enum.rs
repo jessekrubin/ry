@@ -38,11 +38,11 @@ where
     where
         S: Serializer,
     {
-        // TODO: use `getattr_opt` ?
         let value = self
             .obj
-            .getattr(pyo3::intern!(self.obj.py(), "value"))
-            .map_err(pyerr2sererr)?;
+            .getattr_opt(pyo3::intern!(self.obj.py(), "value"))
+            .map_err(pyerr2sererr)?
+            .ok_or_else(|| serde::ser::Error::custom("enum has no `.value`"))?;
         PyAnySerializer::new_with_depth(value.as_borrowed(), self.ctx, self.depth)
             .serialize(serializer)
     }

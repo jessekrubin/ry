@@ -9,7 +9,7 @@ use std::path::PathBuf;
 use ::which as which_rs;
 use pyo3::prelude::*;
 #[cfg(feature = "regex")]
-pub use which_regex::which_re;
+pub use which_regex::{PyArgWhichRegex, which_re};
 
 #[pyfunction]
 #[pyo3(signature = (cmd, path = None))]
@@ -24,7 +24,7 @@ pub fn which(py: Python<'_>, cmd: &str, path: Option<&str>) -> PyResult<Option<P
                     Err(_e) => Ok(None),
                 }
             }
-            Err(_e) => Err(PyErr::new::<pyo3::exceptions::PyOSError, _>(
+            Err(_e) => Err(pyo3::exceptions::PyOSError::new_err(
                 "which: current directory is not a valid path",
             )),
         }
@@ -50,9 +50,7 @@ pub fn which_all(py: Python<'_>, cmd: &str, path: Option<&str>) -> PyResult<Vec<
             .map(|p| p.into_iter().collect::<Vec<PathBuf>>())
     })
     .map_err(|_| {
-        PyErr::new::<pyo3::exceptions::PyOSError, _>(
-            "which_all: current directory is not a valid path",
-        )
+        pyo3::exceptions::PyOSError::new_err("which_all: current directory is not a valid path")
     })
 }
 

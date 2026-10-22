@@ -14,7 +14,6 @@ use crate::ser::py_types::{
     PyNoneSerializer, PySetSerializer, PyStrSerializer, PyTimeDeltaSerializer, PyTimeSerializer,
     PyTupleSerializer, PyUnknownSerializer, PyUuidSerializer,
 };
-// TODO: when ryo3-jiff-core is introduced
 #[cfg(any(
     feature = "ryo3-http",
     feature = "ryo3-jiff",

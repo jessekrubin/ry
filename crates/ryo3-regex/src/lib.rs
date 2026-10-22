@@ -4,6 +4,7 @@ mod py_regex;
 mod py_regex_options;
 
 use pyo3::prelude::*;
+pub use regex::Regex;
 
 pub use crate::py_regex::PyRegex;
 
