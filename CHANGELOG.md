@@ -7,7 +7,7 @@
 
 ---
 
-## v0.0.104 [unreleased]
+## v0.0.104 [2026-10-21]
 
 - misc
   - clean up `pyo3::intern!()` usage
