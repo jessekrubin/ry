@@ -152,7 +152,7 @@ impl RyZoned {
     #[pyo3(signature = (timestamp, time_zone))]
     fn from_parts(timestamp: &RyTimestamp, time_zone: &RyTimeZone) -> Self {
         let ts = timestamp.0;
-        Self::from(Zoned::new(ts, time_zone.into()))
+        Self::from(Zoned::new(ts, time_zone.to_inner()))
     }
 
     // ========================================================================
@@ -641,7 +641,7 @@ impl RyZoned {
     }
 
     fn with_time_zone(&self, tz: &RyTimeZone) -> Self {
-        self.0.with_time_zone(tz.into()).into()
+        self.0.with_time_zone(tz.to_inner()).into()
     }
 
     pub(crate) fn iso_week_date(&self) -> RyISOWeekDate {

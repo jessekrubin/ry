@@ -20,6 +20,16 @@ use crate::ry_zoned::RyZoned;
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyTimeZone(pub(crate) TimeZone);
 
+impl RyTimeZone {
+    fn inner(&self) -> &TimeZone {
+        &self.0
+    }
+
+    pub(crate) fn to_inner(&self) -> TimeZone {
+        self.inner().clone()
+    }
+}
+
 #[pymethods]
 impl RyTimeZone {
     #[new]

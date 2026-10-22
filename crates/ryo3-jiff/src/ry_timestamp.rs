@@ -110,7 +110,7 @@ impl RyTimestamp {
 
     #[expect(clippy::wrong_self_convention)]
     fn to_zoned(&self, time_zone: &RyTimeZone) -> RyZoned {
-        Zoned::new(self.0, time_zone.into()).into()
+        Zoned::new(self.0, time_zone.to_inner()).into()
     }
 
     #[expect(clippy::wrong_self_convention)]

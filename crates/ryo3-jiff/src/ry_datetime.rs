@@ -366,7 +366,7 @@ impl RyDateTime {
     #[expect(clippy::wrong_self_convention)]
     fn to_zoned(&self, tz: &RyTimeZone) -> PyResult<RyZoned> {
         self.0
-            .to_zoned(tz.into())
+            .to_zoned(tz.to_inner())
             .map(RyZoned::from)
             .map_err(map_py_value_err)
     }

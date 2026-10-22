@@ -217,9 +217,9 @@ mod dangerzone {
     //! Using this yields a 10% ish speedup....
     //!
     //! `PyASCIIObject.state` bitfield layout (AFAICT):
-    //! - with-gil: `interned:2` so `kind` starts at bit 2
-    //! - sans-gil (Py_GIL_DISABLED): `interned` is a whole `unsigned char` (atomic)
-    //!   so `kind` starts at bit 8
+    //! - with-gil: `interned:2` SOOOOO `kind` starts at the 2nd-bit
+    //! - sans-gil (`Py_GIL_DISABLED`): `interned` is a whole `unsigned char` (atomic)
+    //!   so `kind` starts at the 8th-bit
     //!
     //! `compact`/`ascii` follow `kind:3` (`+3`/`+4`)
     //!

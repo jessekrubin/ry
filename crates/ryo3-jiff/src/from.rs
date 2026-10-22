@@ -175,13 +175,6 @@ impl From<RyTimeZone> for TimeZone {
     }
 }
 
-// TODO: Consider nuking this (hidden clone)
-impl From<&RyTimeZone> for TimeZone {
-    fn from(value: &RyTimeZone) -> Self {
-        value.0.clone()
-    }
-}
-
 impl TryFrom<SignedDuration> for RySpan {
     type Error = pyo3::PyErr;
 
