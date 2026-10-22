@@ -98,7 +98,7 @@ class ClientConfig(t.TypedDict):
 
 @t.final
 class Client:
-    """experimental client using the `pyo3/experimental-async` feature"""
+    """async http client"""
     def __new__(
         cls,
         *,
@@ -127,7 +127,7 @@ class Client:
         http2_initial_stream_window_size: int | None = None,
         http2_initial_connection_window_size: int | None = None,
         http2_adaptive_window: bool = False,
-        http2_max_frame_size: int | None = 65536,
+        http2_max_frame_size: int | None = 65_536,
         http2_max_header_list_size: int | None = None,
         http2_keep_alive_interval: Duration | None = None,
         http2_keep_alive_timeout: Duration | None = None,
@@ -244,7 +244,7 @@ class BlockingClient:
         http2_initial_stream_window_size: int | None = None,
         http2_initial_connection_window_size: int | None = None,
         http2_adaptive_window: bool = False,
-        http2_max_frame_size: int | None = 65536,
+        http2_max_frame_size: int | None = 65_536,
         http2_max_header_list_size: int | None = None,
         http2_keep_alive_interval: Duration | None = None,
         http2_keep_alive_timeout: Duration | None = None,

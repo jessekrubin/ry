@@ -131,11 +131,11 @@ impl<'a, 'py> KwargsIter<'a, 'py> {
 impl<'a, 'py> Iterator for KwargsIter<'a, 'py> {
     type Item = PyResult<(&'a str, Borrowed<'a, 'py, PyAny>)>;
     fn next(&mut self) -> Option<Self::Item> {
-        use crate::PyCastExactOpt;
+        use crate::{PyCastExactOpt, pystr_read_fast};
         self.0.next().map(|(key, value)| {
             key.cast_exact_opt::<pyo3::types::PyString>()
                 .ok_or_else(|| pyo3::exceptions::PyTypeError::new_err("non-str kwarg"))
-                .and_then(crate::pystr_read_fast)
+                .and_then(pystr_read_fast)
                 .map(|key_str| (key_str, value))
         })
     }

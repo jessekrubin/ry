@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import asyncio
 import re
+import types
 import typing as t
 from pathlib import Path
 
@@ -266,3 +268,71 @@ class TestAsyncFileReadStreamErrors:
         """Test that read_size of zero raises ValueError."""
         with pytest.raises(ValueError, match="read_size must be greater than 0"):
             _rs = ry.read_stream_async(_THIS_FILEPATH_ABSOLUTE, read_size=0)
+
+
+class TestAsyncFileReadStreamCoroutines:
+    @pytest.fixture
+    def path(self, tmp_path: Path) -> Path:
+        p = tmp_path / "test.txt"
+        p.write_bytes(b"0123456789" * 10)
+        return p
+
+    async def test_qualnames(self, path: Path) -> None:
+        stream = ry.read_stream_async(path, read_size=10)
+        coros: dict[str, t.Any] = {
+            "AsyncFileReadStream.__await__": stream.__await__(),  # noqa: PLC2801
+            "AsyncFileReadStream.__aenter__": stream.__aenter__(),  # noqa: PLC2801
+            "AsyncFileReadStream.__aexit__": stream.__aexit__(None, None, None),  # noqa: PLC2801
+            "AsyncFileReadStream.__anext__": anext(stream),
+            "AsyncFileReadStream.take": stream.take(),
+            "AsyncFileReadStream.collect": stream.collect(),
+            "AsyncFileReadStream.close": stream.close(),
+        }
+        for qualname, coro in coros.items():
+            assert coro.__qualname__ == qualname
+            assert asyncio.iscoroutine(coro)
+            coro.close()
+
+    async def test_await_returns_self(self, path: Path) -> None:
+        stream = ry.read_stream_async(path, read_size=10)
+        assert await stream is stream
+
+    async def test_yield_from_await_adapter(self, path: Path) -> None:
+        @types.coroutine
+        def _yield_from(aw: t.Any) -> t.Generator[t.Any, t.Any, t.Any]:
+            return (yield from aw.__await__())
+
+        stream = ry.read_stream_async(path, read_size=10)
+        assert await _yield_from(stream) is stream
+        assert await _yield_from(anext(stream)) == b"0123456789"
+
+    async def test_async_with(self, path: Path) -> None:
+        async with ry.read_stream_async(path, read_size=10) as stream:
+            assert await stream.take(2) == [b"0123456789"] * 2
+        # closed ~ next read re-opens from the start
+        assert await stream.take(1) == [b"0123456789"]
+
+    async def test_close_is_lazy(self, path: Path) -> None:
+        stream = await ry.read_stream_async(path, read_size=10)
+        assert await stream.take(1) == [b"0123456789"]
+        stream.close().close()  # never awaited ~ no-op
+        assert len(await stream.collect()) == 9
+
+    async def test_close_resets(self, path: Path) -> None:
+        stream = await ry.read_stream_async(path, read_size=10)
+        assert len(await stream.collect()) == 10
+        with pytest.raises(StopAsyncIteration):
+            await anext(stream)
+        await stream.close()
+        assert len(await stream.collect()) == 10
+
+    async def test_cancelled_collect_releases_lock(self, tmp_path: Path) -> None:
+        p = tmp_path / "big.bin"
+        p.write_bytes(b"x" * (16 * 1024 * 1024))
+        stream = await ry.read_stream_async(p, read_size=1)
+        task = asyncio.create_task(stream.collect())
+        await asyncio.sleep(0)
+        task.cancel()
+        with pytest.raises(asyncio.CancelledError):
+            await task
+        assert len(await asyncio.wait_for(stream.take(1), timeout=5)) == 1

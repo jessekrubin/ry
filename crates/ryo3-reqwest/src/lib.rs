@@ -1,5 +1,4 @@
 #![doc = include_str!("../README.md")]
-mod body;
 mod charset;
 mod client;
 mod client_config;
@@ -10,6 +9,7 @@ mod form_data;
 mod proxy;
 mod pyo3_json_bytes;
 mod request;
+mod request_body;
 mod response;
 mod response_head;
 mod response_stream;
@@ -20,20 +20,20 @@ mod types;
 pub use client::{RyBlockingClient, RyClient};
 pub use client_config::ClientConfig;
 pub use errors::RyReqwestError;
-pub use proxy::PyProxy;
+pub use proxy::RyProxy;
 use pyo3::prelude::*;
 pub use response::{RyBlockingResponse, RyResponse};
 pub use response_stream::{RyBlockingResponseStream, RyResponseStream};
-pub use tls::{PyCertificate, PyCertificateRevocationList, PyIdentity};
+pub use tls::{RyCertificate, RyCertificateRevocationList, RyIdentity};
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     // setup tls provider
     rustls_provider::rustls_provider_install_default();
 
-    m.add_class::<PyCertificate>()?;
-    m.add_class::<PyCertificateRevocationList>()?;
-    m.add_class::<PyIdentity>()?;
-    m.add_class::<PyProxy>()?;
+    m.add_class::<RyCertificate>()?;
+    m.add_class::<RyCertificateRevocationList>()?;
+    m.add_class::<RyIdentity>()?;
+    m.add_class::<RyProxy>()?;
     m.add_class::<RyClient>()?;
     m.add_class::<RyBlockingClient>()?;
     m.add_class::<RyResponse>()?;

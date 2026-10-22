@@ -343,7 +343,7 @@ impl PyLz4FrameCompressor {
         frame_info: Option<PyFrameInfo>,
     ) -> Ryo3Lz4ripResult<Self> {
         let frame_info = frame_info.map(PyFrameInfo::into_inner).unwrap_or_default();
-        let dictionary = dictionary.map(|d| d.to_rybytes());
+        let dictionary = dictionary.map(ReadableBuffer::into_rybytes);
         let dict_id = dict_id.unwrap_or(0);
 
         let encoder = if let Some(dict) = &dictionary {

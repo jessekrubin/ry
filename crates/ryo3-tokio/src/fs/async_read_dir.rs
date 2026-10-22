@@ -4,14 +4,10 @@ use std::path::PathBuf;
 use std::pin::Pin;
 use std::sync::Arc;
 
-#[cfg(feature = "experimental-async")]
-use pyo3::coroutine::CancelHandle;
 use pyo3::prelude::*;
 use ryo3_macro_rules::py_stop_async_iteration_err;
 use ryo3_std::fs::PyMetadata;
-use ryo3_tokio_rt::future_into_py;
-#[cfg(feature = "experimental-async")]
-use ryo3_tokio_rt::on_tokio_py_cancel;
+use ryo3_tokio_rt::{RyCoroutine, tokio_coro};
 use tokio::fs::ReadDir;
 use tokio::sync::Mutex;
 
@@ -31,55 +27,46 @@ impl From<ReadDir> for PyAsyncReadDir {
     }
 }
 
-#[cfg(not(feature = "experimental-async"))]
 #[pymethods]
 impl PyAsyncReadDir {
     fn __aiter__(this: PyRef<Self>) -> PyRef<Self> {
         this
     }
 
-    fn __anext__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
-        let stream = self.stream.clone();
-        future_into_py(py, async move {
+    fn __anext__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, RyCoroutine>> {
+        let stream = Arc::clone(&self.stream);
+        tokio_coro(py, "AsyncReadDir.__anext__", async move {
             let mut guard = stream.lock().await;
-            let nextentry = guard.as_mut().next_entry().await;
-            match nextentry {
-                Ok(Some(entry)) => {
-                    let pde = PyAsyncDirEntry::from(entry);
-                    Ok(pde)
-                }
+            match guard.as_mut().next_entry().await {
+                Ok(Some(entry)) => Ok(PyAsyncDirEntry::from(entry)),
                 Ok(None) => py_stop_async_iteration_err!("fin"),
                 Err(e) => Err(PyErr::from(e)),
             }
         })
     }
 
-    fn collect<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
-        let stream = self.stream.clone();
-        future_into_py(py, async move {
+    fn collect<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, RyCoroutine>> {
+        let stream = Arc::clone(&self.stream);
+        tokio_coro(py, "AsyncReadDir.collect", async move {
             let mut guard = stream.lock().await;
             let mut entries = Vec::new();
             while let Some(entry) = guard.as_mut().next_entry().await? {
-                let pde = PyAsyncDirEntry::from(entry);
-                entries.push(pde);
+                entries.push(PyAsyncDirEntry::from(entry));
             }
             Ok(entries)
         })
     }
 
-    fn take<'py>(&self, py: Python<'py>, n: u32) -> PyResult<Bound<'py, PyAny>> {
-        let stream = self.stream.clone();
-        future_into_py(py, async move {
+    #[pyo3(signature = (n = 1))]
+    fn take<'py>(&self, py: Python<'py>, n: u32) -> PyResult<Bound<'py, RyCoroutine>> {
+        let stream = Arc::clone(&self.stream);
+        tokio_coro(py, "AsyncReadDir.take", async move {
             let mut guard = stream.lock().await;
             let mut entries = Vec::new();
             for _ in 0..n {
-                match guard.as_mut().next_entry().await {
-                    Ok(Some(entry)) => {
-                        let pde = PyAsyncDirEntry::from(entry);
-                        entries.push(pde);
-                    }
-                    Ok(None) => break,
-                    Err(e) => return Err(PyErr::from(e)),
+                match guard.as_mut().next_entry().await? {
+                    Some(entry) => entries.push(PyAsyncDirEntry::from(entry)),
+                    None => break,
                 }
             }
             Ok(entries)
@@ -87,76 +74,6 @@ impl PyAsyncReadDir {
     }
 }
 
-#[cfg(feature = "experimental-async")]
-#[pymethods]
-impl PyAsyncReadDir {
-    fn __aiter__(this: PyRef<Self>) -> PyRef<Self> {
-        this
-    }
-
-    fn __anext__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
-        let stream = self.stream.clone();
-        future_into_py(py, async move {
-            let mut guard = stream.lock().await;
-            let nextentry = guard.as_mut().next_entry().await;
-            match nextentry {
-                Ok(Some(entry)) => {
-                    let pde = PyAsyncDirEntry::from(entry);
-                    Ok(pde)
-                }
-                Ok(None) => py_stop_async_iteration_err!("fin"),
-                Err(e) => Err(PyErr::from(e)),
-            }
-        })
-    }
-
-    async fn collect(
-        &self,
-        #[pyo3(cancel_handle)] cancel: CancelHandle,
-    ) -> PyResult<Vec<PyAsyncDirEntry>> {
-        let stream = self.stream.clone();
-        on_tokio_py_cancel(
-            async move {
-                let mut guard = stream.lock().await;
-                let mut entries = Vec::new();
-                while let Some(entry) = guard.as_mut().next_entry().await? {
-                    let pde = PyAsyncDirEntry::from(entry);
-                    entries.push(pde);
-                }
-                Ok(entries)
-            },
-            cancel,
-        )
-        .await
-    }
-
-    async fn take(
-        &self,
-        n: u32,
-        #[pyo3(cancel_handle)] cancel: CancelHandle,
-    ) -> PyResult<Vec<PyAsyncDirEntry>> {
-        let stream = self.stream.clone();
-        on_tokio_py_cancel(
-            async move {
-                let mut guard = stream.lock().await;
-                let mut entries = Vec::new();
-                for _ in 0..n {
-                    match guard.as_mut().next_entry().await {
-                        Ok(Some(entry)) => {
-                            let pde = PyAsyncDirEntry::from(entry);
-                            entries.push(pde);
-                        }
-                        Ok(None) => break,
-                        Err(e) => return Err(PyErr::from(e)),
-                    }
-                }
-                Ok(entries)
-            },
-            cancel,
-        )
-        .await
-    }
-}
 #[pyclass(name = "AsyncDirEntry", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 struct PyAsyncDirEntry(pub Arc<tokio::fs::DirEntry>);
@@ -167,48 +84,6 @@ impl From<tokio::fs::DirEntry> for PyAsyncDirEntry {
     }
 }
 
-#[cfg(not(feature = "experimental-async"))]
-#[pymethods]
-impl PyAsyncDirEntry {
-    fn __repr__(&self) -> String {
-        format!("{self}")
-    }
-
-    #[must_use]
-    fn __fspath__(&self) -> OsString {
-        let p = self.0.path();
-        p.into_os_string()
-    }
-
-    #[getter]
-    fn path(&self) -> PathBuf {
-        self.0.path()
-    }
-
-    #[getter]
-    fn filename(&self) -> OsString {
-        self.0.file_name()
-    }
-
-    fn file_type<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
-        let inner = self.0.clone();
-
-        future_into_py(py, async move {
-            let file_type = inner.file_type().await.map_err(PyErr::from)?;
-            Ok(ryo3_std::fs::PyFileType::from(file_type))
-        })
-    }
-
-    fn metadata<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
-        let inner = self.0.clone();
-        future_into_py(py, async move {
-            let metadata = inner.metadata().await.map_err(PyErr::from)?;
-            Ok(PyMetadata::from(metadata))
-        })
-    }
-}
-
-#[cfg(feature = "experimental-async")]
 #[pymethods]
 impl PyAsyncDirEntry {
     fn __repr__(&self) -> String {
@@ -230,31 +105,20 @@ impl PyAsyncDirEntry {
         self.0.file_name()
     }
 
-    async fn file_type(
-        &self,
-        #[pyo3(cancel_handle)] cancel: CancelHandle,
-    ) -> PyResult<ryo3_std::fs::PyFileType> {
-        let inner = self.0.clone();
-        on_tokio_py_cancel(
-            async move {
-                let file_type = inner.file_type().await?;
-                Ok(ryo3_std::fs::PyFileType::from(file_type))
-            },
-            cancel,
-        )
-        .await
+    fn file_type<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, RyCoroutine>> {
+        let inner = Arc::clone(&self.0);
+        tokio_coro(py, "AsyncDirEntry.file_type", async move {
+            let file_type = inner.file_type().await?;
+            Ok(ryo3_std::fs::PyFileType::from(file_type))
+        })
     }
 
-    async fn metadata(&self, #[pyo3(cancel_handle)] cancel: CancelHandle) -> PyResult<PyMetadata> {
-        let inner = self.0.clone();
-        on_tokio_py_cancel(
-            async move {
-                let metadata = inner.metadata().await?;
-                Ok(PyMetadata::from(metadata))
-            },
-            cancel,
-        )
-        .await
+    fn metadata<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, RyCoroutine>> {
+        let inner = Arc::clone(&self.0);
+        tokio_coro(py, "AsyncDirEntry.metadata", async move {
+            let metadata = inner.metadata().await?;
+            Ok(PyMetadata::from(metadata))
+        })
     }
 }
 

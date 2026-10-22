@@ -1,16 +1,15 @@
 use std::io::SeekFrom;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
 
-#[cfg(feature = "experimental-async")]
-use pyo3::coroutine::CancelHandle;
 use pyo3::prelude::*;
 use ryo3_bytes::RyBytes;
 use ryo3_core::types::{PyOpenMode, PyOpenOptions};
-use ryo3_macro_rules::{py_io_error, py_runtime_err, py_stop_async_iteration_err, pytodo};
-#[cfg(feature = "experimental-async")]
-use ryo3_tokio_rt::on_tokio_py_cancel;
-use ryo3_tokio_rt::{future_into_py, get_tokio_runtime};
+use ryo3_macro_rules::{
+    py_runtime_err, py_stop_async_iteration_err, py_value_error, pytodo, pytodo_pyerr,
+};
+use ryo3_tokio_rt::{RyCoroutine, failed_coro, get_tokio_runtime, tokio_coro};
 use tokio::fs::File;
 use tokio::io::{AsyncBufReadExt, AsyncReadExt, AsyncSeekExt, AsyncWriteExt, BufStream};
 use tokio::sync::Mutex;
@@ -21,22 +20,27 @@ const READ_PREALLOC_CAP: usize = 8 * 1024 * 1024;
 enum FileState {
     Closed,
     Open(Box<BufStream<File>>),
-    // Consumed,
 }
 
-struct PyAsyncFileInner {
+/// the open file + its buffer (flushed on drop)
+struct AsyncFileHandle {
     state: FileState,
     path: PathBuf,
     open_options: PyOpenOptions,
 }
 
-impl Drop for PyAsyncFileInner {
+impl Drop for AsyncFileHandle {
     fn drop(&mut self) {
-        if let FileState::Open(ref mut b) = self.state {
+        if let FileState::Open(mut b) = std::mem::replace(&mut self.state, FileState::Closed) {
             // revisit? currently ignores errors on shutdown
-            let future = b.flush();
-            let rt = get_tokio_runtime();
-            let _ = rt.block_on(future);
+            if let Ok(handle) = tokio::runtime::Handle::try_current() {
+                // on a tokio thread can panic here w/ `block_on`
+                handle.spawn(async move {
+                    let _ = b.flush().await;
+                });
+            } else {
+                let _ = get_tokio_runtime().block_on(b.flush());
+            }
         }
     }
 }
@@ -50,86 +54,62 @@ fn apply_py_open_options_to_tokio(py_opts: PyOpenOptions, tokio_opts: &mut tokio
     tokio_opts.create_new(py_opts.create_new);
 }
 
-impl PyAsyncFileInner {
+impl AsyncFileHandle {
     async fn open(&mut self) -> PyResult<()> {
+        if !self.is_closed() {
+            // DO NOT REOPEN: wbuf drops and truncates if opened with 'w'
+            return Ok(());
+        }
         let opts = self.open_options;
         let mut open_opts = tokio::fs::OpenOptions::new();
         apply_py_open_options_to_tokio(opts, &mut open_opts);
-        let file_res = open_opts.open(&self.path).await;
-        let file = file_res
-            .map_err(|e| py_io_error!("Failed to open file {}: {}", self.path.display(), e))?;
+        let file = open_opts
+            .open(&self.path)
+            .await
+            .map_err(|e| map_py_io_err_with_path(e, &self.path))?;
         self.state = FileState::Open(Box::new(BufStream::new(file)));
         Ok(())
     }
 
+    /// to `n`; never moves the position
     async fn peek(&mut self, n: usize) -> PyResult<Vec<u8>> {
         let file = self.get_file_mut()?;
-        // current position
-        let pos = file
-            .stream_position()
-            .await
-            .map_err(|e| py_io_error!("Failed to get stream position: {e}"))?;
-        // peek only promises "up to n"
-        let mut buf = vec![0; n.min(READ_PREALLOC_CAP)];
-        let bytes_read = file
-            .read(&mut buf)
-            .await
-            .map_err(|e| py_io_error!("Failed to read: {e}"))?;
-        buf.truncate(bytes_read);
-        // seek back to the original position
-        file.seek(SeekFrom::Start(pos))
-            .await
-            .map_err(|e| py_io_error!("Failed to seek: {e}"))?;
-        Ok(buf)
+        let buf = file.fill_buf().await?;
+        Ok(buf[..n.min(buf.len())].to_vec())
     }
 
     async fn seek(&mut self, seek_from: SeekFrom) -> PyResult<u64> {
-        let file = self.get_file_mut()?;
-        let r = file
-            .seek(seek_from)
-            .await
-            .map_err(|e| py_io_error!("Failed to seek: {e}"))?;
+        let file = self.get_file_mut_flush().await?;
+        let r = file.seek(seek_from).await?;
         file.flush().await?;
         Ok(r)
     }
 
     async fn flush(&mut self) -> PyResult<()> {
         let file = self.get_file_mut()?;
-        file.flush()
-            .await
-            .map_err(|e| py_io_error!("Failed to flush: {e}"))?;
+        file.flush().await?;
         Ok(())
     }
 
     async fn close(&mut self) -> PyResult<()> {
-        match std::mem::replace(&mut self.state, FileState::Closed) {
-            FileState::Open(mut file) => {
-                file.flush()
-                    .await
-                    .map_err(|e| py_io_error!("Failed to flush: {e}"))?;
-            }
-            FileState::Closed => {
-                // Nothing to flush, no-op
-            }
-        }
-        Ok(())
+        let FileState::Open(file) = &mut self.state else {
+            return Ok(());
+        };
+        let flushed = file.flush().await;
+        self.state = FileState::Closed;
+        Ok(flushed?)
     }
 
     async fn tell(&mut self) -> PyResult<u64> {
-        let file = self.get_file_mut()?;
-        let pos = file
-            .stream_position()
-            .await
-            .map_err(|e| py_io_error!("Failed to get stream position: {e}"))?;
+        let file = self.get_file_mut_flush().await?;
+        let pos = file.stream_position().await?;
         Ok(pos)
     }
 
     async fn read_all(&mut self) -> PyResult<Vec<u8>> {
         let file = self.get_file_mut()?;
         let mut buf = Vec::new();
-        file.read_to_end(&mut buf)
-            .await
-            .map_err(|e| py_io_error!("Failed to read to end: {e}"))?;
+        file.read_to_end(&mut buf).await?;
         Ok(buf)
     }
 
@@ -139,10 +119,7 @@ impl PyAsyncFileInner {
         let file = self.get_file_mut()?;
         let mut buf = Vec::with_capacity(n.min(READ_PREALLOC_CAP));
         let limit = u64::try_from(n).unwrap_or(u64::MAX);
-        file.take(limit)
-            .read_to_end(&mut buf)
-            .await
-            .map_err(|e| py_io_error!("Failed to read: {e}"))?;
+        file.take(limit).read_to_end(&mut buf).await?;
         Ok(buf)
     }
 
@@ -161,8 +138,7 @@ impl PyAsyncFileInner {
                     .await
             }
             None => file.read_until(b'\n', &mut buf).await,
-        }
-        .map_err(|e| py_io_error!("Failed to read line: {e}"))?;
+        }?;
         if bytes_read == 0 {
             Ok(None)
         } else {
@@ -184,18 +160,13 @@ impl PyAsyncFileInner {
         // the actual inner file wrapped by BufStream
         let inner_file = file.get_mut();
 
-        inner_file
-            .set_len(size)
-            .await
-            .map_err(|e| py_io_error!("Failed to truncate: {e}"))?;
+        inner_file.set_len(size).await?;
         Ok(size)
     }
 
     async fn write(&mut self, buf: &[u8]) -> PyResult<usize> {
         let file = self.get_file_mut()?;
-        file.write_all(buf)
-            .await
-            .map_err(|e| py_io_error!("Failed to write: {e}"))?;
+        file.write_all(buf).await?;
         Ok(buf.len())
     }
 
@@ -209,8 +180,29 @@ impl PyAsyncFileInner {
         }
     }
 
+    /// file AND flush
+    async fn get_file_mut_flush(&mut self) -> PyResult<&mut BufStream<File>> {
+        let file = self.get_file_mut()?;
+        file.get_mut().flush().await?;
+        Ok(file)
+    }
+
     fn is_closed(&self) -> bool {
         matches!(self.state, FileState::Closed)
+    }
+
+    /// `readline` until eof or total lines gt `hint`
+    async fn readlines(&mut self, hint: Option<usize>) -> PyResult<Vec<RyBytes>> {
+        let mut lines = Vec::new();
+        let mut total_size = 0;
+        while let Some(line) = self.readline(None).await? {
+            total_size += line.len();
+            lines.push(RyBytes::from(line));
+            if hint.is_some_and(|hint| total_size > hint) {
+                break;
+            }
+        }
+        Ok(lines)
     }
 }
 
@@ -230,37 +222,67 @@ impl From<&PyOpenOptions> for AsyncFileProperties {
     }
 }
 
+/// shared inner state for the pyclass w/o propery cache
+struct AsyncFileInner {
+    /// open state of file to avoid locking to check if open/closed
+    closed: AtomicBool,
+    handle: Mutex<AsyncFileHandle>,
+}
+
 #[pyclass(name = "AsyncFile", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct PyAsyncFile {
     props: AsyncFileProperties,
-    inner: Arc<Mutex<PyAsyncFileInner>>,
+    inner: Arc<AsyncFileInner>,
 }
 
 impl PyAsyncFile {
     pub(crate) fn new(p: PathBuf, options: PyOpenOptions) -> Self {
-        let inner = PyAsyncFileInner {
+        let handle = AsyncFileHandle {
             state: FileState::Closed,
             path: p,
             open_options: options,
         };
         Self {
-            props: AsyncFileProperties::from(&inner.open_options),
-            inner: Arc::new(Mutex::new(inner)),
+            props: AsyncFileProperties::from(&handle.open_options),
+            inner: Arc::new(AsyncFileInner {
+                closed: AtomicBool::new(true),
+                handle: Mutex::new(handle),
+            }),
         }
     }
 
-    fn open_awaitable(slf: Py<Self>, py: Python<'_>) -> PyResult<Bound<'_, PyAny>> {
-        let inner = Arc::clone(&slf.borrow(py).inner);
-        future_into_py(py, async move {
-            let mut locked = inner.lock().await;
+    /// opens (if not already open) and resolves to the file itself
+    fn open_pycoro<'py>(
+        slf: Py<Self>,
+        py: Python<'py>,
+        qualname: &'static str,
+    ) -> PyResult<Bound<'py, RyCoroutine>> {
+        tokio_coro(py, qualname, async move {
+            let inner = &slf.get().inner;
+            let mut locked = inner.handle.lock().await;
             locked.open().await?;
+            inner.closed.store(false, Ordering::Release);
+            drop(locked);
             Ok(slf)
+        })
+    }
+
+    fn close_pycoro<'py>(
+        &self,
+        py: Python<'py>,
+        qualname: &'static str,
+    ) -> PyResult<Bound<'py, RyCoroutine>> {
+        let inner = Arc::clone(&self.inner);
+        tokio_coro(py, qualname, async move {
+            let mut locked = inner.handle.lock().await;
+            let result = locked.close().await;
+            inner.closed.store(locked.is_closed(), Ordering::Release);
+            result
         })
     }
 }
 
-#[cfg(not(feature = "experimental-async"))]
 #[pymethods]
 impl PyAsyncFile {
     #[new]
@@ -277,41 +299,22 @@ impl PyAsyncFile {
 
     /// This is a coroutine that returns `self` when awaited... so you
     /// can `await` to open the file
-    fn __await__(slf: Py<Self>, py: Python<'_>) -> PyResult<Bound<'_, PyAny>> {
-        Self::open_awaitable(slf, py)?.call_method0(pyo3::intern!(py, "__await__"))
+    fn __await__(slf: Py<Self>, py: Python<'_>) -> PyResult<Bound<'_, RyCoroutine>> {
+        Self::open_pycoro(slf, py, "AsyncFile.__await__")
     }
 
-    fn __aenter__(slf: Py<Self>, py: Python) -> PyResult<Bound<PyAny>> {
-        Self::open_awaitable(slf, py)
+    fn __aenter__(slf: Py<Self>, py: Python<'_>) -> PyResult<Bound<'_, RyCoroutine>> {
+        Self::open_pycoro(slf, py, "AsyncFile.__aenter__")
     }
 
-    #[pyo3(name = "__aexit__")]
-    #[expect(clippy::needless_pass_by_value)]
     fn __aexit__<'py>(
-        slf: PyRef<Self>,
+        &self,
         py: Python<'py>,
         _exc_type: &Bound<'py, PyAny>,
         _exc_value: &Bound<'py, PyAny>,
         _traceback: &Bound<'py, PyAny>,
-    ) -> PyResult<Bound<'py, PyAny>> {
-        let inner = Arc::clone(&slf.inner);
-
-        future_into_py(py, async move {
-            let mut locked = inner.lock().await;
-            match std::mem::replace(&mut locked.state, FileState::Closed) {
-                FileState::Open(mut file) => {
-                    file.flush()
-                        .await
-                        .map_err(|e| py_io_error!("Failed to flush file on __aexit__: {e}"))?;
-                    // file is flushed and dropped now
-                }
-                FileState::Closed => {
-                    // nothing to flush...
-                }
-            }
-
-            Ok(())
-        })
+    ) -> PyResult<Bound<'py, RyCoroutine>> {
+        self.close_pycoro(py, "AsyncFile.__aexit__")
     }
 
     fn __aiter__(this: PyRef<Self>) -> PyRef<Self> {
@@ -319,84 +322,70 @@ impl PyAsyncFile {
     }
 
     #[expect(clippy::single_match_else, reason = "actually cleaner")]
-    fn __anext__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
+    fn __anext__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, RyCoroutine>> {
         let inner = Arc::clone(&self.inner);
-        future_into_py(py, async move {
-            let mut locked = inner.lock().await;
-            let line = locked.readline(None).await?;
-            match line {
-                Some(line) => Ok(line),
+        tokio_coro(py, "AsyncFile.__anext__", async move {
+            match inner.handle.lock().await.readline(None).await? {
+                Some(line) => Ok(RyBytes::from(line)),
                 None => py_stop_async_iteration_err!("End of stream"),
             }
         })
     }
 
-    fn close<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
-        let inner = Arc::clone(&self.inner);
-        future_into_py(py, async move {
-            let mut locked = inner.lock().await;
-            locked.close().await?;
-            Ok(())
-        })
+    fn close<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, RyCoroutine>> {
+        self.close_pycoro(py, "AsyncFile.close")
     }
 
     #[getter]
     fn closed(&self) -> bool {
-        let locked = self.inner.blocking_lock();
-        locked.is_closed()
+        self.inner.closed.load(Ordering::Acquire)
     }
 
     #[expect(clippy::unused_self)]
-    fn isatty<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
-        future_into_py::<_, Py<PyAny>>(py, async move {
-            pytodo!("isatty() not implemented");
+    fn isatty<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, RyCoroutine>> {
+        failed_coro(
+            py,
+            "AsyncFile.isatty",
+            pytodo_pyerr!("isatty() not implemented"),
+        )
+    }
+
+    fn flush<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, RyCoroutine>> {
+        let inner = Arc::clone(&self.inner);
+        tokio_coro(py, "AsyncFile.flush", async move {
+            inner.handle.lock().await.flush().await
         })
     }
 
-    fn flush<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
+    fn open<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, RyCoroutine>> {
         let inner = Arc::clone(&self.inner);
-        future_into_py(py, async move {
-            let mut locked = inner.lock().await;
-            locked.flush().await?;
-            Ok(())
-        })
-    }
-
-    fn open<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
-        let inner = Arc::clone(&self.inner);
-
-        future_into_py(py, async move {
-            let mut locked = inner.lock().await;
+        tokio_coro(py, "AsyncFile.open", async move {
+            let mut locked = inner.handle.lock().await;
             locked.open().await?;
+            inner.closed.store(false, Ordering::Release);
             Ok(())
         })
     }
 
     #[pyo3(signature = (size = 1, /))]
-    fn peek<'py>(&'py self, py: Python<'py>, size: usize) -> PyResult<Bound<'py, PyAny>> {
+    fn peek<'py>(&self, py: Python<'py>, size: usize) -> PyResult<Bound<'py, RyCoroutine>> {
         let inner = Arc::clone(&self.inner);
-        future_into_py(py, async move {
-            let mut locked = inner.lock().await;
-            let buf = locked.peek(size).await?;
+        tokio_coro(py, "AsyncFile.peek", async move {
+            let buf = inner.handle.lock().await.peek(size).await?;
             Ok(RyBytes::from(buf))
         })
     }
 
-    #[pyo3(
-        signature = (size = None, /),
-    )]
-    fn read<'py>(&self, py: Python<'py>, size: Option<usize>) -> PyResult<Bound<'py, PyAny>> {
+    #[pyo3(signature = (size = None, /))]
+    fn read<'py>(&self, py: Python<'py>, size: Option<usize>) -> PyResult<Bound<'py, RyCoroutine>> {
         let inner = Arc::clone(&self.inner);
-
-        future_into_py(py, async move {
-            let mut file = inner.lock().await;
-            if let Some(s) = size {
-                let buf = file.read_up_to(s).await?;
-                Ok(RyBytes::from(buf))
-            } else {
-                let r = file.read_all().await?;
-                Ok(RyBytes::from(r))
-            }
+        tokio_coro(py, "AsyncFile.read", async move {
+            let mut file = inner.handle.lock().await;
+            let buf = match size {
+                Some(s) => file.read_up_to(s).await?,
+                None => file.read_all().await?,
+            };
+            Ok(RyBytes::from(buf))
         })
     }
 
@@ -404,26 +393,24 @@ impl PyAsyncFile {
         self.props.readable
     }
 
-    fn readall<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
+    fn readall<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, RyCoroutine>> {
         let inner = Arc::clone(&self.inner);
-        future_into_py(py, async move {
-            let mut file = inner.lock().await;
-            let r = file.read_all().await?;
-            let rybytes = RyBytes::from(r);
-            Ok(rybytes)
+        tokio_coro(py, "AsyncFile.readall", async move {
+            let buf = inner.handle.lock().await.read_all().await?;
+            Ok(RyBytes::from(buf))
         })
     }
 
     #[pyo3(signature = (size = None, /))]
-    fn readline<'py>(&self, py: Python<'py>, size: Option<usize>) -> PyResult<Bound<'py, PyAny>> {
+    fn readline<'py>(
+        &self,
+        py: Python<'py>,
+        size: Option<usize>,
+    ) -> PyResult<Bound<'py, RyCoroutine>> {
         let inner = Arc::clone(&self.inner);
-        future_into_py(py, async move {
-            let mut locked = inner.lock().await;
-            let line = locked.readline(size).await?;
-            match line {
-                Some(line) => Ok(Some(RyBytes::from(line))),
-                None => Ok(None),
-            }
+        tokio_coro(py, "AsyncFile.readline", async move {
+            let line = inner.handle.lock().await.readline(size).await?;
+            Ok(line.map(RyBytes::from))
         })
     }
 
@@ -433,32 +420,15 @@ impl PyAsyncFile {
     /// lines will be read if the total size (in bytes/characters) of all
     /// lines so far exceeds hint.
     #[pyo3(signature = (hint = None, /))]
-    fn readlines<'py>(&self, py: Python<'py>, hint: Option<usize>) -> PyResult<Bound<'py, PyAny>> {
+    fn readlines<'py>(
+        &self,
+        py: Python<'py>,
+        hint: Option<usize>,
+    ) -> PyResult<Bound<'py, RyCoroutine>> {
         let inner = Arc::clone(&self.inner);
-        if let Some(hint) = hint {
-            future_into_py(py, async move {
-                let mut locked = inner.lock().await;
-                let mut lines = Vec::new();
-                let mut total_size = 0;
-                while let Ok(Some(line)) = locked.readline(None).await {
-                    total_size += line.len();
-                    lines.push(line);
-                    if total_size > hint {
-                        break;
-                    }
-                }
-                Ok(lines)
-            })
-        } else {
-            future_into_py(py, async move {
-                let mut locked = inner.lock().await;
-                let mut lines = Vec::new();
-                while let Ok(Some(line)) = locked.readline(None).await {
-                    lines.push(line);
-                }
-                Ok(lines)
-            })
-        }
+        tokio_coro(py, "AsyncFile.readlines", async move {
+            inner.handle.lock().await.readlines(hint).await
+        })
     }
 
     #[pyo3(
@@ -466,30 +436,29 @@ impl PyAsyncFile {
         text_signature = "(self, offset, whence=os.SEEK_SET, /)")
     ]
     fn seek<'py>(
-        &'py self,
+        &self,
         py: Python<'py>,
         offset: i64,
         whence: usize,
-    ) -> PyResult<Bound<'py, PyAny>> {
+    ) -> PyResult<Bound<'py, RyCoroutine>> {
         let pos = match whence {
             0 => {
                 let offset = offset
                     .try_into()
-                    .map_err(|e| py_io_error!("Offset out of range: {e}"))?;
+                    .map_err(|_| py_value_error!("negative seek position {offset}"))?;
                 SeekFrom::Start(offset)
             }
             1 => SeekFrom::Current(offset as _),
             2 => SeekFrom::End(offset as _),
             other => {
-                return Err(py_io_error!("Invalid value for whence in seek: {other}"));
+                return Err(py_value_error!(
+                    "invalid whence ({other}, should be 0, 1 or 2)"
+                ));
             }
         };
         let inner = Arc::clone(&self.inner);
-
-        future_into_py(py, async move {
-            let mut locked = inner.lock().await;
-            locked.seek(pos).await?;
-            Ok(())
+        tokio_coro(py, "AsyncFile.seek", async move {
+            inner.handle.lock().await.seek(pos).await
         })
     }
 
@@ -498,31 +467,30 @@ impl PyAsyncFile {
         self.props.seekable
     }
 
-    fn tell<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
+    fn tell<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, RyCoroutine>> {
         let inner = Arc::clone(&self.inner);
-        future_into_py(py, async move {
-            let mut locked = inner.lock().await;
-            let pos = locked.tell().await?;
-            Ok(pos)
+        tokio_coro(py, "AsyncFile.tell", async move {
+            inner.handle.lock().await.tell().await
         })
     }
 
     #[pyo3(signature = (pos = None, /))]
-    fn truncate<'py>(&self, py: Python<'py>, pos: Option<u64>) -> PyResult<Bound<'py, PyAny>> {
+    fn truncate<'py>(
+        &self,
+        py: Python<'py>,
+        pos: Option<u64>,
+    ) -> PyResult<Bound<'py, RyCoroutine>> {
         let inner = Arc::clone(&self.inner);
-        future_into_py(py, async move {
-            let mut locked = inner.lock().await;
-            let size = locked.truncate(pos).await?;
-            Ok(size)
+        tokio_coro(py, "AsyncFile.truncate", async move {
+            inner.handle.lock().await.truncate(pos).await
         })
     }
 
     #[pyo3(signature = (buffer, /))]
-    fn write<'py>(&self, py: Python<'py>, buffer: RyBytes) -> PyResult<Bound<'py, PyAny>> {
+    fn write<'py>(&self, py: Python<'py>, buffer: RyBytes) -> PyResult<Bound<'py, RyCoroutine>> {
         let inner = Arc::clone(&self.inner);
-        future_into_py(py, async move {
-            let mut locked = inner.lock().await;
-            locked.write(buffer.as_ref()).await
+        tokio_coro(py, "AsyncFile.write", async move {
+            inner.handle.lock().await.write(buffer.as_ref()).await
         })
     }
 
@@ -531,337 +499,26 @@ impl PyAsyncFile {
     }
 }
 
-#[cfg(feature = "experimental-async")]
-#[pymethods]
-impl PyAsyncFile {
-    #[new]
-    #[pyo3(
-        signature = (p, mode = PyOpenMode::default()),
-        text_signature = "(path, mode='rb')"
-    )]
-    fn py_new(p: PathBuf, mode: PyOpenMode) -> PyResult<Self> {
-        if !mode.is_binary() {
-            pytodo!("Text mode not implemented for AsyncFile");
-        }
-        Ok(Self::new(p, mode.into()))
-    }
-
-    /// This is a coroutine that returns `self` when awaited... so you
-    /// can `await` to open the file
-    fn __await__(slf: Py<Self>, py: Python<'_>) -> PyResult<Bound<'_, PyAny>> {
-        Self::open_awaitable(slf, py)?.call_method0(pyo3::intern!(py, "__await__"))
-    }
-
-    fn __aenter__(slf: Py<Self>, py: Python) -> PyResult<Bound<PyAny>> {
-        Self::open_awaitable(slf, py)
-    }
-
-    #[pyo3(name = "__aexit__")]
-    #[expect(clippy::needless_pass_by_value)]
-    fn __aexit__<'py>(
-        slf: PyRef<Self>,
-        py: Python<'py>,
-        _exc_type: &Bound<'py, PyAny>,
-        _exc_value: &Bound<'py, PyAny>,
-        _traceback: &Bound<'py, PyAny>,
-    ) -> PyResult<Bound<'py, PyAny>> {
-        let inner = Arc::clone(&slf.inner);
-
-        future_into_py(py, async move {
-            let mut locked = inner.lock().await;
-            match std::mem::replace(&mut locked.state, FileState::Closed) {
-                FileState::Open(mut file) => {
-                    file.flush()
-                        .await
-                        .map_err(|e| py_io_error!("Failed to flush file on __aexit__: {e}"))?;
-                    // file is flushed and dropped now
-                }
-                FileState::Closed => {
-                    // nothing to flush...
-                }
-            }
-
-            Ok(())
-        })
-    }
-
-    fn __aiter__(this: PyRef<Self>) -> PyRef<Self> {
-        this
-    }
-
-    #[expect(clippy::single_match_else, reason = "actually cleaner")]
-    fn __anext__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
-        let inner = Arc::clone(&self.inner);
-        future_into_py(py, async move {
-            let mut locked = inner.lock().await;
-            let line = locked.readline(None).await?;
-            match line {
-                Some(line) => Ok(line),
-                None => py_stop_async_iteration_err!("End of stream"),
-            }
-        })
-    }
-
-    async fn close(&self, #[pyo3(cancel_handle)] cancel: CancelHandle) -> PyResult<()> {
-        let inner = Arc::clone(&self.inner);
-        on_tokio_py_cancel(
-            async move {
-                let mut locked = inner.lock().await;
-                locked.close().await
-            },
-            cancel,
-        )
-        .await
-    }
-
-    #[getter]
-    fn closed(&self) -> bool {
-        let locked = self.inner.blocking_lock();
-        locked.is_closed()
-    }
-
-    #[expect(clippy::unused_async)]
-    async fn isatty(&self) -> PyResult<()> {
-        pytodo!("isatty() not implemented");
-    }
-
-    async fn flush(&self, #[pyo3(cancel_handle)] cancel: CancelHandle) -> PyResult<()> {
-        let inner = Arc::clone(&self.inner);
-        on_tokio_py_cancel(
-            async move {
-                let mut locked = inner.lock().await;
-                locked.flush().await
-            },
-            cancel,
-        )
-        .await
-    }
-
-    async fn open(&self, #[pyo3(cancel_handle)] cancel: CancelHandle) -> PyResult<()> {
-        let inner = Arc::clone(&self.inner);
-        on_tokio_py_cancel(
-            async move {
-                let mut locked = inner.lock().await;
-                locked.open().await
-            },
-            cancel,
-        )
-        .await
-    }
-
-    #[pyo3(signature = (size = 1, /))]
-    async fn peek(
-        &self,
-        size: usize,
-        #[pyo3(cancel_handle)] cancel: CancelHandle,
-    ) -> PyResult<RyBytes> {
-        let inner = Arc::clone(&self.inner);
-        let bvec = on_tokio_py_cancel(
-            async move {
-                let mut locked = inner.lock().await;
-                locked.peek(size).await
-            },
-            cancel,
-        )
-        .await?;
-        Ok(RyBytes::from(bvec))
-    }
-
-    #[pyo3(signature = (size = None, /))]
-    async fn read(
-        &self,
-        size: Option<usize>,
-        #[pyo3(cancel_handle)] cancel: CancelHandle,
-    ) -> PyResult<RyBytes> {
-        let inner = Arc::clone(&self.inner);
-        on_tokio_py_cancel(
-            async move {
-                let mut file = inner.lock().await;
-                if let Some(s) = size {
-                    let buf = file.read_up_to(s).await?;
-                    Ok(RyBytes::from(buf))
-                } else {
-                    let r = file.read_all().await?;
-                    Ok(RyBytes::from(r))
-                }
-            },
-            cancel,
-        )
-        .await
-    }
-
-    fn readable(&self) -> bool {
-        self.props.readable
-    }
-
-    async fn readall(&self, #[pyo3(cancel_handle)] cancel: CancelHandle) -> PyResult<RyBytes> {
-        let inner = Arc::clone(&self.inner);
-        on_tokio_py_cancel(
-            async move {
-                let mut file = inner.lock().await;
-                let r = file.read_all().await?;
-                Ok(RyBytes::from(r))
-            },
-            cancel,
-        )
-        .await
-    }
-
-    #[pyo3(signature = (size = None, /))]
-    async fn readline(
-        &self,
-        size: Option<usize>,
-        #[pyo3(cancel_handle)] cancel: CancelHandle,
-    ) -> PyResult<Option<RyBytes>> {
-        let inner = Arc::clone(&self.inner);
-        on_tokio_py_cancel(
-            async move {
-                let mut locked = inner.lock().await;
-                let line = locked.readline(size).await?;
-                match line {
-                    Some(line) => Ok(Some(RyBytes::from(line))),
-                    None => Ok(None),
-                }
-            },
-            cancel,
-        )
-        .await
-    }
-
-    /// Return a list of lines from the stream.
-    ///
-    /// hint can be specified to control the number of lines read: no more
-    /// lines will be read if the total size (in bytes/characters) of all
-    /// lines so far exceeds hint.
-    #[pyo3(signature = (hint = None, /))]
-    async fn readlines(
-        &self,
-        hint: Option<usize>,
-        #[pyo3(cancel_handle)] cancel: CancelHandle,
-    ) -> PyResult<Vec<RyBytes>> {
-        let inner = Arc::clone(&self.inner);
-        if let Some(hint) = hint {
-            on_tokio_py_cancel(
-                async move {
-                    let mut locked = inner.lock().await;
-                    let mut lines = Vec::new();
-                    let mut total_size = 0;
-                    while let Ok(Some(line)) = locked.readline(None).await {
-                        total_size += line.len();
-                        lines.push(RyBytes::from(line));
-                        if total_size > hint {
-                            break;
-                        }
-                    }
-                    Ok(lines)
-                },
-                cancel,
-            )
-            .await
-        } else {
-            on_tokio_py_cancel(
-                async move {
-                    let mut locked = inner.lock().await;
-                    let mut lines = Vec::new();
-                    while let Ok(Some(line)) = locked.readline(None).await {
-                        lines.push(RyBytes::from(line));
-                    }
-                    Ok(lines)
-                },
-                cancel,
-            )
-            .await
-        }
-    }
-
-    #[pyo3(
-        signature = (offset, whence = 0, /),
-        text_signature = "(self, offset, whence=os.SEEK_SET, /)")
-    ]
-    async fn seek(
-        &self,
-        offset: i64,
-        whence: usize,
-        #[pyo3(cancel_handle)] cancel: CancelHandle,
-    ) -> PyResult<u64> {
-        let pos = match whence {
-            0 => {
-                let offset = offset
-                    .try_into()
-                    .map_err(|e| py_io_error!("Offset out of range: {e}"))?;
-                SeekFrom::Start(offset)
-            }
-            1 => SeekFrom::Current(offset as _),
-            2 => SeekFrom::End(offset as _),
-            other => {
-                return Err(py_io_error!("Invalid value for whence in seek: {other}"));
-            }
-        };
-        let inner = Arc::clone(&self.inner);
-        on_tokio_py_cancel(
-            async move {
-                let mut locked = inner.lock().await;
-                locked.seek(pos).await
-            },
-            cancel,
-        )
-        .await
-    }
-
-    fn seekable(&self) -> bool {
-        // TODO MAKE NOT ALWAYS TRUE???
-        self.props.seekable
-    }
-
-    async fn tell(&self, #[pyo3(cancel_handle)] cancel: CancelHandle) -> PyResult<u64> {
-        let inner = Arc::clone(&self.inner);
-        on_tokio_py_cancel(
-            async move {
-                let mut locked = inner.lock().await;
-                locked.tell().await
-            },
-            cancel,
-        )
-        .await
-    }
-
-    #[pyo3(signature = (pos = None, /))]
-    async fn truncate(
-        &self,
-        pos: Option<u64>,
-        #[pyo3(cancel_handle)] cancel: CancelHandle,
-    ) -> PyResult<u64> {
-        let inner = Arc::clone(&self.inner);
-        let size = on_tokio_py_cancel(
-            async move {
-                let mut locked = inner.lock().await;
-                locked.truncate(pos).await
-            },
-            cancel,
-        )
-        .await?;
-        Ok(size)
-    }
-
-    #[pyo3(signature = (buffer, /))]
-    async fn write(
-        &self,
-        buffer: RyBytes,
-        #[pyo3(cancel_handle)] cancel: CancelHandle,
-    ) -> PyResult<usize> {
-        let inner = Arc::clone(&self.inner);
-        let written = on_tokio_py_cancel(
-            async move {
-                let mut locked = inner.lock().await;
-                locked.write(buffer.as_ref()).await
-            },
-            cancel,
-        )
-        .await?;
-        Ok(written)
-    }
-
-    fn writable(&self) -> bool {
-        self.props.writable
-    }
+/// map `std::io::Error` to Python `OSError` with a filepath str
+///
+/// adapted from pyo3 src
+#[must_use]
+pub(crate) fn map_py_io_err_with_path(e: std::io::Error, path: &Path) -> PyErr {
+    let Some(code) = e.raw_os_error() else {
+        return PyErr::from(e);
+    };
+    let msg = e.to_string();
+    let strerror = msg
+        .strip_suffix(&format!(" (os error {code})"))
+        .unwrap_or(&msg);
+    // win32 + cpython trim trailing . (parity?)
+    #[cfg(windows)]
+    let strerror = strerror.trim_end_matches(|c: char| c == '.' || c.is_whitespace());
+    let strerror = strerror.to_owned();
+    let filename = path.as_os_str().to_owned();
+    #[cfg(windows)]
+    let args = (0, strerror, filename, code);
+    #[cfg(not(windows))]
+    let args = (code, strerror, filename);
+    pyo3::exceptions::PyOSError::new_err(args)
 }

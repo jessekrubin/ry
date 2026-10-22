@@ -9,14 +9,15 @@ use ryo3_http::{PyHeadersLike, PyHttpVersion};
 use ryo3_macro_rules::{py_type_err, py_value_err, py_value_error, pytodo};
 use ryo3_std::time::PyTimeout;
 
-use crate::types::{BasicAuth, PyQuery};
+use crate::request_body::{PyBody, PyBodyStream, RequestBodyPrimer};
+use crate::types::{PyBasicAuth, PyQuery};
 
 pub(crate) struct ReqwestKwargs<const BLOCKING: bool = false> {
     headers: Option<HeaderMap>,
     query: Option<PyQuery>,
     body: PyReqwestBody,
     timeout: Option<Duration>,
-    basic_auth: Option<BasicAuth>,
+    basic_auth: Option<PyBasicAuth>,
     bearer_auth: Option<PyBackedStr>,
     version: Option<PyHttpVersion>,
 }
@@ -26,7 +27,7 @@ pub(crate) type BlockingReqwestKwargs = ReqwestKwargs<true>;
 impl ReqwestKwargs {
     /// async iterable body ~ the thing that starts it on the loop thread
     #[inline]
-    pub(crate) fn body_primer(&self) -> Option<crate::body::BodyPrimer> {
+    pub(crate) fn body_primer(&self) -> Option<RequestBodyPrimer> {
         match &self.body {
             PyReqwestBody::Stream(s) => s.primer(),
             _ => None,
@@ -99,7 +100,7 @@ impl<const BLOCKING: bool> ReqwestKwargs<BLOCKING> {
 #[derive(Debug)]
 enum PyReqwestBody {
     Bytes(bytes::Bytes),
-    Stream(crate::body::PyBodyStream),
+    Stream(PyBodyStream),
     Json(Vec<u8>),
     Form(String),
     #[expect(dead_code)]
@@ -169,10 +170,10 @@ impl<'a, 'py> PyReqwestBodyDeferred<'a, 'py> {
 fn extract_body_from_py_body<const BLOCKING: bool>(
     body: Borrowed<'_, '_, PyAny>,
 ) -> PyResult<PyReqwestBody> {
-    let py_body = body.extract::<crate::body::PyBody>()?;
+    let py_body = body.extract::<PyBody>()?;
     match py_body {
-        crate::body::PyBody::Bytes(bs) => Ok(PyReqwestBody::Bytes(bs.into_inner())),
-        crate::body::PyBody::Stream(s) => {
+        PyBody::Bytes(bs) => Ok(PyReqwestBody::Bytes(bs.into_inner())),
+        PyBody::Stream(s) => {
             if BLOCKING && s.is_async() {
                 return py_type_err!("cannot use async stream body with blocking client");
             }
@@ -217,7 +218,7 @@ fn extract_kwargs<const BLOCKING: bool>(
         .map(|h| h.extract::<PyHeadersLike>())
         .transpose()?
         .map(PyHeadersLike::into_header_map);
-    let basic_auth: Option<BasicAuth> = dict
+    let basic_auth: Option<PyBasicAuth> = dict
         .get_item(pyo3::intern!(py, "basic_auth"))?
         .map(|b| b.extract())
         .transpose()?;

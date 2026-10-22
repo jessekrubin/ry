@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import os
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import pytest
 
@@ -49,10 +49,6 @@ async def test_read_dir_take() -> None:
     assert take_two_paths == set(items)
 
 
-@pytest.mark.skipif(
-    not ry.__pyo3_experimental_async__,
-    reason="coroutine cancel requires `experimental-async` feat",
-)
 async def test_cancelled_read_dir_collect_releases_lock(tmp_path: Path) -> None:
     directory = os.fspath(tmp_path)
     for i in range(2_000):
@@ -72,3 +68,29 @@ async def test_cancelled_read_dir_collect_releases_lock(tmp_path: Path) -> None:
         await task
 
     await asyncio.wait_for(read_dir.take(1), timeout=1)
+
+
+async def test_read_dir_methods_are_coroutines() -> None:
+    read_dir = await ry.read_dir_async(PWD)
+    entry = await anext(read_dir)
+    coros: dict[str, Any] = {
+        "AsyncReadDir.__anext__": anext(read_dir),
+        "AsyncReadDir.collect": read_dir.collect(),
+        "AsyncReadDir.take": read_dir.take(),
+        "AsyncDirEntry.metadata": entry.metadata(),
+        "AsyncDirEntry.file_type": entry.file_type(),
+    }
+    for qualname, coro in coros.items():
+        assert coro.__qualname__ == qualname
+        assert asyncio.iscoroutine(coro)
+        coro.close()
+
+
+async def test_read_dir_exhausted(tmp_path: Path) -> None:
+    (tmp_path / "a").write_bytes(b"")
+    read_dir = await ry.read_dir_async(tmp_path)
+    assert [e.filename async for e in read_dir] == ["a"]
+    with pytest.raises(StopAsyncIteration):
+        await anext(read_dir)
+    assert await read_dir.take(3) == []
+    assert await read_dir.collect() == []

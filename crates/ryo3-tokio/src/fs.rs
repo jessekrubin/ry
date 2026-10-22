@@ -9,137 +9,58 @@ use ryo3_bytes::RyBytes;
 use ryo3_core::types::PyOpenMode;
 use ryo3_macro_rules::py_not_implemented_err;
 use ryo3_std::fs::PyMetadata;
+use ryo3_tokio_rt::{RyCoroutine, tokio_coro};
 mod async_file;
 mod async_file_read_stream;
 pub use async_file::PyAsyncFile;
 pub use async_file_read_stream::PyAsyncFileReadStream;
 mod async_read_dir;
-#[cfg(feature = "experimental-async")]
-use pyo3::coroutine::CancelHandle;
-#[cfg(not(feature = "experimental-async"))]
-use ryo3_tokio_rt::future_into_py;
-#[cfg(feature = "experimental-async")]
-use ryo3_tokio_rt::on_tokio_py_cancel;
 
-#[cfg(not(feature = "experimental-async"))]
 #[pyfunction]
-pub fn canonicalize_async(py: Python<'_>, path: PathBuf) -> PyResult<Bound<'_, PyAny>> {
-    future_into_py(py, async move {
+pub fn canonicalize_async(py: Python<'_>, path: PathBuf) -> PyResult<Bound<'_, RyCoroutine>> {
+    tokio_coro(py, "canonicalize_async", async move {
         tokio::fs::canonicalize(path)
             .await
-            .map(|p| p.into_os_string())
+            .map(PathBuf::into_os_string)
             .map_err(PyErr::from)
     })
 }
 
-#[cfg(feature = "experimental-async")]
 #[pyfunction]
-pub async fn canonicalize_async(
-    path: PathBuf,
-    #[pyo3(cancel_handle)] cancel: CancelHandle,
-) -> PyResult<std::ffi::OsString> {
-    on_tokio_py_cancel(
-        async move {
-            tokio::fs::canonicalize(path)
-                .await
-                .map(Into::into)
-                .map_err(PyErr::from)
-        },
-        cancel,
-    )
-    .await
-}
-
-#[cfg(not(feature = "experimental-async"))]
-#[pyfunction]
-pub fn copy_async(py: Python<'_>, from: PathBuf, to: PathBuf) -> PyResult<Bound<'_, PyAny>> {
-    future_into_py(py, async move {
+pub fn copy_async(py: Python<'_>, from: PathBuf, to: PathBuf) -> PyResult<Bound<'_, RyCoroutine>> {
+    tokio_coro(py, "copy_async", async move {
         tokio::fs::copy(from, to).await.map_err(PyErr::from)
     })
 }
 
-#[cfg(feature = "experimental-async")]
 #[pyfunction]
-pub async fn copy_async(
-    from: PathBuf,
-    to: PathBuf,
-    #[pyo3(cancel_handle)] cancel: CancelHandle,
-) -> PyResult<u64> {
-    on_tokio_py_cancel(
-        async move { tokio::fs::copy(from, to).await.map_err(PyErr::from) },
-        cancel,
-    )
-    .await
-}
-
-#[cfg(not(feature = "experimental-async"))]
-#[pyfunction]
-pub fn create_dir_async(py: Python<'_>, path: PathBuf) -> PyResult<Bound<'_, PyAny>> {
-    future_into_py(py, async move {
+pub fn create_dir_async(py: Python<'_>, path: PathBuf) -> PyResult<Bound<'_, RyCoroutine>> {
+    tokio_coro(py, "create_dir_async", async move {
         tokio::fs::create_dir(path).await.map_err(PyErr::from)
     })
 }
 
-#[cfg(feature = "experimental-async")]
 #[pyfunction]
-pub async fn create_dir_async(
-    path: PathBuf,
-    #[pyo3(cancel_handle)] cancel: CancelHandle,
-) -> PyResult<()> {
-    on_tokio_py_cancel(
-        async move { tokio::fs::create_dir(path).await.map_err(PyErr::from) },
-        cancel,
-    )
-    .await
-}
-
-#[cfg(not(feature = "experimental-async"))]
-#[pyfunction]
-pub fn create_dir_all_async(py: Python<'_>, path: PathBuf) -> PyResult<Bound<'_, PyAny>> {
-    future_into_py(py, async move {
+pub fn create_dir_all_async(py: Python<'_>, path: PathBuf) -> PyResult<Bound<'_, RyCoroutine>> {
+    tokio_coro(py, "create_dir_all_async", async move {
         tokio::fs::create_dir_all(path).await.map_err(PyErr::from)
     })
 }
 
-#[cfg(feature = "experimental-async")]
 #[pyfunction]
-pub async fn create_dir_all_async(
-    path: PathBuf,
-    #[pyo3(cancel_handle)] cancel: CancelHandle,
-) -> PyResult<()> {
-    on_tokio_py_cancel(
-        async move { tokio::fs::create_dir_all(path).await.map_err(PyErr::from) },
-        cancel,
-    )
-    .await
-}
-
-#[cfg(not(feature = "experimental-async"))]
-#[pyfunction]
-pub fn hard_link_async(py: Python<'_>, from: PathBuf, to: PathBuf) -> PyResult<Bound<'_, PyAny>> {
-    future_into_py(py, async move {
+pub fn hard_link_async(
+    py: Python<'_>,
+    from: PathBuf,
+    to: PathBuf,
+) -> PyResult<Bound<'_, RyCoroutine>> {
+    tokio_coro(py, "hard_link_async", async move {
         tokio::fs::hard_link(from, to).await.map_err(PyErr::from)
     })
 }
 
-#[cfg(feature = "experimental-async")]
 #[pyfunction]
-pub async fn hard_link_async(
-    from: PathBuf,
-    to: PathBuf,
-    #[pyo3(cancel_handle)] cancel: CancelHandle,
-) -> PyResult<()> {
-    on_tokio_py_cancel(
-        async move { tokio::fs::hard_link(from, to).await.map_err(PyErr::from) },
-        cancel,
-    )
-    .await
-}
-
-#[cfg(not(feature = "experimental-async"))]
-#[pyfunction]
-pub fn metadata_async(py: Python<'_>, path: PathBuf) -> PyResult<Bound<'_, PyAny>> {
-    future_into_py(py, async move {
+pub fn metadata_async(py: Python<'_>, path: PathBuf) -> PyResult<Bound<'_, RyCoroutine>> {
+    tokio_coro(py, "metadata_async", async move {
         tokio::fs::metadata(path)
             .await
             .map(PyMetadata::from)
@@ -147,28 +68,9 @@ pub fn metadata_async(py: Python<'_>, path: PathBuf) -> PyResult<Bound<'_, PyAny
     })
 }
 
-#[cfg(feature = "experimental-async")]
 #[pyfunction]
-pub async fn metadata_async(
-    path: PathBuf,
-    #[pyo3(cancel_handle)] cancel: CancelHandle,
-) -> PyResult<PyMetadata> {
-    on_tokio_py_cancel(
-        async move {
-            tokio::fs::metadata(path)
-                .await
-                .map(PyMetadata::from)
-                .map_err(PyErr::from)
-        },
-        cancel,
-    )
-    .await
-}
-
-#[cfg(not(feature = "experimental-async"))]
-#[pyfunction]
-pub fn read_async(py: Python<'_>, path: PathBuf) -> PyResult<Bound<'_, PyAny>> {
-    future_into_py(py, async move {
+pub fn read_async(py: Python<'_>, path: PathBuf) -> PyResult<Bound<'_, RyCoroutine>> {
+    tokio_coro(py, "read_async", async move {
         tokio::fs::read(path)
             .await
             .map(RyBytes::from)
@@ -176,232 +78,85 @@ pub fn read_async(py: Python<'_>, path: PathBuf) -> PyResult<Bound<'_, PyAny>> {
     })
 }
 
-#[cfg(feature = "experimental-async")]
 #[pyfunction]
-pub async fn read_async(
-    path: PathBuf,
-    #[pyo3(cancel_handle)] cancel: CancelHandle,
-) -> PyResult<RyBytes> {
-    on_tokio_py_cancel(
-        async move {
-            tokio::fs::read(path)
-                .await
-                .map(RyBytes::from)
-                .map_err(PyErr::from)
-        },
-        cancel,
-    )
-    .await
-}
-
-#[cfg(not(feature = "experimental-async"))]
-#[pyfunction]
-pub fn read_dir_async(py: Python<'_>, path: PathBuf) -> PyResult<Bound<'_, PyAny>> {
-    future_into_py(py, async move {
+pub fn read_dir_async(py: Python<'_>, path: PathBuf) -> PyResult<Bound<'_, RyCoroutine>> {
+    tokio_coro(py, "read_dir_async", async move {
         let readdir = tokio::fs::read_dir(path).await.map_err(PyErr::from)?;
         Ok(PyAsyncReadDir::from(readdir))
     })
 }
 
-#[cfg(feature = "experimental-async")]
 #[pyfunction]
-pub async fn read_dir_async(
-    path: PathBuf,
-    #[pyo3(cancel_handle)] cancel: CancelHandle,
-) -> PyResult<PyAsyncReadDir> {
-    on_tokio_py_cancel(
-        async move {
-            let readdir = tokio::fs::read_dir(path).await.map_err(PyErr::from)?;
-            Ok(PyAsyncReadDir::from(readdir))
-        },
-        cancel,
-    )
-    .await
-}
-
-#[cfg(not(feature = "experimental-async"))]
-#[pyfunction]
-pub fn read_link_async(py: Python<'_>, path: PathBuf) -> PyResult<Bound<'_, PyAny>> {
-    future_into_py(py, async move {
+pub fn read_link_async(py: Python<'_>, path: PathBuf) -> PyResult<Bound<'_, RyCoroutine>> {
+    tokio_coro(py, "read_link_async", async move {
         tokio::fs::read_link(path)
             .await
-            .map(|p| p.into_os_string())
+            .map(PathBuf::into_os_string)
             .map_err(PyErr::from)
     })
 }
 
-#[cfg(feature = "experimental-async")]
 #[pyfunction]
-pub async fn read_link_async(
-    path: PathBuf,
-    #[pyo3(cancel_handle)] cancel: CancelHandle,
-) -> PyResult<std::ffi::OsString> {
-    on_tokio_py_cancel(
-        async move {
-            tokio::fs::read_link(path)
-                .await
-                .map(Into::into)
-                .map_err(PyErr::from)
-        },
-        cancel,
-    )
-    .await
-}
-
-#[cfg(not(feature = "experimental-async"))]
-#[pyfunction]
-pub fn read_to_string_async(py: Python<'_>, path: PathBuf) -> PyResult<Bound<'_, PyAny>> {
-    future_into_py(py, async move {
+pub fn read_to_string_async(py: Python<'_>, path: PathBuf) -> PyResult<Bound<'_, RyCoroutine>> {
+    tokio_coro(py, "read_to_string_async", async move {
         tokio::fs::read_to_string(path).await.map_err(PyErr::from)
     })
 }
 
-#[cfg(feature = "experimental-async")]
 #[pyfunction]
-pub async fn read_to_string_async(
-    path: PathBuf,
-    #[pyo3(cancel_handle)] cancel: CancelHandle,
-) -> PyResult<String> {
-    on_tokio_py_cancel(
-        async move { tokio::fs::read_to_string(path).await.map_err(PyErr::from) },
-        cancel,
-    )
-    .await
-}
-
-#[cfg(not(feature = "experimental-async"))]
-#[pyfunction]
-pub fn remove_dir_async(py: Python<'_>, path: PathBuf) -> PyResult<Bound<'_, PyAny>> {
-    future_into_py(py, async move {
+pub fn remove_dir_async(py: Python<'_>, path: PathBuf) -> PyResult<Bound<'_, RyCoroutine>> {
+    tokio_coro(py, "remove_dir_async", async move {
         tokio::fs::remove_dir(path).await.map_err(PyErr::from)
     })
 }
 
-#[cfg(feature = "experimental-async")]
 #[pyfunction]
-pub async fn remove_dir_async(
-    path: PathBuf,
-    #[pyo3(cancel_handle)] cancel: CancelHandle,
-) -> PyResult<()> {
-    on_tokio_py_cancel(
-        async move { tokio::fs::remove_dir(path).await.map_err(PyErr::from) },
-        cancel,
-    )
-    .await
-}
-
-#[cfg(not(feature = "experimental-async"))]
-#[pyfunction]
-pub fn remove_dir_all_async(py: Python<'_>, path: PathBuf) -> PyResult<Bound<'_, PyAny>> {
-    future_into_py(py, async move {
+pub fn remove_dir_all_async(py: Python<'_>, path: PathBuf) -> PyResult<Bound<'_, RyCoroutine>> {
+    tokio_coro(py, "remove_dir_all_async", async move {
         tokio::fs::remove_dir_all(path).await.map_err(PyErr::from)
     })
 }
 
-#[cfg(feature = "experimental-async")]
 #[pyfunction]
-pub async fn remove_dir_all_async(
-    path: PathBuf,
-    #[pyo3(cancel_handle)] cancel: CancelHandle,
-) -> PyResult<()> {
-    on_tokio_py_cancel(
-        async move { tokio::fs::remove_dir_all(path).await.map_err(PyErr::from) },
-        cancel,
-    )
-    .await
-}
-
-#[cfg(not(feature = "experimental-async"))]
-#[pyfunction]
-pub fn remove_file_async(py: Python<'_>, path: PathBuf) -> PyResult<Bound<'_, PyAny>> {
-    future_into_py(py, async move {
+pub fn remove_file_async(py: Python<'_>, path: PathBuf) -> PyResult<Bound<'_, RyCoroutine>> {
+    tokio_coro(py, "remove_file_async", async move {
         tokio::fs::remove_file(path).await.map_err(PyErr::from)
     })
 }
 
-#[cfg(feature = "experimental-async")]
 #[pyfunction]
-pub async fn remove_file_async(
-    path: PathBuf,
-    #[pyo3(cancel_handle)] cancel: CancelHandle,
-) -> PyResult<()> {
-    on_tokio_py_cancel(
-        async move { tokio::fs::remove_file(path).await.map_err(PyErr::from) },
-        cancel,
-    )
-    .await
-}
-
-#[cfg(not(feature = "experimental-async"))]
-#[pyfunction]
-pub fn rename_async(py: Python<'_>, from: PathBuf, to: PathBuf) -> PyResult<Bound<'_, PyAny>> {
-    future_into_py(py, async move {
+pub fn rename_async(
+    py: Python<'_>,
+    from: PathBuf,
+    to: PathBuf,
+) -> PyResult<Bound<'_, RyCoroutine>> {
+    tokio_coro(py, "rename_async", async move {
         tokio::fs::rename(from, to).await.map_err(PyErr::from)
     })
 }
 
-#[cfg(feature = "experimental-async")]
 #[pyfunction]
-pub async fn rename_async(
-    from: PathBuf,
-    to: PathBuf,
-    #[pyo3(cancel_handle)] cancel: CancelHandle,
-) -> PyResult<()> {
-    on_tokio_py_cancel(
-        async move { tokio::fs::rename(from, to).await.map_err(PyErr::from) },
-        cancel,
-    )
-    .await
-}
-
-#[cfg(not(feature = "experimental-async"))]
-#[pyfunction]
-pub fn try_exists_async(py: Python<'_>, path: PathBuf) -> PyResult<Bound<'_, PyAny>> {
-    future_into_py(py, async move {
+pub fn try_exists_async(py: Python<'_>, path: PathBuf) -> PyResult<Bound<'_, RyCoroutine>> {
+    tokio_coro(py, "try_exists_async", async move {
         tokio::fs::try_exists(path).await.map_err(PyErr::from)
     })
 }
 
-#[cfg(feature = "experimental-async")]
 #[pyfunction]
-pub async fn try_exists_async(
-    path: PathBuf,
-    #[pyo3(cancel_handle)] cancel: CancelHandle,
-) -> PyResult<bool> {
-    on_tokio_py_cancel(
-        async move { tokio::fs::try_exists(path).await.map_err(PyErr::from) },
-        cancel,
-    )
-    .await
-}
-
-#[cfg(not(feature = "experimental-async"))]
-#[pyfunction]
-pub fn exists_async(py: Python<'_>, path: PathBuf) -> PyResult<Bound<'_, PyAny>> {
-    future_into_py(py, async move {
+pub fn exists_async(py: Python<'_>, path: PathBuf) -> PyResult<Bound<'_, RyCoroutine>> {
+    tokio_coro(py, "exists_async", async move {
         tokio::fs::try_exists(path).await.map_err(PyErr::from)
     })
 }
 
-#[cfg(feature = "experimental-async")]
 #[pyfunction]
-pub async fn exists_async(
+pub fn write_async(
+    py: Python<'_>,
     path: PathBuf,
-    #[pyo3(cancel_handle)] cancel: CancelHandle,
-) -> PyResult<bool> {
-    on_tokio_py_cancel(
-        async move { tokio::fs::try_exists(path).await.map_err(PyErr::from) },
-        cancel,
-    )
-    .await
-}
-
-#[cfg(not(feature = "experimental-async"))]
-#[pyfunction]
-pub fn write_async(py: Python<'_>, path: PathBuf, buf: RyBytes) -> PyResult<Bound<'_, PyAny>> {
-    future_into_py(py, async move {
-        let bref: &[u8] = buf.as_ref();
-        let len = bref.len();
+    buf: RyBytes,
+) -> PyResult<Bound<'_, RyCoroutine>> {
+    tokio_coro(py, "write_async", async move {
+        let len = buf.as_slice().len();
         tokio::fs::write(path, buf)
             .await
             .map(|()| len)
@@ -409,59 +164,17 @@ pub fn write_async(py: Python<'_>, path: PathBuf, buf: RyBytes) -> PyResult<Boun
     })
 }
 
-#[cfg(feature = "experimental-async")]
-#[pyfunction]
-pub async fn write_async(
-    path: PathBuf,
-    buf: RyBytes,
-    #[pyo3(cancel_handle)] cancel: CancelHandle,
-) -> PyResult<usize> {
-    on_tokio_py_cancel(
-        async move {
-            let bref: &[u8] = buf.as_ref();
-            let len = bref.len();
-            tokio::fs::write(path, buf)
-                .await
-                .map(|()| len)
-                .map_err(PyErr::from)
-        },
-        cancel,
-    )
-    .await
-}
-
-#[cfg(not(feature = "experimental-async"))]
 #[pyfunction]
 pub fn write_string_async(
     py: Python<'_>,
     path: PathBuf,
     s: PyBackedStr,
-) -> PyResult<Bound<'_, PyAny>> {
-    future_into_py(py, async move {
+) -> PyResult<Bound<'_, RyCoroutine>> {
+    tokio_coro(py, "write_string_async", async move {
         let nbytes = s.len();
-
         tokio::fs::write(path, s).await.map_err(PyErr::from)?;
         Ok(nbytes)
     })
-}
-
-#[cfg(feature = "experimental-async")]
-#[pyfunction]
-pub async fn write_string_async(
-    path: PathBuf,
-    s: PyBackedStr,
-    #[pyo3(cancel_handle)] cancel: CancelHandle,
-) -> PyResult<usize> {
-    on_tokio_py_cancel(
-        async move {
-            let nbytes = s.len();
-
-            tokio::fs::write(path, s).await.map_err(PyErr::from)?;
-            Ok(nbytes)
-        },
-        cancel,
-    )
-    .await
 }
 
 #[pyfunction(

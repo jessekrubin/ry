@@ -1,5 +1,6 @@
 use pyo3::IntoPyObjectExt;
 use pyo3::prelude::*;
+use ryo3_core::py_dict::KwargsIter;
 use ryo3_http::PyHeaders;
 use ryo3_macro_rules::{py_type_err, py_value_err, py_value_error};
 use ryo3_url::UrlLike;
@@ -7,9 +8,9 @@ use ryo3_url::UrlLike;
 #[pyclass(name = "Proxy", frozen, immutable_type)]
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
-pub struct PyProxy {
+pub struct RyProxy {
     pub(crate) proxy: ::reqwest::Proxy,
-    pub(crate) inner: PyProxyInner,
+    pub(crate) inner: ProxyInner,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -65,7 +66,7 @@ pub(crate) enum ProxyScheme<T> {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub(crate) struct PyProxyInner {
+pub(crate) struct ProxyInner {
     pub scheme: ProxyScheme<String>,
     pub basic_auth: Option<(String, String)>,
     pub no_proxy: Vec<String>,
@@ -73,7 +74,7 @@ pub(crate) struct PyProxyInner {
     pub headers: Option<PyHeaders>,
 }
 
-impl PyProxyInner {
+impl ProxyInner {
     fn new(scheme: ProxyScheme<String>) -> Self {
         Self {
             scheme,
@@ -97,30 +98,27 @@ impl<'a, 'py> FromPyObject<'a, 'py> for ProxyKwargs {
         let d = obj
             .cast_exact::<pyo3::types::PyDict>()
             .map_err(|e| py_value_error!("Expected dict for Proxy kwargs: {e}"))?;
-        let py = obj.py();
-        let basic_auth = d
-            .get_item(pyo3::intern!(py, "basic_auth"))?
-            .map(|ba| ba.extract::<(String, String)>()) // typos:ignore
-            .transpose()?;
-        let no_proxy = d
-            .get_item(pyo3::intern!(py, "no_proxy"))?
-            .map(|np| np.extract::<String>())
-            .transpose()?;
-        let headers = d
-            .get_item(pyo3::intern!(py, "headers"))?
-            .map(|h| h.extract::<ryo3_http::PyHeadersLike>())
-            .transpose()?
-            .map(PyHeaders::from);
-
-        Ok(Self {
-            basic_auth,
-            no_proxy,
-            headers,
-        })
+        let mut kwargs = Self::default();
+        for kwarg in KwargsIter::new(d) {
+            let (key, value) = kwarg?;
+            match key {
+                "basic_auth" => kwargs.basic_auth = value.extract::<Option<(String, String)>>()?,
+                "no_proxy" => kwargs.no_proxy = value.extract::<Option<String>>()?,
+                "headers" => {
+                    kwargs.headers = value
+                        .extract::<Option<ryo3_http::PyHeadersLike>>()?
+                        .map(PyHeaders::from);
+                }
+                s => {
+                    return py_type_err!("unknown Proxy option: {}", s);
+                }
+            }
+        }
+        Ok(kwargs)
     }
 }
 
-impl PyProxy {
+impl RyProxy {
     #[inline]
     fn apply_kwargs(mut self, kwds: Option<ProxyKwargs>) -> Self {
         if let Some(kwds) = kwds {
@@ -138,7 +136,7 @@ impl PyProxy {
     }
 }
 
-impl std::hash::Hash for PyProxy {
+impl std::hash::Hash for RyProxy {
     #[inline]
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
         self.inner.hash(state);
@@ -146,7 +144,7 @@ impl std::hash::Hash for PyProxy {
 }
 
 #[pymethods]
-impl PyProxy {
+impl RyProxy {
     #[new]
     #[pyo3(
         signature = (url, ptype = &PyProxyType::All, **kwds),
@@ -166,7 +164,7 @@ impl PyProxy {
         text_signature = "(url, *, basic_auth=None, headers=None, no_proxy=None)"
     )]
     fn http(url: UrlLike, kwds: Option<ProxyKwargs>) -> PyResult<Self> {
-        let inner = PyProxyInner::new(ProxyScheme::Http(url.to_string()));
+        let inner = ProxyInner::new(ProxyScheme::Http(url.to_string()));
         let proxy = ::reqwest::Proxy::http(url.into_inner()).map_err(|e| py_value_error!("{e}"))?;
         let p = Self { proxy, inner };
         Ok(p.apply_kwargs(kwds))
@@ -175,7 +173,7 @@ impl PyProxy {
     #[staticmethod]
     #[pyo3(signature = (url, **kwds))]
     fn https(url: UrlLike, kwds: Option<ProxyKwargs>) -> PyResult<Self> {
-        let inner = PyProxyInner::new(ProxyScheme::Https(url.to_string()));
+        let inner = ProxyInner::new(ProxyScheme::Https(url.to_string()));
         let proxy =
             ::reqwest::Proxy::https(url.into_inner()).map_err(|e| py_value_error!("{e}"))?;
         let p = Self { proxy, inner };
@@ -185,7 +183,7 @@ impl PyProxy {
     #[staticmethod]
     #[pyo3(signature = (url, **kwds))]
     fn all(url: UrlLike, kwds: Option<ProxyKwargs>) -> PyResult<Self> {
-        let inner = PyProxyInner::new(ProxyScheme::All(url.to_string()));
+        let inner = ProxyInner::new(ProxyScheme::All(url.to_string()));
         let proxy = ::reqwest::Proxy::all(url.into_inner()).map_err(|e| py_value_error!("{e}"))?;
         let p = Self { proxy, inner };
         Ok(p.apply_kwargs(kwds))
@@ -233,7 +231,7 @@ impl PyProxy {
     }
 }
 
-impl std::fmt::Display for PyProxy {
+impl std::fmt::Display for RyProxy {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         use std::fmt::Write;
         let base = match &self.inner.scheme {
@@ -255,21 +253,21 @@ impl std::fmt::Display for PyProxy {
     }
 }
 
-impl PartialEq for PyProxy {
+impl PartialEq for RyProxy {
     fn eq(&self, other: &Self) -> bool {
         self.inner == other.inner
     }
 }
 
-impl From<&PyProxy> for ::reqwest::Proxy {
-    fn from(value: &PyProxy) -> Self {
+impl From<&RyProxy> for ::reqwest::Proxy {
+    fn from(value: &RyProxy) -> Self {
         value.proxy.clone()
     }
 }
 
-impl Eq for PyProxy {}
+impl Eq for RyProxy {}
 
-impl<'a, 'py> FromPyObject<'a, 'py> for PyProxy {
+impl<'a, 'py> FromPyObject<'a, 'py> for RyProxy {
     type Error = PyErr;
     fn extract(obj: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
         if let Ok(proxy) = obj.cast_exact::<Self>() {
@@ -283,7 +281,7 @@ impl<'a, 'py> FromPyObject<'a, 'py> for PyProxy {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub(crate) struct PyProxies(Vec<PyProxy>);
+pub(crate) struct PyProxies(Vec<RyProxy>);
 
 impl<'a, 'py> FromPyObject<'a, 'py> for PyProxies {
     type Error = PyErr;
@@ -306,14 +304,14 @@ impl PyProxies {
     }
 }
 
-impl From<PyProxy> for PyProxies {
-    fn from(value: PyProxy) -> Self {
+impl From<RyProxy> for PyProxies {
+    fn from(value: RyProxy) -> Self {
         Self(vec![value])
     }
 }
 
-impl From<&PyProxy> for PyProxies {
-    fn from(value: &PyProxy) -> Self {
+impl From<&RyProxy> for PyProxies {
+    fn from(value: &RyProxy) -> Self {
         Self(vec![value.clone()])
     }
 }

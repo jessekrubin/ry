@@ -6166,7 +6166,7 @@ class ClientConfig(t.TypedDict):
 
 @t.final
 class Client:
-    """experimental client using the `pyo3/experimental-async` feature"""
+    """async http client"""
 
     def __new__(
         cls,
@@ -6196,7 +6196,7 @@ class Client:
         http2_initial_stream_window_size: int | None = None,
         http2_initial_connection_window_size: int | None = None,
         http2_adaptive_window: bool = False,
-        http2_max_frame_size: int | None = None,
+        http2_max_frame_size: int | None = 65_536,
         http2_max_header_list_size: int | None = None,
         http2_keep_alive_interval: Duration | None = None,
         http2_keep_alive_timeout: Duration | None = None,
@@ -6314,7 +6314,7 @@ class BlockingClient:
         http2_initial_stream_window_size: int | None = None,
         http2_initial_connection_window_size: int | None = None,
         http2_adaptive_window: bool = False,
-        http2_max_frame_size: int | None = None,
+        http2_max_frame_size: int | None = 65_536,
         http2_max_header_list_size: int | None = None,
         http2_keep_alive_interval: Duration | None = None,
         http2_keep_alive_timeout: Duration | None = None,
@@ -6788,8 +6788,32 @@ def fmt_size(
     *,
     base: _TFormatSizeBase = 2,
     style: _TFormatSizeStyle = "default",
+    scale: int | None = None,
 ) -> str:
     """Return human-readable string representation of bytes-size.
+
+    Parameters
+    ----------
+    n : int
+        Size in bytes.
+    base : {2, 10}, default 2
+        Base 2 (KiB, MiB, ...) or base 10 (KB, MB, ...) units.
+    style : {"default", "abbreviated", "abbreviated-lowercase", "full", "full-lowercase"}, default "default"
+        Unit style.
+    scale : int or None, default None
+        Number of decimal places 0..=255; `None` uses the per-unit default.
+
+    Returns
+    -------
+    str
+        Human-readable size string.
+
+    Raises
+    ------
+    ValueError
+        If `base` or `style` is invalid.
+    OverflowError
+        If `scale` is not in 0..=255.
 
     Examples
     --------
@@ -6802,6 +6826,8 @@ def fmt_size(
     '1.00 KB'
     >>> fmt_size(1024, base=2)
     '1.00 KiB'
+    >>> fmt_size(1536, scale=3)
+    '1.500 KiB'
 
     """
 
@@ -6827,14 +6853,33 @@ def parse_size(s: str) -> int:
 
 @t.final
 class SizeFormatter:
-    """Human-readable bytes-size formatter.ihh"""
+    """Human-readable bytes-size formatter."""
 
     def __new__(
         cls,
         base: _TFormatSizeBase = 2,
         style: _TFormatSizeStyle = "default",
+        scale: int | None = None,
     ) -> t.Self:
-        """Initialize human-readable bytes-size formatter."""
+        """Initialize human-readable bytes-size formatter.
+
+        Parameters
+        ----------
+        base : {2, 10}, default 2
+            Base 2 (KiB, MiB, ...) or base 10 (KB, MB, ...) units.
+        style : {"default", "abbreviated", "abbreviated-lowercase", "full", "full-lowercase"}, default "default"
+            Unit style.
+        scale : int or None, default None
+            Number of decimal places 0..=255; `None` uses the per-unit default.
+
+        Raises
+        ------
+        ValueError
+            If `base` or `style` is invalid.
+        OverflowError
+            If `scale` is not in 0..=255.
+
+        """
 
     def format(self, n: int) -> str:
         """Return human-readable string representation of bytes-size."""
@@ -6850,16 +6895,40 @@ class SizeFormatter:
     def style(self) -> _TFormatSizeStyle:
         """Return style used by formatter."""
 
+    @property
+    def scale(self) -> int | None:
+        """Return scale (decimal places) used by formatter."""
+
     def with_base(self, base: _TFormatSizeBase) -> SizeFormatter:
         """Return new `SizeFormatter` with specified base."""
 
     def with_style(self, style: _TFormatSizeStyle) -> SizeFormatter:
         """Return new `SizeFormatter` with specified style."""
 
+    def with_scale(self, scale: int | None) -> SizeFormatter:
+        """Return new `SizeFormatter` with specified scale.
+
+        Parameters
+        ----------
+        scale : int or None
+            Number of decimal places 0..=255; `None` uses the per-unit default.
+
+        Returns
+        -------
+        SizeFormatter
+            New formatter with the same base and style.
+
+        Raises
+        ------
+        OverflowError
+            If `scale` is not in 0..=255.
+
+        """
+
 
 @t.final
 class Size(FromStr, _Parse):
-    """Bytes-size object."""
+    """Bytes-size object"""
 
     def __new__(cls, size: int) -> t.Self: ...
     @property
@@ -6869,7 +6938,38 @@ class Size(FromStr, _Parse):
         *,
         base: _TFormatSizeBase = 2,
         style: _TFormatSizeStyle = "default",
-    ) -> str: ...
+        scale: int | None = None,
+    ) -> str:
+        """Return human-readable string representation of the size.
+
+        Parameters
+        ----------
+        base : {2, 10}, default 2
+            Base 2 (KiB, MiB, ...) or base 10 (KB, MB, ...) units.
+        style : {"default", "abbreviated", "abbreviated-lowercase", "full", "full-lowercase"}, default "default"
+            Unit style.
+        scale : int or None, default None
+            Number of decimal places 0..=255; `None` uses the per-unit default.
+
+        Returns
+        -------
+        str
+            Human-readable size string.
+
+        Raises
+        ------
+        ValueError
+            If `base` or `style` is invalid.
+        OverflowError
+            If `scale` is not in 0..=255.
+
+        Examples
+        --------
+        >>> from ry import Size
+        >>> Size(1536).format(scale=1)
+        '1.5 KiB'
+
+        """
 
     # =========================================================================
     # CLASS-METHODS
@@ -6904,7 +7004,6 @@ class Size(FromStr, _Parse):
     # -------------------------------------------------------------------------
     # MEGABYTES
     # -------------------------------------------------------------------------
-
     @classmethod
     def from_mb(cls, size: float) -> Size: ...
     @classmethod
@@ -8162,11 +8261,11 @@ from ry.ryo3._std import FileType, Metadata
 # FS
 # =============================================================================
 async def canonicalize_async(path: FsPathLike) -> FsPathLike: ...
-async def copy_async(src: FsPathLike, dst: FsPathLike) -> None: ...
+async def copy_async(src: FsPathLike, dst: FsPathLike) -> int: ...
 async def create_dir_async(path: FsPathLike) -> None: ...
 async def create_dir_all_async(path: FsPathLike) -> None: ...
 async def hard_link_async(src: FsPathLike, dst: FsPathLike) -> None: ...
-async def metadata_async(path: FsPathLike) -> None: ...
+async def metadata_async(path: FsPathLike) -> Metadata: ...
 async def read_async(path: FsPathLike) -> Bytes: ...
 async def remove_dir_async(path: FsPathLike) -> None: ...
 async def remove_dir_all_async(path: FsPathLike) -> None: ...
@@ -8174,7 +8273,7 @@ async def remove_file_async(path: FsPathLike) -> None: ...
 async def read_link_async(path: FsPathLike) -> FsPathLike: ...
 async def read_to_string_async(path: FsPathLike) -> str: ...
 async def rename_async(src: FsPathLike, dst: FsPathLike) -> None: ...
-async def write_async(path: FsPathLike, buf: Buffer) -> None: ...
+async def write_async(path: FsPathLike, buf: Buffer) -> int: ...
 async def try_exists_async(path: FsPathLike) -> bool: ...
 async def exists_async(path: FsPathLike) -> bool: ...
 
@@ -8579,6 +8678,11 @@ class WebSocket:
 
         Based on the `WebSocket.readyState` property from the Web API:
         <https://developer.mozilla.org/en-US/docs/Web/API/WebSocket/readyState>
+
+        - `0` CONNECTING: created, not connected yet (`await ws` connects)
+        - `1` OPEN
+        - `2` CLOSING: a started close always finishes (see `close_timeout`)
+        - `3` CLOSED: closed or failed to connect; `await ws` reconnects
         """
 
     def __bool__(self) -> bool:
@@ -8597,6 +8701,11 @@ class WebSocket:
         self, code: int = 1_000, reason: str | Buffer | None = None
     ) -> None:
         """Close the WebSocket connection.
+
+        Sends the close frame and waits for the peer's. A started close always
+        finishes, even if this call is cancelled; it gives up after
+        `close_timeout` (`None` waits forever, so a peer that never answers
+        keeps the connection open).
 
         Parameters
         ----------
@@ -8628,7 +8737,7 @@ def websocket(
     uri: URL | str,
     *,
     headers: Headers | dict[str, str] | None = None,
-    close_timeout: _TimeoutLike = 10,
+    close_timeout: _TimeoutLike | None = 10,
     recv_timeout: _TimeoutLike | None = None,
     flush_threshold: int = 8_192,
     frame_size: int = 4_194_304,

@@ -10,9 +10,9 @@ use crate::constants::DEFAULT_USER_AGENT;
 // ============================================================================
 // BASIC AUTH
 // ============================================================================
-pub(crate) struct BasicAuth(PyBackedStr, Option<PyBackedStr>);
+pub(crate) struct PyBasicAuth(PyBackedStr, Option<PyBackedStr>);
 
-impl BasicAuth {
+impl PyBasicAuth {
     pub(crate) fn username(&self) -> &str {
         &self.0
     }
@@ -22,7 +22,7 @@ impl BasicAuth {
     }
 }
 
-impl<'py> FromPyObject<'_, 'py> for BasicAuth {
+impl<'py> FromPyObject<'_, 'py> for PyBasicAuth {
     type Error = PyErr;
 
     fn extract(obj: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
@@ -117,25 +117,5 @@ impl<'py> FromPyObject<'_, 'py> for PyQuery {
         let url_encoded_query = serde_urlencoded::to_string(py_any_serializer)
             .map_err(|err| py_type_error!("failed to serialize query params: {err}"))?;
         Ok(Self(url_encoded_query))
-    }
-}
-
-// ============================================================================
-// JSON REQUEST
-// ============================================================================
-pub(crate) struct PyRequestJson(Vec<u8>);
-
-impl From<PyRequestJson> for Vec<u8> {
-    fn from(value: PyRequestJson) -> Self {
-        value.0
-    }
-}
-
-impl<'py> FromPyObject<'_, 'py> for PyRequestJson {
-    type Error = PyErr;
-
-    fn extract(obj: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
-        let b = ryo3_json::py_to_vec(obj)?;
-        Ok(Self(b))
     }
 }

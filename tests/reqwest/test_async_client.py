@@ -1334,21 +1334,13 @@ class TestTimeout:
         """Test that getting both text and bytes at the same time errors"""
         url = server.url
         client = client_cls()
-        if ry.__pyo3_experimental_async__:  # special handling for experimental async
-            res = await client.get(str(url) + "slow")
-            text_task = asyncio.ensure_future(res.text())
-            await asyncio.sleep(0)
-            with pytest.raises(ValueError, match="Response already consumed"):
-                _bytes_future = await res.bytes()
-            text = await text_task
-            assert text == "".join([f"howdy partner {i}\n" for i in range(10)])
-        else:
-            res = await client.get(str(url) + "slow")
-            text_future = res.text()
-            with pytest.raises(ValueError, match="Response already consumed"):
-                _bytes_future = await res.bytes()
-            text = await text_future
-            assert text == "".join([f"howdy partner {i}\n" for i in range(10)])
+        res = await client.get(str(url) + "slow")
+        text_task = asyncio.ensure_future(res.text())
+        await asyncio.sleep(0)
+        with pytest.raises(ValueError, match="Response already consumed"):
+            _bytes_future = await res.bytes()
+        text = await text_task
+        assert text == "".join([f"howdy partner {i}\n" for i in range(10)])
 
 
 class TestCookies:

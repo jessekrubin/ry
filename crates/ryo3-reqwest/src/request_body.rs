@@ -59,9 +59,9 @@ impl PyBodyStream {
     }
 
     #[inline]
-    pub(crate) fn primer(&self) -> Option<BodyPrimer> {
+    pub(crate) fn primer(&self) -> Option<RequestBodyPrimer> {
         match self {
-            Self::Async(s) => Some(BodyPrimer(Arc::clone(&s.src))),
+            Self::Async(s) => Some(RequestBodyPrimer(Arc::clone(&s.src))),
             Self::Sync(_) => None,
         }
     }
@@ -85,7 +85,8 @@ impl std::fmt::Debug for PyBodyStream {
 
 #[inline]
 fn extract_chunk(obj: &Bound<'_, PyAny>) -> BodyItem {
-    obj.extract::<ReadableBuffer>().map(|rb| rb.to_bytes())
+    obj.extract::<ReadableBuffer>()
+        .map(ReadableBuffer::into_bytes)
 }
 
 fn pump_request_body_sync(iter: &Py<PyAny>, tx: &mpsc::Sender<BodyItem>) {
@@ -135,9 +136,9 @@ impl AsyncBodySrc {
 }
 
 /// starts an async body's pump (on the loop thread)
-pub(crate) struct BodyPrimer(Arc<AsyncBodySrc>);
+pub(crate) struct RequestBodyPrimer(Arc<AsyncBodySrc>);
 
-impl BodyPrimer {
+impl RequestBodyPrimer {
     /// loop thread ~ call before the request is handed to tokio
     pub(crate) fn prime(self, py: Python<'_>) {
         let src = self.0;
@@ -593,7 +594,7 @@ impl<'py> FromPyObject<'_, 'py> for PyBody {
         let py = obj.py();
         // TODO: dedupe these interned strings
         if let Ok(buffer) = obj.extract::<ReadableBuffer>() {
-            Ok(Self::Bytes(buffer.to_rybytes()))
+            Ok(Self::Bytes(buffer.into_rybytes()))
         } else if obj.hasattr(pyo3::intern!(py, "__aiter__"))? {
             let inner_iter = obj.call_method0(pyo3::intern!(py, "__aiter__"))?;
             Self::async_stream(&inner_iter)

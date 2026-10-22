@@ -1,15 +1,15 @@
 use pyo3::prelude::*;
-use pyo3::types::{PyDict, PyString};
+use pyo3::types::PyDict;
 use reqwest::header::HeaderValue;
-use ryo3_core::pystr_read_fast;
+use ryo3_core::py_dict::KwargsIter;
 use ryo3_http::{PyHeaders, PyHeadersLike};
 use ryo3_macro_rules::{py_type_err, py_value_error};
 use ryo3_std::time::{PyDuration, PyTimeout};
 
 use crate::constants::DEFAULT_USER_AGENT;
 use crate::proxy::PyProxies;
-use crate::tls::{PyCertificate, PyCertificateRevocationList, PyIdentity};
-use crate::tls_version::TlsVersion;
+use crate::tls::{RyCertificate, RyCertificateRevocationList, RyIdentity, py_load_native_certs};
+use crate::tls_version::PyTlsVersion;
 use crate::types::PyUserAgent;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -61,14 +61,14 @@ pub struct ClientConfig {
     tcp_keepalive_retries: Option<u32>, // default: 3
     tcp_nodelay: bool,                 // default: true
     // -- tls --
-    identity: Option<PyIdentity>,
-    tls_certs_merge: Option<Vec<PyCertificate>>,
-    tls_certs_only: Option<Vec<PyCertificate>>,
-    tls_crls_only: Option<Vec<PyCertificateRevocationList>>,
+    identity: Option<RyIdentity>,
+    tls_certs_merge: Option<Vec<RyCertificate>>,
+    tls_certs_only: Option<Vec<RyCertificate>>,
+    tls_crls_only: Option<Vec<RyCertificateRevocationList>>,
     tls_info: bool, // default: false
     tls_sni: bool,  // default: true
-    tls_version_max: Option<TlsVersion>,
-    tls_version_min: Option<TlsVersion>,
+    tls_version_max: Option<PyTlsVersion>,
+    tls_version_min: Option<PyTlsVersion>,
     // -- tls danger zone --
     tls_danger_accept_invalid_certs: bool,
     tls_danger_accept_invalid_hostnames: bool,
@@ -163,10 +163,8 @@ impl<'py> FromPyObject<'_, 'py> for ClientConfig {
         let dict = obj.cast_exact::<PyDict>()?;
         let mut cfg = Self::default();
 
-        for (k, v) in dict.iter() {
-            let key = k.cast_exact::<PyString>()?;
-            let key = key.as_borrowed();
-            let key_str = pystr_read_fast(key)?;
+        for kwarg in KwargsIter::new(dict) {
+            let (key_str, v) = kwarg?;
             match key_str {
                 "headers" => {
                     cfg.headers = v.extract::<Option<PyHeadersLike>>()?.map(PyHeaders::from);
@@ -289,10 +287,10 @@ impl<'py> FromPyObject<'_, 'py> for ClientConfig {
                 }
                 // --- TLS ---
                 "identity" => {
-                    cfg.identity = v.extract::<Option<PyIdentity>>()?;
+                    cfg.identity = v.extract::<Option<RyIdentity>>()?;
                 }
                 "tls_certs_merge" => {
-                    cfg.tls_certs_merge = v.extract::<Option<Vec<PyCertificate>>>()?;
+                    cfg.tls_certs_merge = v.extract::<Option<Vec<RyCertificate>>>()?;
                 }
                 "tls_certs_only" => {
                     cfg.tls_certs_only = v.extract::<_>()?;
@@ -389,7 +387,7 @@ impl ClientConfig {
             client_builder = client_builder
                 .tls_certs_only(tls_certs_only.iter().map(|py_cert| py_cert.cert.clone()));
         } else if self._tls_cached_native_certs && self.tls_certs_merge.is_none() {
-            let cached = crate::tls::py_load_native_certs();
+            let cached = py_load_native_certs();
             if !cached.is_empty() {
                 client_builder = client_builder.tls_certs_only(cached.iter().cloned());
             }

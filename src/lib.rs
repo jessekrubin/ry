@@ -16,7 +16,9 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 const GIT_SHA: &str = env!("GIT_SHA");
 const GIT_REPO: &str = "git@github.com:jessekrubin/ry.git";
 
-const PYO3_EXPERIMENTAL_ASYNC: bool = cfg!(feature = "experimental-async");
+// ry's usage w/ pyo3 `experimental-async` is legacy now; TODO REMOVE THIS ME
+// kept around so `ry.__pyo3_experimental_async__` doesnt break
+const PYO3_EXPERIMENTAL_ASYNC: bool = false;
 
 #[cfg(feature = "mimalloc")]
 #[global_allocator]

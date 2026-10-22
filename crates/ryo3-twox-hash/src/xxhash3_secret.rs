@@ -26,7 +26,7 @@ impl<'py> FromPyObject<'_, 'py> for PyXxHash3Secret {
                     XXH3_SECRET_MIN_LEN
                 );
             }
-            Ok(Self(rb.to_rybytes()))
+            Ok(Self(rb.into_rybytes()))
         } else {
             py_type_err!(
                 "xxhash3-secret must be readable-buffer with of at least {} bytes",

@@ -1,13 +1,8 @@
 use std::time::Duration;
 
-#[cfg(feature = "experimental-async")]
-use pyo3::coroutine::CancelHandle;
 use pyo3::exceptions::{PyOverflowError, PyValueError};
 use pyo3::prelude::*;
-#[cfg(not(feature = "experimental-async"))]
-use ryo3_tokio_rt::future_into_py;
-#[cfg(feature = "experimental-async")]
-use ryo3_tokio_rt::on_tokio_py_cancel;
+use ryo3_tokio_rt::{RyCoroutine, tokio_coro, yield_coro};
 
 /// neg/nan -> `ValueError`
 /// inf     -> `OverflowError`
@@ -31,55 +26,28 @@ impl<'py> FromPyObject<'_, 'py> for SleepSecs {
     }
 }
 
-#[cfg(not(feature = "experimental-async"))]
 #[pyfunction]
-pub fn asleep(py: Python, secs: SleepSecs) -> PyResult<Bound<PyAny>> {
+pub fn asleep(py: Python<'_>, secs: SleepSecs) -> PyResult<Bound<'_, RyCoroutine>> {
     let SleepSecs { secs, dur } = secs;
-    future_into_py(py, async move {
+    if dur.is_zero() {
+        return yield_coro(py, "asleep", secs);
+    }
+    tokio_coro(py, "asleep", async move {
         tokio::time::sleep(dur).await;
         Ok(secs)
     })
 }
 
-#[cfg(not(feature = "experimental-async"))]
 #[pyfunction]
-pub fn sleep_async(py: Python, secs: SleepSecs) -> PyResult<Bound<PyAny>> {
+pub fn sleep_async(py: Python<'_>, secs: SleepSecs) -> PyResult<Bound<'_, RyCoroutine>> {
     let SleepSecs { secs, dur } = secs;
-    future_into_py(py, async move {
+    if dur.is_zero() {
+        return yield_coro(py, "sleep_async", secs);
+    }
+    tokio_coro(py, "sleep_async", async move {
         tokio::time::sleep(dur).await;
         Ok(secs)
     })
-}
-
-#[cfg(feature = "experimental-async")]
-#[pyfunction]
-pub async fn asleep(secs: SleepSecs, #[pyo3(cancel_handle)] cancel: CancelHandle) -> PyResult<f64> {
-    let SleepSecs { secs, dur } = secs;
-    on_tokio_py_cancel(
-        async move {
-            tokio::time::sleep(dur).await;
-            Ok(secs)
-        },
-        cancel,
-    )
-    .await
-}
-
-#[cfg(feature = "experimental-async")]
-#[pyfunction]
-pub async fn sleep_async(
-    secs: SleepSecs,
-    #[pyo3(cancel_handle)] cancel: CancelHandle,
-) -> PyResult<f64> {
-    let SleepSecs { secs, dur } = secs;
-    on_tokio_py_cancel(
-        async move {
-            tokio::time::sleep(dur).await;
-            Ok(secs)
-        },
-        cancel,
-    )
-    .await
 }
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
