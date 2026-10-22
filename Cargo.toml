@@ -35,6 +35,7 @@ members = [
   "crates/ryo3-heck",
   "crates/ryo3-http",
   "crates/ryo3-jiff",
+  "crates/ryo3-jiff-core",
   "crates/ryo3-jiter",
   "crates/ryo3-json",
   "crates/ryo3-json-ser",
@@ -103,6 +104,7 @@ ryo3-heck = { path = "./crates/ryo3-heck" }
 ryo3-http = { path = "./crates/ryo3-http" }
 ryo3-ignore = { path = "./crates/_future/ryo3-ignore" }
 ryo3-jiff = { path = "./crates/ryo3-jiff" }
+ryo3-jiff-core = { path = "./crates/ryo3-jiff-core" }
 ryo3-jiter = { path = "./crates/ryo3-jiter" }
 ryo3-json = { path = "./crates/ryo3-json" }
 ryo3-json-ser = { path = "./crates/ryo3-json-ser" }

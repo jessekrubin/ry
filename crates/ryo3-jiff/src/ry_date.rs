@@ -9,8 +9,10 @@ use pyo3::pyclass::CompareOp;
 use pyo3::types::{PyDict, PyTuple};
 use pyo3::{BoundObject, IntoPyObject};
 use ryo3_core::{PyAsciiString, map_py_overflow_err, map_py_value_err};
+use ryo3_jiff_core::{JiffDate, JiffEra, JiffEraYear, JiffRoundMode, JiffUnit, JiffWeekday};
 use ryo3_macro_rules::{any_repr, py_type_err, py_value_error};
 
+use crate::RyTimestamp;
 use crate::difference::{DateDifferenceArg, RyDateDifference};
 use crate::py_temporal_like::{TemporalSubInput, TemporalSubOutput};
 use crate::ry_datetime::RyDateTime;
@@ -23,7 +25,6 @@ use crate::ry_zoned::RyZoned;
 use crate::series::RyDateSeries;
 use crate::spanish::{DurationLike, Spanish};
 use crate::util::SpanKwargs;
-use crate::{JiffDate, JiffEra, JiffEraYear, JiffRoundMode, JiffUnit, JiffWeekday, RyTimestamp};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize), serde(transparent))]
@@ -362,7 +363,7 @@ impl RyDate {
     }
 
     fn in_tz(&self, tz: &str) -> PyResult<RyZoned> {
-        let tz = crate::ry_timezone::get_time_zone(tz).map_err(map_py_value_err)?;
+        let tz = ryo3_jiff_core::get_time_zone(tz).map_err(map_py_value_err)?;
         self.0
             .to_zoned(tz)
             .map(RyZoned::from)

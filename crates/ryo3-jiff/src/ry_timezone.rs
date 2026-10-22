@@ -7,23 +7,18 @@ use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyList, PyString, PyTuple, PyTzInfo};
 use pyo3::{BoundObject, IntoPyObjectExt};
 use ryo3_core::map_py_value_err;
+use ryo3_jiff_core::{JiffTimeZone, JiffTimeZoneRef, get_time_zone};
 use ryo3_macro_rules::{py_type_err, pytodo};
 
 use crate::ry_datetime::RyDateTime;
 use crate::ry_offset::RyOffset;
 use crate::ry_timestamp::RyTimestamp;
-use crate::ry_timezone_database::bundled_tzdb;
 use crate::ry_zoned::RyZoned;
-use crate::{JiffTimeZone, JiffTimeZoneRef};
 
 #[derive(Debug, Clone)]
 #[pyclass(name = "TimeZone", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyTimeZone(pub(crate) TimeZone);
-
-pub(crate) fn get_time_zone(time_zone_name: &str) -> Result<TimeZone, jiff::Error> {
-    TimeZone::get(time_zone_name).or_else(|_| bundled_tzdb().get(time_zone_name))
-}
 
 #[pymethods]
 impl RyTimeZone {

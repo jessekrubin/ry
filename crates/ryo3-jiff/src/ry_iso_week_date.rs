@@ -7,9 +7,10 @@ use pyo3::basic::CompareOp;
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyTuple};
 use ryo3_core::{PyAsciiString, map_py_value_err};
+use ryo3_jiff_core::{JiffDate, JiffWeekday};
 use ryo3_macro_rules::{any_repr, py_type_err};
 
-use crate::{JiffDate, JiffWeekday, RyDate, RyDateTime, RyTimestamp, RyZoned};
+use crate::{RyDate, RyDateTime, RyTimestamp, RyZoned};
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize), serde(transparent))]

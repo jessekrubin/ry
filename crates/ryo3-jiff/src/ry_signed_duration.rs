@@ -8,19 +8,19 @@ use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyFloat, PyInt, PyTuple};
 use pyo3::{BoundObject, IntoPyObjectExt};
 use ryo3_core::{PyAsciiString, map_py_overflow_err, map_py_value_err};
+use ryo3_jiff_core::fmt::{FRIENDLY_SPAN_PRINTER, TEMPORAL_SPAN_PARSER};
+use ryo3_jiff_core::{
+    JiffFriendlyDesignator, JiffRoundMode, JiffSignedDuration, JiffUnit, pydelta_to_signed_duration,
+};
 use ryo3_macro_rules::{
     any_repr, py_overflow_err, py_overflow_error, py_type_err, py_value_err, py_value_error,
     py_zero_division_err,
 };
 use ryo3_std::time::PyDuration;
 
-use crate::constants::{
-    MINUTES_PER_HOUR, NANOSECONDS_PER_SECOND, SECONDS_PER_MINUTE, SPAN_PRINTER_FRIENDLY,
-};
-use crate::pydatetime_conversions::pydelta_to_signed_duration;
+use crate::constants::{MINUTES_PER_HOUR, NANOSECONDS_PER_SECOND, SECONDS_PER_MINUTE};
 use crate::round::RySignedDurationRound;
 use crate::ry_span::RySpan;
-use crate::{JiffFriendlyDesignator, JiffRoundMode, JiffSignedDuration, JiffUnit};
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize), serde(transparent))]
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
@@ -261,7 +261,7 @@ impl RySignedDuration {
 
     #[staticmethod]
     fn fromisoformat(s: &str) -> PyResult<Self> {
-        crate::constants::SPAN_PARSER
+        TEMPORAL_SPAN_PARSER
             .parse_duration(s)
             .map(Self::from)
             .map_err(map_py_value_err)
@@ -270,7 +270,7 @@ impl RySignedDuration {
     #[pyo3(signature = (*, friendly = false), name = "to_string")]
     fn py_to_string(&self, friendly: bool) -> String {
         if friendly {
-            SPAN_PRINTER_FRIENDLY.duration_to_string(&self.0)
+            FRIENDLY_SPAN_PRINTER.duration_to_string(&self.0)
         } else {
             self.0.to_string()
         }
@@ -281,7 +281,7 @@ impl RySignedDuration {
         text_signature = "(self, designator=\"compact\")"
     )]
     fn friendly(&self, designator: JiffFriendlyDesignator) -> String {
-        jiff::fmt::friendly::SpanPrinter::new()
+        FRIENDLY_SPAN_PRINTER
             .designator(designator.into())
             .duration_to_string(&self.0)
     }
@@ -894,11 +894,12 @@ mod maths {
     use pyo3::IntoPyObjectExt;
     use pyo3::prelude::*;
     use ryo3_core::{PyCastExactOpt, map_py_overflow_err};
+    use ryo3_jiff_core::JiffSignedDuration;
     use ryo3_macro_rules::{py_overflow_error, py_type_err, py_zero_division_err};
 
     use super::RySignedDuration;
     use crate::py_temporal_like::PyTemporalArg;
-    use crate::{JiffSignedDuration, RyDate, RyDateTime, RyTime, RyTimestamp, RyZoned};
+    use crate::{RyDate, RyDateTime, RyTime, RyTimestamp, RyZoned};
 
     // ========================================================================
     // ARITHMETIC KWARGS - ADD/SUB KWARGS

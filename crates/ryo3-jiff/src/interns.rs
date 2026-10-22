@@ -35,8 +35,6 @@ unpaid_intern!(day);
 unpaid_intern!(hour);
 unpaid_intern!(minute);
 unpaid_intern!(second);
-unpaid_intern!(millisecond);
-unpaid_intern!(microsecond);
 unpaid_intern!(nanosecond);
 
 // plural duration(s)
@@ -71,19 +69,3 @@ unpaid_intern!(smallest);
 unpaid_intern!(largest);
 unpaid_intern!(mode);
 unpaid_intern!(increment);
-
-// era
-unpaid_intern!(bce, "BCE");
-unpaid_intern!(ce, "CE");
-
-// round-mode
-unpaid_intern!(ceil);
-unpaid_intern!(floor);
-unpaid_intern!(expand);
-unpaid_intern!(trunc);
-unpaid_intern!(half_ceil, "half-ceil");
-unpaid_intern!(half_floor, "half-floor");
-unpaid_intern!(half_expand, "half-expand");
-unpaid_intern!(half_trunc, "half-trunc");
-unpaid_intern!(half_even, "half-even");
-unpaid_intern!(unknown);

@@ -9,16 +9,14 @@ use ryo3_core::macros::{
     any_repr, py_key_err, py_overflow_error, py_type_err, py_value_err, py_value_error,
 };
 use ryo3_core::{PyAsciiString, PyCastExactOpt, map_py_overflow_err, map_py_value_err};
+use ryo3_jiff_core::{JiffFriendlyDesignator, JiffRoundMode, JiffSpan, JiffUnit};
 
 use crate::py_temporal_like::PyTemporalArg;
 use crate::ry_signed_duration::RySignedDuration;
 use crate::span_units::{SpanUnit, SpanUnitsMask};
 use crate::spanish::{DurationLike, Spanish};
 use crate::util::SpanKwargs;
-use crate::{
-    JiffFriendlyDesignator, JiffRoundMode, JiffSpan, JiffUnit, RyDate, RyDateTime, RyTime,
-    RyTimestamp, RyZoned, constants, timespan,
-};
+use crate::{RyDate, RyDateTime, RyTime, RyTimestamp, RyZoned, constants, timespan};
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize), serde(transparent))]
 #[derive(Debug, Clone, Copy)]
@@ -127,7 +125,7 @@ impl RySpan {
 
     #[staticmethod]
     fn fromisoformat(s: &str) -> PyResult<Self> {
-        crate::constants::SPAN_PARSER
+        ryo3_jiff_core::fmt::TEMPORAL_SPAN_PARSER
             .parse_span(s)
             .map(Self::from)
             .map_err(map_py_value_err)
@@ -232,7 +230,7 @@ impl RySpan {
         text_signature = "(self, designator=\"compact\")"
     )]
     fn friendly(&self, designator: JiffFriendlyDesignator) -> String {
-        jiff::fmt::friendly::SpanPrinter::new()
+        ryo3_jiff_core::fmt::FRIENDLY_SPAN_PRINTER
             .designator(designator.into())
             .span_to_string(&self.0)
     }

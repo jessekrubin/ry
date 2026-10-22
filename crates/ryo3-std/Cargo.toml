@@ -22,8 +22,8 @@ fs = ["dep:bytes", "dep:ryo3-bytes", "dep:ryo3-core", "dep:ryo3-macro-rules"]
 process = []
 
 # dep features
-jiff = ["dep:jiff"]
-serde = ["dep:serde", "jiff?/serde"]
+jiff = ["dep:jiff", "dep:ryo3-jiff-core"]
+serde = ["dep:serde", "jiff?/serde", "ryo3-jiff-core?/serde"]
 
 [dependencies]
 bytes = { workspace = true, optional = true }
@@ -31,6 +31,7 @@ jiff = { workspace = true, optional = true }
 pyo3 = { workspace = true, features = [] }
 ryo3-bytes = { workspace = true, optional = true }
 ryo3-core = { workspace = true, optional = true }
+ryo3-jiff-core = { workspace = true, optional = true }
 ryo3-macro-rules = { workspace = true, optional = true }
 ryo3-pydantic = { workspace = true, optional = true }
 serde = { workspace = true, features = ["derive"], optional = true }

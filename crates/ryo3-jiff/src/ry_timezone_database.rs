@@ -1,5 +1,4 @@
 //! python shim for `TimeZoneDatabase`
-use std::sync::LazyLock;
 
 use jiff::tz::TimeZoneDatabase;
 use pyo3::prelude::*;
@@ -12,13 +11,6 @@ use crate::RyTimeZone;
 #[derive(Debug, Clone)]
 pub struct RyTimeZoneDatabase {
     pub(crate) inner: Option<TimeZoneDatabase>,
-}
-
-pub(crate) static BUNDLED_TZDB: LazyLock<TimeZoneDatabase> =
-    LazyLock::new(TimeZoneDatabase::bundled);
-
-pub(crate) fn bundled_tzdb() -> &'static TimeZoneDatabase {
-    &BUNDLED_TZDB
 }
 
 impl RyTimeZoneDatabase {

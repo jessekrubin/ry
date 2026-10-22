@@ -1,50 +1,93 @@
 //! jiff-new-types
 //!
-//! new type wrappers for the jiff types; this is how things get extracted
-//! from the jiff library...
-//!
-//! Why not use the `pyo3/jiff` feature?
-//!
-//! - i have found a few bugs (which I plan to PR into pyo3)
-//! - the ry jiff conversions actually predate the `pyo3/jiff` feature, however
-//!   they have been influenced by the official pyo3 code
-//!
+//! new type wrappers for the jiff types + their consts/`Display` impls; the
+//! python conversions live in `to_py.rs` and `from_py.rs`
 
 // ----------------------------------------------------------------------------
-// NEWTS
+// MACROS
 // ----------------------------------------------------------------------------
-// #[derive(Debug, Clone)]
-// pub struct JiffError(jiff::Error);
 
-// impl JiffError {
-//     #[inline]
-//     #[must_use]
-//     pub const fn new(error: jiff::Error) -> Self {
-//         Self(error)
-//     }
+/// impl `new()`, `inner()` (ref to inner) and `into_inner()` (consume and
+/// return the inner value) + `From` both ways for a new-type
+///
+/// const form used for `Copy` inners
+macro_rules! impl_newtype {
+    (const $newt:ty, $inner:ty) => {
+        impl $newt {
+            #[inline]
+            #[must_use]
+            pub const fn into_inner(self) -> $inner {
+                self.0
+            }
+        }
+        impl_newtype!(@common $newt, $inner);
+    };
+    ($newt:ty, $inner:ty) => {
+        impl $newt {
+            #[inline]
+            #[must_use]
+            pub fn into_inner(self) -> $inner {
+                self.0
+            }
+        }
+        impl_newtype!(@common $newt, $inner);
+    };
+    (@common $newt:ty, $inner:ty) => {
+        impl $newt {
+            #[inline]
+            #[must_use]
+            pub const fn new(inner: $inner) -> Self {
+                Self(inner)
+            }
 
-//     #[inline]
-//     #[must_use]
-//     pub const fn inner(&self) -> &jiff::Error {
-//         &self.0
-//     }
+            #[inline]
+            #[must_use]
+            pub const fn inner(&self) -> &$inner {
+                &self.0
+            }
+        }
 
-//     #[inline]
-//     #[must_use]
-//     pub fn into_inner(self) -> jiff::Error {
-//         self.0
-//     }
-// }
+        impl From<$inner> for $newt {
+            #[inline]
+            fn from(inner: $inner) -> Self {
+                Self::new(inner)
+            }
+        }
 
-// impl From<JiffError> for pyo3::PyErr {
-//     fn from(e: JiffError) -> Self {
-//         if  (e.inner().is_range()) {
-//             pyo3::exceptions::PyOverflowError::new_err(e.inner().to_string())
-//         } else {
-//             pyo3::exceptions::PyValueError::new_err(e.inner().to_string())
-//         }
-//     }
-// }
+        impl From<$newt> for $inner {
+            #[inline]
+            fn from(newt: $newt) -> Self {
+                newt.into_inner()
+            }
+        }
+    };
+}
+
+/// impl `new()` and `inner()` + `From<&inner>` for a borrowed new-type
+macro_rules! impl_new_type_ref_functions {
+    ($newt:ident, $inner:ty) => {
+        impl<'a> $newt<'a> {
+            #[inline]
+            #[must_use]
+            pub const fn new(inner: &'a $inner) -> Self {
+                Self(inner)
+            }
+
+            #[inline]
+            #[must_use]
+            pub const fn inner(&self) -> &'a $inner {
+                self.0
+            }
+        }
+
+        impl<'a> From<&'a $inner> for $newt<'a> {
+            #[inline]
+            fn from(inner: &'a $inner) -> Self {
+                Self::new(inner)
+            }
+        }
+    };
+}
 
 // ----------------------------------------------------------------------------
 // NEWTS
@@ -91,7 +134,6 @@ pub struct JiffSignedDurationRef<'a>(&'a jiff::SignedDuration);
 // ----------------------------------------------------------------------------
 // ENUMS ~ ENUMS ~ ENUMS ~ ENUMS ~ ENUMS ~ ENUMS ~ ENUMS ~ ENUMS ~ ENUMS
 // ----------------------------------------------------------------------------
-
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, PartialOrd, Ord)]
 pub struct JiffUnit(jiff::Unit);
 
@@ -116,11 +158,15 @@ pub struct JiffTzOffsetConflict(jiff::tz::OffsetConflict);
 #[derive(Debug, Clone, Copy)]
 pub struct JiffFriendlyDesignator(jiff::fmt::friendly::Designator);
 
+// ----------------------------------------------------------------------------
+// EXTRACTORS
+// ----------------------------------------------------------------------------
+
 /// datetime extractor for `datetime.datetime` obs
 ///
 /// primarily used for extracting naive or aware datetimes
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub enum JiffPyDateTime {
+pub enum JiffDateTimeOrZoned {
     Aware(jiff::Zoned),
     Naive(jiff::civil::DateTime),
 }
@@ -129,98 +175,35 @@ pub enum JiffPyDateTime {
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
 
-// imp the fns `inner()` ref to inner and `into_inner()` to consume and return the inner value
-macro_rules! impl_new_type_functions {
-    ($newt:ty, $inner:ty) => {
-        impl $newt {
-            #[inline]
-            #[must_use]
-            pub const fn new(inner: $inner) -> Self {
-                Self(inner)
-            }
-
-            #[inline]
-            #[must_use]
-            pub const fn inner(&self) -> &$inner {
-                &self.0
-            }
-
-            #[inline]
-            #[must_use]
-            pub fn into_inner(self) -> $inner {
-                self.0
-            }
-        }
-
-        impl From<$inner> for $newt {
-            #[inline]
-            fn from(inner: $inner) -> Self {
-                Self::new(inner)
-            }
-        }
-
-        impl From<$newt> for $inner {
-            #[inline]
-            fn from(newt: $newt) -> Self {
-                newt.into_inner()
-            }
-        }
-    };
-}
-
 // jiff::*
-impl_new_type_functions!(JiffSignedDuration, jiff::SignedDuration);
-impl_new_type_functions!(JiffSpan, jiff::Span);
-impl_new_type_functions!(JiffTimestamp, jiff::Timestamp);
-impl_new_type_functions!(JiffUnit, jiff::Unit);
-impl_new_type_functions!(JiffRoundMode, jiff::RoundMode);
-impl_new_type_functions!(JiffZoned, jiff::Zoned);
+impl_newtype!(const JiffSignedDuration, jiff::SignedDuration);
+impl_newtype!(const JiffSpan, jiff::Span);
+impl_newtype!(const JiffTimestamp, jiff::Timestamp);
+impl_newtype!(const JiffUnit, jiff::Unit);
+impl_newtype!(const JiffRoundMode, jiff::RoundMode);
+impl_newtype!(JiffZoned, jiff::Zoned);
 // jiff::civil::*
-impl_new_type_functions!(JiffDate, jiff::civil::Date);
-impl_new_type_functions!(JiffDateTime, jiff::civil::DateTime);
-impl_new_type_functions!(JiffEra, jiff::civil::Era);
-impl_new_type_functions!(JiffTime, jiff::civil::Time);
-impl_new_type_functions!(JiffWeekday, jiff::civil::Weekday);
+impl_newtype!(const JiffDate, jiff::civil::Date);
+impl_newtype!(const JiffDateTime, jiff::civil::DateTime);
+impl_newtype!(const JiffEra, jiff::civil::Era);
+impl_newtype!(const JiffTime, jiff::civil::Time);
+impl_newtype!(const JiffWeekday, jiff::civil::Weekday);
 // jiff::tz::*
-impl_new_type_functions!(JiffOffset, jiff::tz::Offset);
-impl_new_type_functions!(JiffTimeZone, jiff::tz::TimeZone);
-impl_new_type_functions!(JiffTzDisambiguation, jiff::tz::Disambiguation);
-impl_new_type_functions!(JiffTzOffsetConflict, jiff::tz::OffsetConflict);
+impl_newtype!(const JiffOffset, jiff::tz::Offset);
+impl_newtype!(JiffTimeZone, jiff::tz::TimeZone);
+impl_newtype!(const JiffTzDisambiguation, jiff::tz::Disambiguation);
+impl_newtype!(const JiffTzOffsetConflict, jiff::tz::OffsetConflict);
 // jiff::fmt::friendly::*
-impl_new_type_functions!(JiffFriendlyDesignator, jiff::fmt::friendly::Designator);
+impl_newtype!(const JiffFriendlyDesignator, jiff::fmt::friendly::Designator);
 // jiff-other
-impl_new_type_functions!(JiffEraYear, (i16, jiff::civil::Era));
+impl_newtype!(const JiffEraYear, (i16, jiff::civil::Era));
 
 // REFS
-macro_rules! impl_new_type_ref_functions {
-    ($newt:ident, $inner:ty) => {
-        impl<'a> $newt<'a> {
-            #[inline]
-            #[must_use]
-            pub const fn new(inner: &'a $inner) -> Self {
-                Self(inner)
-            }
-
-            #[inline]
-            #[must_use]
-            pub const fn inner(&self) -> &'a $inner {
-                self.0
-            }
-        }
-
-        impl<'a> From<&'a $inner> for $newt<'a> {
-            #[inline]
-            fn from(inner: &'a $inner) -> Self {
-                Self::new(inner)
-            }
-        }
-    };
-}
 impl_new_type_ref_functions!(JiffZonedRef, jiff::Zoned);
 impl_new_type_ref_functions!(JiffTimeZoneRef, jiff::tz::TimeZone);
 impl_new_type_ref_functions!(JiffSignedDurationRef, jiff::SignedDuration);
-// ============================================================================
 
+// ============================================================================
 // JIFF UNIT
 // ============================================================================
 impl JiffUnit {
@@ -236,7 +219,7 @@ impl JiffUnit {
     pub const NANOSECOND: Self = Self(jiff::Unit::Nanosecond);
 
     #[must_use]
-    pub fn static_str(self) -> &'static str {
+    pub const fn as_str(self) -> &'static str {
         match self.0 {
             jiff::Unit::Year => "year",
             jiff::Unit::Month => "month",
@@ -254,7 +237,7 @@ impl JiffUnit {
 
 impl std::fmt::Display for JiffUnit {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.static_str())
+        write!(f, "{}", self.as_str())
     }
 }
 
@@ -272,7 +255,7 @@ impl JiffRoundMode {
     pub const HALF_TRUNC: Self = Self(jiff::RoundMode::HalfTrunc);
     pub const HALF_EVEN: Self = Self(jiff::RoundMode::HalfEven);
 
-    fn static_str(self) -> &'static str {
+    const fn as_str(self) -> &'static str {
         match self.0 {
             jiff::RoundMode::Ceil => "ceil",
             jiff::RoundMode::Floor => "floor",
@@ -290,7 +273,7 @@ impl JiffRoundMode {
 
 impl std::fmt::Display for JiffRoundMode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let s = self.static_str();
+        let s = self.as_str();
         write!(f, "{s}")
     }
 }
@@ -317,7 +300,7 @@ impl JiffWeekday {
     pub const SATURDAY: Self = Self(jiff::civil::Weekday::Saturday);
     pub const SUNDAY: Self = Self(jiff::civil::Weekday::Sunday);
 
-    fn static_str(self) -> &'static str {
+    const fn as_str(self) -> &'static str {
         match self.0 {
             jiff::civil::Weekday::Monday => "monday",
             jiff::civil::Weekday::Tuesday => "tuesday",
@@ -332,9 +315,10 @@ impl JiffWeekday {
 
 impl std::fmt::Display for JiffWeekday {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.static_str())
+        write!(f, "{}", self.as_str())
     }
 }
+
 // ============================================================================
 // ERA
 // ============================================================================
@@ -356,7 +340,6 @@ impl JiffTzDisambiguation {
 // ============================================================================
 // TZ OFFSET CONFLICT
 // ============================================================================
-
 impl JiffTzOffsetConflict {
     pub const ALWAYS_OFFSET: Self = Self(jiff::tz::OffsetConflict::AlwaysOffset);
     pub const ALWAYS_TIME_ZONE: Self = Self(jiff::tz::OffsetConflict::AlwaysTimeZone);
