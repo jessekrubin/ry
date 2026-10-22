@@ -10,7 +10,7 @@ use pyo3::exceptions::PyRuntimeError;
 use tokio::runtime::Runtime;
 
 pub use crate::coroutine::{
-    LoopHandle, RyCoroutine, done_coro, failed_coro, pyloop_coro, tokio_coro,
+    LoopHandle, RyCoroutine, done_coro, failed_coro, pyloop_coro, tokio_coro, yield_coro,
 };
 
 pub struct RyRuntime<'r>(pub &'r Runtime);

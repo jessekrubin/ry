@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use pyo3::exceptions::{PyOverflowError, PyValueError};
 use pyo3::prelude::*;
-use ryo3_tokio_rt::{RyCoroutine, tokio_coro};
+use ryo3_tokio_rt::{RyCoroutine, tokio_coro, yield_coro};
 
 /// neg/nan -> `ValueError`
 /// inf     -> `OverflowError`
@@ -29,6 +29,9 @@ impl<'py> FromPyObject<'_, 'py> for SleepSecs {
 #[pyfunction]
 pub fn asleep(py: Python<'_>, secs: SleepSecs) -> PyResult<Bound<'_, RyCoroutine>> {
     let SleepSecs { secs, dur } = secs;
+    if dur.is_zero() {
+        return yield_coro(py, "asleep", secs);
+    }
     tokio_coro(py, "asleep", async move {
         tokio::time::sleep(dur).await;
         Ok(secs)
@@ -38,6 +41,9 @@ pub fn asleep(py: Python<'_>, secs: SleepSecs) -> PyResult<Bound<'_, RyCoroutine
 #[pyfunction]
 pub fn sleep_async(py: Python<'_>, secs: SleepSecs) -> PyResult<Bound<'_, RyCoroutine>> {
     let SleepSecs { secs, dur } = secs;
+    if dur.is_zero() {
+        return yield_coro(py, "sleep_async", secs);
+    }
     tokio_coro(py, "sleep_async", async move {
         tokio::time::sleep(dur).await;
         Ok(secs)

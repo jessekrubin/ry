@@ -608,6 +608,8 @@ type BoxPyFuture = Pin<Box<dyn PollPy>>;
 
 enum CoroutineState {
     Immediate(PyResult<Py<PyAny>>),
+    /// `yield` (eg `asyncio.sleep(0)`)
+    YieldOnce(Py<PyAny>),
     Unstarted(BoxPyFuture),
     Suspended {
         future: BoxPyFuture,
@@ -667,6 +669,10 @@ impl RyCoroutine {
                 return Err(
                     result.map_or_else(|error| error, |value| PyStopIteration::new_err((value,)))
                 );
+            }
+            CoroutineState::YieldOnce(value) => {
+                *state = CoroutineState::Immediate(Ok(value));
+                return Ok(py.None());
             }
             CoroutineState::Unstarted(future) => {
                 let loop_handle = LoopHandle::current(py)?;
@@ -813,7 +819,9 @@ impl RyCoroutine {
             return Ok(());
         };
         match &*state {
-            CoroutineState::Immediate(Ok(value)) => visit.call(value),
+            CoroutineState::Immediate(Ok(value)) | CoroutineState::YieldOnce(value) => {
+                visit.call(value)
+            }
             CoroutineState::Suspended { waker, .. } => waker.traverse(&visit),
             _ => Ok(()),
         }
@@ -852,6 +860,20 @@ where
         qualname,
         CoroutineState::Immediate(value.into_py_any(py)),
     )
+}
+
+/// coroutine that yields to the loop once then returns `value` ~ same as
+/// `await asyncio.sleep(0)`
+pub fn yield_coro<'py, T>(
+    py: Python<'py>,
+    qualname: &'static str,
+    value: T,
+) -> PyResult<Bound<'py, RyCoroutine>>
+where
+    T: IntoPyObject<'py>,
+{
+    let value = value.into_py_any(py)?;
+    RyCoroutine::new(py, qualname, CoroutineState::YieldOnce(value))
 }
 
 /// coroutine that raises `err` when awaited (same as an `async def` would)
