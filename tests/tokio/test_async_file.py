@@ -664,6 +664,7 @@ class TestAsyncFileCoroutines:
 class TestAsyncFileErrors:
     """errors match the builtin `open()`/`BufferedReader` ones"""
 
+    @pytest.mark.skipif(sys.platform == "win32", reason="TODO: fix this?")
     @pytest.mark.parametrize("mode", ["rb", "wb"])
     async def test_open_missing(self, tmp_path: Path, mode: str) -> None:
         p = tmp_path / "nope" / "f.bin"

@@ -72,7 +72,10 @@ async def test_roundtrip(tmp_path: Path) -> None:
     assert await ry.try_exists_async(tmp_path / "nope") is False
     md = await ry.metadata_async(a)
     assert md.len == 5
-    assert os.fspath(await ry.canonicalize_async(a)) == str(a.resolve())
+    # stupid fucking windows with this prefix `\\?\`
+    canon = os.fspath(await ry.canonicalize_async(a))
+    assert canon.endswith(str(a.resolve()))
+    assert os.path.samefile(canon, a)
 
     b = tmp_path / "b.txt"
     assert await ry.copy_async(a, b) == 5

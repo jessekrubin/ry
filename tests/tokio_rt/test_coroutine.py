@@ -19,10 +19,6 @@ if t.TYPE_CHECKING:
     from pathlib import Path
 
 
-def _fd_count() -> int:
-    return len(os.listdir("/proc/self/fd"))
-
-
 class TestShape:
     async def test_is_coroutine(self) -> None:
         coro = ry.asleep(0)
@@ -229,7 +225,13 @@ class TestStress:
 
 
 class TestLoops:
+    @pytest.mark.skipif(sys.platform == "win32", reason="no fd dir on windows")
     def test_asyncio_run_many_no_fd_growth(self) -> None:
+        _fd_dir_path = "/proc/self/fd" if os.path.isdir("/proc/self/fd") else "/dev/fd"
+
+        def _fd_count() -> int:
+            return len(os.listdir(_fd_dir_path))
+
         for _ in range(10):
             asyncio.run(ry.asleep(0))
         gc.collect()

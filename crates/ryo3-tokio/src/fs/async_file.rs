@@ -510,8 +510,11 @@ pub(crate) fn map_py_io_err_with_path(e: std::io::Error, path: &Path) -> PyErr {
     let msg = e.to_string();
     let strerror = msg
         .strip_suffix(&format!(" (os error {code})"))
-        .unwrap_or(&msg)
-        .to_owned();
+        .unwrap_or(&msg);
+    // win32 + cpython trim trailing . (parity?)
+    #[cfg(windows)]
+    let strerror = strerror.trim_end_matches(|c: char| c == '.' || c.is_whitespace());
+    let strerror = strerror.to_owned();
     let filename = path.as_os_str().to_owned();
     #[cfg(windows)]
     let args = (0, strerror, filename, code);
