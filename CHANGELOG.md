@@ -7,6 +7,13 @@
 
 ---
 
+## v0.0.105 [unreleased]
+
+- cleanup
+  - nuked old serialize v1 in `ryo3-json`
+
+---
+
 ## v0.0.104 [2026-10-21]
 
 - misc
