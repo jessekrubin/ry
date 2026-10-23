@@ -152,7 +152,7 @@ impl RyZoned {
     #[pyo3(signature = (timestamp, time_zone))]
     fn from_parts(timestamp: &RyTimestamp, time_zone: &RyTimeZone) -> Self {
         let ts = timestamp.0;
-        Self::from(Zoned::new(ts, time_zone.into()))
+        Self::from(Zoned::new(ts, time_zone.to_inner()))
     }
 
     // ========================================================================
@@ -641,7 +641,7 @@ impl RyZoned {
     }
 
     fn with_time_zone(&self, tz: &RyTimeZone) -> Self {
-        self.0.with_time_zone(tz.into()).into()
+        self.0.with_time_zone(tz.to_inner()).into()
     }
 
     pub(crate) fn iso_week_date(&self) -> RyISOWeekDate {
@@ -894,6 +894,17 @@ impl RyZoned {
     ) -> PyResult<Bound<'py, PyAny>> {
         use ryo3_pydantic::GetPydanticCoreSchemaCls;
         Self::get_pydantic_core_schema(cls, source, handler)
+    }
+
+    #[cfg(feature = "pydantic")]
+    #[classmethod]
+    fn __get_pydantic_json_schema__<'py>(
+        cls: &Bound<'py, ::pyo3::types::PyType>,
+        source: &Bound<'py, PyAny>,
+        handler: &Bound<'py, PyAny>,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        use ryo3_pydantic::GetPydanticJsonSchemaCls;
+        Self::get_pydantic_json_schema(cls, source, handler)
     }
 
     // ========================================================================

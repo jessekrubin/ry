@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MIT OR Apache-2.0
-
+# ruff: noqa: S101
 # /// script
 # requires-python = ">=3.12"
 # dependencies = [
@@ -22,9 +22,9 @@ from __future__ import annotations
 import sys
 import typing as t
 
-import orjson
-
 import ry  # ty: ignore[unresolved-import]
+
+_DEBUG = False
 
 
 def _tokens() -> dict[str, str]:
@@ -35,20 +35,31 @@ def _tokens() -> dict[str, str]:
     }
 
 
-TOKENS = {"{{#" + k + "}}": v for k, v in _tokens().items()}
+def _dbg(*args: t.Any) -> None:  # ruff: ignore[any-type]
+    print(*args, file=sys.stderr)  # ruff: ignore[print]
+
+
+def _noop(*args: t.Any) -> None:  # ruff: ignore[any-type]
+    pass
+
+
+dbg = _dbg if _DEBUG else _noop
+
+_TOKENS = {"{{#" + k + "}}": v for k, v in _tokens().items()}
 
 
 def _replace_tokens(content: str) -> str:
-    for token, value in TOKENS.items():
+    for token, value in _TOKENS.items():
         if token in content:
             content = content.replace(token, value)
     return content
 
 
 def _replace_section_content(section: dict[str, t.Any] | None) -> None:
-    if not isinstance(section, dict) or "Chapter" not in section:
+    if not isinstance(section, dict):
         return
-
+    if "Chapter" not in section:
+        return
     # Replace raw and url-encoded forms
     section["Chapter"]["content"] = _replace_tokens(section["Chapter"]["content"])
     for sub_item in section["Chapter"]["sub_items"]:
@@ -58,10 +69,18 @@ def _replace_section_content(section: dict[str, t.Any] | None) -> None:
 def _main() -> None:
     for line in sys.stdin:
         if line:
-            [_context, book] = orjson.loads(line)
+            parsed = ry.JSON.parse(line)
+            assert isinstance(parsed, list)
+            assert len(parsed) == 2
+            [_context, book] = parsed
+            assert isinstance(book, dict)
+            assert "items" in book
+            assert isinstance(book["items"], list)
             for section in book["items"]:
+                if not isinstance(section, dict):
+                    continue
                 _replace_section_content(section)
-            b = orjson.dumps(book, option=orjson.OPT_APPEND_NEWLINE)
+            b = ry.JSON.dumps(book, append_newline=True)
             sys.stdout.buffer.write(b)
 
 

@@ -4,9 +4,9 @@ use std::time::Duration;
 
 use pyo3::basic::CompareOp;
 use pyo3::prelude::*;
-use pyo3::types::{PyAnyMethods, PyDict, PyDictMethods, PyTuple};
+use pyo3::types::{PyAnyMethods, PyDict, PyDictMethods, PyFloat, PyInt, PyTuple};
 use pyo3::{BoundObject, IntoPyObjectExt};
-use ryo3_core::{PyAsciiString, PyCastExactOpt, PyFromStr};
+use ryo3_core::{PyAsciiString, PyCastExactOpt, PyCastOpt, PyFromStr};
 #[cfg(feature = "jiff")]
 use ryo3_jiff_core::JiffFriendlyDesignator;
 #[cfg(feature = "jiff")]
@@ -191,6 +191,12 @@ impl PyDuration {
         self.0.as_secs_f64()
     }
 
+    #[pyo3(
+        warn(
+            message = "`Duration.__int__` is deprecated; use `Duration.as_nanos` instead [removal: v0.0.108]",
+            category = pyo3::exceptions::PyDeprecationWarning
+        )
+    )]
     fn __int__(&self) -> u128 {
         self.0.as_nanos()
     }
@@ -446,8 +452,18 @@ impl PyDuration {
     /// Create a new `Duration` from the specified number of seconds.
     #[pyo3(name = "from_secs")]
     #[staticmethod]
-    const fn py_from_secs(secs: u64) -> Self {
-        Self::from_secs(secs)
+    fn py_from_secs(secs: &Bound<'_, PyAny>) -> PyResult<Self> {
+        if let Some(secs) = secs.cast_exact_opt::<PyInt>() {
+            // propagate so negative/huge ints are an `OverflowError` not a type err
+            secs.extract::<u64>().map(Self::from_secs)
+        } else if let Some(secs) = secs
+            .cast_exact_opt::<PyFloat>()
+            .and_then(|f| f.extract::<f64>().ok())
+        {
+            Self::try_from_secs_f64(secs)
+        } else {
+            py_type_err!("Invalid type for seconds; expected u64 or f64")
+        }
     }
 
     #[staticmethod]
@@ -741,19 +757,20 @@ impl PyDuration {
         let py = value.py();
         if let Some(val) = value.cast_exact_opt::<Self>() {
             Ok(val.as_borrowed().into_bound())
-        } else if let Ok(pystr) = value.cast::<pyo3::types::PyString>() {
+        } else if let Some(pystr) = value.cast_opt::<pyo3::types::PyString>() {
             let s = pystr.extract::<&str>()?;
             Self::from_str(s).map(|dur| dur.into_pyobject(py))?
-        } else if let Ok(pybytes) = value.cast::<pyo3::types::PyBytes>() {
+        } else if let Some(pybytes) = value.cast_opt::<pyo3::types::PyBytes>() {
             use pyo3::types::PyBytesMethods;
             let s = String::from_utf8_lossy(pybytes.as_bytes());
             Self::from_str(&s).map(|dt| dt.into_pyobject(py))?
-        } else if let Ok(v) = value.cast_exact::<pyo3::types::PyFloat>() {
+        } else if let Some(v) = value.cast_exact_opt::<pyo3::types::PyFloat>() {
             let f = v.extract::<f64>()?;
             Self::try_from_secs_f64(f).map(|dt| dt.into_pyobject(py))?
-        } else if let Ok(v) = value.cast_exact::<pyo3::types::PyInt>() {
-            let i = v.extract::<u64>()?;
-            Self::from(Duration::new(i, 0)).into_pyobject(py)
+        } else if let Some(v) = value.cast_exact_opt::<pyo3::types::PyInt>() {
+            v.extract::<u64>()
+                .map(|i| Self::from(Duration::new(i, 0)))?
+                .into_pyobject(py)
         } else if let Ok(d) = value.extract::<Duration>() {
             Self::from(d).into_pyobject(py)
         } else {

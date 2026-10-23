@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import datetime as pydt
 from math import isnan
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import pytest
 from hypothesis import assume, given
@@ -610,13 +610,6 @@ class TestDurationDunders:
         assert float(ry.Duration(1_000_000_000, 0)) == 1_000_000_000.0
         assert float(ry.Duration(1, 1000000000)) == 2
 
-    def test_int(self) -> None:
-        assert int(ry.Duration(0, 0)) == 0
-        assert int(ry.Duration(1, 0)) == 1_000_000_000
-        assert int(ry.Duration(0, 1)) == 1
-        assert int(ry.Duration(1, 1)) == 1_000_000_001
-        assert int(ry.Duration(1, 500_000_000)) == 1_500_000_000
-
 
 def test_duration_properties() -> None:
     dur = ry.Duration(90061, 123456789)
@@ -663,6 +656,29 @@ class TestDurationFromIntegers:
         assert isinstance(dur, ry.Duration)
         assert dur.secs == secs
         assert dur.nanos == 0
+
+    def test_from_secs_float(self) -> None:
+        assert ry.Duration.from_secs(1.5) == ry.Duration(1, 500_000_000)
+        assert ry.Duration.from_secs(0.0) == ry.Duration(0, 0)
+
+    @pytest.mark.parametrize("secs", [-1, ry.U64_MAX + 1])
+    def test_from_secs_int_overflow(self, secs: int) -> None:
+        with pytest.raises(OverflowError):
+            ry.Duration.from_secs(secs)
+
+    @pytest.mark.parametrize("secs", [-1.5, float("nan")])
+    def test_from_secs_float_invalid(self, secs: float) -> None:
+        with pytest.raises(ValueError, match=r"(negative duration|invalid value)"):
+            ry.Duration.from_secs(secs)
+
+    def test_from_secs_float_inf(self) -> None:
+        with pytest.raises(OverflowError, match="invalid value: inf"):
+            ry.Duration.from_secs(float("inf"))
+
+    @pytest.mark.parametrize("secs", [True, "5", None])
+    def test_from_secs_type_err(self, secs: Any) -> None:
+        with pytest.raises(TypeError, match="expected u64 or f64"):
+            ry.Duration.from_secs(secs)
 
     @given(st.integers(min_value=0, max_value=ry.U64_MAX))
     def test_from_millis(self, millis: int) -> None:

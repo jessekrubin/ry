@@ -593,6 +593,17 @@ impl RyTime {
         Self::get_pydantic_core_schema(cls, source, handler)
     }
 
+    #[cfg(feature = "pydantic")]
+    #[classmethod]
+    fn __get_pydantic_json_schema__<'py>(
+        cls: &Bound<'py, ::pyo3::types::PyType>,
+        source: &Bound<'py, PyAny>,
+        handler: &Bound<'py, PyAny>,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        use ryo3_pydantic::GetPydanticJsonSchemaCls;
+        Self::get_pydantic_json_schema(cls, source, handler)
+    }
+
     // ========================================================================
     // STANDARD METHODS
     // ========================================================================

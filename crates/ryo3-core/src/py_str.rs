@@ -44,19 +44,9 @@ impl<'py> IntoPyObject<'py> for PyAsciiStr<'_> {
             "PyAsciiStr(ing) must be ascii only: {:?}",
             self.0
         );
-        #[cfg(not(any(PyPy, GraalPy, Py_LIMITED_API)))]
-        {
-            #[expect(unsafe_code)]
-            unsafe {
-                Ok(pystring_ascii_new(py, self.0))
-            }
-        }
-        #[cfg(any(PyPy, GraalPy, Py_LIMITED_API))]
-        {
-            #[expect(unsafe_code)]
-            unsafe {
-                Ok(pystring_ascii_new(py, self.0))
-            }
+        #[expect(unsafe_code)]
+        unsafe {
+            Ok(pystring_ascii_new(py, self.0))
         }
     }
 }
@@ -174,28 +164,48 @@ pub unsafe fn pystring_fast_new_ascii<'py>(py: Python<'py>, s: &str) -> Bound<'p
 #[inline]
 #[must_use]
 pub unsafe fn pystring_ascii_new<'py>(py: Python<'py>, s: &str) -> Bound<'py, PyString> {
-    #[cfg(not(any(PyPy, GraalPy, Py_LIMITED_API)))]
-    unsafe {
-        let ptr = pyo3::ffi::PyUnicode_New(s.len().cast_signed(), 127);
-        // convert the pointer BEFORE using the Unicode macros.
-        // this handles allocation failure how `PyString::new` does, w/ a
-        // panic on OOM and not doing ptr shenanigans on NULL.
-        // REF: https://github.com/pydantic/jiter/issues/261
-        let string: Bound<'py, PyString> = Bound::from_owned_ptr(py, ptr).cast_into_unchecked();
-        let ptr = string.as_ptr();
-        // REF: https://github.com/pydantic/jiter/pull/72#discussion_r1545485907
-        debug_assert_eq!(
-            pyo3::ffi::PyUnicode_KIND(ptr),
-            pyo3::ffi::PyUnicode_1BYTE_KIND
-        );
-        let data_ptr = pyo3::ffi::PyUnicode_DATA(ptr).cast();
-        core::ptr::copy_nonoverlapping(s.as_ptr(), data_ptr, s.len());
-        core::ptr::write(data_ptr.add(s.len()), 0);
-        string
+    cfg_select! {
+        any(PyPy, GraalPy, Py_LIMITED_API) => PyString::new(py, s),
+        _ => {
+            unsafe {
+                let ptr = pyo3::ffi::PyUnicode_New(s.len().cast_signed(), 127);
+                // convert the pointer BEFORE using the Unicode macros.
+                // this handles allocation failure how `PyString::new` does, w/ a
+                // panic on OOM and not doing ptr shenanigans on NULL.
+                // REF: https://github.com/pydantic/jiter/issues/261
+                let string: Bound<'py, PyString> =
+                    Bound::from_owned_ptr(py, ptr).cast_into_unchecked();
+                let ptr = string.as_ptr();
+                // REF: https://github.com/pydantic/jiter/pull/72#discussion_r1545485907
+                debug_assert_eq!(
+                    pyo3::ffi::PyUnicode_KIND(ptr),
+                    pyo3::ffi::PyUnicode_1BYTE_KIND
+                );
+                let data_ptr = pyo3::ffi::PyUnicode_DATA(ptr).cast();
+                core::ptr::copy_nonoverlapping(s.as_ptr(), data_ptr, s.len());
+                core::ptr::write(data_ptr.add(s.len()), 0);
+                string
+            }
+        }
     }
-    #[cfg(any(PyPy, GraalPy, Py_LIMITED_API))]
-    {
-        PyString::new(py, s)
+}
+
+/// `PyUnicode_AsUTF8AndSize` fallback ~ what pyo3 does internally w/o tying
+/// the result to the `to_str()` wrapper
+#[inline]
+#[expect(unsafe_code)]
+unsafe fn pyunicode_to_str_via_ffi<'a>(op: *mut pyo3::ffi::PyObject) -> Option<&'a str> {
+    unsafe {
+        let mut size: pyo3::ffi::Py_ssize_t = 0;
+        let ptr = pyo3::ffi::PyUnicode_AsUTF8AndSize(op, &raw mut size).cast::<u8>();
+        if ptr.is_null() {
+            None
+        } else {
+            Some(core::str::from_utf8_unchecked(core::slice::from_raw_parts(
+                ptr,
+                size.cast_unsigned(),
+            )))
+        }
     }
 }
 
@@ -206,19 +216,19 @@ mod dangerzone {
     //!
     //! Using this yields a 10% ish speedup....
     //!
-    //! REF: <https://github.com/ijl/orjson/blob/master/src/ffi/pystrref/object.rs>
-
+    //! `PyASCIIObject.state` bitfield layout (AFAICT):
+    //! - with-gil: `interned:2` SOOOOO `kind` starts at the 2nd-bit
+    //! - sans-gil (`Py_GIL_DISABLED`): `interned` is a whole `unsigned char` (atomic)
+    //!   so `kind` starts at the 8th-bit
+    //!
+    //! `compact`/`ascii` follow `kind:3` (`+3`/`+4`)
+    //!
+    //! REF:
+    //!   - orjson: <https://github.com/ijl/orjson/blob/master/src/ffi/pystrref/object.rs>
+    //!   - cpython: <https://github.com/python/cpython/blob/3357cb57dcdf758ed22d886035f4a0ab408d8f7a/Include/cpython/unicodeobject.h#L117-L122>
     use pyo3::ffi::PyObject;
 
-    #[cfg(all(target_endian = "little", Py_3_14, Py_GIL_DISABLED))]
-    const STATE_KIND_SHIFT: usize = 8;
-    #[cfg(all(target_endian = "little", not(all(Py_3_14, Py_GIL_DISABLED))))]
-    const STATE_KIND_SHIFT: usize = 2;
-    #[cfg(target_endian = "little")]
-    const STATE_COMPACT: u32 = 1 << 5;
-    #[cfg(target_endian = "little")]
-    const STATE_COMPACT_ASCII: u32 =
-        1 << STATE_KIND_SHIFT | 1 << (STATE_KIND_SHIFT + 3) | 1 << (STATE_KIND_SHIFT + 4);
+    use super::pyunicode_to_str_via_ffi;
 
     #[inline(always)]
     #[allow(clippy::cast_sign_loss)]
@@ -235,68 +245,42 @@ mod dangerzone {
 
     #[inline(always)]
     #[expect(unsafe_code)]
-    unsafe fn to_str_via_ffi(op: *mut PyObject) -> Option<&'static str> {
-        let mut size: isize = 0;
-        let ptr = unsafe { pyo3::ffi::PyUnicode_AsUTF8AndSize(op, &raw mut size) };
-        if ptr.is_null() {
-            None
-        } else {
-            let s = unsafe { str_from_slice_fn(ptr.cast::<u8>(), isize_to_usize(size)) };
-            Some(s)
-        }
-    }
-
-    #[inline(always)]
-    #[expect(unsafe_code)]
-    #[cfg(target_endian = "little")]
     pub(crate) unsafe fn fast_pystr_read<'a>(op: *mut PyObject) -> Option<&'a str> {
-        // local use for little-endian only ~ good no more warning
-        use pyo3::ffi::{PyASCIIObject, PyCompactUnicodeObject};
-        unsafe {
-            let state = (*op.cast::<PyASCIIObject>()).state;
-            if state & STATE_COMPACT_ASCII == STATE_COMPACT_ASCII {
-                let ptr = op.cast::<PyASCIIObject>().add(1).cast::<u8>();
-                let len = isize_to_usize((*op.cast::<PyASCIIObject>()).length);
-                let s = str_from_slice_fn(ptr, len);
-                Some(s)
-            } else if (state & STATE_COMPACT) != 0
-                && (*op.cast::<PyCompactUnicodeObject>()).utf8_length > 0
-            {
-                let ptr = ((*op.cast::<PyCompactUnicodeObject>()).utf8).cast::<u8>();
-                let len = isize_to_usize((*op.cast::<PyCompactUnicodeObject>()).utf8_length);
-                let s = str_from_slice_fn(ptr, len);
-                Some(s)
-            } else {
-                to_str_via_ffi(op)
+        cfg_select! {
+            target_endian = "little" => {
+                // local use for little-endian only ~ good no more warning
+                use pyo3::ffi::{PyASCIIObject, PyCompactUnicodeObject};
+                const STATE_KIND_SHIFT: usize = cfg_select! {
+                    all(Py_3_14, Py_GIL_DISABLED) => 8,
+                    _ => 2,
+                };
+                const STATE_COMPACT: u32 = 1 << (STATE_KIND_SHIFT + 3);
+                const STATE_COMPACT_ASCII: u32 =
+                    1 << STATE_KIND_SHIFT | STATE_COMPACT | 1 << (STATE_KIND_SHIFT + 4);
+                unsafe {
+                    let state = (*op.cast::<PyASCIIObject>()).state;
+                    if state & STATE_COMPACT_ASCII == STATE_COMPACT_ASCII {
+                        let ptr = op.cast::<PyASCIIObject>().add(1).cast::<u8>();
+                        let len = isize_to_usize((*op.cast::<PyASCIIObject>()).length);
+                        let s = str_from_slice_fn(ptr, len);
+                        Some(s)
+                    } else if (state & STATE_COMPACT) != 0
+                        && (*op.cast::<PyCompactUnicodeObject>()).utf8_length > 0
+                    {
+                        let ptr = ((*op.cast::<PyCompactUnicodeObject>()).utf8).cast::<u8>();
+                        let len =
+                            isize_to_usize((*op.cast::<PyCompactUnicodeObject>()).utf8_length);
+                        let s = str_from_slice_fn(ptr, len);
+                        Some(s)
+                    } else {
+                        pyunicode_to_str_via_ffi(op)
+                    }
+                }
             }
-        }
-    }
-
-    #[inline(always)]
-    #[expect(unsafe_code)]
-    #[cfg(not(target_endian = "little"))]
-    pub(crate) unsafe fn fast_pystr_read<'a>(op: *mut PyObject) -> Option<&'a str> {
-        unsafe {
-            // TODO: maybe implement big-endian fast path later orjson does not?
-            to_str_via_ffi(op)
-        }
-    }
-}
-
-#[cfg(any(PyPy, GraalPy, Py_LIMITED_API))]
-#[inline]
-#[expect(unsafe_code)]
-unsafe fn pyunicode_to_str_via_ffi<'a>(ob: Borrowed<'a, '_, PyString>) -> Option<&'a str> {
-    unsafe {
-        let mut size: pyo3::ffi::Py_ssize_t = 0;
-        let ptr = pyo3::ffi::PyUnicode_AsUTF8AndSize(ob.as_ptr(), &raw mut size).cast::<u8>();
-        if ptr.is_null() {
-            None
-        } else {
-            Some(core::str::from_utf8_unchecked(core::slice::from_raw_parts(
-                ptr,
-                size.cast_unsigned(),
-            )))
+            _ => {
+                // no big-endian fast path (orjson & ormsgpack dont support it)
+                unsafe { pyunicode_to_str_via_ffi(op) }
+            }
         }
     }
 }
@@ -309,21 +293,9 @@ unsafe fn pyunicode_to_str_via_ffi<'a>(ob: Borrowed<'a, '_, PyString>) -> Option
 #[inline]
 #[must_use]
 pub unsafe fn pystr_read_fast_opt<'a>(ob: Borrowed<'a, '_, PyString>) -> Option<&'a str> {
-    #[cfg(not(any(PyPy, GraalPy, Py_LIMITED_API)))]
-    {
-        #[expect(unsafe_code)]
-        unsafe {
-            dangerzone::fast_pystr_read(ob.as_ptr())
-        }
-    }
-    #[cfg(any(PyPy, GraalPy, Py_LIMITED_API))]
-    {
-        // This is what pyo3 does internally.... gotta keep the result tied
-        // to the object borrow w/o going through the `to_str()` wrapper
-        #[expect(unsafe_code)]
-        unsafe {
-            pyunicode_to_str_via_ffi(ob)
-        }
+    cfg_select! {
+        any(PyPy, GraalPy, Py_LIMITED_API) => unsafe { pyunicode_to_str_via_ffi(ob.as_ptr()) },
+        _ => unsafe { dangerzone::fast_pystr_read(ob.as_ptr()) },
     }
 }
 

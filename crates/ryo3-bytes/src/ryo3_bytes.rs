@@ -927,8 +927,7 @@ fn validate_buffer(buf: &PyBuffer<u8>) -> PyResult<()> {
 impl<'py> FromPyObject<'_, 'py> for RyBuffer {
     type Error = pyo3::PyErr;
     fn extract(ob: pyo3::Borrowed<'_, 'py, pyo3::PyAny>) -> PyResult<Self> {
-        // TODO: maybe remove this if branch bc it is already caught above...?
-        // or change it to check is bytesarray or something like that?
+        // fast path: bytes are always c-contiguous w/ stride 1 so skip validate_buffer
         if ob.is_instance_of::<pyo3::types::PyBytes>() {
             let buffer = ob.extract::<PyBuffer<u8>>()?;
             Ok(Self(buffer))

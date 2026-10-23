@@ -78,7 +78,6 @@ def test_read_file_missing(tmp_path: Path) -> None:
         ry.read_text(str(p))
 
 
-# @pytest.mark.skip(reason="TODO: pathlike not implemented")
 def test_read_file_missing_pathlike(tmp_path: Path) -> None:
     p = tmp_path / "test.txt"
     ry.cd(tmp_path)

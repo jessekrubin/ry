@@ -195,9 +195,7 @@ class TestFsPath:
         pypath = Path("/some/path")
         rypath = path_cls("/some/path")
         pathbytes_fslash = bytes(rypath).replace(b"\\", b"/")
-        assert pathbytes_fslash == bytes(pypath).replace(
-            b"\\", b"/"
-        )  # TODO: reevaluate
+        assert pathbytes_fslash == bytes(pypath).replace(b"\\", b"/")
 
     def test_parts(self, path_cls: TPath) -> None:
         pypath = Path("/some/path")

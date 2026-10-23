@@ -6,7 +6,6 @@ use pyo3::prelude::*;
 use ryo3_core::types::PathLike;
 use ryo3_fspath::PyFsPath;
 
-// TODO: revisit needless pass by value
 /// Change the current working directory to the specified path
 #[pyfunction]
 #[expect(clippy::needless_pass_by_value)]

@@ -366,7 +366,7 @@ impl RyDateTime {
     #[expect(clippy::wrong_self_convention)]
     fn to_zoned(&self, tz: &RyTimeZone) -> PyResult<RyZoned> {
         self.0
-            .to_zoned(tz.into())
+            .to_zoned(tz.to_inner())
             .map(RyZoned::from)
             .map_err(map_py_value_err)
     }
@@ -785,6 +785,17 @@ impl RyDateTime {
     ) -> PyResult<Bound<'py, PyAny>> {
         use ryo3_pydantic::GetPydanticCoreSchemaCls;
         Self::get_pydantic_core_schema(cls, source, handler)
+    }
+
+    #[cfg(feature = "pydantic")]
+    #[classmethod]
+    fn __get_pydantic_json_schema__<'py>(
+        cls: &Bound<'py, ::pyo3::types::PyType>,
+        source: &Bound<'py, PyAny>,
+        handler: &Bound<'py, PyAny>,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        use ryo3_pydantic::GetPydanticJsonSchemaCls;
+        Self::get_pydantic_json_schema(cls, source, handler)
     }
 
     // ========================================================================

@@ -1,6 +1,7 @@
 """ryo3-jiff ~ types"""
 
 import datetime as pydt
+import sys
 import typing as t
 from collections.abc import Mapping
 
@@ -18,6 +19,11 @@ from ry.protocols import (
 )
 from ry.ryo3 import Duration
 from ry.ryo3._jiff_tz import TimezoneDbName
+
+if sys.version_info >= (3, 13):
+    from warnings import deprecated
+else:
+    from typing_extensions import deprecated
 
 # ==== TYPE-VARS ====
 _T = t.TypeVar("_T")
@@ -891,6 +897,9 @@ class SignedDuration(
     def __rmul__(self, other: int, /) -> t.Self: ...
     def __abs__(self) -> t.Self: ...
     def __float__(self) -> float: ...
+    @deprecated(
+        "`SignedDuration.__int__` is deprecated; use `SignedDuration.as_nanos` instead [removal: v0.0.108]"
+    )
     def __int__(self) -> int: ...
     def __bool__(self) -> bool: ...
     @t.overload
@@ -1422,8 +1431,9 @@ class Timestamp(
     @classmethod
     def from_nanosecond(cls, nanosecond: int) -> t.Self: ...
     @classmethod
-    def from_second(cls, second: int) -> t.Self: ...
-
+    def from_second(cls, second: float) -> t.Self: ...
+    @classmethod
+    def from_second_f64(cls, second: float) -> t.Self: ...
     # =========================================================================
     # OPERATORS/DUNDERS
     # =========================================================================

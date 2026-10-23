@@ -7,6 +7,32 @@
 
 ---
 
+## v0.0.105 [unreleased]
+
+- cleanup
+  - nuked old serialize v1 in `ryo3-json`
+- `ryo3-jiff`
+  - `Timestamp.from_second_f64` ~ float unix-seconds constructor; `NaN`/`inf` or
+    too-damn-big raise `ValueError`
+  - `Timestamp.from_second` and `SignedDuration.from_secs` take `int | float`
+    (exact `int`/`float` only)
+  - pydantic json-schemas dont say RFC 3339 `date-time`/`time` for types where
+    it doesnt make sense (ajv errored w/rejection of ry's own output):
+    - `DateTime` -> `format: "date-time-local"`
+    - `Time` -> `format: "time-local"`
+    - `ZonedDateTime` -> plain `string` w/ a description + example (no released
+      json-schema format for RFC 9557 zoned datetimes yet)
+- `ryo3-std`
+  - `Duration.from_secs` takes `int | float` (exact `int`/`float` only)
+- **DEPRECATIONS**
+  - deprecated `SignedDuration.__int__` and `Duration.__int__` [removal:
+    v0.0.108]
+    - for some insane reason i decided to make `__int__` return nanoseconds...
+    - I probably thought it the more pure/precise thing to do, but in practice
+      it is a huge pain in the ass
+
+---
+
 ## v0.0.104 [2026-10-21]
 
 - misc

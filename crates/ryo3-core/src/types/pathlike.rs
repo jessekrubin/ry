@@ -1,8 +1,7 @@
 use std::path::{Path, PathBuf};
 
-use pyo3::IntoPyObjectExt;
-use pyo3::prelude::*;
 use pyo3::pybacked::PyBackedStr;
+use pyo3::{Bound, FromPyObject, IntoPyObject, IntoPyObjectExt, PyErr, Python};
 
 use crate::PyCastExactOpt;
 

@@ -854,7 +854,7 @@ impl PyFsPath {
     #[pyo3(signature = (regex, path = None))]
     fn which_re(
         py: Python<'_>,
-        regex: &Bound<'_, PyAny>,
+        regex: ryo3_which::PyArgWhichRegex,
         path: Option<&str>,
     ) -> PyResult<Vec<Self>> {
         ryo3_which::which_re(py, regex, path)

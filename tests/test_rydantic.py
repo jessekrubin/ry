@@ -145,16 +145,7 @@ _MODELS_SCHEMAS = [
         ry_model=RyDateModel,
         py_model=PyDateModel,
     ),
-    _TestJsonSchemas(
-        name="time",
-        ry_model=RyTimeModel,
-        py_model=PyTimeModel,
-    ),
-    _TestJsonSchemas(
-        name="datetime",
-        ry_model=RyDatetimeModel,
-        py_model=PyDatetimeModel,
-    ),
+    # time/datetime use `*-local` formats ~ see `TestTemporalJsonSchemas`
     _TestJsonSchemas(
         name="signed_duration",
         ry_model=RySignedDurationModel,
@@ -940,6 +931,11 @@ class TestTimestamp:
             "dickbutt",
             # totally wrong type
             complex(1, 2),
+            # numbers (no unit guessing like pydantic)
+            0,
+            1700000000,
+            1700000000.5,
+            True,
         ],
     )
     def test_timestamp_parsing_err(
@@ -948,6 +944,63 @@ class TestTimestamp:
     ) -> None:
         with pytest.raises(pydantic.ValidationError):
             _d = RyTimestampModel(ts=value)  # type: ignore[arg-type]
+
+    def test_timestamp_json_numbers_rejected(self) -> None:
+        with pytest.raises(pydantic.ValidationError):
+            RyTimestampModel.model_validate_json('{"ts": 1700000000}')
+
+    def test_timestamp_json_schema_is_rfc3339_string(self) -> None:
+        schema = RyTimestampModel.model_json_schema()["properties"]["ts"]
+        assert schema["type"] == "string"
+        assert schema["format"] == "date-time"
+
+
+class _TemporalSchemaModel(pydantic.BaseModel):
+    d: ry.Date
+    dt: ry.DateTime
+    tm: ry.Time
+    zdt: ry.ZonedDateTime
+    zdt_described: ry.ZonedDateTime = pydantic.Field(description="custom")
+
+
+class TestTemporalJsonSchemas:
+    @property
+    def _props(self) -> dict[str, t.Any]:
+        return _TemporalSchemaModel.model_json_schema()["properties"]  # type: ignore[no-any-return]
+
+    def test_date(self) -> None:
+        assert self._props["d"] == {"format": "date", "title": "D", "type": "string"}
+
+    def test_datetime_is_date_time_local(self) -> None:
+        assert self._props["dt"]["type"] == "string"
+        assert self._props["dt"]["format"] == "date-time-local"
+
+    def test_time_is_time_local(self) -> None:
+        assert self._props["tm"]["type"] == "string"
+        assert self._props["tm"]["format"] == "time-local"
+
+    def test_zoned_is_plain_string_w_example(self) -> None:
+        zdt = self._props["zdt"]
+        assert zdt["type"] == "string"
+        assert "format" not in zdt
+        assert "RFC 9557" in zdt["description"]
+        for ex in zdt["examples"]:
+            assert isinstance(ry.ZonedDateTime.parse(ex), ry.ZonedDateTime)
+
+    def test_zoned_user_description_wins(self) -> None:
+        assert self._props["zdt_described"]["description"] == "custom"
+
+    def test_roundtrip(self) -> None:
+        m = _TemporalSchemaModel(
+            d=ry.date(2024, 1, 15),
+            dt=ry.datetime(2024, 1, 15, 9, 30),
+            tm=ry.time(9, 30),
+            zdt=ry.ZonedDateTime.parse("2024-01-15T09:30:00-05:00[America/New_York]"),
+            zdt_described=ry.ZonedDateTime.parse(
+                "2024-01-15T09:30:00-05:00[America/New_York]"
+            ),
+        )
+        assert _TemporalSchemaModel.model_validate_json(m.model_dump_json()) == m
 
 
 # ---------------------------------------------------------------------------

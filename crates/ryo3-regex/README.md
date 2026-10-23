@@ -13,8 +13,8 @@ Wrapper around the `regex` crate for Python.
 
 - [ ] match the `regex` crate examples
 - [ ] figure out how to support bytes/string maybe generics?
-- [ ] `Regex` options/flags? kwargs or bitflags?
-- [ ] `RegexSet` python wrapper
 - [ ] Builders? - not sure if should be a part of the api at all...
   - [ ] `RegexBuilder`
   - [ ] `RegexSetBuilder`
+- [x] `Regex` options/flags? kwargs or bitflags?
+- [x] `RegexSet` python wrapper
