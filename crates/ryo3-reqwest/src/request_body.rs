@@ -21,7 +21,7 @@ use bytes::Bytes;
 use pyo3::exceptions::{PyAttributeError, PyStopAsyncIteration, PyStopIteration};
 use pyo3::prelude::*;
 use pyo3::types::PyIterator;
-use ryo3_bytes::{ReadableBuffer, RyBytes};
+use ryo3_bytes::ReadableBuffer;
 use ryo3_macro_rules::{py_runtime_error, py_type_err, py_type_error};
 use ryo3_tokio_rt::{LoopHandle, get_tokio_runtime, pyloop_coro};
 use tokio::sync::mpsc;
@@ -31,6 +31,8 @@ use tokio::sync::mpsc::error::TrySendError;
 const REQ_BODY_CHANNEL_CAP_SYNC: usize = 32;
 /// capacity for the asynchronous request body channel (64 is sweet spot)
 const REQ_BODY_CHANNEL_CAP_ASYNC: usize = 64;
+/// max len for grabbing a list/tuple up front w/o starting the whole pump
+const REQ_BODY_READY_CAP: usize = 1024;
 
 type BodyItem = PyResult<Bytes>;
 
@@ -38,6 +40,8 @@ type BodyItem = PyResult<Bytes>;
 pub(crate) enum PyBodySyncStream {
     Idle(Py<PyAny>),
     Running(mpsc::Receiver<BodyItem>),
+    /// list/tuple of bytes-like objs ingested up front
+    Ready(std::vec::IntoIter<Bytes>),
 }
 
 /// async iterable body
@@ -70,7 +74,7 @@ impl PyBodyStream {
 #[derive(Debug)]
 pub(crate) enum PyBody {
     Stream(PyBodyStream),
-    Bytes(RyBytes),
+    Bytes(Bytes),
 }
 
 impl std::fmt::Debug for PyBodyStream {
@@ -518,6 +522,9 @@ impl futures_core::Stream for PyBodySyncStream {
     #[inline]
     fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
         let this = self.get_mut();
+        if let Self::Ready(chunks) = this {
+            return Poll::Ready(chunks.next().map(Ok));
+        }
         if let Self::Idle(_) = this {
             let (tx, rx) = mpsc::channel(REQ_BODY_CHANNEL_CAP_SYNC);
             if let Self::Idle(iter) = std::mem::replace(this, Self::Running(rx)) {
@@ -586,6 +593,46 @@ impl PyBody {
     }
 }
 
+/// extract buffer/byteslike chunk same as body
+///
+/// # Errors
+///
+/// `pyo3::exceptions::PyTypeError` if the item is not a bytes-like object at the given index
+#[inline]
+fn ready_chunk(item: &Bound<'_, PyAny>, ix: usize) -> PyResult<Bytes> {
+    item.extract::<ReadableBuffer>()
+        .map(ReadableBuffer::into_bytes)
+        .map_err(|_| py_type_error!("Expected bytes-like object (ix: {ix})"))
+}
+
+/// list/tuple of bytes-likes ~ `None` if it isnt a list/tuple or is too long
+/// (owned iter b/c extracting a buffer can run python, eg `__buffer__`)
+fn ready_chunks(obj: &Bound<'_, PyAny>) -> PyResult<Option<Vec<Bytes>>> {
+    use pyo3::types::{PyList, PyTuple, PyTupleMethods};
+    use ryo3_core::PyCastExactOpt;
+    let mut chunks = Vec::new();
+    if let Some(pylist) = obj.cast_exact_opt::<PyList>() {
+        if pylist.len() > REQ_BODY_READY_CAP {
+            return Ok(None);
+        }
+        chunks.reserve_exact(pylist.len());
+        for (ix, item) in pylist.iter().enumerate() {
+            chunks.push(ready_chunk(&item, ix)?);
+        }
+    } else if let Some(pytuple) = obj.cast_exact_opt::<PyTuple>() {
+        if pytuple.len() > REQ_BODY_READY_CAP {
+            return Ok(None);
+        }
+        chunks.reserve_exact(pytuple.len());
+        for (ix, item) in pytuple.iter_borrowed().enumerate() {
+            chunks.push(ready_chunk(&item, ix)?);
+        }
+    } else {
+        return Ok(None);
+    }
+    Ok(Some(chunks))
+}
+
 impl<'py> FromPyObject<'_, 'py> for PyBody {
     type Error = PyErr;
 
@@ -594,7 +641,11 @@ impl<'py> FromPyObject<'_, 'py> for PyBody {
         let py = obj.py();
         // TODO: dedupe these interned strings
         if let Ok(buffer) = obj.extract::<ReadableBuffer>() {
-            Ok(Self::Bytes(buffer.into_rybytes()))
+            Ok(Self::Bytes(buffer.into_bytes()))
+        } else if let Some(chunks) = ready_chunks(&obj)? {
+            Ok(Self::Stream(PyBodyStream::Sync(PyBodySyncStream::Ready(
+                chunks.into_iter(),
+            ))))
         } else if obj.hasattr(pyo3::intern!(py, "__aiter__"))? {
             let inner_iter = obj.call_method0(pyo3::intern!(py, "__aiter__"))?;
             Self::async_stream(&inner_iter)
@@ -642,7 +693,7 @@ impl From<PyBody> for reqwest::Body {
     #[inline]
     fn from(val: PyBody) -> Self {
         match val {
-            PyBody::Bytes(b) => Self::from(b.into_inner()),
+            PyBody::Bytes(b) => Self::from(b),
             PyBody::Stream(s) => s.into(),
         }
     }

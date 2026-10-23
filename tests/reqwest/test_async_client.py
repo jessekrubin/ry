@@ -13,6 +13,8 @@ import pytest
 
 import ry
 
+from .conftest import big_body
+
 if TYPE_CHECKING:
     from ry._types import Buffer
     from ry.ryo3._http import HttpMethodLike
@@ -1311,6 +1313,62 @@ async def test_client_post_json_and_form_errors(
         ValueError, match="body, json, form, multipart are mutually exclusive"
     ):
         _response = await client.post(url, **kwargs)
+
+
+class TestListBody:
+    """list/tuple bodies"""
+
+    @pytest.mark.anyio
+    @pytest.mark.parametrize("n_chunks", [0, 1, 4, 64, 1024, 1025, 5000])
+    @pytest.mark.parametrize("container", [list, tuple])
+    async def test_list_body(
+        self, server: ReqtestServer, n_chunks: int, container: type
+    ) -> None:
+        chunks = container(f"chunk{i}-".encode() for i in range(n_chunks))
+        response = await ry.Client().post(str(server.url) + "echo", body=chunks)
+        res = await response.json()
+        assert res["body"] == b"".join(chunks).decode()
+        if n_chunks:
+            assert res["headers"]["transfer-encoding"] == "chunked"
+
+    @pytest.mark.anyio
+    async def test_mixed_buffers(self, server: ReqtestServer) -> None:
+        body = [b"abc", bytearray(b"def"), ry.Bytes(b"ghi")]
+        response = await ry.Client().post(str(server.url) + "echo", body=body)  # type: ignore[arg-type]
+        assert (await response.json())["body"] == "abcdefghi"
+
+    @pytest.mark.anyio
+    async def test_bad_item(self, server: ReqtestServer) -> None:
+        # raised by `post()` itself, not when the body is sent
+        with pytest.raises(TypeError, match="index 1"):
+            _coro = ry.Client().post(str(server.url) + "echo", body=(b"ok", 12345))  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
+
+
+class TestKnownLengthStream:
+    """known-length bodies bigger than the prefetch"""
+
+    @pytest.mark.anyio
+    @pytest.mark.parametrize("n", [100_000, 1_000_000])
+    @pytest.mark.parametrize("encoding", ["identity", "gzip"])
+    async def test_stream(self, server: ReqtestServer, n: int, encoding: str) -> None:
+        url = str(server.url) + f"big/{n}" + ("/gzip" if encoding == "gzip" else "")
+        client = ry.Client()
+        response = await client.get(url)
+        chunks = [bytes(c) async for c in response.stream()]
+        assert b"".join(chunks) == big_body(n)
+        assert bytes(await (await client.get(url)).bytes()) == big_body(n)
+
+    @pytest.mark.anyio
+    async def test_concurrent_streams(self, server: ReqtestServer) -> None:
+        client = ry.Client()
+
+        async def _one(i: int) -> bytes:
+            path = f"big/{200_000 + i}" + ("/gzip" if i % 2 else "")
+            response = await client.get(str(server.url) + path)
+            return b"".join([bytes(c) async for c in response.stream()])
+
+        got = await asyncio.gather(*(_one(i) for i in range(16)))
+        assert got == [big_body(200_000 + i) for i in range(16)]
 
 
 class TestTimeout:

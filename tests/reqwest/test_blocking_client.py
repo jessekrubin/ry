@@ -13,6 +13,8 @@ import pytest
 
 import ry
 
+from .conftest import big_body
+
 if TYPE_CHECKING:
     from ry.ryo3 import RequestKwargs
 
@@ -571,6 +573,53 @@ class TestBlockingSyncBodyPull:
         client = ry.BlockingClient()
         with pytest.raises(Exception):  # noqa: B017, PT011
             client.post(str(server.url) + "echo", body=iter([b"ok", 12345]))  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
+
+
+class TestBlockingListBody:
+    """list/tuple bodies"""
+
+    @pytest.mark.parametrize("n_chunks", [0, 1, 4, 64, 1024, 1025, 5000])
+    @pytest.mark.parametrize("container", [list, tuple])
+    def test_list_body(
+        self, server: ReqtestServer, n_chunks: int, container: type
+    ) -> None:
+        chunks = container(f"chunk{i}-".encode() for i in range(n_chunks))
+        client = ry.BlockingClient()
+        res = client.post(str(server.url) + "echo", body=chunks).json()
+        assert res["body"] == b"".join(chunks).decode()
+        if n_chunks:
+            assert res["headers"]["transfer-encoding"] == "chunked"
+
+    def test_ry_bytes_items(self, server: ReqtestServer) -> None:
+        client = ry.BlockingClient()
+        body = [ry.Bytes(b"abc"), b"def", ry.Bytes(b"ghi")]
+        res = client.post(str(server.url) + "echo", body=body).json()  # type: ignore[arg-type]
+        assert res["body"] == "abcdefghi"
+
+    def test_mixed_buffers(self, server: ReqtestServer) -> None:
+        client = ry.BlockingClient()
+        body = [b"abc", bytearray(b"def"), memoryview(b"ghi")]
+        res = client.post(str(server.url) + "echo", body=body).json()  # type: ignore[arg-type]
+        assert res["body"] == "abcdefghi"
+
+    def test_bad_item(self, server: ReqtestServer) -> None:
+        client = ry.BlockingClient()
+        with pytest.raises(TypeError, match="index 1"):
+            client.post(str(server.url) + "echo", body=[b"ok", 12345])  # type: ignore[list-item]  # ty:ignore[invalid-argument-type]
+
+
+class TestKnownLengthStream:
+    """known-length bodies bigger than the prefetch"""
+
+    @pytest.mark.parametrize("n", [100_000, 1_000_000])
+    @pytest.mark.parametrize("encoding", ["identity", "gzip"])
+    def test_stream(self, server: ReqtestServer, n: int, encoding: str) -> None:
+        url = str(server.url) + f"big/{n}" + ("/gzip" if encoding == "gzip" else "")
+        client = ry.BlockingClient()
+        response = client.get(url)
+        chunks = [bytes(c) for c in response.stream()]
+        assert b"".join(chunks) == big_body(n)
+        assert bytes(client.get(url).bytes()) == big_body(n)
 
 
 class TestPrefetch:
