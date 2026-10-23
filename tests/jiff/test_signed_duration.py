@@ -84,13 +84,6 @@ def test_cast_float(dur: ry.SignedDuration) -> None:
 
 
 @given(st_signed_durations())
-def test_cast_int(dur: ry.SignedDuration) -> None:
-    i = int(dur)
-    assert isinstance(i, int)
-    assert i == dur.as_nanos()
-
-
-@given(st_signed_durations())
 def test_cast_bool(dur: ry.SignedDuration) -> None:
     b = bool(dur)
     assert isinstance(b, bool)

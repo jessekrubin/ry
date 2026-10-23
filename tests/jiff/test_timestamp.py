@@ -347,3 +347,101 @@ def test_timestamp_display_with_offset(ts: ry.Timestamp, off: ry.Offset) -> None
             f"timestamp {ts} with offset {off}"
         )
         raise AssertionError(msg) from ve
+
+
+class TestTimestampFromSecond:
+    def test_fractional(self) -> None:
+        ts = ry.Timestamp.from_second_f64(1700000000.5)
+        assert ts == ry.Timestamp.parse("2023-11-14T22:13:20.5Z")
+
+    def test_int_value(self) -> None:
+        assert ry.Timestamp.from_second_f64(0) == ry.Timestamp.UNIX_EPOCH
+        assert ry.Timestamp.from_second_f64(1.0) == ry.Timestamp.from_second(1)
+
+    def test_negative_fraction_goes_back_in_time(self) -> None:
+        # -0.5 is half a second before the epoch != not the epoch
+        ts = ry.Timestamp.from_second_f64(-0.5)
+        assert ts == ry.Timestamp.parse("1969-12-31T23:59:59.5Z")
+        assert ry.Timestamp.from_second_f64(-1.25) == ry.Timestamp.parse(
+            "1969-12-31T23:59:58.75Z"
+        )
+
+    @pytest.mark.parametrize("value", [float("nan"), float("inf"), float("-inf")])
+    def test_non_finite(self, value: float) -> None:
+        with pytest.raises(ValueError, match="non-finite"):
+            ry.Timestamp.from_second_f64(value)
+
+    @pytest.mark.parametrize("value", [1e30, -1e30, 1.7e12, -4e11])
+    def test_out_of_range(self, value: float) -> None:
+        # 1.7e12 ~ ms used as secs
+        with pytest.raises(ValueError, match="not in the required range"):
+            ry.Timestamp.from_second_f64(value)
+
+    def test_min_max_seconds(self) -> None:
+        assert ry.Timestamp.from_second_f64(
+            float(ry.Timestamp.MIN.as_second())
+        ) == ry.Timestamp.from_second(ry.Timestamp.MIN.as_second())
+        assert ry.Timestamp.from_second_f64(
+            float(ry.Timestamp.MAX.as_second())
+        ) == ry.Timestamp.from_second(ry.Timestamp.MAX.as_second())
+
+    def test_roundtrip_is_lossy_sub_microsecond(self) -> None:
+        ts = ry.Timestamp(1700000000, 123456789)
+        back = ry.Timestamp.from_second_f64(ts.as_second() + ts.subsec_nanosecond / 1e9)
+        assert back != ts
+        assert abs((back - ts).total_seconds()) < 1e-6
+
+    @pytest.mark.parametrize("value", ["1700000000", None])
+    def test_rejects_non_numbers(self, value: t.Any) -> None:
+        with pytest.raises(TypeError):
+            ry.Timestamp.from_second_f64(value)
+
+    def test_from_second_float(self) -> None:
+        assert ry.Timestamp.from_second(1700000000.5) == ry.Timestamp.parse(
+            "2023-11-14T22:13:20.5Z"
+        )
+        assert ry.Timestamp.from_second(-0.5) == ry.Timestamp.parse(
+            "1969-12-31T23:59:59.5Z"
+        )
+
+    @pytest.mark.parametrize("value", [0.0, 1.25, -1.25, 1700000000.123456])
+    def test_from_second_float_matches_f64(self, value: float) -> None:
+        assert ry.Timestamp.from_second(value) == ry.Timestamp.from_second_f64(value)
+
+    def test_from_second_huge_int_overflow(self) -> None:
+        with pytest.raises(OverflowError):
+            ry.Timestamp.from_second(2**64)
+
+    @pytest.mark.parametrize("value", [10**15, 1.7e12])
+    def test_from_second_out_of_range(self, value: float) -> None:
+        with pytest.raises(ValueError, match="not in the required range"):
+            ry.Timestamp.from_second(value)
+
+    @pytest.mark.parametrize("value", [True, "1700000000", None])
+    def test_from_second_type_err(self, value: t.Any) -> None:
+        with pytest.raises(TypeError, match="expected i64 or f64"):
+            ry.Timestamp.from_second(value)
+
+
+class TestFromAnyRaises4Numbers:
+    @pytest.mark.parametrize("value", [0, 1700000000, 1700000000.5, True])
+    def test_timestamp(self, value: t.Any) -> None:
+        with pytest.raises(TypeError):
+            ry.Timestamp.from_any(value)  # type: ignore[attr-defined]  # ty:ignore[unresolved-attribute]
+
+    @pytest.mark.parametrize("value", [0, 1700000000, 1700000000.5, True])
+    def test_zoned(self, value: t.Any) -> None:
+        with pytest.raises(TypeError):
+            ry.ZonedDateTime.from_any(value)  # type: ignore[attr-defined]  # ty:ignore[unresolved-attribute]
+
+    @pytest.mark.parametrize("value", [0, 1700000000, 1700000000.5, True])
+    def test_datetime(self, value: t.Any) -> None:
+        with pytest.raises(TypeError):
+            ry.DateTime.from_any(value)  # type: ignore[attr-defined]  # ty:ignore[unresolved-attribute]
+
+    @pytest.mark.parametrize(
+        "ctor", ["from_millisecond", "from_microsecond", "from_nanosecond"]
+    )
+    def test_sub_second_ctors_int_only(self, ctor: str) -> None:
+        with pytest.raises(TypeError):
+            getattr(ry.Timestamp, ctor)(1700000000500.5)

@@ -6,8 +6,8 @@ use jiff::{Timestamp, TimestampArithmetic, TimestampRound, Zoned};
 use pyo3::BoundObject;
 use pyo3::basic::CompareOp;
 use pyo3::prelude::*;
-use pyo3::types::PyTuple;
-use ryo3_core::{PyAsciiString, map_py_overflow_err, map_py_value_err};
+use pyo3::types::{PyFloat, PyInt, PyTuple};
+use ryo3_core::{PyAsciiString, PyCastExactOpt, PyCastOpt, map_py_overflow_err, map_py_value_err};
 use ryo3_jiff_core::{JiffDate, JiffRoundMode, JiffTime, JiffTimestamp, JiffUnit};
 use ryo3_macro_rules::{any_repr, py_type_err};
 
@@ -357,8 +357,29 @@ impl RyTimestamp {
     }
 
     #[staticmethod]
-    fn from_second(second: i64) -> PyResult<Self> {
-        Timestamp::from_second(second)
+    #[pyo3(name = "from_second")]
+    fn py_from_second(second: &Bound<'_, PyAny>) -> PyResult<Self> {
+        if let Some(second) = second.cast_exact_opt::<PyInt>() {
+            // big ints should become `OverflowError` not type err
+            let second = second.extract::<i64>()?;
+            Timestamp::from_second(second)
+                .map(Self::from)
+                .map_err(map_py_value_err)
+        } else if let Some(second) = second
+            .cast_exact_opt::<PyFloat>()
+            .and_then(|f| f.extract::<f64>().ok())
+        {
+            Self::from_second_f64(second)
+        } else {
+            py_type_err!("Invalid type for second; expected i64 or f64")
+        }
+    }
+
+    /// float unix-seconds ~ explicit so numbers never get unit-guessed
+    #[staticmethod]
+    fn from_second_f64(second: f64) -> PyResult<Self> {
+        let dur = jiff::SignedDuration::try_from_secs_f64(second).map_err(map_py_value_err)?;
+        Timestamp::from_duration(dur)
             .map(Self::from)
             .map_err(map_py_value_err)
     }
@@ -511,17 +532,17 @@ impl RyTimestamp {
     #[staticmethod]
     fn from_any<'py>(value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, Self>> {
         let py = value.py();
-        if let Ok(val) = value.cast_exact::<Self>() {
+        if let Some(val) = value.cast_exact_opt::<Self>() {
             Ok(val.as_borrowed().into_bound())
-        } else if let Ok(pystr) = value.cast::<pyo3::types::PyString>() {
+        } else if let Some(pystr) = value.cast_opt::<pyo3::types::PyString>() {
             let s = pystr.extract::<&str>()?;
             Self::from_str(s).map(|dt| dt.into_pyobject(py))?
-        } else if let Ok(pybytes) = value.cast::<pyo3::types::PyBytes>() {
+        } else if let Some(pybytes) = value.cast_opt::<pyo3::types::PyBytes>() {
             let s = String::from_utf8_lossy(pybytes.as_bytes());
             Self::from_str(&s).map(|dt| dt.into_pyobject(py))?
-        } else if let Ok(d) = value.cast_exact::<RyZoned>() {
+        } else if let Some(d) = value.cast_exact_opt::<RyZoned>() {
             Self::from(d.get()).into_pyobject(py)
-        } else if let Ok(dt) = value.cast_exact::<RyDateTime>() {
+        } else if let Some(dt) = value.cast_exact_opt::<RyDateTime>() {
             jiff::tz::Offset::UTC
                 .to_timestamp(dt.get().0)
                 .map(Self::from)

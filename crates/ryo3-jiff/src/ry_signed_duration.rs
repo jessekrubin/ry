@@ -7,7 +7,7 @@ use pyo3::basic::CompareOp;
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyFloat, PyInt, PyTuple};
 use pyo3::{BoundObject, IntoPyObjectExt};
-use ryo3_core::{PyAsciiString, map_py_overflow_err, map_py_value_err};
+use ryo3_core::{PyAsciiString, PyCastExactOpt, map_py_overflow_err, map_py_value_err};
 use ryo3_jiff_core::fmt::{FRIENDLY_SPAN_PRINTER, TEMPORAL_SPAN_PARSER};
 use ryo3_jiff_core::{
     JiffFriendlyDesignator, JiffRoundMode, JiffSignedDuration, JiffUnit, pydelta_to_signed_duration,
@@ -290,6 +290,12 @@ impl RySignedDuration {
         self.0.as_secs_f64()
     }
 
+    #[pyo3(
+        warn(
+            message = "`SignedDuration.__int__` is deprecated; use `SignedDuration.as_nanos` instead [removal: v0.0.108]",
+            category = pyo3::exceptions::PyDeprecationWarning
+        )
+    )]
     fn __int__(&self) -> i128 {
         self.0.as_nanos()
     }
@@ -562,10 +568,15 @@ impl RySignedDuration {
     }
 
     #[staticmethod]
-    fn from_secs(secs: &Bound<'_, PyAny>) -> PyResult<Self> {
-        if let Ok(secs) = secs.extract::<i64>() {
-            Ok(Self(SignedDuration::from_secs(secs)))
-        } else if let Ok(secs) = secs.extract::<f64>() {
+    #[pyo3(name = "from_secs")]
+    fn py_from_secs(secs: &Bound<'_, PyAny>) -> PyResult<Self> {
+        if let Some(secs) = secs.cast_exact_opt::<PyInt>() {
+            secs.extract::<i64>()
+                .map(|s| Self(SignedDuration::from_secs(s)))
+        } else if let Some(secs) = secs
+            .cast_exact_opt::<PyFloat>()
+            .and_then(|f| f.extract::<f64>().ok())
+        {
             Self::py_try_from_secs_f64(secs)
         } else {
             py_type_err!("Invalid type for seconds; expected i64 or f64")
@@ -805,22 +816,23 @@ impl RySignedDuration {
     // ========================================================================
     #[staticmethod]
     fn from_any<'py>(value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, Self>> {
+        use ryo3_core::PyCastOpt;
         let py = value.py();
-        if let Ok(val) = value.cast_exact::<Self>() {
+        if let Some(val) = value.cast_exact_opt::<Self>() {
             Ok(val.as_borrowed().into_bound())
-        } else if let Ok(pystr) = value.cast::<pyo3::types::PyString>() {
+        } else if let Some(pystr) = value.cast_opt::<pyo3::types::PyString>() {
             let s = pystr.extract::<&str>()?;
             Self::from_str(s).map(|dt| dt.into_pyobject(py))?
-        } else if let Ok(pybytes) = value.cast::<pyo3::types::PyBytes>() {
+        } else if let Some(pybytes) = value.cast_opt::<pyo3::types::PyBytes>() {
             let s = String::from_utf8_lossy(pybytes.as_bytes());
             Self::from_str(&s).map(|dt| dt.into_pyobject(py))?
-        } else if let Ok(v) = value.cast_exact::<PyFloat>() {
+        } else if let Some(v) = value.cast_exact_opt::<PyFloat>() {
             let f = v.extract::<f64>()?;
             if f.is_nan() || f.is_infinite() {
                 return py_value_err!("Cannot convert NaN or infinite float to SignedDuration");
             }
             Self::py_try_from_secs_f64(f).and_then(|dt| dt.into_pyobject(py))
-        } else if let Ok(v) = value.cast_exact::<PyInt>() {
+        } else if let Some(v) = value.cast_exact_opt::<PyInt>() {
             let i = v.extract::<i64>()?;
             Self::from(SignedDuration::new(i, 0)).into_pyobject(py)
         } else if let Ok(d) = value.extract::<JiffSignedDuration>() {

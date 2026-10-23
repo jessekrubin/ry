@@ -1,7 +1,7 @@
 use pyo3::prelude::PyAnyMethods;
 use pyo3::types::{PyDict, PyType};
 use pyo3::{Bound, PyAny, PyResult};
-use ryo3_pydantic::{GetPydanticCoreSchemaCls, interns};
+use ryo3_pydantic::{GetPydanticCoreSchemaCls, GetPydanticJsonSchemaCls, interns};
 
 use crate::{
     RyDate, RyDateTime, RyISOWeekDate, RyOffset, RySignedDuration, RySpan, RyTime, RyTimeZone,
@@ -39,12 +39,12 @@ impl GetPydanticCoreSchemaCls for RyDateTime {
     ) -> PyResult<Bound<'py, PyAny>> {
         let py = source.py();
         let core_schema = ryo3_pydantic::core_schema(py)?;
-        let datetime_schema = core_schema.call_method(interns::datetime_schema(py), (), None)?;
+        let str_schema = core_schema.call_method(interns::str_schema(py), (), None)?;
         let validation_fn = cls.getattr(interns::_pydantic_validate(py))?;
         let string_serialization_schema =
             core_schema.call_method(interns::to_string_ser_schema(py), (), None)?;
         let plain_validator_kwargs = PyDict::new(py);
-        plain_validator_kwargs.set_item(interns::json_schema_input_schema(py), &datetime_schema)?;
+        plain_validator_kwargs.set_item(interns::json_schema_input_schema(py), &str_schema)?;
         plain_validator_kwargs
             .set_item(interns::serialization(py), &string_serialization_schema)?;
         core_schema.call_method(
@@ -63,12 +63,12 @@ impl GetPydanticCoreSchemaCls for RyTime {
     ) -> PyResult<Bound<'py, PyAny>> {
         let py = source.py();
         let core_schema = ryo3_pydantic::core_schema(py)?;
-        let time_schema = core_schema.call_method(interns::time_schema(py), (), None)?;
+        let str_schema = core_schema.call_method(interns::str_schema(py), (), None)?;
         let validation_fn = cls.getattr(interns::_pydantic_validate(py))?;
         let string_serialization_schema =
             core_schema.call_method(interns::to_string_ser_schema(py), (), None)?;
         let plain_validator_kwargs = PyDict::new(py);
-        plain_validator_kwargs.set_item(interns::json_schema_input_schema(py), &time_schema)?;
+        plain_validator_kwargs.set_item(interns::json_schema_input_schema(py), &str_schema)?;
         plain_validator_kwargs
             .set_item(interns::serialization(py), &string_serialization_schema)?;
         core_schema.call_method(
@@ -114,12 +114,12 @@ impl GetPydanticCoreSchemaCls for RyZoned {
     ) -> PyResult<Bound<'py, PyAny>> {
         let py = source.py();
         let core_schema = ryo3_pydantic::core_schema(py)?;
-        let datetime_schema = core_schema.call_method(interns::datetime_schema(py), (), None)?;
+        let str_schema = core_schema.call_method(interns::str_schema(py), (), None)?;
         let validation_fn = cls.getattr(interns::_pydantic_validate(py))?;
         let string_serialization_schema =
             core_schema.call_method(interns::to_string_ser_schema(py), (), None)?;
         let plain_validator_kwargs = PyDict::new(py);
-        plain_validator_kwargs.set_item(interns::json_schema_input_schema(py), &datetime_schema)?;
+        plain_validator_kwargs.set_item(interns::json_schema_input_schema(py), &str_schema)?;
         plain_validator_kwargs
             .set_item(interns::serialization(py), &string_serialization_schema)?;
         core_schema.call_method(
@@ -280,5 +280,59 @@ impl GetPydanticCoreSchemaCls for RyTimeZone {
             (&validation_fn,),
             Some(&plain_validator_kwargs),
         )
+    }
+}
+
+// ---------------------------------------------------------------------------
+// JSON schema overrides
+//
+// JSON Schema's `date-time`/`time` require an offset (RFC 3339) so the
+// civil + zoned types can't use them (i (jesse) was getting ajv errs)
+//
+// REF(s):
+// - <https://spec.openapis.org/registry/format/> (`date-time-local`/`time-local`)
+// - <https://www.rfc-editor.org/info/rfc9557/> (zoned `[America/New_York]` suffix)
+// ---------------------------------------------------------------------------
+
+impl GetPydanticJsonSchemaCls for RyDateTime {
+    fn get_pydantic_json_schema<'py>(
+        _cls: &Bound<'py, PyType>,
+        core_schema: &Bound<'py, PyAny>,
+        handler: &Bound<'py, PyAny>,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        let py = core_schema.py();
+        let json_schema = handler.call1((core_schema,))?;
+        json_schema.set_item(interns::format(py), "date-time-local")?;
+        Ok(json_schema)
+    }
+}
+
+impl GetPydanticJsonSchemaCls for RyTime {
+    fn get_pydantic_json_schema<'py>(
+        _cls: &Bound<'py, PyType>,
+        core_schema: &Bound<'py, PyAny>,
+        handler: &Bound<'py, PyAny>,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        let py = core_schema.py();
+        let json_schema = handler.call1((core_schema,))?;
+        json_schema.set_item(interns::format(py), "time-local")?;
+        Ok(json_schema)
+    }
+}
+
+impl GetPydanticJsonSchemaCls for RyZoned {
+    fn get_pydantic_json_schema<'py>(
+        _cls: &Bound<'py, PyType>,
+        core_schema: &Bound<'py, PyAny>,
+        handler: &Bound<'py, PyAny>,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        // no released json-schema format for RFC 9557 (offset + `[tz]`) yet
+        let json_schema = handler.call1((core_schema,))?;
+        json_schema.set_item(
+            "description",
+            "RFC 9557 zoned date-time (RFC 3339 w/ offset + IANA time zone suffix)",
+        )?;
+        json_schema.set_item("examples", ["2024-01-15T09:30:00-05:00[America/New_York]"])?;
+        Ok(json_schema)
     }
 }
