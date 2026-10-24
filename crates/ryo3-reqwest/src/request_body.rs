@@ -602,7 +602,7 @@ impl PyBody {
 fn ready_chunk(item: &Bound<'_, PyAny>, ix: usize) -> PyResult<Bytes> {
     item.extract::<ReadableBuffer>()
         .map(ReadableBuffer::into_bytes)
-        .map_err(|_| py_type_error!("Expected bytes-like object (ix: {ix})"))
+        .map_err(|_| py_type_error!("Expected bytes-like object at index {ix}"))
 }
 
 /// list/tuple of bytes-likes ~ `None` if it isnt a list/tuple or is too long
