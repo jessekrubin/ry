@@ -1339,7 +1339,6 @@ class TestListBody:
 
     @pytest.mark.anyio
     async def test_bad_item(self, server: ReqtestServer) -> None:
-        # raised by `post()` itself, not when the body is sent
         with pytest.raises(TypeError, match="index 1"):
             _coro = ry.Client().post(str(server.url) + "echo", body=(b"ok", 12345))  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
 

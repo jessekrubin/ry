@@ -27,7 +27,7 @@ jobs:
     runs-on: ${{ matrix.platform.runner }}
     permissions:
       contents: read
-      packages: write # run-on-arch ghcr cache
+      packages: write
     strategy:
       fail-fast: false
       matrix:
@@ -127,7 +127,7 @@ jobs:
     runs-on: ${{ matrix.platform.runner }}
     permissions:
       contents: read
-      packages: write # run-on-arch ghcr cache
+      packages: write
     strategy:
       matrix:
         platform:
@@ -347,11 +347,8 @@ jobs:
       name: release-pypi
       url: https://pypi.org/p/ry
     permissions:
-      # trusted publishing (pypi) + attestations
       id-token: write
-      # github release
       contents: write
-      # github build provenance
       attestations: write
     steps:
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
@@ -375,7 +372,6 @@ jobs:
         with:
           subject-path: "dist/*"
       - name: publish-2-pypi
-        # trusted publishing (no token) ~ uploads PEP 740 attestations by default
         uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # v1.14.2
         with:
           packages-dir: dist/

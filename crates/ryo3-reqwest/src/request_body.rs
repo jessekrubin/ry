@@ -594,10 +594,6 @@ impl PyBody {
 }
 
 /// extract buffer/byteslike chunk same as body
-///
-/// # Errors
-///
-/// `pyo3::exceptions::PyTypeError` if the item is not a bytes-like object at the given index
 #[inline]
 fn ready_chunk(item: &Bound<'_, PyAny>, ix: usize) -> PyResult<Bytes> {
     item.extract::<ReadableBuffer>()
@@ -606,7 +602,6 @@ fn ready_chunk(item: &Bound<'_, PyAny>, ix: usize) -> PyResult<Bytes> {
 }
 
 /// list/tuple of bytes-likes ~ `None` if it isnt a list/tuple or is too long
-/// (owned iter b/c extracting a buffer can run python, eg `__buffer__`)
 fn ready_chunks(obj: &Bound<'_, PyAny>) -> PyResult<Option<Vec<Bytes>>> {
     use pyo3::types::{PyList, PyTuple, PyTupleMethods};
     use ryo3_core::PyCastExactOpt;

@@ -277,7 +277,6 @@ async def big_response(
         status=200,
         headers=headers,
     )
-    # multiple chunks
     step = 64 * 1024
     for i in range(0, max(len(body), 1), step):
         yield uvt.HTTPResponseBodyEvent(
