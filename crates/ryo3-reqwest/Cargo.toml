@@ -27,6 +27,7 @@ http.workspace = true
 http-body.workspace = true
 http-body-util.workspace = true
 jiter.workspace = true
+memchr.workspace = true
 mime.workspace = true
 pyo3 = { workspace = true, features = [] }
 reqwest = { workspace = true, default-features = false, features = ["brotli", "charset", "cookies", "deflate", "form", "gzip", "hickory-dns", "http2", "json", "multipart", "query", "rustls-no-provider", "socks", "stream", "zstd"] }

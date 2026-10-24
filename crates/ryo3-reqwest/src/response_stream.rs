@@ -196,13 +196,13 @@ struct ResponseShared {
 }
 
 #[derive(Clone)]
-struct ResponseStreamInner {
+pub(crate) struct ResponseStreamInner {
     status: StatusCode,
     shared: Arc<ResponseShared>,
 }
 
 impl ResponseStreamInner {
-    fn from_body(status: StatusCode, body: reqwest::Body, min_read_size: usize) -> Self {
+    pub(crate) fn from_body(status: StatusCode, body: reqwest::Body, min_read_size: usize) -> Self {
         use http_body::Body;
 
         // exact len == not-being-decompressed (ie not really doing any cpu-ing)
@@ -221,7 +221,7 @@ impl ResponseStreamInner {
         }
     }
 
-    fn from_bytes(status: StatusCode, bytes: Bytes) -> Self {
+    pub(crate) fn from_bytes(status: StatusCode, bytes: Bytes) -> Self {
         // empty body == nothing to yield (same as the pump)
         let rx = ResponseRx::Buffered((!bytes.is_empty()).then_some(bytes));
         Self {
@@ -234,7 +234,7 @@ impl ResponseStreamInner {
     }
 
     #[inline]
-    fn try_next(&self) -> Option<Result<Option<Bytes>, reqwest::Error>> {
+    pub(crate) fn try_next(&self) -> Option<Result<Option<Bytes>, reqwest::Error>> {
         let shared = &*self.shared;
         let Ok(mut rx) = shared.rx.try_lock() else {
             return None;
@@ -247,7 +247,7 @@ impl ResponseStreamInner {
     }
 
     #[inline]
-    async fn next(&self) -> Result<Option<Bytes>, reqwest::Error> {
+    pub(crate) async fn next(&self) -> Result<Option<Bytes>, reqwest::Error> {
         let shared = &*self.shared;
         shared
             .rx
@@ -261,7 +261,7 @@ impl ResponseStreamInner {
     /// kick off the read-ahead early (eg on enter); never waits on the lock ~
     /// if somebody holds it they're reading so the pump is already going
     #[inline]
-    fn start(&self) {
+    pub(crate) fn start(&self) {
         let shared = &*self.shared;
         if shared.close_sig.is_closed() {
             return;
@@ -273,7 +273,7 @@ impl ResponseStreamInner {
 
     /// drop the body + pump (aborts the read-ahead task if it got going)
     #[inline]
-    async fn close(&self) {
+    pub(crate) async fn close(&self) {
         // wake any read parked in `recv()` first so it lets go of the lock
         self.shared.close_sig.close();
         *self.shared.rx.lock().await = ResponseRx::Closed;
@@ -350,14 +350,9 @@ fn join_bytes_chunks(chunks: &mut Vec<Bytes>, total_size: usize) -> Bytes {
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyResponseStream(ResponseStreamInner);
 
-impl RyResponseStream {
-    pub(crate) fn from_body(status: StatusCode, body: reqwest::Body, min_read_size: usize) -> Self {
-        let inner = ResponseStreamInner::from_body(status, body, min_read_size);
+impl From<ResponseStreamInner> for RyResponseStream {
+    fn from(inner: ResponseStreamInner) -> Self {
         Self(inner)
-    }
-
-    pub(crate) fn from_bytes(status: StatusCode, bytes: Bytes) -> Self {
-        Self(ResponseStreamInner::from_bytes(status, bytes))
     }
 }
 
@@ -451,13 +446,9 @@ impl RyResponseStream {
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyBlockingResponseStream(ResponseStreamInner);
 
-impl RyBlockingResponseStream {
-    pub(crate) fn from_body(status: StatusCode, body: reqwest::Body, min_read_size: usize) -> Self {
-        Self(ResponseStreamInner::from_body(status, body, min_read_size))
-    }
-
-    pub(crate) fn from_bytes(status: StatusCode, bytes: Bytes) -> Self {
-        Self(ResponseStreamInner::from_bytes(status, bytes))
+impl From<ResponseStreamInner> for RyBlockingResponseStream {
+    fn from(inner: ResponseStreamInner) -> Self {
+        Self(inner)
     }
 }
 

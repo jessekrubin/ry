@@ -1,3 +1,5 @@
+use std::num::NonZeroUsize;
+
 use bytes::{Bytes, BytesMut};
 use pyo3::prelude::*;
 use pyo3::types::PyString;
@@ -14,7 +16,8 @@ use crate::charset::PyEncoding;
 use crate::errors::map_reqwest_err;
 use crate::pyo3_json_bytes::Pyo3JsonBytes;
 use crate::response_head::RyResponseHead;
-use crate::response_stream::RyBlockingResponseStream;
+use crate::response_stream::{ResponseStreamInner, RyBlockingResponseStream};
+use crate::sse::{RyBlockingEventStream, RyEventStream, SSE_MAX_EVENT_SIZE};
 use crate::{RyResponseStream, pyerr_response_already_consumed};
 
 #[pyclass(name = "Response", frozen, immutable_type)]
@@ -49,6 +52,15 @@ enum ResponseBody {
 enum OwnedBody {
     Stream(reqwest::Body),
     Buffered(bytes::Bytes),
+}
+
+impl OwnedBody {
+    fn into_stream(self, status: reqwest::StatusCode, min_read_size: usize) -> ResponseStreamInner {
+        match self {
+            Self::Stream(body) => ResponseStreamInner::from_body(status, body, min_read_size),
+            Self::Buffered(bytes) => ResponseStreamInner::from_bytes(status, bytes),
+        }
+    }
 }
 
 /// bodies w/ a known length up to this get read along w/ the head
@@ -183,12 +195,10 @@ impl RyResponse {
     }
 
     fn stream_from(&self, min_read_size: usize) -> PyResult<RyResponseStream> {
-        Ok(match self.take_owned()? {
-            OwnedBody::Stream(body) => {
-                RyResponseStream::from_body(self.head.status, body, min_read_size)
-            }
-            OwnedBody::Buffered(bytes) => RyResponseStream::from_bytes(self.head.status, bytes),
-        })
+        Ok(self
+            .take_owned()?
+            .into_stream(self.head.status, min_read_size)
+            .into())
     }
 
     fn text_coro<'py>(
@@ -412,6 +422,22 @@ impl RyResponse {
         self.stream_from(min_read_size)
     }
 
+    /// Return an async iterator of server-sent events
+    #[pyo3(
+        signature = (*, max_event_size = SSE_MAX_EVENT_SIZE),
+        text_signature = "(self, *, max_event_size=524_288)"
+    )]
+    fn sse(&self, max_event_size: NonZeroUsize) -> PyResult<RyEventStream> {
+        self.head.error_for_status().map_err(map_reqwest_err)?;
+        let status = self.head.status;
+        Ok(RyEventStream::new(
+            status,
+            (*self.head.url).clone(),
+            self.take_owned()?.into_stream(status, 0),
+            max_event_size,
+        ))
+    }
+
     /// Return the `content-encoding` header value of the response or `None`
     #[getter]
     fn content_encoding(&self) -> Option<String> {
@@ -577,20 +603,32 @@ impl RyBlockingResponse {
     /// Return a response consuming async iterator over the response body
     #[pyo3(signature = (min_read_size = 0, /))]
     fn bytes_stream(&self, min_read_size: usize) -> PyResult<RyBlockingResponseStream> {
-        Ok(match self.take_owned()? {
-            OwnedBody::Buffered(bytes) => {
-                RyBlockingResponseStream::from_bytes(self.head.status, bytes)
-            }
-            OwnedBody::Stream(body) => {
-                RyBlockingResponseStream::from_body(self.head.status, body, min_read_size)
-            }
-        })
+        Ok(self
+            .take_owned()?
+            .into_stream(self.head.status, min_read_size)
+            .into())
     }
 
     /// Return a response consuming async iterator over the response body
     #[pyo3(signature = (min_read_size = 0, /))]
     fn stream(&self, min_read_size: usize) -> PyResult<RyBlockingResponseStream> {
         self.bytes_stream(min_read_size)
+    }
+
+    /// Return an iterator of server-sent events
+    #[pyo3(
+        signature = (*, max_event_size = SSE_MAX_EVENT_SIZE),
+        text_signature = "(self, *, max_event_size=524_288)"
+    )]
+    fn sse(&self, max_event_size: NonZeroUsize) -> PyResult<RyBlockingEventStream> {
+        self.head.error_for_status().map_err(map_reqwest_err)?;
+        let status = self.head.status;
+        Ok(RyBlockingEventStream::new(
+            status,
+            (*self.head.url).clone(),
+            self.take_owned()?.into_stream(status, 0),
+            max_event_size,
+        ))
     }
 
     #[getter]
