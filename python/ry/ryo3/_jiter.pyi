@@ -121,6 +121,14 @@ class JSONDecodeError(ValueError):
         lineno: int | None = None,
         colno: int | None = None,
     ) -> t.Self: ...
+    def __init__(
+        self,
+        kind: _JsonErrorKindArg,
+        doc: ReadableBuffer | None = None,
+        pos: int = 0,
+        lineno: int | None = None,
+        colno: int | None = None,
+    ) -> None: ...
     @property
     def msg(self) -> str: ...
     @property
