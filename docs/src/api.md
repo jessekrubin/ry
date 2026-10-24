@@ -202,6 +202,7 @@ from ry.ryo3._orjson import orjson_default as orjson_default
 from ry.ryo3._quick_maths import quick_maths as quick_maths
 from ry.ryo3._regex import Regex as Regex
 from ry.ryo3._reqwest import BlockingClient as BlockingClient
+from ry.ryo3._reqwest import BlockingEventStream as BlockingEventStream
 from ry.ryo3._reqwest import BlockingResponse as BlockingResponse
 from ry.ryo3._reqwest import BlockingResponseStream as BlockingResponseStream
 from ry.ryo3._reqwest import Certificate as Certificate
@@ -210,12 +211,14 @@ from ry.ryo3._reqwest import (
 )
 from ry.ryo3._reqwest import Client as Client
 from ry.ryo3._reqwest import ClientConfig as ClientConfig
+from ry.ryo3._reqwest import EventStream as EventStream
 from ry.ryo3._reqwest import Identity as Identity
 from ry.ryo3._reqwest import Proxy as Proxy
 from ry.ryo3._reqwest import RequestKwargs as RequestKwargs
 from ry.ryo3._reqwest import ReqwestError as ReqwestError
 from ry.ryo3._reqwest import Response as Response
 from ry.ryo3._reqwest import ResponseStream as ResponseStream
+from ry.ryo3._reqwest import ServerSentEvent as ServerSentEvent
 from ry.ryo3._reqwest import fetch as fetch
 from ry.ryo3._reqwest import fetch_sync as fetch_sync
 from ry.ryo3._same_file import is_same_file as is_same_file
@@ -6450,6 +6453,7 @@ class Response:
     def stream(
         self, min_read_size: int = 0, /
     ) -> ResponseStream: ...  # min_read_size=0 -> None
+    def sse(self, *, max_event_size: int = 524288) -> EventStream: ...
     @property
     def url(self) -> URL: ...
     @property
@@ -6508,6 +6512,7 @@ class BlockingResponse:
     def bytes(self) -> ry.Bytes: ...
     def bytes_stream(self, min_read_size: int = 0, /) -> BlockingResponseStream: ...
     def stream(self, min_read_size: int = 0, /) -> BlockingResponseStream: ...
+    def sse(self, *, max_event_size: int = 524288) -> BlockingEventStream: ...
     @property
     def url(self) -> URL: ...
     @property
@@ -6583,6 +6588,63 @@ class BlockingResponseStream:
     def readall(self) -> ry.Bytes: ...
     def take(self, n: int = 1) -> list[ry.Bytes]: ...
     def collect(self) -> list[ry.Bytes]: ...
+
+
+@t.final
+class ServerSentEvent:
+    @property
+    def event(self) -> str: ...
+    @property
+    def data(self) -> str: ...
+    @property
+    def bytes(self) -> ry.Bytes: ...
+    @property
+    def id(self) -> str | None: ...
+    def json(
+        self,
+        *,
+        allow_inf_nan: bool = False,
+        cache_mode: t.Literal[True, False, "all", "keys", "none"] = "all",
+        partial_mode: t.Literal[True, False, "off", "on", "trailing-strings"] = False,
+        catch_duplicate_keys: bool = False,
+    ) -> t.Any: ...
+    def __eq__(self, other: object) -> bool: ...
+
+
+@t.final
+class EventStream:
+    @property
+    def last_event_id(self) -> str | None: ...
+    @property
+    def retry(self) -> int | None: ...
+    async def __aenter__(self) -> t.Self: ...
+    async def __aexit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: TracebackType | None,
+    ) -> None: ...
+    async def close(self) -> None: ...
+    def __aiter__(self) -> EventStream: ...
+    async def __anext__(self) -> ServerSentEvent: ...
+
+
+@t.final
+class BlockingEventStream:
+    @property
+    def last_event_id(self) -> str | None: ...
+    @property
+    def retry(self) -> int | None: ...
+    def __enter__(self) -> t.Self: ...
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: TracebackType | None,
+    ) -> None: ...
+    def close(self) -> None: ...
+    def __iter__(self) -> BlockingEventStream: ...
+    def __next__(self) -> ServerSentEvent: ...
 
 
 async def fetch(

@@ -32,6 +32,15 @@
   - `Response.stream()` on known-length (not compressed) bodies takes frames
     that are already here w/o spawning the read-ahead pump which is faster for
     bodies barely over the prefetch threshold
+  - SSE ~ `Response.sse()` / `BlockingResponse.sse()`
+    - parser adapted from the `sse-core` crate (vendored and modified for more
+      zero-copy)
+    - parse only, no auto-reconnect. `last_event_id` + `retry` are on the stream
+      so you can reconnect w/ `Last-Event-ID` yourself using a while loop
+    - `max_event_size` kwarg (default 512KiB)
+    - event `data` is zero-copy; `ServerSentEvent.bytes` gives it as `ry.Bytes`
+    - `sse()` raises `ReqwestError` on 4xx/5xx
+  - `ReqwestError` finally holds a `reqwest::Error` internally now
 - **DEPRECATIONS**
   - deprecated `SignedDuration.__int__` and `Duration.__int__` [removal:
     v0.0.108]
