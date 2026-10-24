@@ -604,7 +604,7 @@ class TestBlockingListBody:
 
     def test_bad_item(self, server: ReqtestServer) -> None:
         client = ry.BlockingClient()
-        with pytest.raises(TypeError, match="ix 1"):
+        with pytest.raises(TypeError, match="index 1"):
             client.post(str(server.url) + "echo", body=[b"ok", 12345])  # type: ignore[list-item]  # ty:ignore[invalid-argument-type]
 
 
