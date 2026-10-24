@@ -12,7 +12,7 @@ import pytest
 def _repo_root() -> Path:
     root = Path(__file__).parent.parent.resolve()
     assert root.is_dir()
-    assert (root / ".git").is_dir()
+    assert (root / ".git").exists()
     return root
 
 

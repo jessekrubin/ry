@@ -30,6 +30,7 @@
 //! ```
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
+use std::task::Poll;
 
 use bytes::{Bytes, BytesMut};
 use futures_util::StreamExt;
@@ -52,6 +53,7 @@ use crate::errors::map_reqwest_err;
 const RESP_BODY_CHANNEL_CAP: usize = 8;
 
 type ResponseItem = Result<Bytes, reqwest::Error>;
+type BodyStream = http_body_util::BodyDataStream<reqwest::Body>;
 
 /// the running read-ahead task ~ aborts it on drop
 struct RunningPump {
@@ -90,8 +92,10 @@ impl CloseSignal {
 //            the idle state
 enum ResponseRx {
     Idle {
-        body: reqwest::Body,
+        body: BodyStream,
         min_read_size: usize,
+        /// read ready frames w/o the pump
+        inline_reads: bool,
     },
     Running(RunningPump),
     /// small body that was read along w/ the head ~ no pump needed
@@ -109,6 +113,7 @@ impl ResponseRx {
         let Self::Idle {
             body,
             min_read_size,
+            ..
         } = std::mem::replace(self, Self::Closed)
         else {
             unreachable!()
@@ -144,12 +149,44 @@ impl ResponseRx {
         if close_sig.is_closed() {
             return Err(TryRecvError::Disconnected);
         }
+        if let Poll::Ready(next) = self.poll_inline() {
+            return next.ok_or(TryRecvError::Disconnected);
+        }
         self.start();
         match self {
             Self::Running(pump) => pump.rx.try_recv(),
             Self::Buffered(bytes) => bytes.take().map(Ok).ok_or(TryRecvError::Disconnected),
             _ => Err(TryRecvError::Disconnected),
         }
+    }
+
+    /// ready frame w/o spawning the pump
+    ///
+    /// enter the rt b/c reqwest's read timeout makes a
+    /// tokio timer (panics outside a rt) causing confusing af errors
+    ///
+    /// (this was tricky to figure out)
+    #[inline]
+    fn poll_inline(&mut self) -> Poll<Option<ResponseItem>> {
+        use futures_util::FutureExt;
+
+        let Self::Idle {
+            body,
+            inline_reads: true,
+            ..
+        } = self
+        else {
+            return Poll::Pending;
+        };
+        let _rt = get_tokio_runtime().enter();
+        let Some(next) = body.next().now_or_never() else {
+            return Poll::Pending;
+        };
+        // err/end -> closed (same as the pump)
+        if !matches!(next, Some(Ok(_))) {
+            *self = Self::Closed;
+        }
+        Poll::Ready(next)
     }
 }
 
@@ -166,9 +203,14 @@ struct ResponseStreamInner {
 
 impl ResponseStreamInner {
     fn from_body(status: StatusCode, body: reqwest::Body, min_read_size: usize) -> Self {
+        use http_body::Body;
+
+        // exact len == not-being-decompressed (ie not really doing any cpu-ing)
+        let inline_reads = min_read_size == 0 && body.size_hint().exact().is_some();
         let rx = ResponseRx::Idle {
-            body,
+            body: BodyStream::new(body),
             min_read_size,
+            inline_reads,
         };
         Self {
             status,
@@ -250,11 +292,10 @@ fn py_anext_result(res: Result<Option<Bytes>, reqwest::Error>) -> PyResult<RyByt
 // TODO: lines stream ~ allow spliting lines or chunks prolly using
 //       memchr + split_to and maybe `keepends: bool= False` kw
 async fn pump_response_body(
-    body: reqwest::Body,
+    mut stream: BodyStream,
     min_read_size: usize,
     tx: mpsc::Sender<ResponseItem>,
 ) {
-    let mut stream = http_body_util::BodyDataStream::new(body);
     // no collection/copying w/ 0
     if min_read_size == 0 {
         while let Some(item) = stream.next().await {

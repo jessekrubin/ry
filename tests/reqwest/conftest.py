@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import gzip
 import json
 import threading
 import time
@@ -253,6 +254,38 @@ async def broken_json(
     )
 
 
+def big_body(n: int) -> bytes:
+    return bytes(range(256)) * (n // 256) + bytes(range(n % 256))
+
+
+async def big_response(
+    scope: uvt.HTTPScope, receive: Receive, send: Send
+) -> AsyncGenerator[uvt.ASGISendEvent]:
+    """`/big/{n}` and `/big/{n}/gzip`
+
+    TODO: use ry.gzip?
+    """
+    parts = scope["path"].strip("/").split("/")
+    body = big_body(int(parts[1]))
+    headers = [(b"content-type", b"application/octet-stream")]
+    if parts[-1] == "gzip":
+        body = gzip.compress(body)
+        headers.append((b"content-encoding", b"gzip"))
+    headers.append((b"content-length", str(len(body)).encode()))
+    yield uvt.HTTPResponseStartEvent(
+        type="http.response.start",
+        status=200,
+        headers=headers,
+    )
+    step = 64 * 1024
+    for i in range(0, max(len(body), 1), step):
+        yield uvt.HTTPResponseBodyEvent(
+            type="http.response.body",
+            body=body[i : i + step],
+            more_body=i + step < len(body),
+        )
+
+
 def router(
     scope: uvt.HTTPScope, receive: Receive, send: Send
 ) -> Callable[[uvt.HTTPScope, Receive, Send], AsyncGenerator[uvt.ASGISendEvent]]:
@@ -272,6 +305,8 @@ def router(
         return cookie_monster
     if scope["path"].startswith("/broken-json"):
         return broken_json
+    if scope["path"].startswith("/big/"):
+        return big_response
     return four_oh_four
 
 

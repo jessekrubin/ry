@@ -82,6 +82,7 @@ pub fn get_tokio_runtime<'r>() -> &'r Runtime {
     static TOKIO_RUNTIME: OnceLock<Runtime> = OnceLock::new();
     TOKIO_RUNTIME.get_or_init(|| {
         tokio::runtime::Builder::new_multi_thread()
+            .name("ry-tokio")
             .enable_all()
             .build()
             .expect("failed to build the tokio runtime")

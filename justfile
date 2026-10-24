@@ -257,3 +257,7 @@ clean:
     find . -name '*.py[co]' | xargs -n1 -t rm -fv
     find . -name '*~' | xargs -n1 -t rm -fv
     find . -name '.*~' | xargs -n1 -t rm -fv
+
+# show gh release notes (default: unreleased main)
+release-notes tag="unreleased" prev="":
+    gh api repos/{owner}/{repo}/releases/generate-notes -f tag_name={{ tag }} {{ if prev != "" { "-f previous_tag_name=" + prev } else { "" } }} --jq .body

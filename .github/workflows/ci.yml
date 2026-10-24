@@ -13,7 +13,6 @@ on:
 
 permissions:
   contents: read
-  packages: write # Required to upload docker images to ghcr
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -28,8 +27,7 @@ jobs:
     runs-on: ${{ matrix.platform.runner }}
     permissions:
       contents: read
-      packages: write # Required to upload docker images to ghcr
-
+      packages: write
     strategy:
       fail-fast: false
       matrix:
@@ -62,11 +60,13 @@ jobs:
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: ./.github/actions/ry-git-sha
+        with:
+          persist-credentials: false
+      - uses: $/.github/actions/ry-git-sha
       - name: install-uv
         uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
         with:
-          enable-cache: true
+          enable-cache: ${{ !startsWith(github.ref, 'refs/tags/') }}
       - name: install-python
         run: uv python install 3.11 3.12 3.13 3.14 3.14t 3.15 3.15t pypy3.11
       - name: Build wheels
@@ -127,7 +127,7 @@ jobs:
     runs-on: ${{ matrix.platform.runner }}
     permissions:
       contents: read
-      packages: write # Required to upload docker images to ghcr
+      packages: write
     strategy:
       matrix:
         platform:
@@ -141,11 +141,13 @@ jobs:
             target: armv7
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: ./.github/actions/ry-git-sha
+        with:
+          persist-credentials: false
+      - uses: $/.github/actions/ry-git-sha
       - name: install-uv
         uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
         with:
-          enable-cache: true
+          enable-cache: ${{ !startsWith(github.ref, 'refs/tags/') }}
       - name: install-python
         run: uv python install 3.11 3.12 3.13 3.14 3.14t 3.15 3.15t pypy3.11
       - name: Build wheels
@@ -214,7 +216,9 @@ jobs:
             architecture: arm64
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: ./.github/actions/ry-git-sha
+        with:
+          persist-credentials: false
+      - uses: $/.github/actions/ry-git-sha
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           # python-version: 3.x
@@ -263,11 +267,13 @@ jobs:
           #   target: x86_64
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: ./.github/actions/ry-git-sha
+        with:
+          persist-credentials: false
+      - uses: $/.github/actions/ry-git-sha
       - name: install-uv
         uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
         with:
-          enable-cache: true
+          enable-cache: ${{ !startsWith(github.ref, 'refs/tags/') }}
       - name: install-python
         run: uv python install 3.11 3.12 3.13 3.14 3.14t 3.15 3.15t pypy3.11
       - name: Build wheels
@@ -294,7 +300,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: ./.github/actions/ry-git-sha
+        with:
+          persist-credentials: false
+      - uses: $/.github/actions/ry-git-sha
       - name: Build sdist
         uses: PyO3/maturin-action@e83996d129638aa358a18fbd1dfb82f0b0fb5d3b # v1
         with:
@@ -333,44 +341,42 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
+    if: ${{ startsWith(github.ref, 'refs/tags/v') }}
+    needs: [linux, musllinux, windows, macos, sdist]
     environment:
       name: release-pypi
-    if: ${{ startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch' }}
-    needs: [linux, musllinux, windows, macos, sdist]
+      url: https://pypi.org/p/ry
     permissions:
-      # Use to sign the release artifacts
       id-token: write
-      # Used to upload release artifacts
       contents: write
-      # Used to generate artifact attestation
       attestations: write
     steps:
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          pattern: wheels-*
+          path: dist
+          merge-multiple: true
+      - name: list-files
+        run: ls -l dist
       - name: install-uv
-        if: ${{ startsWith(github.ref, 'refs/tags/v') }}
         uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
-      - name: List files
-        run: find . -name "wheels-*/*"
-      - name: Generate artifact attestation
-        if: ${{ startsWith(github.ref, 'refs/tags/v') }}
+        with:
+          enable-cache: false
+      - name: check-dists
+        run: |
+          set -e
+          for whl in dist/*.whl; do unzip -qt "$whl"; done
+          uvx twine check --strict dist/*
+      - name: generate-artifact-attestation
         uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4
         with:
-          subject-path: "wheels-*/*"
-      - name: Publish 2 PyPI (--dryrun)
-        run: uv publish --dry-run --trusted-publishing automatic 'wheels-*/*'
-        env:
-          UV_PUBLISH_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
-
-      - name: Publish 2 PyPI
-        if: ${{ startsWith(github.ref, 'refs/tags/v') }}
-        run: uv publish --trusted-publishing automatic 'wheels-*/*'
-        env:
-          UV_PUBLISH_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
-
-      - name: gh-release
-        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3
-        if: ${{ startsWith(github.ref, 'refs/tags/v') }}
+          subject-path: "dist/*"
+      - name: publish-2-pypi
+        uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # v1.14.2
         with:
-          generate_release_notes: true
-          files: |
-            wheels-*/*
+          packages-dir: dist/
+      - name: gh-release
+        run: gh release create "$GITHUB_REF_NAME" --generate-notes dist/*.whl dist/*.tar.gz
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}

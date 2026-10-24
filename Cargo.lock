@@ -2414,6 +2414,7 @@ dependencies = [
  "futures-core",
  "futures-util",
  "http",
+ "http-body",
  "http-body-util",
  "jiter",
  "mime",

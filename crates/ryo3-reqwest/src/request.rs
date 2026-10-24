@@ -172,7 +172,7 @@ fn extract_body_from_py_body<const BLOCKING: bool>(
 ) -> PyResult<PyReqwestBody> {
     let py_body = body.extract::<PyBody>()?;
     match py_body {
-        PyBody::Bytes(bs) => Ok(PyReqwestBody::Bytes(bs.into_inner())),
+        PyBody::Bytes(bs) => Ok(PyReqwestBody::Bytes(bs)),
         PyBody::Stream(s) => {
             if BLOCKING && s.is_async() {
                 return py_type_err!("cannot use async stream body with blocking client");

@@ -24,6 +24,14 @@
       json-schema format for RFC 9557 zoned datetimes yet)
 - `ryo3-std`
   - `Duration.from_secs` takes `int | float` (exact `int`/`float` only)
+- `ryo3-reqwest`
+  - `list`/`tuple` request bodies (<=1024 items) are snagged right away as
+    opposed to being consumed through the async/sync pumping mechanism on the
+    tokio blocking pool. items are any bytes-like obj and get extracted via
+    `ryo3_bytes::ReadableBuffer`
+  - `Response.stream()` on known-length (not compressed) bodies takes frames
+    that are already here w/o spawning the read-ahead pump which is faster for
+    bodies barely over the prefetch threshold
 - **DEPRECATIONS**
   - deprecated `SignedDuration.__int__` and `Duration.__int__` [removal:
     v0.0.108]
