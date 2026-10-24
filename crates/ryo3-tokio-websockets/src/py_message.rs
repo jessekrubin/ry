@@ -235,7 +235,6 @@ impl PyWsMessage {
         self.0.is_pong()
     }
 
-    // TODO: possibly add the other kwargs to this that jiter provides
     /// Parse the message payload as JSON
     #[cfg(feature = "json")]
     #[pyo3(

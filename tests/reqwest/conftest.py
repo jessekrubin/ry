@@ -286,28 +286,69 @@ async def big_response(
         )
 
 
-def router(
+_SSE_CHUNKS = (
+    b": keepalive\n\n",
+    b"event: greeting\nid: 1\ndata: howdy\n\n",
+    b'data: {"a": 1}\r\n\r',
+    b"\nid: 2\ndata: mul",
+    b"ti\ndata: line\n\n",
+    b"retry: 1500\n\n",
+    # never dispatched (no trailing blank line)
+    b"data: never-dispatched\n",
+)
+
+
+async def sse_response(
     scope: uvt.HTTPScope, receive: Receive, send: Send
-) -> Callable[[uvt.HTTPScope, Receive, Send], AsyncGenerator[uvt.ASGISendEvent]]:
-    if scope["path"].startswith("/echo"):
-        return echo
-    if scope["path"].startswith("/howdy"):
-        return howdy
-    if scope["path"].startswith("/500") or scope["path"].startswith("/five-hundred"):
-        return five_hundred
-    if scope["path"].startswith("/long"):
-        return loooooooong_response
-    if scope["path"].startswith("/slow"):
-        return slow_response
-    if scope["path"].startswith("/upload"):
-        return upload_file
-    if scope["path"].startswith("/cookie"):
-        return cookie_monster
-    if scope["path"].startswith("/broken-json"):
-        return broken_json
-    if scope["path"].startswith("/big/"):
-        return big_response
-    return four_oh_four
+) -> AsyncGenerator[uvt.ASGISendEvent]:
+    """`/sse` ~ w/ a `Last-Event-ID` header it sends a single `resumed` event"""
+    headers = {k.decode().lower(): v.decode() for k, v in scope["headers"]}
+    yield uvt.HTTPResponseStartEvent(
+        type="http.response.start",
+        status=200,
+        headers=[
+            (b"content-type", b"text/event-stream"),
+            (b"cache-control", b"no-cache"),
+        ],
+    )
+    last_event_id = headers.get("last-event-id")
+    chunks = (
+        (f"event: resumed\ndata: {last_event_id}\n\n".encode(),)
+        if last_event_id is not None
+        else _SSE_CHUNKS
+    )
+    for chunk in chunks:
+        yield uvt.HTTPResponseBodyEvent(
+            type="http.response.body", body=chunk, more_body=True
+        )
+    yield uvt.HTTPResponseBodyEvent(
+        type="http.response.body", body=b"", more_body=False
+    )
+
+
+_Handler: t.TypeAlias = Callable[
+    [uvt.HTTPScope, Receive, Send], AsyncGenerator[uvt.ASGISendEvent]
+]
+_ROUTES: tuple[tuple[str, _Handler], ...] = (
+    ("/echo", echo),
+    ("/howdy", howdy),
+    ("/500", five_hundred),
+    ("/five-hundred", five_hundred),
+    ("/long", loooooooong_response),
+    ("/slow", slow_response),
+    ("/upload", upload_file),
+    ("/cookie", cookie_monster),
+    ("/broken-json", broken_json),
+    ("/big/", big_response),
+    ("/sse", sse_response),
+)
+
+
+def router(scope: uvt.HTTPScope, receive: Receive, send: Send) -> _Handler:
+    return next(
+        (h for prefix, h in _ROUTES if scope["path"].startswith(prefix)),
+        four_oh_four,
+    )
 
 
 async def reqtest_server(scope: uvt.HTTPScope, receive: Receive, send: Send) -> None:

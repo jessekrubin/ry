@@ -2417,6 +2417,7 @@ dependencies = [
  "http-body",
  "http-body-util",
  "jiter",
+ "memchr",
  "mime",
  "pyo3",
  "pyo3-build-config",

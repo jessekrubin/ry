@@ -1,3 +1,5 @@
+use std::num::NonZeroUsize;
+
 use bytes::{Bytes, BytesMut};
 use pyo3::prelude::*;
 use pyo3::types::PyString;
@@ -14,7 +16,8 @@ use crate::charset::PyEncoding;
 use crate::errors::map_reqwest_err;
 use crate::pyo3_json_bytes::Pyo3JsonBytes;
 use crate::response_head::RyResponseHead;
-use crate::response_stream::RyBlockingResponseStream;
+use crate::response_stream::{ResponseStreamInner, RyBlockingResponseStream};
+use crate::sse::{RyBlockingEventStream, RyEventStream, SSE_MAX_EVENT_SIZE};
 use crate::{RyResponseStream, pyerr_response_already_consumed};
 
 #[pyclass(name = "Response", frozen, immutable_type)]
@@ -49,6 +52,18 @@ enum ResponseBody {
 enum OwnedBody {
     Stream(reqwest::Body),
     Buffered(bytes::Bytes),
+}
+
+impl OwnedBody {
+    /// sse wants every chunk asap
+    ///
+    /// requires `min_read_size` is 0
+    fn into_sse_body(self, status: reqwest::StatusCode) -> ResponseStreamInner {
+        match self {
+            Self::Stream(body) => ResponseStreamInner::from_body(status, body, 0),
+            Self::Buffered(bytes) => ResponseStreamInner::from_bytes(status, bytes),
+        }
+    }
 }
 
 /// bodies w/ a known length up to this get read along w/ the head
@@ -412,6 +427,17 @@ impl RyResponse {
         self.stream_from(min_read_size)
     }
 
+    /// Return an async iterator of server-sent events
+    #[pyo3(signature = (*, max_event_size = SSE_MAX_EVENT_SIZE))]
+    fn sse(&self, max_event_size: NonZeroUsize) -> PyResult<RyEventStream> {
+        let status = self.head.status;
+        Ok(RyEventStream::new(
+            status,
+            self.take_owned()?.into_sse_body(status),
+            max_event_size,
+        ))
+    }
+
     /// Return the `content-encoding` header value of the response or `None`
     #[getter]
     fn content_encoding(&self) -> Option<String> {
@@ -591,6 +617,17 @@ impl RyBlockingResponse {
     #[pyo3(signature = (min_read_size = 0, /))]
     fn stream(&self, min_read_size: usize) -> PyResult<RyBlockingResponseStream> {
         self.bytes_stream(min_read_size)
+    }
+
+    /// Return an iterator of server-sent events
+    #[pyo3(signature = (*, max_event_size = SSE_MAX_EVENT_SIZE))]
+    fn sse(&self, max_event_size: NonZeroUsize) -> PyResult<RyBlockingEventStream> {
+        let status = self.head.status;
+        Ok(RyBlockingEventStream::new(
+            status,
+            self.take_owned()?.into_sse_body(status),
+            max_event_size,
+        ))
     }
 
     #[getter]
