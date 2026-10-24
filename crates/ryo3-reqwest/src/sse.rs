@@ -19,6 +19,7 @@ use reqwest::StatusCode;
 use ryo3_bytes::RyBytes;
 use ryo3_core::sync::RyMutex;
 use ryo3_tokio_rt::{RyCoroutine, done_coro, failed_coro, get_tokio_runtime, pyloop_coro};
+use ryo3_url::PyUrl;
 
 use crate::errors::map_reqwest_err;
 use crate::response_stream::ResponseStreamInner;
@@ -51,9 +52,10 @@ impl RyServerSentEvent {
         RyBytes::from(self.0.data.as_bytes().clone())
     }
 
+    /// last event id as of this event (`""` if none; per spec)
     #[getter]
-    fn id(&self) -> Option<&str> {
-        self.0.last_event_id.as_deref()
+    fn last_event_id(&self) -> &str {
+        self.0.last_event_id.as_deref().unwrap_or_default()
     }
 
     /// Parse the payload as JSON
@@ -88,16 +90,23 @@ impl RyServerSentEvent {
     }
 
     fn __repr__(&self) -> String {
+        format!("{self}")
+    }
+}
+
+impl std::fmt::Display for RyServerSentEvent {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let MessageEvent {
             event,
             data,
             last_event_id,
         } = &self.0;
-        let id = last_event_id
-            .as_deref()
-            .map_or_else(|| "None".to_string(), |id| format!("{id:?}"));
-        let data = data.as_str();
-        format!("ServerSentEvent(event={event:?}, data={data:?}, id={id})")
+        write!(
+            f,
+            "ServerSentEvent(event={event:?}, data={data:?}, last_event_id={last_event_id:?})",
+            data = data.as_str(),
+            last_event_id = last_event_id.as_deref().unwrap_or_default(),
+        )
     }
 }
 
@@ -170,14 +179,21 @@ struct SseShared {
 #[derive(Clone)]
 struct EventStreamInner {
     status: StatusCode,
+    url: Arc<reqwest::Url>,
     body: ResponseStreamInner,
     shared: Arc<SseShared>,
 }
 
 impl EventStreamInner {
-    fn new(status: StatusCode, body: ResponseStreamInner, max_event_size: NonZeroUsize) -> Self {
+    fn new(
+        status: StatusCode,
+        url: reqwest::Url,
+        body: ResponseStreamInner,
+        max_event_size: NonZeroUsize,
+    ) -> Self {
         Self {
             status,
+            url: Arc::new(url),
             body,
             shared: Arc::new(SseShared {
                 read: tokio::sync::Mutex::new(()),
@@ -225,9 +241,18 @@ impl EventStreamInner {
         self.feed(None);
     }
 
-    fn last_event_id(&self) -> Option<String> {
+    /// `""` if none (per spec)
+    fn last_event_id(&self) -> String {
         let parser = self.shared.parser.py_lock();
-        parser.decoder.last_event_id().map(ToString::to_string)
+        parser
+            .decoder
+            .last_event_id()
+            .map(ToString::to_string)
+            .unwrap_or_default()
+    }
+
+    fn py_url(&self) -> PyUrl {
+        PyUrl::from((*self.url).clone())
     }
 
     fn retry(&self) -> Option<u32> {
@@ -241,17 +266,23 @@ pub struct RyEventStream(EventStreamInner);
 
 impl std::fmt::Display for RyEventStream {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "EventStream<{}>", self.0.status)
+        write!(
+            f,
+            "<EventStream [{status}; {url}]>",
+            status = self.0.status.as_u16(),
+            url = self.0.url,
+        )
     }
 }
 
 impl RyEventStream {
     pub(crate) fn new(
         status: StatusCode,
+        url: reqwest::Url,
         body: ResponseStreamInner,
         max_event_size: NonZeroUsize,
     ) -> Self {
-        Self(EventStreamInner::new(status, body, max_event_size))
+        Self(EventStreamInner::new(status, url, body, max_event_size))
     }
 }
 
@@ -271,7 +302,12 @@ impl RyEventStream {
     }
 
     #[getter]
-    fn last_event_id(&self) -> Option<String> {
+    fn url(&self) -> PyUrl {
+        self.0.py_url()
+    }
+
+    #[getter]
+    fn last_event_id(&self) -> String {
         self.0.last_event_id()
     }
 
@@ -331,17 +367,23 @@ pub struct RyBlockingEventStream(EventStreamInner);
 
 impl std::fmt::Display for RyBlockingEventStream {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "BlockingEventStream<{}>", self.0.status)
+        write!(
+            f,
+            "<BlockingEventStream [{status}; {url}]>",
+            status = self.0.status.as_u16(),
+            url = self.0.url,
+        )
     }
 }
 
 impl RyBlockingEventStream {
     pub(crate) fn new(
         status: StatusCode,
+        url: reqwest::Url,
         body: ResponseStreamInner,
         max_event_size: NonZeroUsize,
     ) -> Self {
-        Self(EventStreamInner::new(status, body, max_event_size))
+        Self(EventStreamInner::new(status, url, body, max_event_size))
     }
 }
 
@@ -352,7 +394,12 @@ impl RyBlockingEventStream {
     }
 
     #[getter]
-    fn last_event_id(&self) -> Option<String> {
+    fn url(&self) -> PyUrl {
+        self.0.py_url()
+    }
+
+    #[getter]
+    fn last_event_id(&self) -> String {
         self.0.last_event_id()
     }
 

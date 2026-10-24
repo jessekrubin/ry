@@ -432,6 +432,7 @@ impl RyResponse {
         let status = self.head.status;
         Ok(RyEventStream::new(
             status,
+            (*self.head.url).clone(),
             self.take_owned()?.into_stream(status, 0),
             max_event_size,
         ))
@@ -624,6 +625,7 @@ impl RyBlockingResponse {
         let status = self.head.status;
         Ok(RyBlockingEventStream::new(
             status,
+            (*self.head.url).clone(),
             self.take_owned()?.into_stream(status, 0),
             max_event_size,
         ))

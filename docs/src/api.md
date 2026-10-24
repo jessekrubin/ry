@@ -5695,6 +5695,14 @@ class JSONDecodeError(ValueError):
         lineno: int | None = None,
         colno: int | None = None,
     ) -> t.Self: ...
+    def __init__(
+        self,
+        kind: _JsonErrorKindArg,
+        doc: ReadableBuffer | None = None,
+        pos: int = 0,
+        lineno: int | None = None,
+        colno: int | None = None,
+    ) -> None: ...
     @property
     def msg(self) -> str: ...
     @property
@@ -6599,7 +6607,7 @@ class ServerSentEvent:
     @property
     def bytes(self) -> ry.Bytes: ...
     @property
-    def id(self) -> str | None: ...
+    def last_event_id(self) -> str: ...
     def json(
         self,
         *,
@@ -6614,7 +6622,9 @@ class ServerSentEvent:
 @t.final
 class EventStream:
     @property
-    def last_event_id(self) -> str | None: ...
+    def url(self) -> URL: ...
+    @property
+    def last_event_id(self) -> str: ...
     @property
     def retry(self) -> int | None: ...
     async def __aenter__(self) -> t.Self: ...
@@ -6632,7 +6642,9 @@ class EventStream:
 @t.final
 class BlockingEventStream:
     @property
-    def last_event_id(self) -> str | None: ...
+    def url(self) -> URL: ...
+    @property
+    def last_event_id(self) -> str: ...
     @property
     def retry(self) -> int | None: ...
     def __enter__(self) -> t.Self: ...
@@ -9896,6 +9908,7 @@ OpenMode: TypeAlias = Literal[
 ```python
 """ry.JSON"""
 
+from ry.ryo3.JSON import JSONDecodeError as JSONDecodeError
 from ry.ryo3.JSON import _JsonPrimitive as _JsonPrimitive
 from ry.ryo3.JSON import _JsonValue as _JsonValue
 from ry.ryo3.JSON import cache_clear as cache_clear
@@ -9908,6 +9921,7 @@ from ry.ryo3.JSON import parse as parse
 from ry.ryo3.JSON import stringify as stringify
 
 __all__ = (
+    "JSONDecodeError",
     "cache_clear",
     "cache_usage",
     "dumps",

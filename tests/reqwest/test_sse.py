@@ -18,8 +18,8 @@ EXPECTED = [
 ]
 
 
-def _tuples(events: list[ServerSentEvent]) -> list[tuple[str, str, str | None]]:
-    return [(e.event, e.data, e.id) for e in events]
+def _tuples(events: list[ServerSentEvent]) -> list[tuple[str, str, str]]:
+    return [(e.event, e.data, e.last_event_id) for e in events]
 
 
 class TestSseAsync:
@@ -50,7 +50,7 @@ class TestSseAsync:
         url = str(server.url) + "sse"
         stream = (await client.get(url)).sse()
         _ = [e async for e in stream]
-        assert stream.last_event_id is not None
+        assert stream.last_event_id == "2"
         response = await client.get(
             url, headers={"Last-Event-ID": stream.last_event_id}
         )
@@ -121,4 +121,22 @@ def test_event_repr_eq(server: ReqtestServer) -> None:
     a = next(response.sse())
     b = next(ry.BlockingClient().get(str(server.url) + "sse").sse())
     assert a == b
-    assert repr(a) == ('ServerSentEvent(event="greeting", data="howdy", id="1")')
+    assert repr(a) == (
+        'ServerSentEvent(event="greeting", data="howdy", last_event_id="1")'
+    )
+
+
+def test_stream_url_repr(server: ReqtestServer) -> None:
+    url = str(server.url) + "sse"
+    stream = ry.BlockingClient().get(url).sse()
+    assert stream.url == ry.URL(url)
+    assert stream.last_event_id == ""
+    assert repr(stream) == f"<BlockingEventStream [200; {url}]>"
+
+
+@pytest.mark.anyio
+async def test_stream_url_repr_async(server: ReqtestServer) -> None:
+    url = str(server.url) + "sse"
+    stream = (await ry.Client().get(url)).sse()
+    assert stream.url == ry.URL(url)
+    assert repr(stream) == f"<EventStream [200; {url}]>"
