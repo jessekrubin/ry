@@ -423,7 +423,10 @@ impl RyResponse {
     }
 
     /// Return an async iterator of server-sent events
-    #[pyo3(signature = (*, max_event_size = SSE_MAX_EVENT_SIZE))]
+    #[pyo3(
+        signature = (*, max_event_size = SSE_MAX_EVENT_SIZE),
+        text_signature = "(self, *, max_event_size=524_288)"
+    )]
     fn sse(&self, max_event_size: NonZeroUsize) -> PyResult<RyEventStream> {
         self.head.error_for_status().map_err(map_reqwest_err)?;
         let status = self.head.status;
@@ -612,7 +615,10 @@ impl RyBlockingResponse {
     }
 
     /// Return an iterator of server-sent events
-    #[pyo3(signature = (*, max_event_size = SSE_MAX_EVENT_SIZE))]
+    #[pyo3(
+        signature = (*, max_event_size = SSE_MAX_EVENT_SIZE),
+        text_signature = "(self, *, max_event_size=524_288)"
+    )]
     fn sse(&self, max_event_size: NonZeroUsize) -> PyResult<RyBlockingEventStream> {
         self.head.error_for_status().map_err(map_reqwest_err)?;
         let status = self.head.status;
