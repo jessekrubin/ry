@@ -31,6 +31,19 @@ impl RyResponseHead {
         PyUrl::from((*self.url).clone())
     }
 
+    /// 4xx/5xx -> `reqwest::Error` (only `reqwest::Response` can make one)
+    pub(crate) fn error_for_status(&self) -> Result<(), reqwest::Error> {
+        if !self.status.is_client_error() && !self.status.is_server_error() {
+            return Ok(());
+        }
+        let mut res = http::Response::new(reqwest::Body::default());
+        *res.status_mut() = self.status;
+        reqwest::Response::from(res)
+            .error_for_status()
+            .map(drop)
+            .map_err(|e| e.with_url((*self.url).clone()))
+    }
+
     pub(crate) fn from_parts(
         status: StatusCode,
         headers: http::HeaderMap,

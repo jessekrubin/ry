@@ -75,13 +75,12 @@ impl RyServerSentEvent {
         partial_mode: ryo3_jiter::PartialMode,
         catch_duplicate_keys: bool,
     ) -> Result<Bound<'py, PyAny>, ryo3_jiter::RyJSONDecodeError> {
-        let d: &[u8] = self.0.data.as_bytes();
         let options = ryo3_jiter::JiterParseOptions::new()
             .with_allow_inf_nan(allow_inf_nan)
             .with_cache_mode(cache_mode)
             .with_partial_mode(partial_mode)
             .with_catch_duplicate_keys(catch_duplicate_keys);
-        options.parse(py, d)
+        options.parse(py, self.0.data.as_bytes())
     }
 
     fn __eq__(&self, other: &Self) -> bool {
@@ -240,6 +239,12 @@ impl EventStreamInner {
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyEventStream(EventStreamInner);
 
+impl std::fmt::Display for RyEventStream {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "EventStream<{}>", self.0.status)
+    }
+}
+
 impl RyEventStream {
     pub(crate) fn new(
         status: StatusCode,
@@ -262,7 +267,7 @@ fn py_anext_result(res: SseItem) -> PyResult<RyServerSentEvent> {
 #[pymethods]
 impl RyEventStream {
     fn __repr__(&self) -> String {
-        format!("EventStream<{}>", self.0.status)
+        format!("{self}")
     }
 
     #[getter]
@@ -324,6 +329,12 @@ impl RyEventStream {
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyBlockingEventStream(EventStreamInner);
 
+impl std::fmt::Display for RyBlockingEventStream {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "BlockingEventStream<{}>", self.0.status)
+    }
+}
+
 impl RyBlockingEventStream {
     pub(crate) fn new(
         status: StatusCode,
@@ -337,7 +348,7 @@ impl RyBlockingEventStream {
 #[pymethods]
 impl RyBlockingEventStream {
     fn __repr__(&self) -> String {
-        format!("BlockingEventStream<{}>", self.0.status)
+        format!("{self}")
     }
 
     #[getter]

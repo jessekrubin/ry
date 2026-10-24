@@ -148,14 +148,17 @@ impl RyReqwestError {
     }
 }
 
-impl From<RyReqwestError> for pyo3::PyErr {
-    fn from(e: RyReqwestError) -> Self {
-        let value = e.0.py_lock().take();
-        if let Some(e) = value {
-            Self::new::<RyReqwestError, _>(format!("{e} ~ {e:?}"))
-        } else {
-            Self::new::<RyReqwestError, _>("RyReqwestError(None)")
+impl RyReqwestError {
+    /// exception w/ the `reqwest::Error` inside (so `status`/`url`/`is_*` work)
+    fn new_pyerr(py: Python<'_>, e: reqwest::Error) -> PyErr {
+        let obj = match py.get_type::<Self>().call1((format!("{e} ~ {e:?}"),)) {
+            Ok(obj) => obj,
+            Err(err) => return err,
+        };
+        if let Ok(slf) = obj.cast::<Self>() {
+            *slf.get().0.py_lock() = Some(e);
         }
+        PyErr::from_value(obj)
     }
 }
 
@@ -171,10 +174,7 @@ pub(crate) fn map_reqwest_err(e: reqwest::Error) -> pyo3::PyErr {
             std::thread::park();
         }
     }
-    let maybe_pyerr = Python::try_attach(|_py| {
-        let req_err = RyReqwestError::from(e);
-        pyo3::PyErr::from(req_err)
-    });
+    let maybe_pyerr = Python::try_attach(|py| RyReqwestError::new_pyerr(py, e));
     if maybe_pyerr.is_none() {
         tracing::warn!("Interpreter died while processing error. Parking thread.");
         loop {

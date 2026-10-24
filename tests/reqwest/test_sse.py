@@ -83,6 +83,15 @@ class TestSseAsync:
         response = await ry.Client().get(str(server.url) + "howdy")
         assert [e async for e in response.sse()] == []
 
+    @pytest.mark.anyio
+    async def test_error_status_raises(self, server: ReqtestServer) -> None:
+        response = await ry.Client().get(str(server.url) + "500")
+        with pytest.raises(ry.ReqwestError, match="500 Internal Server Error") as e:
+            response.sse()
+        assert e.value.is_status()
+        assert e.value.status == 500
+        assert str(e.value.url()).endswith("/500")
+
 
 class TestSseBlocking:
     def test_events(self, server: ReqtestServer) -> None:
@@ -92,6 +101,12 @@ class TestSseBlocking:
         assert _tuples(events) == EXPECTED
         assert stream.last_event_id == "2"
         assert stream.retry == 1500
+
+    def test_error_status_raises(self, server: ReqtestServer) -> None:
+        response = ry.BlockingClient().get(str(server.url) + "404-nope")
+        with pytest.raises(ry.ReqwestError, match="404 Not Found") as e:
+            response.sse()
+        assert e.value.status == 404
 
     def test_ctx_mgr_close(self, server: ReqtestServer) -> None:
         response = ry.BlockingClient().get(str(server.url) + "sse")

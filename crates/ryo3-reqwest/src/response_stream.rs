@@ -350,14 +350,9 @@ fn join_bytes_chunks(chunks: &mut Vec<Bytes>, total_size: usize) -> Bytes {
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyResponseStream(ResponseStreamInner);
 
-impl RyResponseStream {
-    pub(crate) fn from_body(status: StatusCode, body: reqwest::Body, min_read_size: usize) -> Self {
-        let inner = ResponseStreamInner::from_body(status, body, min_read_size);
+impl From<ResponseStreamInner> for RyResponseStream {
+    fn from(inner: ResponseStreamInner) -> Self {
         Self(inner)
-    }
-
-    pub(crate) fn from_bytes(status: StatusCode, bytes: Bytes) -> Self {
-        Self(ResponseStreamInner::from_bytes(status, bytes))
     }
 }
 
@@ -451,13 +446,9 @@ impl RyResponseStream {
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyBlockingResponseStream(ResponseStreamInner);
 
-impl RyBlockingResponseStream {
-    pub(crate) fn from_body(status: StatusCode, body: reqwest::Body, min_read_size: usize) -> Self {
-        Self(ResponseStreamInner::from_body(status, body, min_read_size))
-    }
-
-    pub(crate) fn from_bytes(status: StatusCode, bytes: Bytes) -> Self {
-        Self(ResponseStreamInner::from_bytes(status, bytes))
+impl From<ResponseStreamInner> for RyBlockingResponseStream {
+    fn from(inner: ResponseStreamInner) -> Self {
+        Self(inner)
     }
 }
 

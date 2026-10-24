@@ -527,7 +527,11 @@ impl SseDecoder {
                             let blank_line_follows = matches!(self.mode, Mode::Field(None))
                                 && buf.chunk().first() == Some(&b'\n');
 
-                            if blank_line_follows && !self.corrupted && self.data_buf.is_empty() {
+                            if blank_line_follows
+                                && !self.corrupted
+                                && self.data_line.is_none()
+                                && self.data_buf.is_empty()
+                            {
                                 buf.advance(1);
                                 self.last_event_id = self.staged_last_event_id.clone();
                                 self.event_buf.clear();
@@ -1090,6 +1094,13 @@ data
             panic!("expected a message");
         };
         assert_eq!(&*msg.data, "ok");
+    }
+
+    #[test]
+    fn test_single_line_then_comment_still_dispatches() {
+        let got = messages_from_bytes(&[b"data: x\n: keepalive\n\ndata: y\n\n"]);
+        let datas = got.iter().map(|(_, d)| &**d).collect::<Vec<_>>();
+        assert_eq!(datas, ["x", "y"]);
     }
 
     #[test]

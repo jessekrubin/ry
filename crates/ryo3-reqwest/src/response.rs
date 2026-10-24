@@ -55,12 +55,9 @@ enum OwnedBody {
 }
 
 impl OwnedBody {
-    /// sse wants every chunk asap
-    ///
-    /// requires `min_read_size` is 0
-    fn into_sse_body(self, status: reqwest::StatusCode) -> ResponseStreamInner {
+    fn into_stream(self, status: reqwest::StatusCode, min_read_size: usize) -> ResponseStreamInner {
         match self {
-            Self::Stream(body) => ResponseStreamInner::from_body(status, body, 0),
+            Self::Stream(body) => ResponseStreamInner::from_body(status, body, min_read_size),
             Self::Buffered(bytes) => ResponseStreamInner::from_bytes(status, bytes),
         }
     }
@@ -198,12 +195,10 @@ impl RyResponse {
     }
 
     fn stream_from(&self, min_read_size: usize) -> PyResult<RyResponseStream> {
-        Ok(match self.take_owned()? {
-            OwnedBody::Stream(body) => {
-                RyResponseStream::from_body(self.head.status, body, min_read_size)
-            }
-            OwnedBody::Buffered(bytes) => RyResponseStream::from_bytes(self.head.status, bytes),
-        })
+        Ok(self
+            .take_owned()?
+            .into_stream(self.head.status, min_read_size)
+            .into())
     }
 
     fn text_coro<'py>(
@@ -430,10 +425,11 @@ impl RyResponse {
     /// Return an async iterator of server-sent events
     #[pyo3(signature = (*, max_event_size = SSE_MAX_EVENT_SIZE))]
     fn sse(&self, max_event_size: NonZeroUsize) -> PyResult<RyEventStream> {
+        self.head.error_for_status().map_err(map_reqwest_err)?;
         let status = self.head.status;
         Ok(RyEventStream::new(
             status,
-            self.take_owned()?.into_sse_body(status),
+            self.take_owned()?.into_stream(status, 0),
             max_event_size,
         ))
     }
@@ -603,14 +599,10 @@ impl RyBlockingResponse {
     /// Return a response consuming async iterator over the response body
     #[pyo3(signature = (min_read_size = 0, /))]
     fn bytes_stream(&self, min_read_size: usize) -> PyResult<RyBlockingResponseStream> {
-        Ok(match self.take_owned()? {
-            OwnedBody::Buffered(bytes) => {
-                RyBlockingResponseStream::from_bytes(self.head.status, bytes)
-            }
-            OwnedBody::Stream(body) => {
-                RyBlockingResponseStream::from_body(self.head.status, body, min_read_size)
-            }
-        })
+        Ok(self
+            .take_owned()?
+            .into_stream(self.head.status, min_read_size)
+            .into())
     }
 
     /// Return a response consuming async iterator over the response body
@@ -622,10 +614,11 @@ impl RyBlockingResponse {
     /// Return an iterator of server-sent events
     #[pyo3(signature = (*, max_event_size = SSE_MAX_EVENT_SIZE))]
     fn sse(&self, max_event_size: NonZeroUsize) -> PyResult<RyBlockingEventStream> {
+        self.head.error_for_status().map_err(map_reqwest_err)?;
         let status = self.head.status;
         Ok(RyBlockingEventStream::new(
             status,
-            self.take_owned()?.into_sse_body(status),
+            self.take_owned()?.into_stream(status, 0),
             max_event_size,
         ))
     }
