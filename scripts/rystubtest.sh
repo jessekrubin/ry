@@ -18,9 +18,12 @@ echo "=== MYPY VERSION (PATCHED) ==="
 uv run --with mypy python -m mypy.stubtest --version
 
 echo "=== MYPY STUBTEST ==="
+# --no-native-parser: native parser causes problems with large literal ints
+# REF: https://github.com/python/mypy/issues/22149
 uv run --with mypy python scripts/stubtest-patch-v2.3.1.py \
   --mypy-config-file pyproject.toml \
   --whitelist scripts/stubtest-allowlist.txt \
+  --no-native-parser \
   --ignore-disjoint-bases \
   --concise \
   ry | rg -v "stub is a classmethod but runtime is not"

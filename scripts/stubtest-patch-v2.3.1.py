@@ -32,10 +32,18 @@ class _RuntimeBackedStubs(dict[str, t.Any]):
 
 _orig_build_stubs = stubtest.build_stubs
 
+_NO_NATIVE_PARSER = "--no-native-parser" in sys.argv
+if _NO_NATIVE_PARSER:
+    sys.argv.remove("--no-native-parser")
+
 
 @functools.wraps(_orig_build_stubs)
-def _build_stubs(*args: t.Any, **kwargs: t.Any) -> list[str]:
-    res = _orig_build_stubs(*args, **kwargs)
+def _build_stubs(
+    modules: list[str], options: t.Any, *args: t.Any, **kwargs: t.Any
+) -> list[str]:
+    if _NO_NATIVE_PARSER:
+        options.native_parser = False
+    res = _orig_build_stubs(modules, options, *args, **kwargs)
     stubtest._all_stubs = _RuntimeBackedStubs(stubtest._all_stubs)
     return res
 
