@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import datetime as pydt
+import re
 
 import pytest
 from hypothesis import given
@@ -30,8 +31,18 @@ class TestInstant:
         inst = ry.Instant().now()
         repr_str = repr(inst)
         assert isinstance(repr_str, str)
-        assert repr_str.startswith("Instant<{")
-        assert repr_str.endswith("}>")
+        assert re.fullmatch(r"Instant<[+-]\d+\.\d{9}s>", repr_str)
+
+    def test_instance_repr_stable_and_ordered(self) -> None:
+        inst1 = ry.Instant.now()
+        ry.Duration.from_secs_f64(0.01).sleep()
+        inst2 = ry.Instant.now()
+        assert repr(inst1) == repr(inst1)
+
+        def _secs(r: str) -> float:
+            return float(r.removeprefix("Instant<").removesuffix("s>"))
+
+        assert _secs(repr(inst1)) < _secs(repr(inst2))
 
     def test_hash(self) -> None:
         inst1 = ry.Instant().now()

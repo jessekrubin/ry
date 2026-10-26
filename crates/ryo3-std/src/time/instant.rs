@@ -1,4 +1,5 @@
 use std::hash::{DefaultHasher, Hash, Hasher};
+use std::sync::LazyLock;
 use std::time::Instant;
 
 use pyo3::prelude::*;
@@ -11,6 +12,22 @@ use crate::time::PyDuration;
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct PyInstant(Instant);
+
+/// repr anchor
+///
+/// used for instant repr formatting
+pub(crate) static REPR_ANCHOR: LazyLock<Instant> = LazyLock::new(Instant::now);
+
+impl std::fmt::Display for PyInstant {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let anchor = *REPR_ANCHOR;
+        let (sign, d) = match self.0.checked_duration_since(anchor) {
+            Some(d) => ('+', d),
+            None => ('-', anchor.duration_since(self.0)),
+        };
+        write!(f, "Instant<{sign}{}.{:09}s>", d.as_secs(), d.subsec_nanos())
+    }
+}
 
 impl From<Instant> for PyInstant {
     fn from(i: Instant) -> Self {
@@ -34,14 +51,7 @@ impl PyInstant {
 
     #[must_use]
     fn __repr__(&self) -> String {
-        // inner string without 'Instant {' from debug...
-        let mut s = format!("{:?}", self.0);
-        // replace char after 'Instant' with '<' which will be the 8th char
-        s.replace_range(7..8, "<");
-
-        // append closing '}>'
-        s.push('>');
-        s
+        format!("{self}")
     }
 
     #[must_use]

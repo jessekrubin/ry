@@ -9,6 +9,7 @@ use pyo3::prelude::*;
 pub use timeout::PyTimeout;
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
+    std::sync::LazyLock::force(&instant::REPR_ANCHOR);
     m.add_class::<PyDuration>()?;
     m.add_class::<PyInstant>()?;
     m.add_function(wrap_pyfunction!(functions::py_instant, m)?)?;

@@ -65,7 +65,7 @@ members = [
 ]
 
 [workspace.package]
-version = "0.0.105"
+version = "0.0.106"
 authors = [
   # hopefully you will contribute!
   "jesse k. rubin <jessekrubin@gmail.com>",
