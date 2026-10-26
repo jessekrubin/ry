@@ -6,20 +6,64 @@ use ryo3_core::map_py_value_err;
 use ryo3_macro_rules::{py_key_error, py_value_err};
 
 use crate::RyTimeZone;
+
 #[pyclass(name = "TimeZoneDatabase", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Debug, Clone)]
 pub struct RyTimeZoneDatabase {
-    pub(crate) inner: Option<TimeZoneDatabase>,
+    db: TimeZoneDatabase,
+    src: TzdbSource,
+}
+
+/// where/how the tz-db was created
+#[derive(Debug, Clone)]
+enum TzdbSource {
+    Env,
+    Bundled,
+    Dir(String),
+    Concatenated(String),
 }
 
 impl RyTimeZoneDatabase {
+    fn new(db: TimeZoneDatabase, src: TzdbSource) -> Self {
+        Self { db, src }
+    }
+
     fn db(&self) -> &TimeZoneDatabase {
-        if let Some(db) = &self.inner {
-            db
-        } else {
-            jiff::tz::db()
+        &self.db
+    }
+}
+
+impl std::fmt::Display for RyTimeZoneDatabase {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match &self.src {
+            TzdbSource::Env => f.write_str("TimeZoneDatabase()"),
+            TzdbSource::Bundled => f.write_str("TimeZoneDatabase.bundled()"),
+            TzdbSource::Dir(path) => {
+                write!(f, "TimeZoneDatabase.from_dir('{}')", PyStrEscape(path))
+            }
+            TzdbSource::Concatenated(path) => write!(
+                f,
+                "TimeZoneDatabase.from_concatenated_path('{}')",
+                PyStrEscape(path)
+            ),
         }
+    }
+}
+
+/// escapes `\` and `'` so a path is a valid single-quoted python str
+struct PyStrEscape<'a>(&'a str);
+
+impl std::fmt::Display for PyStrEscape<'_> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        for c in self.0.chars() {
+            match c {
+                '\\' => f.write_str("\\\\")?,
+                '\'' => f.write_str("\\'")?,
+                c => std::fmt::Write::write_char(f, c)?,
+            }
+        }
+        Ok(())
     }
 }
 
@@ -27,11 +71,11 @@ impl RyTimeZoneDatabase {
 impl RyTimeZoneDatabase {
     #[new]
     fn py_new() -> Self {
-        Self::from(TimeZoneDatabase::from_env())
+        Self::from_env()
     }
 
     fn __repr__(&self) -> String {
-        format!("{:?}", self.db())
+        format!("{self}")
     }
 
     #[pyo3(signature = (name, err = false))]
@@ -73,25 +117,25 @@ impl RyTimeZoneDatabase {
 
     #[staticmethod]
     fn bundled() -> Self {
-        Self::from(TimeZoneDatabase::bundled())
+        Self::new(TimeZoneDatabase::bundled(), TzdbSource::Bundled)
     }
 
     #[staticmethod]
     fn from_env() -> Self {
-        Self::from(TimeZoneDatabase::from_env())
+        Self::new(TimeZoneDatabase::from_env(), TzdbSource::Env)
     }
 
     #[staticmethod]
     fn from_dir(path: &str) -> PyResult<Self> {
         TimeZoneDatabase::from_dir(path)
-            .map(Self::from)
+            .map(|db| Self::new(db, TzdbSource::Dir(path.to_string())))
             .map_err(map_py_value_err)
     }
 
     #[staticmethod]
     fn from_concatenated_path(path: &str) -> PyResult<Self> {
         TimeZoneDatabase::from_concatenated_path(path)
-            .map(Self::from)
+            .map(|db| Self::new(db, TzdbSource::Concatenated(path.to_string())))
             .map_err(map_py_value_err)
     }
 }
