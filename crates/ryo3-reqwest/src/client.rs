@@ -112,8 +112,8 @@ impl RyClient {
         })
     }
 
-    fn __repr__(&self) -> String {
-        format!("Client<{:?}>", self.cfg)
+    fn __repr__(slf: &Bound<'_, Self>) -> String {
+        format!("<Client at {:p}>", slf.as_ptr())
     }
 
     fn __getnewargs_ex__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
@@ -269,8 +269,8 @@ impl RyBlockingClient {
         })
     }
 
-    fn __repr__(&self) -> String {
-        format!("BlockingClient<{:?}>", self.cfg)
+    fn __repr__(slf: &Bound<'_, Self>) -> String {
+        format!("<BlockingClient at {:p}>", slf.as_ptr())
     }
 
     fn __getnewargs_ex__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
