@@ -2327,6 +2327,7 @@ dependencies = [
  "jiter",
  "pyo3",
  "ryo3-bytes",
+ "ryo3-core",
 ]
 
 [[package]]

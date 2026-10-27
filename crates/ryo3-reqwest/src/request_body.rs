@@ -576,20 +576,18 @@ impl PyBody {
     }
 
     #[inline]
-    fn async_stream(aiter: &Bound<'_, PyAny>) -> PyResult<Self> {
-        let py = aiter.py();
-        let anext = aiter.getattr(pyo3::intern!(py, "__anext__"))?.unbind();
+    fn async_stream(anext: Py<PyAny>) -> Self {
         let (tx, rx) = mpsc::channel(REQ_BODY_CHANNEL_CAP_ASYNC);
         let src = Arc::new(AsyncBodySrc {
             anext,
             aio_task: Mutex::new(None),
             tx: Mutex::new(Some(tx)),
         });
-        Ok(Self::Stream(PyBodyStream::Async(PyBodyAsyncStream {
+        Self::Stream(PyBodyStream::Async(PyBodyAsyncStream {
             rx,
             src,
             polled: false,
-        })))
+        }))
     }
 }
 
@@ -634,21 +632,20 @@ impl<'py> FromPyObject<'_, 'py> for PyBody {
     #[inline]
     fn extract(obj: Borrowed<'_, 'py, PyAny>) -> Result<Self, Self::Error> {
         let py = obj.py();
-        // TODO: dedupe these interned strings
+        let anext = pyo3::intern!(py, "__anext__");
         if let Ok(buffer) = obj.extract::<ReadableBuffer>() {
             Ok(Self::Bytes(buffer.into_bytes()))
         } else if let Some(chunks) = ready_chunks(&obj)? {
             Ok(Self::Stream(PyBodyStream::Sync(PyBodySyncStream::Ready(
                 chunks.into_iter(),
             ))))
-        } else if obj.hasattr(pyo3::intern!(py, "__aiter__"))? {
-            let inner_iter = obj.call_method0(pyo3::intern!(py, "__aiter__"))?;
-            Self::async_stream(&inner_iter)
-        } else if obj.hasattr(pyo3::intern!(py, "__anext__"))? {
-            Self::async_stream(&obj)
-        } else if obj.hasattr(pyo3::intern!(py, "__iter__"))? {
-            let iter_obj = obj.call_method0(pyo3::intern!(py, "__iter__"))?;
-            Ok(Self::sync_stream(iter_obj.unbind()))
+        } else if let Some(aiter) = obj.getattr_opt(pyo3::intern!(py, "__aiter__"))? {
+            let aiter = aiter.call0()?;
+            Ok(Self::async_stream(aiter.getattr(anext)?.unbind()))
+        } else if let Some(anext) = obj.getattr_opt(anext)? {
+            Ok(Self::async_stream(anext.unbind()))
+        } else if let Some(iter) = obj.getattr_opt(pyo3::intern!(py, "__iter__"))? {
+            Ok(Self::sync_stream(iter.call0()?.unbind()))
         } else if obj.hasattr(pyo3::intern!(py, "__next__"))? {
             Ok(Self::sync_stream(obj.to_owned().unbind()))
         } else {

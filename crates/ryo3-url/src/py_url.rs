@@ -565,12 +565,13 @@ impl ryo3_pydantic::GetPydanticCoreSchemaCls for PyUrl {
 
 #[cfg(feature = "ryo3-std")]
 fn extract_ip_host(address: &Bound<'_, PyAny>) -> PyResult<IpAddr> {
+    use ryo3_core::PyCastExactOpt;
     use ryo3_std::net::{PyIpAddr, PyIpv4Addr, PyIpv6Addr};
-    if let Ok(pyipv4) = address.cast_exact::<PyIpv4Addr>() {
+    if let Some(pyipv4) = address.cast_exact_opt::<PyIpv4Addr>() {
         Ok((*pyipv4.get()).into())
-    } else if let Ok(pyipv6) = address.cast_exact::<PyIpv6Addr>() {
+    } else if let Some(pyipv6) = address.cast_exact_opt::<PyIpv6Addr>() {
         Ok((*pyipv6.get()).into())
-    } else if let Ok(pyipaddr) = address.cast_exact::<PyIpAddr>() {
+    } else if let Some(pyipaddr) = address.cast_exact_opt::<PyIpAddr>() {
         Ok(pyipaddr.get().into())
     } else if let Ok(ip) = address.extract::<std::net::IpAddr>() {
         Ok(ip)

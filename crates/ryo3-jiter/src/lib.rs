@@ -87,14 +87,15 @@ pub fn parse_json<'py>(
     partial_mode: PartialMode,
     catch_duplicate_keys: bool,
 ) -> PyResult<Bound<'py, PyAny>> {
+    use ryo3_core::PyCastExactOpt;
+
     let options = JiterParseOptions::new()
         .with_allow_inf_nan(allow_inf_nan)
         .with_cache_mode(cache_mode)
         .with_partial_mode(partial_mode)
         .with_catch_duplicate_keys(catch_duplicate_keys);
-    // TODO: use fast_str_read at somepoint?
-    if let Ok(py_str) = data.cast_exact::<pyo3::types::PyString>() {
-        let json_bytes = py_str.to_str()?.as_bytes();
+    if let Some(py_str) = data.cast_exact_opt::<pyo3::types::PyString>() {
+        let json_bytes = ryo3_core::pystr_read_fast(py_str.as_borrowed())?.as_bytes();
         Ok(options.parse(py, json_bytes)?)
     } else if let Ok(bytes) = data.extract::<ryo3_bytes::ReadableBuffer>() {
         let json_bytes = bytes.as_slice();
@@ -126,13 +127,15 @@ pub fn parse_jsonl<'py>(
     partial_mode: PartialMode,
     catch_duplicate_keys: bool,
 ) -> PyResult<Bound<'py, PyAny>> {
+    use ryo3_core::PyCastExactOpt;
+
     let options = JiterParseOptions::new()
         .with_allow_inf_nan(allow_inf_nan)
         .with_cache_mode(cache_mode)
         .with_partial_mode(partial_mode)
         .with_catch_duplicate_keys(catch_duplicate_keys);
-    if let Ok(py_str) = data.cast_exact::<pyo3::types::PyString>() {
-        let json_bytes = py_str.to_str()?.as_bytes();
+    if let Some(py_str) = data.cast_exact_opt::<pyo3::types::PyString>() {
+        let json_bytes = ryo3_core::pystr_read_fast(py_str.as_borrowed())?.as_bytes();
         options.parse_lines(py, json_bytes)
     } else if let Ok(bytes) = data.extract::<ryo3_bytes::ReadableBuffer>() {
         let json_bytes = bytes.as_slice();
