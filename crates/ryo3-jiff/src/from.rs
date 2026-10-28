@@ -1,5 +1,5 @@
 use jiff::civil::{Date, DateTime, ISOWeekDate, Time};
-use jiff::tz::{Offset, TimeZone, TimeZoneDatabase};
+use jiff::tz::{Offset, TimeZone};
 use jiff::{SignedDuration, Span, Timestamp, Zoned};
 use ryo3_core::map_py_overflow_err;
 use ryo3_jiff_core::{
@@ -9,7 +9,7 @@ use ryo3_jiff_core::{
 
 use crate::{
     RyDate, RyDateTime, RyISOWeekDate, RyOffset, RySignedDuration, RySpan, RyTime, RyTimeZone,
-    RyTimeZoneDatabase, RyTimestamp, RyZoned,
+    RyTimestamp, RyZoned,
 };
 
 // ~ ~ ~ internal crate conversions ~ ~ ~
@@ -198,11 +198,5 @@ impl TryFrom<&ryo3_std::time::PyDuration> for RySignedDuration {
         SignedDuration::try_from(*(value.inner()))
             .map(Self::from)
             .map_err(map_py_overflow_err)
-    }
-}
-
-impl From<TimeZoneDatabase> for RyTimeZoneDatabase {
-    fn from(db: TimeZoneDatabase) -> Self {
-        Self { inner: Some(db) }
     }
 }

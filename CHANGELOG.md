@@ -7,7 +7,14 @@
 
 ---
 
-## v0.0.105 [unreleased]
+## v0.0.106 [unreleased]
+
+- `ryo3-jiter`
+  - `parse_json`/`parse_jsonl` read `str` input w/ the fast utf8 path
+
+---
+
+## v0.0.105 [2026-10-24]
 
 - cleanup
   - nuked old serialize v1 in `ryo3-json`

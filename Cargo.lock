@@ -1267,7 +1267,7 @@ dependencies = [
 [[package]]
 name = "jiter"
 version = "0.18.0"
-source = "git+https://github.com/pydantic/jiter.git#e02134b389f90d1aaefa8caeda3c2df1ce9c053f"
+source = "git+https://github.com/pydantic/jiter.git#fc2da0bd1fb699a6c4e9641e9e1c06fa6d5d93e8"
 dependencies = [
  "ahash",
  "bitvec",
@@ -1440,9 +1440,9 @@ checksum = "f9f8bd3e56ce4dfc153cf470fffbfa98c7620958b312ca5c3a4b8d5181fd13c6"
 
 [[package]]
 name = "lz4rip"
-version = "0.11.12"
+version = "0.12.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3a169dc8ba82c0df1f91693abc006c016202707cd80d4654057de13d383f1db3"
+checksum = "44d2d90f8780c813b8c8e9ba4a462c30c03463a7b092e237342a96177635ed18"
 dependencies = [
  "lz4rip-core",
  "lz4rip-decode",
@@ -1458,9 +1458,9 @@ checksum = "687eec55dae7866f9a8cf785555aa81ea02ebed8a13c7079c4a4f59c2de46e92"
 
 [[package]]
 name = "lz4rip-decode"
-version = "0.10.6"
+version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "624f02c3b9c1ab1ea3ff19f01e72296f1edf6aeb604606bfd81c8756ecb66e00"
+checksum = "bd92d97be818770dc15bf1562ee2986e0ab2197155fb41bddd8305ba963a6a7e"
 dependencies = [
  "lz4rip-core",
 ]
@@ -2067,7 +2067,7 @@ checksum = "cf54715a573b99ac80df0bc206da022bcd442c974952c7b9720069370852e21f"
 
 [[package]]
 name = "ry"
-version = "0.0.105"
+version = "0.0.106"
 dependencies = [
  "jiff",
  "mimalloc",
@@ -2081,7 +2081,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3"
-version = "0.0.105"
+version = "0.0.106"
 dependencies = [
  "jiff",
  "pyo3",
@@ -2129,7 +2129,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-aws-lc"
-version = "0.0.105"
+version = "0.0.106"
 dependencies = [
  "aws-lc-rs",
  "pyo3",
@@ -2139,7 +2139,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-brotli"
-version = "0.0.105"
+version = "0.0.106"
 dependencies = [
  "brotli",
  "pyo3",
@@ -2148,7 +2148,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-bytes"
-version = "0.0.105"
+version = "0.0.106"
 dependencies = [
  "bytes",
  "memchr",
@@ -2157,7 +2157,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-bzip2"
-version = "0.0.105"
+version = "0.0.106"
 dependencies = [
  "bzip2",
  "pyo3",
@@ -2166,7 +2166,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-cookie"
-version = "0.0.105"
+version = "0.0.106"
 dependencies = [
  "cookie",
  "pyo3",
@@ -2178,7 +2178,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-core"
-version = "0.0.105"
+version = "0.0.106"
 dependencies = [
  "pyo3",
  "pyo3-build-config",
@@ -2187,7 +2187,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-crc32fast"
-version = "0.0.105"
+version = "0.0.106"
 dependencies = [
  "crc32fast",
  "pyo3",
@@ -2197,7 +2197,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-dev"
-version = "0.0.105"
+version = "0.0.106"
 dependencies = [
  "pyo3",
  "ryo3-core",
@@ -2206,7 +2206,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-dirs"
-version = "0.0.105"
+version = "0.0.106"
 dependencies = [
  "dirs",
  "pyo3",
@@ -2214,7 +2214,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-flate2"
-version = "0.0.105"
+version = "0.0.106"
 dependencies = [
  "flate2",
  "pyo3",
@@ -2223,7 +2223,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-fnv"
-version = "0.0.105"
+version = "0.0.106"
 dependencies = [
  "pyo3",
  "ryo3-bytes",
@@ -2232,7 +2232,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-fspath"
-version = "0.0.105"
+version = "0.0.106"
 dependencies = [
  "pyo3",
  "ryo3-bytes",
@@ -2247,7 +2247,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-glob"
-version = "0.0.105"
+version = "0.0.106"
 dependencies = [
  "glob",
  "pyo3",
@@ -2257,7 +2257,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-globset"
-version = "0.0.105"
+version = "0.0.106"
 dependencies = [
  "globset",
  "pyo3",
@@ -2266,7 +2266,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-heck"
-version = "0.0.105"
+version = "0.0.106"
 dependencies = [
  "heck",
  "pyo3",
@@ -2274,7 +2274,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-http"
-version = "0.0.105"
+version = "0.0.106"
 dependencies = [
  "http",
  "pyo3",
@@ -2287,7 +2287,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-ignore"
-version = "0.0.105"
+version = "0.0.106"
 dependencies = [
  "ignore",
  "pyo3",
@@ -2295,7 +2295,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-jiff"
-version = "0.0.105"
+version = "0.0.106"
 dependencies = [
  "jiff",
  "pyo3",
@@ -2311,7 +2311,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-jiff-core"
-version = "0.0.105"
+version = "0.0.106"
 dependencies = [
  "jiff",
  "pyo3",
@@ -2322,16 +2322,17 @@ dependencies = [
 
 [[package]]
 name = "ryo3-jiter"
-version = "0.0.105"
+version = "0.0.106"
 dependencies = [
  "jiter",
  "pyo3",
  "ryo3-bytes",
+ "ryo3-core",
 ]
 
 [[package]]
 name = "ryo3-json"
-version = "0.0.105"
+version = "0.0.106"
 dependencies = [
  "jiter",
  "pyo3",
@@ -2346,7 +2347,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-json-ser"
-version = "0.0.105"
+version = "0.0.106"
 dependencies = [
  "criterion",
  "itoap",
@@ -2357,7 +2358,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-lz4rip"
-version = "0.0.105"
+version = "0.0.106"
 dependencies = [
  "lz4rip",
  "pyo3",
@@ -2367,14 +2368,14 @@ dependencies = [
 
 [[package]]
 name = "ryo3-macro-rules"
-version = "0.0.105"
+version = "0.0.106"
 dependencies = [
  "pyo3",
 ]
 
 [[package]]
 name = "ryo3-memchr"
-version = "0.0.105"
+version = "0.0.106"
 dependencies = [
  "memchr",
  "pyo3",
@@ -2384,21 +2385,21 @@ dependencies = [
 
 [[package]]
 name = "ryo3-pydantic"
-version = "0.0.105"
+version = "0.0.106"
 dependencies = [
  "pyo3",
 ]
 
 [[package]]
 name = "ryo3-quick-maths"
-version = "0.0.105"
+version = "0.0.106"
 dependencies = [
  "pyo3",
 ]
 
 [[package]]
 name = "ryo3-regex"
-version = "0.0.105"
+version = "0.0.106"
 dependencies = [
  "pyo3",
  "regex",
@@ -2407,7 +2408,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-reqwest"
-version = "0.0.105"
+version = "0.0.106"
 dependencies = [
  "bytes",
  "encoding_rs",
@@ -2442,7 +2443,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-same-file"
-version = "0.0.105"
+version = "0.0.106"
 dependencies = [
  "pyo3",
  "ryo3-core",
@@ -2451,7 +2452,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-serde"
-version = "0.0.105"
+version = "0.0.106"
 dependencies = [
  "jiff",
  "pyo3",
@@ -2470,7 +2471,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-shlex"
-version = "0.0.105"
+version = "0.0.106"
 dependencies = [
  "pyo3",
  "shlex",
@@ -2478,7 +2479,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-size"
-version = "0.0.105"
+version = "0.0.106"
 dependencies = [
  "pyo3",
  "ryo3-core",
@@ -2487,7 +2488,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-sqlformat"
-version = "0.0.105"
+version = "0.0.106"
 dependencies = [
  "pyo3",
  "sqlformat",
@@ -2495,7 +2496,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-std"
-version = "0.0.105"
+version = "0.0.106"
 dependencies = [
  "bytes",
  "jiff",
@@ -2510,7 +2511,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-tokio"
-version = "0.0.105"
+version = "0.0.106"
 dependencies = [
  "bytes",
  "pyo3",
@@ -2524,7 +2525,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-tokio-rt"
-version = "0.0.105"
+version = "0.0.106"
 dependencies = [
  "pyo3",
  "pyo3-build-config",
@@ -2533,7 +2534,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-tokio-websockets"
-version = "0.0.105"
+version = "0.0.106"
 dependencies = [
  "bytes",
  "futures-util",
@@ -2553,7 +2554,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-twox-hash"
-version = "0.0.105"
+version = "0.0.106"
 dependencies = [
  "pyo3",
  "ryo3-bytes",
@@ -2563,7 +2564,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-ulid"
-version = "0.0.105"
+version = "0.0.106"
 dependencies = [
  "pyo3",
  "ryo3-core",
@@ -2576,7 +2577,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-unindent"
-version = "0.0.105"
+version = "0.0.106"
 dependencies = [
  "pyo3",
  "unindent",
@@ -2584,7 +2585,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-url"
-version = "0.0.105"
+version = "0.0.106"
 dependencies = [
  "pyo3",
  "ryo3-core",
@@ -2597,7 +2598,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-uuid"
-version = "0.0.105"
+version = "0.0.106"
 dependencies = [
  "pyo3",
  "pyo3-build-config",
@@ -2611,7 +2612,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-walkdir"
-version = "0.0.105"
+version = "0.0.106"
 dependencies = [
  "pyo3",
  "ryo3-core",
@@ -2622,7 +2623,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-which"
-version = "0.0.105"
+version = "0.0.106"
 dependencies = [
  "pyo3",
  "ryo3-regex",
@@ -2631,7 +2632,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-zstd"
-version = "0.0.105"
+version = "0.0.106"
 dependencies = [
  "pyo3",
  "ryo3-bytes",
