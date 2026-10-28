@@ -6,6 +6,7 @@ pub mod py_list;
 mod py_parse;
 mod py_str;
 mod py_try_from;
+pub mod repr;
 pub mod sync;
 pub mod types;
 pub use errors::{FeatureNotEnabledError, PanicError, UnreachableError};

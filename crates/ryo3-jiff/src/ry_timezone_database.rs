@@ -3,6 +3,7 @@
 use jiff::tz::TimeZoneDatabase;
 use pyo3::prelude::*;
 use ryo3_core::map_py_value_err;
+use ryo3_core::repr::PyStrRepr;
 use ryo3_macro_rules::{py_key_error, py_value_err};
 
 use crate::RyTimeZone;
@@ -40,30 +41,14 @@ impl std::fmt::Display for RyTimeZoneDatabase {
             TzdbSource::Env => f.write_str("TimeZoneDatabase()"),
             TzdbSource::Bundled => f.write_str("TimeZoneDatabase.bundled()"),
             TzdbSource::Dir(path) => {
-                write!(f, "TimeZoneDatabase.from_dir('{}')", PyStrEscape(path))
+                write!(f, "TimeZoneDatabase.from_dir({})", PyStrRepr::new(path))
             }
             TzdbSource::Concatenated(path) => write!(
                 f,
-                "TimeZoneDatabase.from_concatenated_path('{}')",
-                PyStrEscape(path)
+                "TimeZoneDatabase.from_concatenated_path({})",
+                PyStrRepr::new(path)
             ),
         }
-    }
-}
-
-/// escapes `\` and `'` so a path is a valid single-quoted python str
-struct PyStrEscape<'a>(&'a str);
-
-impl std::fmt::Display for PyStrEscape<'_> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        for c in self.0.chars() {
-            match c {
-                '\\' => f.write_str("\\\\")?,
-                '\'' => f.write_str("\\'")?,
-                c => std::fmt::Write::write_char(f, c)?,
-            }
-        }
-        Ok(())
     }
 }
 
