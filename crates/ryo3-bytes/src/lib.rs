@@ -15,6 +15,7 @@ pub use ::bytes::Bytes;
 pub use readable_buffer::{ExactReadableBuffer, ReadableBuffer};
 
 pub use crate::bytes::RyBytes;
+pub use crate::ryo3_bytes::RyBuffer;
 // export alias `PyBytes` for backwards compat; the main struct used to be `PyBytes`
 // but has been renamed to avoid conflicting with `pyo3::types::PyBytes`
 pub use crate::bytes::RyBytes as PyBytes;

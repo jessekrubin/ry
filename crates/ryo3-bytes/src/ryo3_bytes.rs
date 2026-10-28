@@ -879,7 +879,7 @@ impl<'py> FromPyObject<'_, 'py> for RyBytes {
 ///
 /// This also implements `AsRef`<[u8]> because that is required for `Bytes::from_owner`
 #[derive(Debug)]
-pub(crate) struct RyBuffer<T = u8>(PyBuffer<T>);
+pub struct RyBuffer<T = u8>(PyBuffer<T>);
 
 impl AsRef<[u8]> for RyBuffer<u8> {
     #[expect(unsafe_code)]
