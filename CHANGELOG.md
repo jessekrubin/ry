@@ -17,7 +17,7 @@
     match `hashlib`
   - non-buffer input raises `TypeError` from cpython
   - non-contiguous input raises `BufferError` instead of
-    `TypeError`/`ValueError` now
+    `TypeError`/`ValueError`
 
 ---
 
