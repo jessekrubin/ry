@@ -157,18 +157,21 @@ impl PyXxHash32 {
 // ====================================================================================
 #[pyfunction]
 #[pyo3(signature = (data, *, seed = 0))]
+#[must_use]
 pub fn xxh32_digest(py: Python<'_>, data: ReadableBuffer, seed: u32) -> PyDigest<u32> {
     PyXxHash32::oneshot(py, data, seed)
 }
 
 #[pyfunction]
 #[pyo3(signature = (data, *, seed = 0))]
+#[must_use]
 pub fn xxh32_intdigest(py: Python<'_>, data: ReadableBuffer, seed: u32) -> u32 {
     PyXxHash32::oneshot_int(py, data, seed)
 }
 
 #[pyfunction]
 #[pyo3(signature = (data, *, seed = 0))]
+#[must_use]
 pub fn xxh32_hexdigest(py: Python<'_>, data: ReadableBuffer, seed: u32) -> PyHexDigest<u32> {
     PyXxHash32::oneshot_hex(py, data, seed)
 }

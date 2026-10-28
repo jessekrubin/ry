@@ -11,6 +11,8 @@
 
 - `ryo3-jiter`
   - `parse_json`/`parse_jsonl` read `str` input w/ the fast utf8 path
+- `ryo3-bytes`
+  - Don't heap-allocate for ReadableBuffer if/when possible
 
 ---
 

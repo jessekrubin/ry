@@ -227,14 +227,17 @@ impl RyBytes {
     // here, since it will use the FromPyObject impl.
     #[new]
     #[pyo3(
-        signature = (buf = ReadableBuffer::Buffer(Bytes::new())),
+        signature = (buf = None),
         text_signature = "(buf = b'')"
     )]
-    fn py_new<'py>(py: Python<'py>, buf: ReadableBuffer<'py, 'py>) -> PyResult<Bound<'py, Self>> {
+    fn py_new<'py>(
+        py: Python<'py>,
+        buf: Option<ReadableBuffer<'py, 'py>>,
+    ) -> PyResult<Bound<'py, Self>> {
         match buf {
-            ReadableBuffer::PyBytes(_) => buf.to_rybytes().into_pyobject(py),
-            ReadableBuffer::RyBytes(rb) => rb.to_owned().unbind().into_pyobject_or_pyerr(py),
-            ReadableBuffer::Buffer(b) => Self::new(b).into_pyobject(py),
+            None => Self::new(Bytes::new()).into_pyobject(py),
+            Some(ReadableBuffer::RyBytes(rb)) => rb.to_owned().unbind().into_pyobject_or_pyerr(py),
+            Some(buf) => buf.into_rybytes().into_pyobject(py),
         }
     }
 
@@ -278,7 +281,7 @@ impl RyBytes {
             return slf.into_pyobject_or_pyerr(py);
         }
         if slf.is_empty() {
-            return other.to_rybytes().into_pyobject(py);
+            return other.into_rybytes().into_pyobject(py);
         }
         let total_length = slf.len() + other.len();
         let mut vec = try_with_capacity(total_length)?;
