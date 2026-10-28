@@ -123,12 +123,12 @@ impl<'a, 'py> FromPyObject<'a, 'py> for ReadableBuffer<'a, 'py> {
                 ob.cast_unchecked::<RyBytes>()
             };
             Ok(Self::RyBytes(rybytes))
-        } else if let Ok(buffer) = ob.extract::<RyBuffer>() {
-            Ok(Self::Buffer(buffer))
         } else {
-            Err(pyo3::exceptions::PyTypeError::new_err(
-                "Expected bytes, bytearray, or buffer-protocol object",
-            ))
+            // errors:
+            // - if not bytes-like: `TypeError` ( from cpython)
+            // - not C-contiguous: `BufferError`
+            // - 0-d bufs: `BufferError` (pyo3 errs on null shape/strides)
+            Ok(Self::Buffer(ob.extract::<RyBuffer>()?))
         }
     }
 }

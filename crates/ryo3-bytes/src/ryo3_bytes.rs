@@ -5,12 +5,11 @@ use std::hash::{Hash, Hasher};
 use std::num::NonZeroUsize;
 use std::ops::Range;
 use std::os::raw::c_int;
-use std::ptr::NonNull;
 use std::sync::atomic::{AtomicIsize, Ordering};
 
 use bytes::{Bytes, BytesMut};
-use pyo3::buffer::PyBuffer;
-use pyo3::exceptions::{PyIndexError, PyValueError};
+use pyo3::buffer::PyUntypedBuffer;
+use pyo3::exceptions::{PyBufferError, PyIndexError, PyValueError};
 use pyo3::prelude::*;
 use pyo3::pybacked::PyBackedBytes;
 use pyo3::types::slice::PySliceIndices;
@@ -873,72 +872,50 @@ impl<'py> FromPyObject<'_, 'py> for RyBytes {
     }
 }
 
-/// A wrapper around a `PyBuffer` that applies a custom destructor that checks
-/// if the Python interpreter is still initialized before freeing the buffer
-/// memory.
+/// Read-only, C-contiguous byte view of any buffer-protocol object
+///
+/// Wraps pyo3's [`PyUntypedBuffer`] (no item-format check) so any C-contiguous exporter is read as
+/// raw bytes (same as `hashlib`/`bytes(...)`).
 ///
 /// This also implements `AsRef`<[u8]> because that is required for `Bytes::from_owner`
 #[derive(Debug)]
-pub struct RyBuffer<T = u8>(PyBuffer<T>);
+pub struct RyBuffer(PyUntypedBuffer);
 
-impl AsRef<[u8]> for RyBuffer<u8> {
+impl AsRef<[u8]> for RyBuffer {
     #[expect(unsafe_code)]
+    #[inline]
     fn as_ref(&self) -> &[u8] {
-        let len = self.0.item_count();
-
-        let ptr = NonNull::new(self.0.buf_ptr() as _).expect("Expected buffer ptr to be non null");
-
+        let len = self.0.len_bytes();
+        if len == 0 {
+            // `buf` may be NULL for empty exports
+            return &[];
+        }
         // Safety:
         //
         // This requires that the data will not be mutated from Python. Sadly, the buffer protocol
         // does not uphold this invariant always for us, and the Python user must take care not to
         // mutate the provided buffer.
-        unsafe { std::slice::from_raw_parts(ptr.as_ptr() as *const u8, len) }
+        unsafe { std::slice::from_raw_parts(self.0.buf_ptr().cast::<u8>(), len) }
     }
 }
 
-impl From<PyBuffer<u8>> for RyBuffer<u8> {
+impl From<RyBuffer> for RyBytes {
     #[inline]
-    fn from(value: PyBuffer<u8>) -> Self {
-        Self(value)
-    }
-}
-
-impl From<RyBuffer<u8>> for RyBytes {
-    #[inline]
-    fn from(value: RyBuffer<u8>) -> Self {
+    fn from(value: RyBuffer) -> Self {
         let bytes = Bytes::from_owner(value);
         Self::new(bytes)
     }
 }
 
-fn validate_buffer(buf: &PyBuffer<u8>) -> PyResult<()> {
-    if !buf.is_c_contiguous() {
-        return Err(PyValueError::new_err("Buffer is not C contiguous"));
-    }
-
-    if buf.strides().iter().any(|s| *s != 1) {
-        return Err(PyValueError::new_err(format!(
-            "strides other than 1 not supported, got: {:?} ",
-            buf.strides()
-        )));
-    }
-
-    Ok(())
-}
-
 impl<'py> FromPyObject<'_, 'py> for RyBuffer {
     type Error = pyo3::PyErr;
+    #[inline]
     fn extract(ob: pyo3::Borrowed<'_, 'py, pyo3::PyAny>) -> PyResult<Self> {
-        // fast path: bytes are always c-contiguous w/ stride 1 so skip validate_buffer
-        if ob.is_instance_of::<pyo3::types::PyBytes>() {
-            let buffer = ob.extract::<PyBuffer<u8>>()?;
-            Ok(Self(buffer))
-        } else {
-            let buffer = ob.extract::<PyBuffer<u8>>()?;
-            validate_buffer(&buffer)?;
-            Ok(Self(buffer))
+        let buffer = PyUntypedBuffer::get(&ob)?;
+        if !buffer.is_c_contiguous() {
+            return Err(PyBufferError::new_err("buffer is not C-contiguous"));
         }
+        Ok(Self(buffer))
     }
 }
 

@@ -12,7 +12,12 @@
 - `ryo3-jiter`
   - `parse_json`/`parse_jsonl` read `str` input w/ the fast utf8 path
 - `ryo3-bytes`
-  - Don't heap-allocate for ReadableBuffer if/when possible
+  - use `pyo3::buffer::PyUntypedBuffer` internally for buffer-protocol input
+  - any c-contig buffer is now read as raw bytes regardless of item format to
+    match `hashlib`
+  - non-buffer input raises `TypeError` from cpython
+  - non-contiguous input raises `BufferError` instead of
+    `TypeError`/`ValueError` now
 
 ---
 
