@@ -1307,8 +1307,6 @@ async def test_client_post_json_and_form_errors(
     server: ReqtestServer, client: TClient, kwargs: dict[str, t.Any]
 ) -> None:
     url = server.url / "echo"
-    if "multipart" in kwargs:
-        pytest.skip("multipart not implemented yet")
     with pytest.raises(
         ValueError, match="body, json, form, multipart are mutually exclusive"
     ):
@@ -1463,28 +1461,3 @@ class TestTodo:
     def test_response_new_errs(self) -> None:
         with pytest.raises(NotImplementedError):
             _res = ry.Response()  # type: ignore[var-annotated]
-
-    @pytest.mark.anyio
-    async def test_post_multipart_not_impl(
-        self,
-        client: TClient,
-    ) -> None:
-        with pytest.raises(NotImplementedError):
-            _r = await client.post("http://example.com", multipart={"a": 1})
-
-    @pytest.mark.anyio
-    async def test_client_fetch_multipart_not_impl(
-        self,
-        client: TClient,
-    ) -> None:
-        with pytest.raises(NotImplementedError):
-            _r = await client.fetch(
-                "http://example.com", method="POST", multipart={"a": 1}
-            )
-
-    @pytest.mark.anyio
-    async def test_fetch_multipart_not_impl(
-        self,
-    ) -> None:
-        with pytest.raises(NotImplementedError):
-            _r = await ry.fetch("http://example.com", method="POST", multipart={"a": 1})

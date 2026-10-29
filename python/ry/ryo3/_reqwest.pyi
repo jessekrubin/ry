@@ -1,6 +1,8 @@
 """ryo3-reqwest ~ types"""
 
 import typing as t
+from os import PathLike
+from pathlib import Path
 from types import TracebackType
 
 import ry
@@ -13,10 +15,23 @@ from ry.ryo3._url import URL
 
 _Body: t.TypeAlias = (
     Buffer
+    | FormData
     | t.Generator[Buffer]
     | t.AsyncGenerator[Buffer]
     | t.Iterable[Buffer]
     | t.AsyncIterable[Buffer]
+)
+# multipart
+_T = t.TypeVar("_T")
+_FormValue: t.TypeAlias = str | int | float | bool | Buffer | PathLike[str] | FormPart
+_FormPair: t.TypeAlias = tuple[str, _FormValue | list[_FormValue]]
+# runtime takes any iterable of pairs; typed as list/tuple bc `Mapping | Iterable`
+# breaks dict-literal inference (dict is also an iterable)
+_FormDataLike: t.TypeAlias = (
+    FormData
+    | t.Mapping[str, _FormValue | list[_FormValue]]
+    | list[_FormPair]
+    | tuple[_FormPair, ...]
 )
 # proxy
 _ProxyKw: t.TypeAlias = t.Sequence[Proxy | URL | str] | Proxy | URL | str
@@ -29,7 +44,7 @@ class RequestKwargs(t.TypedDict, total=False):
     query: dict[str, t.Any] | t.Sequence[tuple[str, t.Any]] | None
     json: t.Any
     form: t.Any
-    multipart: t.Any
+    multipart: _FormDataLike | None
     timeout: Duration | None
     basic_auth: tuple[str, str | None] | None
     bearer_auth: str | None
@@ -568,7 +583,7 @@ async def fetch(
     query: dict[str, t.Any] | t.Sequence[tuple[str, t.Any]] | None = None,
     json: t.Any = None,
     form: t.Any = None,
-    multipart: t.Any | None = None,
+    multipart: _FormDataLike | None = None,
     timeout: Duration | None = None,
     basic_auth: tuple[str, str | None] | None = None,
     bearer_auth: str | None = None,
@@ -583,7 +598,7 @@ def fetch_sync(
     query: dict[str, t.Any] | t.Sequence[tuple[str, t.Any]] | None = None,
     json: t.Any = None,
     form: t.Any = None,
-    multipart: t.Any | None = None,
+    multipart: _FormDataLike | None = None,
     timeout: Duration | None = None,
     basic_auth: tuple[str, str | None] | None = None,
     bearer_auth: str | None = None,
@@ -676,3 +691,94 @@ class Proxy:
     # -------------------------------------------------------------------------
     def __eq__(self, other: object, /) -> bool: ...
     def __hash__(self) -> int: ...
+
+# =============================================================================
+# MULTIPART
+# =============================================================================
+class _FormPartKwargs(t.TypedDict, total=False):
+    filename: str | None
+    mime: str | None
+    headers: Headers | dict[str, str] | None
+
+@t.final
+class FormPart:
+    """A multipart/form-data part w/ options (filename, mime, headers)
+
+    value types: str -> text, int/float/bool -> text, bytes-like -> binary,
+    os.PathLike -> file (opened + streamed per request; filename + mime
+    default from the path)
+    """
+
+    def __new__(
+        cls,
+        value: _FormValue,
+        /,
+        **kwargs: Unpack[_FormPartKwargs],
+    ) -> t.Self: ...
+    @property
+    def value(self) -> str | ry.Bytes | Path: ...
+    @property
+    def filename(self) -> str | None: ...
+    @property
+    def mime(self) -> str | None: ...
+    @property
+    def headers(self) -> Headers | None: ...
+    def __eq__(self, other: object, /) -> bool: ...
+    def __ne__(self, other: object, /) -> bool: ...
+
+@t.final
+class FormData:
+    """multipart/form-data (mutable multimap like js `FormData`)
+
+    Values are snapshotted when a request is built ~ mutating a `FormData`
+    does not affect requests already made and it can be reused.
+
+    `get`/`getall`/`values`/`items` give back `str` for plain text values
+    and `FormPart` for everything else.
+    """
+
+    def __new__(
+        cls,
+        data: _FormDataLike | None = None,
+        /,
+        *,
+        percent_encode: t.Literal["path-segment", "attr-chars", "noop"] | None = None,
+    ) -> t.Self: ...
+    @property
+    def percent_encode(
+        self,
+    ) -> t.Literal["path-segment", "attr-chars", "noop"] | None: ...
+    def append(
+        self,
+        name: str,
+        value: _FormValue,
+        /,
+        **kwargs: Unpack[_FormPartKwargs],
+    ) -> None: ...
+    def set(
+        self,
+        name: str,
+        value: _FormValue,
+        /,
+        **kwargs: Unpack[_FormPartKwargs],
+    ) -> None: ...
+    def delete(self, name: str) -> None: ...
+    @t.overload
+    def get(self, name: str) -> str | FormPart | None: ...
+    @t.overload
+    def get(self, name: str, default: _T) -> str | FormPart | _T: ...
+    def getall(self, name: str) -> list[str | FormPart]: ...
+    def keys(self) -> list[str]: ...
+    def values(self) -> list[str | FormPart]: ...
+    def items(self) -> list[tuple[str, str | FormPart]]: ...
+    def copy(self) -> FormData: ...
+    def __copy__(self) -> FormData: ...
+    def __deepcopy__(self, memo: object) -> FormData: ...
+    def __len__(self) -> int: ...
+    def __contains__(self, name: str) -> bool: ...
+    def __iter__(self) -> t.Iterator[str]: ...
+    def __getitem__(self, name: str) -> str | FormPart: ...
+    def __setitem__(self, name: str, value: _FormValue) -> None: ...
+    def __delitem__(self, name: str) -> None: ...
+    def __eq__(self, other: object, /) -> bool: ...
+    def __ne__(self, other: object, /) -> bool: ...

@@ -7,6 +7,8 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import email.parser
+import email.policy
 import gzip
 import json
 import threading
@@ -196,6 +198,28 @@ async def loooooooong_response(
     )
 
 
+def parse_multipart(content_type: str, body: bytes) -> list[dict[str, t.Any]]:
+    """parse a multipart/form-data with the stdlib
+
+    I forgot that this was builtin!
+    """
+    msg = email.parser.BytesParser(policy=email.policy.HTTP).parsebytes(
+        b"Content-Type: " + content_type.encode() + b"\r\n\r\n" + body
+    )
+    return [
+        {
+            "name": part.get_param("name", header="content-disposition"),
+            "filename": part.get_filename(),
+            "content_type": part.get("content-type"),
+            "headers": {k.lower(): str(v) for k, v in part.items()},
+            "value": t.cast("bytes", part.get_payload(decode=True) or b"").decode(
+                "latin-1"
+            ),
+        }
+        for part in msg.iter_parts()
+    ]
+
+
 async def upload_file(
     scope: uvt.HTTPScope, receive: Receive, send: Send
 ) -> AsyncGenerator[uvt.ASGISendEvent]:
@@ -225,6 +249,8 @@ async def upload_file(
     response_json = json.dumps({
         "received_bytes": len(body),
         "content_type": content_type,
+        "content_length": headers.get("content-length"),
+        "parts": parse_multipart(content_type, body),
     }).encode()
     yield uvt.HTTPResponseStartEvent(
         type="http.response.start",
