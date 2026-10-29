@@ -33,9 +33,7 @@ fn brotli_decompress_impl(data: &[u8]) -> PyResult<Vec<u8>> {
     let mut decompressed = Vec::new();
     br::Decompressor::new(data, 4 * 1024)
         .read_to_end(&mut decompressed)
-        .map_err(|e|
-            PyValueError::new_err(format!("Brotli decode error: {e:?}"))
-        )?;
+        .map_err(|e| PyValueError::new_err(format!("Brotli decode error: {e:?}")))?;
     Ok(decompressed)
 }
 
