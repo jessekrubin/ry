@@ -2420,6 +2420,7 @@ dependencies = [
  "jiter",
  "memchr",
  "mime",
+ "mime_guess",
  "pyo3",
  "pyo3-build-config",
  "reqwest",

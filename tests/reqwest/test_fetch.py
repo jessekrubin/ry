@@ -26,13 +26,6 @@ class TestFetch:
         with pytest.raises(ry.ReqwestError, match="TimedOut"):
             _text = await _do_fetch()
 
-    @pytest.mark.anyio
-    async def test_fetch_multipart_not_impl(
-        self,
-    ) -> None:
-        with pytest.raises(NotImplementedError):
-            _r = await ry.fetch("http://example.com", method="POST", multipart={"a": 1})
-
 
 class TestFetchSync:
     def test_fetch_timeout_on_request_sync(self, server: ReqtestServer) -> None:
@@ -47,9 +40,3 @@ class TestFetchSync:
 
         with pytest.raises(ry.ReqwestError, match="TimedOut"):
             _text = _do_fetch()
-
-    def test_fetch_multipart_not_impl_sync(
-        self,
-    ) -> None:
-        with pytest.raises(NotImplementedError):
-            _r = ry.fetch_sync("http://example.com", method="POST", multipart={"a": 1})

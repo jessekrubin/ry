@@ -6,9 +6,10 @@ use pyo3::pybacked::PyBackedStr;
 use pyo3::types::PyDict;
 use reqwest::header::{HeaderMap, HeaderValue};
 use ryo3_http::{PyHeadersLike, PyHttpVersion};
-use ryo3_macro_rules::{py_type_err, py_value_err, py_value_error, pytodo};
+use ryo3_macro_rules::{py_type_err, py_value_err, py_value_error};
 use ryo3_std::time::PyTimeout;
 
+use crate::form_data::{FormDataLike, RyFormData};
 use crate::request_body::{PyBody, PyBodyStream, RequestBodyPrimer};
 use crate::types::{PyBasicAuth, PyQuery};
 
@@ -67,9 +68,7 @@ impl<const BLOCKING: bool> ReqwestKwargs<BLOCKING> {
                 reqwest::header::CONTENT_TYPE,
                 HeaderValue::from_static("application/x-www-form-urlencoded"),
             ),
-            PyReqwestBody::Multipart(_m) => {
-                pytodo!("multipart not implemented (yet)");
-            }
+            PyReqwestBody::Multipart(m) => req.multipart(m.into_form()?),
             PyReqwestBody::None => req,
         };
 
@@ -103,8 +102,7 @@ enum PyReqwestBody {
     Stream(PyBodyStream),
     Json(Vec<u8>),
     Form(String),
-    #[expect(dead_code)]
-    Multipart(bool), // placeholder
+    Multipart(FormDataLike),
     None,
 }
 
@@ -159,8 +157,8 @@ impl<'a, 'py> PyReqwestBodyDeferred<'a, 'py> {
                 json.as_borrowed(),
             )?)),
             PyReqwestBodyDeferred::Form(form) => extract_form_body(form.as_borrowed()),
-            PyReqwestBodyDeferred::Multipart(_multipart) => {
-                pytodo!("multipart not implemented (yet)");
+            PyReqwestBodyDeferred::Multipart(multipart) => {
+                Ok(PyReqwestBody::Multipart(multipart.extract()?))
             }
         }
     }
@@ -170,6 +168,10 @@ impl<'a, 'py> PyReqwestBodyDeferred<'a, 'py> {
 fn extract_body_from_py_body<const BLOCKING: bool>(
     body: Borrowed<'_, '_, PyAny>,
 ) -> PyResult<PyReqwestBody> {
+    // `body=FormData(...)` ~ same as js fetch
+    if let Ok(form_data) = body.cast_exact::<RyFormData>() {
+        return Ok(PyReqwestBody::Multipart(form_data.get().into()));
+    }
     let py_body = body.extract::<PyBody>()?;
     match py_body {
         PyBody::Bytes(bs) => Ok(PyReqwestBody::Bytes(bs)),

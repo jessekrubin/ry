@@ -24,6 +24,8 @@ _RY_TYPES: list[type] = [
     ry.Duration,
     ry.FileReadStream,
     ry.FileType,
+    ry.FormData,
+    ry.FormPart,
     ry.FsPath,
     ry.Glob,
     ry.GlobPattern,

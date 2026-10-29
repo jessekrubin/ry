@@ -44,12 +44,13 @@
 //! DEALINGS IN THE SOFTWARE.
 use std::borrow::Cow;
 use std::num::{NonZeroU8, NonZeroUsize};
-use std::ops::Deref;
 use std::sync::Arc;
 use std::{fmt, iter, mem, str};
 
 use bytes::{Buf, Bytes};
 use memchr::{memchr, memchr2};
+
+use crate::utf8_bytes::Utf8Bytes;
 
 /// Represents a single Server-Sent Event message.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -60,58 +61,6 @@ pub(crate) struct MessageEvent {
     pub(crate) data: Utf8Bytes,
     /// The `Last-Event-ID` sent by the server, if any.
     pub(crate) last_event_id: Option<Arc<str>>,
-}
-
-/// `Bytes` known to be utf-8 (AKA a string)
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub(crate) struct Utf8Bytes(Bytes);
-
-impl Utf8Bytes {
-    /// zero-copy for valid utf-8; invalid bytes get replaced (and copied)
-    fn from_bytes_lossy(bytes: Bytes) -> Self {
-        if str::from_utf8(&bytes).is_ok() {
-            Self(bytes)
-        } else {
-            Self(Bytes::from(String::from_utf8_lossy(&bytes).into_owned()))
-        }
-    }
-
-    #[inline]
-    pub(crate) fn as_str(&self) -> &str {
-        // SAFETY: only ever built from valid utf-8 (see `from_bytes_lossy`)
-        #[expect(unsafe_code)]
-        unsafe {
-            str::from_utf8_unchecked(&self.0)
-        }
-    }
-
-    #[inline]
-    pub(crate) fn as_bytes(&self) -> &Bytes {
-        &self.0
-    }
-}
-
-impl Deref for Utf8Bytes {
-    type Target = str;
-
-    #[inline]
-    fn deref(&self) -> &str {
-        self.as_str()
-    }
-}
-
-#[cfg(test)]
-impl From<&str> for Utf8Bytes {
-    fn from(s: &str) -> Self {
-        Self(Bytes::copy_from_slice(s.as_bytes()))
-    }
-}
-
-#[cfg(test)]
-impl From<String> for Utf8Bytes {
-    fn from(s: String) -> Self {
-        Self(Bytes::from(s))
-    }
 }
 
 /// Commands and payloads yielded by the SSE stream.

@@ -716,23 +716,3 @@ class TestTodo:
     def test_response_new_errs(self) -> None:
         with pytest.raises(NotImplementedError):
             _res = ry.Response()  # type: ignore[var-annotated]
-
-    def test_post_multipart_not_impl(
-        self,
-    ) -> None:
-        c = ry.BlockingClient()
-        with pytest.raises(NotImplementedError):
-            _r = c.post("http://example.com", multipart={"a": 1})
-
-    def test_client_fetch_multipart_not_impl(
-        self,
-    ) -> None:
-        c = ry.BlockingClient()
-        with pytest.raises(NotImplementedError):
-            _r = c.fetch("http://example.com", method="POST", multipart={"a": 1})
-
-    def test_fetch_multipart_not_impl(
-        self,
-    ) -> None:
-        with pytest.raises(NotImplementedError):
-            _r = ry.fetch_sync("http://example.com", method="POST", multipart={"a": 1})
