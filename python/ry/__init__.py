@@ -129,9 +129,11 @@ from ry.ryo3 import (  # type: ignore[deprecated]
     aopen,
     asleep,
     audio_dir,
-    brotli,
-    brotli_decode,
-    brotli_encode,
+    brotli,  # pyrefly: ignore[deprecated]  # ty: ignore[deprecated]
+    brotli_compress,
+    brotli_decode,  # pyrefly: ignore[deprecated]  # ty: ignore[deprecated]
+    brotli_decompress,
+    brotli_encode,  # pyrefly: ignore[deprecated]  # ty: ignore[deprecated]
     bzip2,
     bzip2_decode,
     bzip2_encode,
@@ -429,7 +431,9 @@ __all__ = (
     "asleep",
     "audio_dir",
     "brotli",
+    "brotli_compress",
     "brotli_decode",
+    "brotli_decompress",
     "brotli_encode",
     "bzip2",
     "bzip2_decode",
