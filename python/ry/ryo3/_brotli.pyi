@@ -17,7 +17,6 @@ def brotli_compress(
     data: Buffer, /, level: _BrotliLevel = 11, *, magic_number: bool = False
 ) -> Bytes: ...
 def brotli_decompress(data: Buffer, /) -> Bytes: ...
-
 @deprecated(
     "`brotli_encode` is deprecated; use `brotli_compress` instead [removal: v0.0.109]"
 )
