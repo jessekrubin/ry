@@ -65,7 +65,7 @@ def test_bench_gzip_decompress(
 
     def _fn() -> bytes:
         if impl_name == "ry":
-            return bytes(ry.gzip_decode(compressed))
+            return bytes(ry.gzip_decompress(compressed))
         return gzip.decompress(compressed)
 
     decompressed = benchmark(_fn)
