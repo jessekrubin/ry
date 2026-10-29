@@ -15,6 +15,11 @@ updates:
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 5
+    ignore:
+      # REF: https://github.com/jessekrubin/ry/issues/915
+      # pinned to =1.8.0 in Cargo.toml (cc >= 1.9 + sccache < 0.19 breaks msvc)
+      - dependency-name: "cc"
+        versions: [">= 1.9"]
   - package-ecosystem: "uv"
     directory: "/"
     schedule:

@@ -1,5 +1,7 @@
 use std::process::Command;
 
+// cc >= 1.9 + sccache < 0.19 breaks msvc <https://github.com/jessekrubin/ry/issues/915>
+use cc as _;
 use jiff::{Unit, Zoned};
 
 fn git_stdout(args: &[&str]) -> Option<String> {

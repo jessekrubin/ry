@@ -213,7 +213,7 @@ url = { version = "2.5.4", default-features = false, features = ["std"] }
 uuid = { version = "1.28", default-features = false, features = [] }
 walkdir = { version = "2.5.0", default-features = false, features = [] }
 which = { version = "8.0.2", default-features = false, features = [] }
-zmij = { version = "1.0.6", default-features = false }
+zmij = { version = "1.0.23", default-features = false }
 zstd = { version = "0.14.2", default-features = false, features = [] }
 zstd-safe = { version = "8.1.0", default-features = false, features = [] }
 
@@ -291,6 +291,9 @@ tracing-subscriber = { workspace = true }
 [build-dependencies]
 jiff.workspace = true
 pyo3-build-config.workspace = true
+# cc >= 1.9 + sccache < 0.19 breaks msvc
+# REF: https://github.com/jessekrubin/ry/issues/915
+cc = "=1.8.0"
 
 [lints]
 workspace = true
