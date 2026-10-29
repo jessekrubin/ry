@@ -124,3 +124,47 @@ class TestGzipDeprecations:
             pytest.raises(ValueError, match="Invalid compression level"),
         ):
             ry.gzip_encode(b"data", quality=10)  # type: ignore[arg-type,deprecated]  # ty:ignore[invalid-argument-type, deprecated]
+
+
+class TestBrotliDeprecations:
+    """`brotli`/`brotli_encode`/`brotli_decode` -> `brotli_compress`/`brotli_decompress`"""
+
+    _DATA = b"XXXXXXXXXXYYYYYYYYYY"
+
+    @pytest.mark.parametrize("old", ["brotli_encode", "brotli"])
+    def test_compress_aliases(self, old: str) -> None:
+        msg = _deprecation_message(old, "brotli_compress", "v0.0.109")
+        expected = ry.brotli_compress(self._DATA, level=5)
+        # positional + `quality=` keep working until removal
+        with pytest.warns(DeprecationWarning, match=msg):
+            assert getattr(ry, old)(self._DATA, 5) == expected
+        with pytest.warns(DeprecationWarning, match=msg):
+            assert getattr(ry, old)(self._DATA, quality=5) == expected
+        with pytest.warns(DeprecationWarning, match=msg):
+            assert getattr(ry, old)(self._DATA, magic_number=True) == (
+                ry.brotli_compress(self._DATA, magic_number=True)
+            )
+
+    def test_decompress_alias(self) -> None:
+        compressed = ry.brotli_compress(self._DATA)
+        with pytest.warns(
+            DeprecationWarning,
+            match=_deprecation_message(
+                "brotli_decode", "brotli_decompress", "v0.0.109"
+            ),
+        ):
+            assert ry.brotli_decode(compressed) == ry.brotli_decompress(compressed)  # type: ignore[deprecated]  # ty:ignore[deprecated]
+
+    def test_quality_value_error(self) -> None:
+        with (
+            pytest.warns(
+                DeprecationWarning,
+                match=_deprecation_message(
+                    "brotli_encode", "brotli_compress", "v0.0.109"
+                ),
+            ),
+            pytest.raises(
+                ValueError, match="Compression level must be an integer 0-11"
+            ),
+        ):
+            ry.brotli_encode(b"data", quality=12)  # type: ignore[arg-type,deprecated]  # ty:ignore[invalid-argument-type, deprecated]
