@@ -2,6 +2,31 @@
 
 thinking out loud...
 
+---
+
+## `FormData` [2026-10-29]
+
+I have been trying to add multipart form data to ry's `reqwest` bindings for
+some time now... Every draft of multi-part form data has **felt** bad and I end
+up scrapping it.
+
+Why has it been hard:
+
+- Figuring out an API design that **feels** right has been challenging (I have
+  taken several stabs at it).
+- The need to support both python-native types and `#[pyclass]` types
+  complicates the API design, given that there are so many conceivable types
+  that would need to be parsed.
+- I haven't personally needed multipart form support (until recently).
+- The `mime_guess` crate is used to determine the MIME type of files based on
+  their extensions, which I don't like because it adds a 200kb-ish lut to the
+  binary.
+
+**BUT**, now (as of 2026-10-29) I need multipart form support, so it is here,
+and I am not happy with it still.
+
+---
+
 ## staticmethod vs classmethod [2025-08-28]
 
 Nowhere in ry are any of the `classmethod` functions actually used as
