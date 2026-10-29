@@ -61,20 +61,21 @@ enum PartValue {
 }
 
 impl PartInner {
-    fn new(value: PartValue) -> Self {
+    fn new(py: Python<'_>, value: PartValue) -> PyResult<Self> {
         let (filename, mime) = match &value {
-            PartValue::File(p) => (
-                p.file_name().map(|f| f.to_string_lossy().into_owned()),
-                Some(mime_guess::from_path(p).first_or_octet_stream()),
-            ),
+            PartValue::File(p) => {
+                let filename = p.file_name().map(|f| f.to_string_lossy().into_owned());
+                let mime = guess_mime(py, filename.as_deref())?;
+                (filename, Some(mime))
+            }
             _ => (None, None),
         };
-        Self {
+        Ok(Self {
             value,
             filename,
             mime,
             headers: None,
-        }
+        })
     }
 
     fn plain_text(&self) -> Option<&str> {
@@ -186,6 +187,26 @@ impl FromPyObject<'_, '_> for FormPartKwargs {
     }
 }
 
+/// Guess mime type using python's `mimetypes.guess_type`.
+///
+/// The `mime_guess` crate brings in a 200kb-ish table to guess mime-types,
+/// which i (jesse) am not particularly stoked about.
+fn guess_mime(py: Python<'_>, filename: Option<&str>) -> PyResult<mime::Mime> {
+    use pyo3::pybacked::PyBackedStr;
+    use pyo3::sync::PyOnceLock;
+    static GUESS_TYPE: PyOnceLock<Py<PyAny>> = PyOnceLock::new();
+    let Some(filename) = filename else {
+        return Ok(mime::APPLICATION_OCTET_STREAM);
+    };
+    let (mime, _encoding) = GUESS_TYPE
+        .import(py, "mimetypes", "guess_type")?
+        .call1((filename,))?
+        .extract::<(Option<PyBackedStr>, Option<PyBackedStr>)>()?;
+    Ok(mime
+        .and_then(|m| m.parse().ok())
+        .unwrap_or(mime::APPLICATION_OCTET_STREAM))
+}
+
 // TODO: Move this to `ryo3-core`?
 /// Copy pasta io error handling for Python w/ a fielpath
 fn io_err_with_path(e: std::io::Error, path: &Path) -> PyErr {
@@ -227,7 +248,8 @@ impl FromPyObject<'_, '_> for RyFormPart {
         if let Ok(part) = obj.cast_exact::<Self>() {
             Ok(part.get().clone())
         } else {
-            obj.extract().map(|v| Self(Arc::new(PartInner::new(v))))
+            let inner = PartInner::new(obj.py(), obj.extract()?)?;
+            Ok(Self(Arc::new(inner)))
         }
     }
 }
