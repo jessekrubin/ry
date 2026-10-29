@@ -59,11 +59,14 @@ from ry.ryo3._errors import PanicError as PanicError
 from ry.ryo3._errors import UnreachableError as UnreachableError
 from ry.ryo3._errors import panic as panic
 from ry.ryo3._errors import unreachable as unreachable
-from ry.ryo3._flate2 import gunzip as gunzip
-from ry.ryo3._flate2 import gzip as gzip
-from ry.ryo3._flate2 import gzip_decode as gzip_decode
-from ry.ryo3._flate2 import gzip_encode as gzip_encode
-from ry.ryo3._flate2 import is_gzipped as is_gzipped
+from ry.ryo3._flate2 import gunzip as gunzip  # type: ignore[deprecated]  # ty: ignore[deprecated]
+from ry.ryo3._flate2 import gzip as gzip  # type: ignore[deprecated]  # ty: ignore[deprecated]
+from ry.ryo3._flate2 import gzip_compress as gzip_compress
+from ry.ryo3._flate2 import gzip_decode as gzip_decode  # type: ignore[deprecated]  # ty: ignore[deprecated]
+from ry.ryo3._flate2 import gzip_decompress as gzip_decompress
+from ry.ryo3._flate2 import gzip_encode as gzip_encode  # type: ignore[deprecated]  # ty: ignore[deprecated]
+from ry.ryo3._flate2 import is_gzip as is_gzip
+from ry.ryo3._flate2 import is_gzipped as is_gzipped  # type: ignore[deprecated]  # ty: ignore[deprecated]
 from ry.ryo3._fnv import fnv1a as fnv1a
 from ry.ryo3._fspath import FsPath as FsPath
 from ry.ryo3._glob import GlobPattern as GlobPattern

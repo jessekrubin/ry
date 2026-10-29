@@ -77,3 +77,50 @@ class TestDurationIntDeprecation:
             ),
         ):
             assert int(ry.SignedDuration(*secs_nanos)) == expected
+
+
+class TestGzipDeprecations:
+    """`*_encode`/`*_decode` aliases -> `gzip_compress`/`gzip_decompress`"""
+
+    _DATA = b"XXXXXXXXXXYYYYYYYYYY"
+
+    @pytest.mark.parametrize(
+        ("old", "new"),
+        [
+            ("gzip_encode", "gzip_compress"),
+            ("gzip", "gzip_compress"),
+        ],
+    )
+    def test_compress_aliases(self, old: str, new: str) -> None:
+        expected = getattr(ry, new)(self._DATA, level=9)
+        msg = _deprecation_message(old, new, "v0.0.109")
+        # positional + `quality=` keep working until removal
+        with pytest.warns(DeprecationWarning, match=msg):
+            assert getattr(ry, old)(self._DATA, 9) == expected
+        with pytest.warns(DeprecationWarning, match=msg):
+            assert getattr(ry, old)(self._DATA, quality=9) == expected
+
+    @pytest.mark.parametrize(
+        ("old", "new"),
+        [
+            ("gzip_decode", "gzip_decompress"),
+            ("gunzip", "gzip_decompress"),
+            ("is_gzipped", "is_gzip"),
+        ],
+    )
+    def test_aliases(self, old: str, new: str) -> None:
+        compressed = ry.gzip_compress(self._DATA)
+        with pytest.warns(
+            DeprecationWarning, match=_deprecation_message(old, new, "v0.0.109")
+        ):
+            assert getattr(ry, old)(compressed) == getattr(ry, new)(compressed)
+
+    def test_quality_value_error(self) -> None:
+        with (
+            pytest.warns(
+                DeprecationWarning,
+                match=_deprecation_message("gzip_encode", "gzip_compress", "v0.0.109"),
+            ),
+            pytest.raises(ValueError, match="Invalid compression level"),
+        ):
+            ry.gzip_encode(b"data", quality=10)  # type: ignore[arg-type,deprecated]  # ty:ignore[invalid-argument-type, deprecated]

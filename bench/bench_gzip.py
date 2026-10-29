@@ -28,7 +28,7 @@ _DATA = [
 ]
 
 _COMPRESSORS: list[tuple[str, Callable[[bytes], bytes]]] = [
-    ("ry", lambda data: bytes(ry.gzip_encode(data, quality=6))),
+    ("ry", lambda data: bytes(ry.gzip_compress(data, level=6))),
     ("stdlib", lambda data: gzip.compress(data, compresslevel=6)),
 ]
 
