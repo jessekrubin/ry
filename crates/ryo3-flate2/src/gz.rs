@@ -63,6 +63,7 @@ pub fn gunzip(data: ReadableBuffer) -> PyResult<RyBytes> {
 
 #[expect(clippy::needless_pass_by_value)]
 #[pyfunction]
+#[must_use]
 pub fn is_gzipped(data: ReadableBuffer) -> bool {
     let bin: &[u8] = data.as_ref();
     bin.starts_with(b"\x1F\x8B")

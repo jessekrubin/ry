@@ -12,36 +12,41 @@ pub enum ReadableBuffer<'a, 'py> {
     /// Reference to a `ryo3-bytes::RyBytes` object
     RyBytes(Borrowed<'a, 'py, RyBytes>),
     /// Any object that supports the buffer protocol
-    Buffer(::bytes::Bytes),
+    Buffer(RyBuffer),
 }
 
 impl ReadableBuffer<'_, '_> {
     /// Return buffer as byte slice
     #[inline]
+    #[must_use]
     pub fn as_slice(&self) -> &[u8] {
         self.as_ref()
     }
 
     /// Return buffer length
     #[inline]
+    #[must_use]
     pub fn len(&self) -> usize {
         self.as_slice().len()
     }
 
     #[inline]
     /// Return `true` if buffer is empty
+    #[must_use]
     pub fn is_empty(&self) -> bool {
         self.len() == 0
     }
 
     /// Copy buffer into a new `bytes::Bytes` instance (always allocates)
     #[inline]
+    #[must_use]
     pub fn copy_to_bytes(&self) -> bytes::Bytes {
         bytes::Bytes::copy_from_slice(self.as_slice())
     }
 
     /// Convert to `bytes::Bytes`, potentially zero-copy (cheap clone and refcount bump)
     #[inline]
+    #[must_use]
     pub fn to_bytes(&self) -> bytes::Bytes {
         match self {
             ReadableBuffer::PyBytes(pb) => {
@@ -52,13 +57,14 @@ impl ReadableBuffer<'_, '_> {
                 let rbb: &bytes::Bytes = rb.get().as_ref();
                 rbb.clone()
             }
-            ReadableBuffer::Buffer(b) => b.clone(),
+            ReadableBuffer::Buffer(b) => bytes::Bytes::copy_from_slice(b.as_ref()),
         }
     }
 
     /// Consume and convert to `bytes::Bytes`; same as `to_bytes` but moves
     /// the `Buffer` variant instead of cloning/ref-bumping it
     #[inline]
+    #[must_use]
     pub fn into_bytes(self) -> bytes::Bytes {
         match self {
             ReadableBuffer::PyBytes(pb) => {
@@ -69,18 +75,20 @@ impl ReadableBuffer<'_, '_> {
                 let rbb: &bytes::Bytes = rb.get().as_ref();
                 rbb.clone()
             }
-            ReadableBuffer::Buffer(b) => b,
+            ReadableBuffer::Buffer(b) => bytes::Bytes::from_owner(b),
         }
     }
 
     /// Convert to `ryo3-bytes::RyBytes`, potentially zero-copy (cheap clone and refcount bump)
     #[inline]
+    #[must_use]
     pub fn to_rybytes(&self) -> RyBytes {
         RyBytes::new(self.to_bytes())
     }
 
     /// Consume and convert to `ryo3-bytes::RyBytes` (see `into_bytes`)
     #[inline]
+    #[must_use]
     pub fn into_rybytes(self) -> RyBytes {
         RyBytes::new(self.into_bytes())
     }
@@ -115,12 +123,12 @@ impl<'a, 'py> FromPyObject<'a, 'py> for ReadableBuffer<'a, 'py> {
                 ob.cast_unchecked::<RyBytes>()
             };
             Ok(Self::RyBytes(rybytes))
-        } else if let Ok(buffer) = ob.extract::<RyBuffer>() {
-            Ok(Self::Buffer(::bytes::Bytes::from_owner(buffer)))
         } else {
-            Err(pyo3::exceptions::PyTypeError::new_err(
-                "Expected bytes, bytearray, or buffer-protocol object",
-            ))
+            // errors:
+            // - if not bytes-like: `TypeError` ( from cpython)
+            // - not C-contiguous: `BufferError`
+            // - 0-d bufs: `BufferError` (pyo3 errs on null shape/strides)
+            Ok(Self::Buffer(ob.extract::<RyBuffer>()?))
         }
     }
 }
@@ -163,6 +171,7 @@ impl<const N: usize> ExactReadableBuffer<'_, '_, N> {
     ///
     /// Panics if the buffer length is not exactly `N` bytes, but this should
     /// never happen because the constructor checks the length, but wenodis.
+    #[must_use]
     pub fn as_array(&self) -> &[u8; N] {
         self.0.as_ref().try_into().expect("wenodis: length-checked")
     }
