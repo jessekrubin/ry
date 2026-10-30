@@ -308,9 +308,11 @@ from ry.ryo3._walkdir import walkdir as walkdir
 from ry.ryo3._which import which as which
 from ry.ryo3._which import which_all as which_all
 from ry.ryo3._which import which_re as which_re
+from ry.ryo3._zstd import ZSTD_VERSION as ZSTD_VERSION
+from ry.ryo3._zstd import ZSTD_VERSION_INFO as ZSTD_VERSION_INFO
 from ry.ryo3._zstd import is_zstd as is_zstd
 from ry.ryo3._zstd import zstd_compress as zstd_compress
-from ry.ryo3._zstd import zstd_decode as zstd_decode
+from ry.ryo3._zstd import zstd_decode as zstd_decode  # type: ignore[deprecated]  # ty: ignore[deprecated]
 from ry.ryo3._zstd import zstd_decompress as zstd_decompress
-from ry.ryo3._zstd import zstd_encode as zstd_encode
+from ry.ryo3._zstd import zstd_encode as zstd_encode  # type: ignore[deprecated]  # ty: ignore[deprecated]
 from ry.ryo3.JSON import stringify as stringify
