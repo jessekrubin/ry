@@ -2,6 +2,31 @@
 
 thinking out loud...
 
+---
+
+## `ryo3-bzip2` deprecated [2026-10-30]
+
+The `ryo3-bzip2` crate has been deprecated (removal `v0.0.109`).
+
+- Benchmarks showed no real performance gain over the standard library's `bz2`
+  module; `ryo3-bzip2` ties `bz2` on large inputs and is dramatically slower on
+  small ones.
+  - NOTE: this is NOT the case w/ `ry`'s gzip support (`ryo3-flate2`), which is
+    2ish times faster than the stdlib on most real data.
+- I (jesse) have not really needed bzip2 for anything.
+- I don't want another thing to manage that I am not using.
+
+**MIGRATION:**
+
+- `import bz2`
+- `ry.bzip2_encode`/`ry.bzip2` -> `bz2.compress`
+- `ry.bzip2_decode` -> `bz2.decompress`
+
+**IF YOU OR SOMEONE YOU LOVE WANTS BZIP2 SUPPORT,
+[LET ME KNOW](https://github.com/jessekrubin/ry/issues)! I WILL RECONSIDER.**
+
+---
+
 ## staticmethod vs classmethod [2025-08-28]
 
 Nowhere in ry are any of the `classmethod` functions actually used as
