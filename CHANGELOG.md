@@ -37,6 +37,19 @@
     - `brotli_encode` -> `brotli_compress`
     - `brotli` -> `brotli_compress`
     - `brotli_decode` -> `brotli_decompress`
+- `ryo3-bzip2` (deprecated `v0.0.109`)
+  - **DEPRECATED**: the `ryo3-bzip2` crate is deprecated; the rational is:
+    - Benchmarking `ryo3-bzip2` against the cpython's stdlib `bz2` module showed
+      no performance gain
+    - I (jesse) haven't really needed bzip2 compression for anything
+    - (IIRC) it was only ever added because it seemed easy and I was probably in
+      a fugue-state
+    - **IF YOU OR SOMEONE YOU LOVE WANT RY TO SUPPORT BZIP2, OPEN AN ISSUE!**
+      un-deprecating it would be be easy and I have no strong feelings on it.
+  - Added deprecation warnings to:
+    - `ry.bzip2`
+    - `ry.bzip2_encode`
+    - `ry.bzip2_decode`
 - `ryo3-zstd`
   - error messages are now `zstd compress error: ...`
   - new:

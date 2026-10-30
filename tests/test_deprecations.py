@@ -1,3 +1,4 @@
+import bz2
 import re
 import warnings
 
@@ -168,6 +169,42 @@ class TestBrotliDeprecations:
             ),
         ):
             ry.brotli_encode(b"data", quality=12)  # type: ignore[arg-type,deprecated]  # ty:ignore[invalid-argument-type, deprecated]
+
+
+class TestBzip2Deprecations:
+    """bzip2 et al fns are deprecated in favor of python std lib"""
+
+    _DATA = b"XXXXXXXXXXYYYYYYYYYY"
+
+    @pytest.mark.parametrize("old", ["bzip2_encode", "bzip2"])
+    def test_compress_aliases(self, old: str) -> None:
+        msg = _deprecation_message(old, "bz2.compress", "v0.0.109")
+        with pytest.warns(DeprecationWarning, match=msg):
+            assert getattr(ry, old)(self._DATA) == bz2.compress(self._DATA, 6)
+        with pytest.warns(DeprecationWarning, match=msg):
+            assert getattr(ry, old)(self._DATA, 9) == bz2.compress(self._DATA, 9)
+        with pytest.warns(DeprecationWarning, match=msg):
+            assert getattr(ry, old)(self._DATA, quality="fast") == bz2.compress(
+                self._DATA, 1
+            )
+
+    def test_decompress_alias(self) -> None:
+        compressed = bz2.compress(self._DATA)
+        with pytest.warns(
+            DeprecationWarning,
+            match=_deprecation_message("bzip2_decode", "bz2.decompress", "v0.0.109"),
+        ):
+            assert ry.bzip2_decode(compressed) == bz2.decompress(compressed)  # type: ignore[deprecated]  # ty:ignore[deprecated]
+
+    def test_quality_value_error(self) -> None:
+        with (
+            pytest.warns(
+                DeprecationWarning,
+                match=_deprecation_message("bzip2_encode", "bz2.compress", "v0.0.109"),
+            ),
+            pytest.raises(ValueError, match="Invalid compression level"),
+        ):
+            ry.bzip2_encode(b"data", quality=10)  # type: ignore[arg-type,deprecated]  # ty:ignore[invalid-argument-type, deprecated]
 
 
 class TestZstdDeprecations:

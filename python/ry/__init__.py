@@ -136,9 +136,9 @@ from ry.ryo3 import (  # type: ignore[deprecated]
     brotli_decode,  # pyrefly: ignore[deprecated]  # ty: ignore[deprecated]
     brotli_decompress,
     brotli_encode,  # pyrefly: ignore[deprecated]  # ty: ignore[deprecated]
-    bzip2,
-    bzip2_decode,
-    bzip2_encode,
+    bzip2,  # pyrefly: ignore[deprecated]  # ty: ignore[deprecated]
+    bzip2_decode,  # pyrefly: ignore[deprecated]  # ty: ignore[deprecated]
+    bzip2_encode,  # pyrefly: ignore[deprecated]  # ty: ignore[deprecated]
     cache_dir,
     camel_case,
     canonicalize,

@@ -8,27 +8,32 @@ import pytest
 import ry
 from ry._types import Buffer
 
+# DEPRECATED `ryo3-bzip2`
+pytestmark = pytest.mark.filterwarnings(
+    r"ignore:`bzip2\w*` is deprecated:DeprecationWarning"
+)
+
 
 def test_10x10y_bzip2_round_trip() -> None:
     input_data = b"XXXXXXXXXXYYYYYYYYYY"
-    output_data = ry.bzip2_encode(input_data)
-    output_alias = ry.bzip2(input_data)
+    output_data = ry.bzip2_encode(input_data)  # type: ignore[deprecated]  # ty:ignore[deprecated]
+    output_alias = ry.bzip2(input_data)  # type: ignore[deprecated]  # ty:ignore[deprecated]
     assert output_data == output_alias
     assert output_data is not None
-    decoded = ry.bzip2_decode(output_data)
+    decoded = ry.bzip2_decode(output_data)  # type: ignore[deprecated]  # ty:ignore[deprecated]
     assert decoded == input_data
 
 
 def test_bzip2_compression_level() -> None:
     input_data = b"XXXXXXXXXXYYYYYYYYYY"
-    output_data = ry.bzip2_encode(input_data, 1)
+    output_data = ry.bzip2_encode(input_data, 1)  # type: ignore[deprecated]  # ty:ignore[deprecated]
     assert output_data is not None
-    decoded = ry.bzip2_decode(output_data)
+    decoded = ry.bzip2_decode(output_data)  # type: ignore[deprecated]  # ty:ignore[deprecated]
     assert decoded == input_data
 
-    output_data_c9 = ry.bzip2_encode(input_data, 9)
+    output_data_c9 = ry.bzip2_encode(input_data, 9)  # type: ignore[deprecated]  # ty:ignore[deprecated]
     assert output_data_c9 is not None
-    decoded = ry.bzip2_decode(output_data_c9)
+    decoded = ry.bzip2_decode(output_data_c9)  # type: ignore[deprecated]  # ty:ignore[deprecated]
     assert decoded == input_data
     assert output_data_c9 != output_data
 
@@ -43,7 +48,7 @@ _BzipEncodeFn: t.TypeAlias = t.Callable[
 
 
 @pytest.mark.parametrize("quality", [*range(1, 10), "best", "fast"])
-@pytest.mark.parametrize("bzfn", [ry.bzip2_encode, ry.bzip2])
+@pytest.mark.parametrize("bzfn", [ry.bzip2_encode, ry.bzip2])  # type: ignore[deprecated]  # ty:ignore[deprecated]
 def test_bzip2_compression_quality(
     quality: t.Literal[1, 2, 3, 4, 5, 6, 7, 8, 9, "best", "fast"],
     bzfn: _BzipEncodeFn,
@@ -52,7 +57,7 @@ def test_bzip2_compression_quality(
     output_data = bzfn(input_data, quality)
     assert output_data is not None
     assert isinstance(output_data, ry.Bytes)
-    decoded = ry.bzip2_decode(output_data)
+    decoded = ry.bzip2_decode(output_data)  # type: ignore[deprecated]  # ty:ignore[deprecated]
     assert decoded == input_data
 
 
@@ -60,14 +65,14 @@ def test_bzip2_compression_quality(
 def test_bzip2_compression_level_invalid(quality: str | float | None) -> None:
     _match = "Invalid compression level; valid levels are int 1..=9 or string 'fast' or 'best'"
     with pytest.raises(ValueError, match=_match):
-        ry.bzip2_encode(b"data", quality=quality)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
+        ry.bzip2_encode(b"data", quality=quality)  # type: ignore[arg-type,deprecated]  # ty:ignore[invalid-argument-type, deprecated]
     with pytest.raises(ValueError, match=_match):
-        ry.bzip2(b"data", quality=quality)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
+        ry.bzip2(b"data", quality=quality)  # type: ignore[arg-type,deprecated]  # ty:ignore[invalid-argument-type, deprecated]
 
 
 def test_bzip2_decompress() -> None:
     _10x_10y_compressed = bz2.compress(b"XXXXXXXXXXYYYYYYYYYY")
-    decoded = ry.bzip2_decode(_10x_10y_compressed)
+    decoded = ry.bzip2_decode(_10x_10y_compressed)  # type: ignore[deprecated]  # ty:ignore[deprecated]
     assert decoded == b"XXXXXXXXXXYYYYYYYYYY"
 
 
@@ -75,7 +80,7 @@ def test_ry_vs_stdlib_bzip2_compress() -> None:
     input_data = b"XXXXXXXXXXYYYYYYYYYY"
 
     # Compress with ry.bzip2_encode
-    ry_compressed = ry.bzip2_encode(input_data)
+    ry_compressed = ry.bzip2_encode(input_data)  # type: ignore[deprecated]  # ty:ignore[deprecated]
     assert ry_compressed is not None
 
     # Decompress with stdlib bz2
@@ -91,7 +96,7 @@ def test_ry_vs_stdlib_bzip2_decompress() -> None:
     assert stdlib_compressed is not None
 
     # Decompress with ry.bzip2_decode
-    ry_decompressed = ry.bzip2_decode(stdlib_compressed)
+    ry_decompressed = ry.bzip2_decode(stdlib_compressed)  # type: ignore[deprecated]  # ty:ignore[deprecated]
     assert ry_decompressed == input_data
 
 
@@ -99,7 +104,7 @@ def test_bzip2_cross_compatibility() -> None:
     input_data = b"Cross compatibility test string."
 
     # Compress with ry.bzip2_encode
-    ry_compressed = ry.bzip2_encode(input_data)
+    ry_compressed = ry.bzip2_encode(input_data)  # type: ignore[deprecated]  # ty:ignore[deprecated]
     assert ry_compressed is not None
 
     # Decompress with stdlib bz2
@@ -111,5 +116,5 @@ def test_bzip2_cross_compatibility() -> None:
     assert stdlib_compressed is not None
 
     # Decompress with ry.bzip2_decode
-    ry_decompressed = ry.bzip2_decode(stdlib_compressed)
+    ry_decompressed = ry.bzip2_decode(stdlib_compressed)  # type: ignore[deprecated]  # ty:ignore[deprecated]
     assert ry_decompressed == input_data
