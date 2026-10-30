@@ -2638,7 +2638,6 @@ dependencies = [
  "pyo3",
  "ryo3-bytes",
  "zstd",
- "zstd-safe",
 ]
 
 [[package]]

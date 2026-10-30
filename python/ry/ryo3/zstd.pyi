@@ -1,38 +1,54 @@
-"""ryo3-zstd types"""
+"""ry.zstd submodule ~ DEPRECATED, remove in v0.0.109
 
-import typing as t
+use the flat `ry.zstd_compress` / `ry.zstd_decompress` / `ry.is_zstd` /
+`ry.ZSTD_VERSION` / `ry.ZSTD_VERSION_INFO` instead
+"""
+
+import sys
 
 from ry import Bytes
 from ry._types import Buffer
+from ry.ryo3._zstd import _ZstdLevel
 
-__zstd_version__: str  # zstd version string ("1.5.7" as of 2025-03-14)
-BLOCKSIZELOG_MAX: int
-BLOCKSIZE_MAX: int
-CLEVEL_DEFAULT: int  # default=3 (as of 2025-03-14)
-CONTENTSIZE_ERROR: int
-CONTENTSIZE_UNKNOWN: int
-MAGICNUMBER: int
-MAGIC_DICTIONARY: int
-MAGIC_SKIPPABLE_MASK: int
-MAGIC_SKIPPABLE_START: int
-VERSION_MAJOR: int
-VERSION_MINOR: int
-VERSION_NUMBER: int
-VERSION_RELEASE: int
+if sys.version_info >= (3, 13):
+    from warnings import deprecated
+else:
+    from typing_extensions import deprecated
 
-_ZstdQuality: t.TypeAlias = t.Literal[
-    1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22
-]
+# deprecated constants ~ they warn at runtime (served by a module
+# `__getattr__`), but variables can't be marked `@deprecated` in stubs
+__zstd_version__: str  # -> `ry.ZSTD_VERSION`
+BLOCKSIZELOG_MAX: int  # no replacement
+BLOCKSIZE_MAX: int  # no replacement
+CLEVEL_DEFAULT: int  # -> `ry.zstd_compress` default `level=3`
+CONTENTSIZE_ERROR: int  # no replacement
+CONTENTSIZE_UNKNOWN: int  # no replacement
+MAGICNUMBER: int  # -> `ry.is_zstd`
+MAGIC_DICTIONARY: int  # no replacement
+MAGIC_SKIPPABLE_MASK: int  # no replacement
+MAGIC_SKIPPABLE_START: int  # no replacement
+VERSION_MAJOR: int  # -> `ry.ZSTD_VERSION_INFO`
+VERSION_MINOR: int  # -> `ry.ZSTD_VERSION_INFO`
+VERSION_NUMBER: int  # -> `ry.ZSTD_VERSION_INFO`
+VERSION_RELEASE: int  # -> `ry.ZSTD_VERSION_INFO`
 
-# __COMPRESSION__
-def compress(data: Buffer, level: _ZstdQuality = 3) -> Bytes: ...
-def encode(data: Buffer, level: _ZstdQuality = 3) -> Bytes: ...
-def zstd(data: Buffer, level: _ZstdQuality = 3) -> Bytes: ...
-
-# __DECOMPRESSION__
-def decode(data: Buffer) -> Bytes: ...
+@deprecated(
+    "`ry.zstd.compress` is deprecated; use `ry.zstd_compress` instead [removal: v0.0.109]"
+)
+def compress(data: Buffer, level: _ZstdLevel = 3) -> Bytes: ...
+@deprecated(
+    "`ry.zstd.decompress` is deprecated; use `ry.zstd_decompress` instead [removal: v0.0.109]"
+)
 def decompress(data: Buffer) -> Bytes: ...
+@deprecated(
+    "`ry.zstd.decode` is deprecated; use `ry.zstd_decompress` instead [removal: v0.0.109]"
+)
+def decode(data: Buffer) -> Bytes: ...
+@deprecated(
+    "`ry.zstd.unzstd` is deprecated; use `ry.zstd_decompress` instead [removal: v0.0.109]"
+)
 def unzstd(data: Buffer) -> Bytes: ...
-
-# __MAGIC__
+@deprecated(
+    "`ry.zstd.is_zstd` is deprecated; use `ry.is_zstd` instead [removal: v0.0.109]"
+)
 def is_zstd(data: Buffer) -> bool: ...
