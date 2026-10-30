@@ -1,7 +1,10 @@
 #![doc = include_str!("../README.md")]
 mod gz;
-pub use gz::*;
-use pyo3::prelude::*;
+pub use gz::{
+    gunzip, gzip, gzip_compress, gzip_decode, gzip_decompress, gzip_encode, is_gzip, is_gzipped,
+};
+use pyo3::types::{PyModule, PyModuleMethods};
+use pyo3::{Bound, PyResult, wrap_pyfunction};
 mod compression;
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {

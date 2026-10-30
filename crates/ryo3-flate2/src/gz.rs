@@ -1,31 +1,30 @@
-use std::cell::RefCell;
-use std::io;
+use std::{cell, io};
 
-use flate2::{Compress, Compression, Decompress, FlushCompress, FlushDecompress, Status};
 use pyo3::prelude::*;
 use ryo3_bytes::{ReadableBuffer, RyBytes};
 
 use crate::compression::PyCompression;
 
 struct GzEncoderCache {
-    level: Compression,
-    encoder: Compress,
+    level: flate2::Compression,
+    encoder: flate2::Compress,
 }
 
 impl GzEncoderCache {
-    fn new(level: Compression) -> Self {
+    fn new(level: flate2::Compression) -> Self {
         Self {
             level,
-            encoder: Compress::new_gzip(level, 15),
+            encoder: flate2::Compress::new_gzip(level, 15),
         }
     }
 }
 
+type GzEncoderCacheRef = cell::RefCell<Option<GzEncoderCache>>;
 thread_local! {
     // reuse the deflate state (~256kb); this is a trick I used somewhere else
     // in my life but I am not sure if it actually helps? i imagine it would
     // IIRC: I was doing this w/ zstd somewhere else
-    static GZ_ENCODER: RefCell<Option<GzEncoderCache>> = const { RefCell::new(None) };
+    static GZ_ENCODER: GzEncoderCacheRef = const { cell::RefCell::new(None) };
 }
 
 /// computes the initial capacity for the compressed output based on the input
@@ -39,7 +38,7 @@ fn compress_capacity(len: usize) -> usize {
 }
 
 #[expect(clippy::cast_possible_truncation)]
-fn gzip_compress_impl(data: &[u8], level: Compression) -> PyResult<Vec<u8>> {
+fn gzip_compress_impl(data: &[u8], level: flate2::Compression) -> PyResult<Vec<u8>> {
     GZ_ENCODER.with_borrow_mut(|cached| {
         let encoder = match cached {
             Some(cache) if cache.level == level => {
@@ -54,10 +53,10 @@ fn gzip_compress_impl(data: &[u8], level: Compression) -> PyResult<Vec<u8>> {
             .compress_vec(
                 &data[encoder.total_in() as usize..],
                 &mut out,
-                FlushCompress::Finish,
+                flate2::FlushCompress::Finish,
             )
             .map_err(io::Error::other)?
-            != Status::StreamEnd
+            != flate2::Status::StreamEnd
         {
             out.reserve(out.capacity());
         }
@@ -79,16 +78,16 @@ fn gzip_decompress_impl(data: &[u8]) -> PyResult<Vec<u8>> {
     let size_hint = usize::try_from(size_hint_u32)
         .map_err(|_| io::Error::new(io::ErrorKind::InvalidData, "invalid size hint"))?;
     let mut out = Vec::with_capacity(size_hint.min(data.len().saturating_mul(1032)).max(64));
-    let mut gz_decoder = Decompress::new_gzip(15);
+    let mut gz_decoder = flate2::Decompress::new_gzip(15);
     loop {
         let status = gz_decoder
             .decompress_vec(
                 &data[gz_decoder.total_in() as usize..],
                 &mut out,
-                FlushDecompress::Finish,
+                flate2::FlushDecompress::Finish,
             )
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-        if status == Status::StreamEnd {
+        if status == flate2::Status::StreamEnd {
             return Ok(out);
         }
         if out.len() < out.capacity() {

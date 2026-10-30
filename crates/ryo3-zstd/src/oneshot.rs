@@ -1,25 +1,48 @@
+use std::cell;
+
 use pyo3::prelude::*;
 use ryo3_bytes::{ReadableBuffer, RyBytes};
-use zstd::zstd_safe;
+use zstd::{bulk as zbulk, zstd_safe};
 
 use crate::compression_level::PyCompressionLevel;
 
 /// Max bulk decompressed size before flip flopping to use the stream decompression path
 const MAX_PREALLOC: u64 = 64 * 1024 * 1024;
 
+type ZstdCompressorCache = cell::RefCell<Option<zbulk::Compressor<'static>>>;
+thread_local! {
+    static ZSTD_COMPRESSOR: ZstdCompressorCache = const { cell::RefCell::new(None) };
+}
+
 fn zstd_compress_impl(data: &[u8], level: i32) -> PyResult<Vec<u8>> {
-    ::zstd::bulk::compress(data, level)
+    ZSTD_COMPRESSOR
+        .with_borrow_mut(|cached| match cached {
+            Some(compressor) => {
+                compressor.set_compression_level(level)?;
+                compressor.compress(data)
+            }
+            None => cached.insert(zbulk::Compressor::new(level)?).compress(data),
+        })
         .map_err(|e| pyo3::exceptions::PyValueError::new_err(format!("zstd compress error: {e}")))
+}
+
+type ZstdDecompressorCache = cell::RefCell<Option<zbulk::Decompressor<'static>>>;
+thread_local! {
+    static ZSTD_DECOMPRESSOR: ZstdDecompressorCache = const { cell::RefCell::new(None) };
 }
 
 fn zstd_decompress_impl(data: &[u8]) -> PyResult<Vec<u8>> {
     // detect decompressed size if available and use bulk for it
     match zstd_safe::find_decompressed_size(data) {
-        Ok(Some(size)) if size <= MAX_PREALLOC =>
-        {
+        // wow clippy-fixing this made it totally un readable...
+        Ok(Some(size)) if size <= MAX_PREALLOC => ZSTD_DECOMPRESSOR.with_borrow_mut(|cached| {
+            let decompressor = match cached {
+                Some(decompressor) => decompressor,
+                None => cached.insert(zbulk::Decompressor::new()?),
+            };
             #[expect(clippy::cast_possible_truncation)]
-            ::zstd::bulk::decompress(data, size as usize)
-        }
+            decompressor.decompress(data, size as usize)
+        }),
         _ => ::zstd::stream::decode_all(data),
     }
     .map_err(|e| pyo3::exceptions::PyValueError::new_err(format!("zstd decompress error: {e}")))
