@@ -15,8 +15,7 @@ description = "python + zstd (https://docs.rs/zstd/latest/zstd/)"
 [dependencies]
 pyo3 = { workspace = true, features = [] }
 ryo3-bytes.workspace = true
-zstd.workspace = true
-zstd-safe = { workspace = true, features = ["experimental"] }
+zstd = { workspace = true, features = ["experimental"] }
 
 [lints]
 workspace = true

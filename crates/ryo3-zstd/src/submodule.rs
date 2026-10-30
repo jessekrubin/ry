@@ -7,6 +7,7 @@ use pyo3::IntoPyObjectExt;
 use pyo3::exceptions::{PyAttributeError, PyDeprecationWarning};
 use pyo3::prelude::*;
 use ryo3_bytes::{ReadableBuffer, RyBytes};
+use zstd::zstd_safe;
 
 use crate::compression_level::PyCompressionLevel;
 use crate::oneshot;

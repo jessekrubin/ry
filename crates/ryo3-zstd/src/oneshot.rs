@@ -1,5 +1,6 @@
 use pyo3::prelude::*;
 use ryo3_bytes::{ReadableBuffer, RyBytes};
+use zstd::zstd_safe;
 
 use crate::compression_level::PyCompressionLevel;
 
@@ -13,7 +14,7 @@ fn zstd_compress_impl(data: &[u8], level: i32) -> PyResult<Vec<u8>> {
 
 fn zstd_decompress_impl(data: &[u8]) -> PyResult<Vec<u8>> {
     // detect decompressed size if available and use bulk for it
-    match ::zstd_safe::find_decompressed_size(data) {
+    match zstd_safe::find_decompressed_size(data) {
         Ok(Some(size)) if size <= MAX_PREALLOC =>
         {
             #[expect(clippy::cast_possible_truncation)]

@@ -1,4 +1,5 @@
 use pyo3::prelude::*;
+use zstd::zstd_safe;
 
 use crate::oneshot;
 

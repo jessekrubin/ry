@@ -215,7 +215,6 @@ walkdir = { version = "2.5.0", default-features = false, features = [] }
 which = { version = "8.0.2", default-features = false, features = [] }
 zmij = { version = "1.0.23", default-features = false }
 zstd = { version = "0.14.2", default-features = false, features = [] }
-zstd-safe = { version = "8.1.0", default-features = false, features = [] }
 
 [workspace.lints.rust]
 missing_copy_implementations = "warn"
@@ -289,11 +288,11 @@ tracing-log = { workspace = true }
 tracing-subscriber = { workspace = true }
 
 [build-dependencies]
-jiff.workspace = true
-pyo3-build-config.workspace = true
 # cc >= 1.9 + sccache < 0.19 breaks msvc
 # REF: https://github.com/jessekrubin/ry/issues/915
 cc = "=1.8.0"
+jiff.workspace = true
+pyo3-build-config.workspace = true
 
 [lints]
 workspace = true
