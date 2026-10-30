@@ -168,3 +168,67 @@ class TestBrotliDeprecations:
             ),
         ):
             ry.brotli_encode(b"data", quality=12)  # type: ignore[arg-type,deprecated]  # ty:ignore[invalid-argument-type, deprecated]
+
+
+class TestZstdDeprecations:
+    """flat aliases + the whole `ry.zstd` submodule -> flat `ry.zstd_*`"""
+
+    _DATA = b"XXXXXXXXXXYYYYYYYYYY"
+
+    def test_zstd_encode(self) -> None:
+        msg = _deprecation_message("zstd_encode", "zstd_compress", "v0.0.109")
+        expected = ry.zstd_compress(self._DATA, 9)
+        with pytest.warns(DeprecationWarning, match=msg):
+            assert ry.zstd_encode(self._DATA, 9) == expected  # type: ignore[deprecated]  # ty:ignore[deprecated]
+        with pytest.warns(DeprecationWarning, match=msg):
+            assert ry.zstd_encode(self._DATA, level=9) == expected  # type: ignore[deprecated]  # ty:ignore[deprecated]
+
+    def test_zstd_decode(self) -> None:
+        compressed = ry.zstd_compress(self._DATA)
+        with pytest.warns(
+            DeprecationWarning,
+            match=_deprecation_message("zstd_decode", "zstd_decompress", "v0.0.109"),
+        ):
+            assert ry.zstd_decode(compressed) == self._DATA  # type: ignore[deprecated]  # ty:ignore[deprecated]
+
+    @pytest.mark.parametrize(
+        ("old", "new"),
+        [
+            ("decompress", "zstd_decompress"),
+            ("decode", "zstd_decompress"),
+            ("unzstd", "zstd_decompress"),
+            ("is_zstd", "is_zstd"),
+        ],
+    )
+    def test_submodule_functions(self, old: str, new: str) -> None:
+        compressed = ry.zstd_compress(self._DATA)
+        with pytest.warns(
+            DeprecationWarning,
+            match=_deprecation_message(f"ry.zstd.{old}", f"ry.{new}", "v0.0.109"),
+        ):
+            assert getattr(ry.zstd, old)(compressed) == getattr(ry, new)(compressed)
+
+    def test_submodule_compress(self) -> None:
+        with pytest.warns(
+            DeprecationWarning,
+            match=_deprecation_message(
+                "ry.zstd.compress", "ry.zstd_compress", "v0.0.109"
+            ),
+        ):
+            assert ry.zstd.compress(self._DATA, 9) == ry.zstd_compress(self._DATA, 9)  # type: ignore[deprecated]  # ty:ignore[deprecated]
+
+    @pytest.mark.parametrize(
+        "py_expr",
+        ["from ry import zstd", "import ry.zstd", "from ry.ryo3 import zstd"],
+    )
+    def test_submodule_still_importable(self, py_expr: str) -> None:
+        import subprocess as sp
+        import sys
+
+        result = sp.run(
+            [sys.executable, "-W", "error::DeprecationWarning", "-c", py_expr],
+            capture_output=True,
+            text=True,
+        )
+        # importing alone doesn't warn; only using the old names does
+        assert result.returncode == 0, result.stderr

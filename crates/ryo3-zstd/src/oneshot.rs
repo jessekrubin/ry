@@ -3,14 +3,25 @@ use ryo3_bytes::{ReadableBuffer, RyBytes};
 
 use crate::compression_level::PyCompressionLevel;
 
+/// Max bulk decompressed size before flip flopping to use the stream decompression path
+const MAX_PREALLOC: u64 = 64 * 1024 * 1024;
+
 fn zstd_compress_impl(data: &[u8], level: i32) -> PyResult<Vec<u8>> {
     ::zstd::bulk::compress(data, level)
-        .map_err(|e| pyo3::exceptions::PyValueError::new_err(format!("zstd-encode-error: {e:?}")))
+        .map_err(|e| pyo3::exceptions::PyValueError::new_err(format!("zstd compress error: {e}")))
 }
 
 fn zstd_decompress_impl(data: &[u8]) -> PyResult<Vec<u8>> {
-    ::zstd::stream::decode_all(data)
-        .map_err(|e| pyo3::exceptions::PyValueError::new_err(format!("zstd-decode-error: {e:?}")))
+    // detect decompressed size if available and use bulk for it
+    match ::zstd_safe::find_decompressed_size(data) {
+        Ok(Some(size)) if size <= MAX_PREALLOC =>
+        {
+            #[expect(clippy::cast_possible_truncation)]
+            ::zstd::bulk::decompress(data, size as usize)
+        }
+        _ => ::zstd::stream::decode_all(data),
+    }
+    .map_err(|e| pyo3::exceptions::PyValueError::new_err(format!("zstd decompress error: {e}")))
 }
 
 #[expect(clippy::needless_pass_by_value)]
