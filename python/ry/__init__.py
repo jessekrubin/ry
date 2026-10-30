@@ -42,6 +42,8 @@ from ry.ryo3 import (  # type: ignore[deprecated]
     USIZE_MAX,
     USIZE_MIN,
     UUID,
+    ZSTD_VERSION,
+    ZSTD_VERSION_INFO,
     AsyncFile,
     AsyncFileReadStream,
     BlockingClient,
@@ -297,9 +299,9 @@ from ry.ryo3 import (  # type: ignore[deprecated]
     zoned,
     zstd,
     zstd_compress,
-    zstd_decode,
+    zstd_decode,  # pyrefly: ignore[deprecated]  # ty: ignore[deprecated]
     zstd_decompress,
-    zstd_encode,
+    zstd_encode,  # pyrefly: ignore[deprecated]  # ty: ignore[deprecated]
 )
 
 __all__ = (
@@ -343,6 +345,8 @@ __all__ = (
     "USIZE_MAX",
     "USIZE_MIN",
     "UUID",
+    "ZSTD_VERSION",
+    "ZSTD_VERSION_INFO",
     "AsyncFile",
     "AsyncFileReadStream",
     "BlockingClient",
