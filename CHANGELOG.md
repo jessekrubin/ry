@@ -29,6 +29,14 @@
     - `gzip_decode` -> `gzip_decompress`
     - `gunzip` -> `gzip_decompress`
     - `is_gzipped` -> `is_gzip`
+- `ryo3-brotli`
+  - new:
+    - `brotli_compress(data, /, level=11, *, magic_number=False)`
+    - `brotli_decompress(data, /)`
+  - deprecated (`[removal: v0.0.109]`)
+    - `brotli_encode` -> `brotli_compress`
+    - `brotli` -> `brotli_compress`
+    - `brotli_decode` -> `brotli_decompress`
 
 ---
 

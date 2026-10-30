@@ -26,9 +26,11 @@ from ry.ryo3._aws_lc import sha256 as sha256
 from ry.ryo3._aws_lc import sha384 as sha384
 from ry.ryo3._aws_lc import sha512 as sha512
 from ry.ryo3._aws_lc import sha512_256 as sha512_256
-from ry.ryo3._brotli import brotli as brotli
-from ry.ryo3._brotli import brotli_decode as brotli_decode
-from ry.ryo3._brotli import brotli_encode as brotli_encode
+from ry.ryo3._brotli import brotli as brotli  # type: ignore[deprecated]  # ty: ignore[deprecated]
+from ry.ryo3._brotli import brotli_compress as brotli_compress
+from ry.ryo3._brotli import brotli_decode as brotli_decode  # type: ignore[deprecated]  # ty: ignore[deprecated]
+from ry.ryo3._brotli import brotli_decompress as brotli_decompress
+from ry.ryo3._brotli import brotli_encode as brotli_encode  # type: ignore[deprecated]  # ty: ignore[deprecated]
 from ry.ryo3._bytes import Bytes as Bytes
 from ry.ryo3._bzip2 import bzip2 as bzip2
 from ry.ryo3._bzip2 import bzip2_decode as bzip2_decode
