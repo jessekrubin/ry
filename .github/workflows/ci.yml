@@ -36,8 +36,8 @@ jobs:
             target: x86_64
             manylinux: auto
             features: "mimalloc"
-          # ubuntu-26.04's docker 29.4.2 blocks something funky 
-          # SO... no dns in i686 containers 
+          # ubuntu-26.04's docker 29.4.2 blocks something funky
+          # SO... no dns in i686 containers
           # https://github.com/actions/runner-images/issues/14790
           - runner: ubuntu-24.04
             target: x86

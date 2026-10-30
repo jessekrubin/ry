@@ -1,22 +1,20 @@
 use pyo3::prelude::*;
+use zstd::zstd_safe;
 
-use crate::{constants, oneshot};
-
-pub fn pysubmod_register(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    constants::pymod_add(m)?;
-    m.add_function(wrap_pyfunction!(oneshot::is_zstd, m)?)?;
-    m.add_function(wrap_pyfunction!(oneshot::compress, m)?)?;
-    m.add_function(wrap_pyfunction!(oneshot::decode, m)?)?;
-    m.add_function(wrap_pyfunction!(oneshot::decompress, m)?)?;
-    m.add_function(wrap_pyfunction!(oneshot::unzstd, m)?)?;
-    Ok(())
-}
+use crate::oneshot;
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
+    let version = zstd_safe::version_number();
+    m.add("ZSTD_VERSION", zstd_safe::version_string())?;
+    m.add(
+        "ZSTD_VERSION_INFO",
+        (version / 10_000, (version / 100) % 100, version % 100),
+    )?;
+    m.add_function(wrap_pyfunction!(oneshot::zstd_compress, m)?)?;
+    m.add_function(wrap_pyfunction!(oneshot::zstd_decompress, m)?)?;
     m.add_function(wrap_pyfunction!(oneshot::is_zstd, m)?)?;
+    // deprecated ~ remove in v0.0.109
     m.add_function(wrap_pyfunction!(oneshot::zstd_decode, m)?)?;
     m.add_function(wrap_pyfunction!(oneshot::zstd_encode, m)?)?;
-    m.add_function(wrap_pyfunction!(oneshot::zstd_decompress, m)?)?;
-    m.add_function(wrap_pyfunction!(oneshot::zstd_compress, m)?)?;
     Ok(())
 }

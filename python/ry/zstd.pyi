@@ -12,11 +12,11 @@ from ry.ryo3.zstd import VERSION_MINOR as VERSION_MINOR
 from ry.ryo3.zstd import VERSION_NUMBER as VERSION_NUMBER
 from ry.ryo3.zstd import VERSION_RELEASE as VERSION_RELEASE
 from ry.ryo3.zstd import __zstd_version__ as __zstd_version__
-from ry.ryo3.zstd import compress as compress
-from ry.ryo3.zstd import decode as decode
-from ry.ryo3.zstd import decompress as decompress
-from ry.ryo3.zstd import is_zstd as is_zstd
-from ry.ryo3.zstd import unzstd as unzstd
+from ry.ryo3.zstd import compress as compress  # type: ignore[deprecated]  # ty: ignore[deprecated]  # pyrefly: ignore[deprecated]
+from ry.ryo3.zstd import decode as decode  # type: ignore[deprecated]  # ty: ignore[deprecated]  # pyrefly: ignore[deprecated]
+from ry.ryo3.zstd import decompress as decompress  # type: ignore[deprecated]  # ty: ignore[deprecated]  # pyrefly: ignore[deprecated]
+from ry.ryo3.zstd import is_zstd as is_zstd  # type: ignore[deprecated]  # ty: ignore[deprecated]  # pyrefly: ignore[deprecated]
+from ry.ryo3.zstd import unzstd as unzstd  # type: ignore[deprecated]  # ty: ignore[deprecated]  # pyrefly: ignore[deprecated]
 
 __all__ = (
     "BLOCKSIZELOG_MAX",

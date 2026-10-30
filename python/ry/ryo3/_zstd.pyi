@@ -1,15 +1,31 @@
-"""ry.ryo3 root level zstd exports"""
+"""ryo3-zstd ~ types"""
 
-from ry.ryo3.zstd import compress as zstd_compress
-from ry.ryo3.zstd import decode as zstd_decode
-from ry.ryo3.zstd import decompress as zstd_decompress
-from ry.ryo3.zstd import encode as zstd_encode
-from ry.ryo3.zstd import is_zstd as is_zstd
+import sys
+import typing as t
 
-__all__ = (
-    "is_zstd",
-    "zstd_compress",
-    "zstd_decode",
-    "zstd_decompress",
-    "zstd_encode",
+from ry import Bytes
+from ry._types import Buffer
+
+if sys.version_info >= (3, 13):
+    from warnings import deprecated
+else:
+    from typing_extensions import deprecated
+
+_ZstdLevel: t.TypeAlias = t.Literal[
+    1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22
+]
+
+ZSTD_VERSION: str  # "1.5.7" (c. 2026-10-29)
+ZSTD_VERSION_INFO: tuple[int, int, int]  # (1, 5, 7) (c. 2026-10-29)
+
+def zstd_compress(data: Buffer, /, level: _ZstdLevel = 3) -> Bytes: ...
+def zstd_decompress(data: Buffer, /) -> Bytes: ...
+def is_zstd(data: Buffer, /) -> bool: ...
+@deprecated(
+    "`zstd_encode` is deprecated; use `zstd_compress` instead [removal: v0.0.109]"
 )
+def zstd_encode(data: Buffer, level: _ZstdLevel = 3) -> Bytes: ...
+@deprecated(
+    "`zstd_decode` is deprecated; use `zstd_decompress` instead [removal: v0.0.109]"
+)
+def zstd_decode(data: Buffer) -> Bytes: ...

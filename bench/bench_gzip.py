@@ -28,7 +28,7 @@ _DATA = [
 ]
 
 _COMPRESSORS: list[tuple[str, Callable[[bytes], bytes]]] = [
-    ("ry", lambda data: bytes(ry.gzip_encode(data, quality=6))),
+    ("ry", lambda data: bytes(ry.gzip_compress(data, level=6))),
     ("stdlib", lambda data: gzip.compress(data, compresslevel=6)),
 ]
 
@@ -65,7 +65,7 @@ def test_bench_gzip_decompress(
 
     def _fn() -> bytes:
         if impl_name == "ry":
-            return bytes(ry.gzip_decode(compressed))
+            return bytes(ry.gzip_decompress(compressed))
         return gzip.decompress(compressed)
 
     decompressed = benchmark(_fn)

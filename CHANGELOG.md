@@ -18,6 +18,58 @@
   - non-buffer input raises `TypeError` from cpython
   - non-contiguous input raises `BufferError` instead of
     `TypeError`/`ValueError`
+- `ryo3-flate2`
+  - new:
+    - `gzip_compress(data, /, level=6)`
+    - `gzip_decompress(data, /)`
+    - `is_gzip(data, /)`
+  - deprecated (`[removal: v0.0.109]`)
+    - `gzip_encode` -> `gzip_compress`
+    - `gzip` -> `gzip_compress`
+    - `gzip_decode` -> `gzip_decompress`
+    - `gunzip` -> `gzip_decompress`
+    - `is_gzipped` -> `is_gzip`
+- `ryo3-brotli`
+  - new:
+    - `brotli_compress(data, /, level=11, *, magic_number=False)`
+    - `brotli_decompress(data, /)`
+  - deprecated (`[removal: v0.0.109]`)
+    - `brotli_encode` -> `brotli_compress`
+    - `brotli` -> `brotli_compress`
+    - `brotli_decode` -> `brotli_decompress`
+- `ryo3-bzip2` (deprecated `v0.0.109`)
+  - **DEPRECATED**: the `ryo3-bzip2` crate is deprecated; the rational is:
+    - Benchmarking `ryo3-bzip2` against the cpython's stdlib `bz2` module showed
+      no performance gain
+    - I (jesse) haven't really needed bzip2 compression for anything
+    - (IIRC) it was only ever added because it seemed easy and I was probably in
+      a fugue-state
+    - **IF YOU OR SOMEONE YOU LOVE WANT RY TO SUPPORT BZIP2, OPEN AN ISSUE!**
+      un-deprecating it would be be easy and I have no strong feelings on it.
+  - Added deprecation warnings to:
+    - `ry.bzip2`
+    - `ry.bzip2_encode`
+    - `ry.bzip2_decode`
+- `ryo3-zstd`
+  - error messages are now `zstd compress error: ...`
+  - new:
+    - `ZSTD_VERSION` (`str`)
+    - `ZSTD_VERSION_INFO` (`tuple[int, int, int]`)
+
+    - `zstd_compress(data, /, level=3)`
+    - `zstd_decompress(data, /)`
+    - `is_zstd(data, /)`
+  - deprecated (`[removal: v0.0.109]`)
+    - `zstd_encode` -> `zstd_compress`
+    - `zstd_decode` -> `zstd_decompress`
+    - the `ry.zstd` submodule:
+      - `ry.zstd.compress` -> `ry.zstd_compress`
+      - `ry.zstd.decompress` / `decode` / `unzstd` -> `ry.zstd_decompress`
+      - `ry.zstd.is_zstd` -> `ry.is_zstd`
+      - `ry.zstd.__zstd_version__` -> `ry.ZSTD_VERSION`
+      - `ry.zstd.VERSION_*` -> `ry.ZSTD_VERSION_INFO`
+      - `ry.zstd.CLEVEL_DEFAULT`, `MAGIC*`, `BLOCKSIZE*`, `CONTENTSIZE_*`: no
+        replacement (they warn on access)
 
 ---
 
