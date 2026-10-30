@@ -18,6 +18,17 @@
   - non-buffer input raises `TypeError` from cpython
   - non-contiguous input raises `BufferError` instead of
     `TypeError`/`ValueError`
+- `ryo3-flate2`
+  - new:
+    - `gzip_compress(data, /, level=6)`
+    - `gzip_decompress(data, /)`
+    - `is_gzip(data, /)`
+  - deprecated (`[removal: v0.0.109]`)
+    - `gzip_encode` -> `gzip_compress`
+    - `gzip` -> `gzip_compress`
+    - `gzip_decode` -> `gzip_decompress`
+    - `gunzip` -> `gzip_decompress`
+    - `is_gzipped` -> `is_gzip`
 
 ---
 
