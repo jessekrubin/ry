@@ -2,7 +2,8 @@
 
 mod api;
 mod compression_level;
-mod constants;
 pub mod oneshot;
+mod submodule;
 
-pub use api::{pymod_add, pysubmod_register};
+pub use api::pymod_add;
+pub use submodule::pysubmod_register;
