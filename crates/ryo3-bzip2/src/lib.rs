@@ -21,10 +21,18 @@ fn rs_bzip2_decode(data: &[u8]) -> PyResult<RyBytes> {
     Ok(decompressed.into())
 }
 
+// ============================================================================
+// DEPRECATED ~ remove in v0.0.109 (along with this crate); use the stdlib `bz2`
+// ============================================================================
+
 #[pyfunction]
 #[pyo3(
-    signature = (data, quality=PyCompression::default()),
+    signature = (data, quality = PyCompression::default()),
     text_signature = "(data, quality=6)",
+    warn(
+        message = "`bzip2_encode` is deprecated; use `bz2.compress` instead [removal: v0.0.109]",
+        category = pyo3::exceptions::PyDeprecationWarning
+    )
 )]
 #[expect(clippy::needless_pass_by_value)]
 pub fn bzip2_encode(
@@ -38,8 +46,12 @@ pub fn bzip2_encode(
 
 #[pyfunction]
 #[pyo3(
-    signature = (data, quality=PyCompression::default()),
+    signature = (data, quality = PyCompression::default()),
     text_signature = "(data, quality=6)",
+    warn(
+        message = "`bzip2` is deprecated; use `bz2.compress` instead [removal: v0.0.109]",
+        category = pyo3::exceptions::PyDeprecationWarning
+    )
 )]
 #[expect(clippy::needless_pass_by_value)]
 pub fn bzip2(py: Python<'_>, data: ReadableBuffer, quality: PyCompression) -> PyResult<RyBytes> {
@@ -48,6 +60,10 @@ pub fn bzip2(py: Python<'_>, data: ReadableBuffer, quality: PyCompression) -> Py
 }
 
 #[pyfunction]
+#[pyo3(warn(
+    message = "`bzip2_decode` is deprecated; use `bz2.decompress` instead [removal: v0.0.109]",
+    category = pyo3::exceptions::PyDeprecationWarning
+))]
 #[expect(clippy::needless_pass_by_value)]
 pub fn bzip2_decode(py: Python<'_>, data: ReadableBuffer) -> PyResult<RyBytes> {
     let data: &[u8] = data.as_ref();
