@@ -11,7 +11,6 @@ from ry.ryo3 import (
     __git_repo__,
     __git_sha__,
     __opt_level__,
-    __pyo3_experimental_async__,
     __target__,
     __version__,
 )
@@ -27,7 +26,6 @@ __all__ = (
     "__git_sha__",
     "__opt_level__",
     "__pkgroot__",
-    "__pyo3_experimental_async__",
     "__target__",
     "__title__",
     "__version__",

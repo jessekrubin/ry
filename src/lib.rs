@@ -1,6 +1,7 @@
 //! ry = rust + python
 use pyo3::IntoPyObjectExt;
 use pyo3::prelude::*;
+use pyo3::types::PyDict;
 mod lager;
 
 const PACKAGE: &str = env!("CARGO_PKG_NAME");
@@ -13,12 +14,15 @@ const OPT_LEVEL_STR: &str = env!("OPT_LEVEL");
 const TARGET: &str = env!("TARGET");
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
+const HOST: &str = env!("HOST");
+const RUSTC_VERSION: &str = env!("RUSTC_VERSION");
+const LLVM_VERSION: &str = env!("LLVM_VERSION");
+const RUSTFLAGS: &str = env!("RUSTFLAGS");
+const LINKER: &str = env!("LINKER");
+const CC_INFO: &str = env!("CC_INFO");
+
 const GIT_SHA: &str = env!("GIT_SHA");
 const GIT_REPO: &str = "git@github.com:jessekrubin/ry.git";
-
-// ry's usage w/ pyo3 `experimental-async` is legacy now; TODO REMOVE THIS ME
-// kept around so `ry.__pyo3_experimental_async__` doesnt break
-const PYO3_EXPERIMENTAL_ASYNC: bool = false;
 
 #[cfg(feature = "mimalloc")]
 #[global_allocator]
@@ -53,6 +57,19 @@ fn warn_debug_build(py: Python) -> PyResult<()> {
     Ok(())
 }
 
+/// build info for `python -m ry` (private; not part of the api)
+#[pyfunction]
+fn _build_info(py: Python<'_>) -> PyResult<Bound<'_, PyDict>> {
+    let d = PyDict::new(py);
+    d.set_item("host", HOST)?;
+    d.set_item("rustc", RUSTC_VERSION)?;
+    d.set_item("llvm", LLVM_VERSION)?;
+    d.set_item("linker", LINKER)?;
+    d.set_item("rustflags", (!RUSTFLAGS.is_empty()).then_some(RUSTFLAGS))?;
+    d.set_item("cc", CC_INFO)?;
+    Ok(d)
+}
+
 /// ry = rust + python
 #[pymodule(gil_used = false)]
 #[pyo3(name = "ryo3")]
@@ -85,7 +102,7 @@ fn ry(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add("__target__", TARGET)?;
     m.add("__allocator__", ALLOCATOR)?;
     m.add("__crypto_provider__", CRYPTO_PROVIDER)?;
-    m.add("__pyo3_experimental_async__", PYO3_EXPERIMENTAL_ASYNC)?;
+    m.add_function(wrap_pyfunction!(_build_info, m)?)?;
 
     // ------------------------------------------------------------------------
     ryo3::ry::pymod_add(m)?;
@@ -96,6 +113,10 @@ fn ry(m: &Bound<'_, PyModule>) -> PyResult<()> {
         build.git_sha = %GIT_SHA,
         build.git_repo = %GIT_REPO,
         build.target = %TARGET,
+        build.host = %HOST,
+        build.rustc = %RUSTC_VERSION,
+        build.cc = %CC_INFO,
+        build.linker = %LINKER,
         build.timestamp = %BUILD_TIMESTAMP,
         build.version = %VERSION,
         build.opt_level = %OPT_LEVEL_STR,

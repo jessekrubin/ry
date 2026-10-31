@@ -14,30 +14,15 @@ from ry.__about__ import (
     __git_sha__,
     __opt_level__,
     __pkgroot__,
-    __pyo3_experimental_async__,
     __target__,
     __title__,
     __version__,
 )
 
 
-def _ext_info() -> dict[str, str | int]:
+def _lib_info() -> dict[str, object]:
     size = os.path.getsize(ryo3.__file__)
-    return {
-        "abspath": os.path.abspath(ryo3.__file__),
-        "allocator": __allocator__,
-        "build_profile": __build_profile__,
-        "build_timestamp": __build_timestamp__,
-        "fsize": size,
-        "fsize_str": ryo3.fmt_size(size),
-        "opt-level": __opt_level__,
-        "target": __target__,
-        "crypto_provider": __crypto_provider__,
-        "pyo3_experimental_async": __pyo3_experimental_async__,
-    }
-
-
-def _lib_info() -> dict[str, str | int | dict[str, str | int]]:
+    bi = ryo3._build_info()
     return {
         "package": __title__,
         "version": __version__,
@@ -47,7 +32,27 @@ def _lib_info() -> dict[str, str | int | dict[str, str | int]]:
             "sha": __git_sha__,
             "repo": __git_repo__,
         },
-        "ryo3": _ext_info(),
+        "ryo3": {
+            "file": os.path.basename(ryo3.__file__),
+            "bytes": size,
+            "size": ryo3.fmt_size(size),
+            "build": {
+                "profile": __build_profile__,
+                "opt_level": __opt_level__,
+                "timestamp": __build_timestamp__,
+                "target": __target__,
+                "host": bi["host"],
+                "allocator": __allocator__,
+                "crypto_provider": __crypto_provider__,
+            },
+            "toolchain": {
+                "rustc": bi["rustc"],
+                "llvm": bi["llvm"],
+                "linker": bi["linker"],
+                "rustflags": bi["rustflags"],
+                "cc": bi["cc"],
+            },
+        },
     }
 
 
@@ -58,5 +63,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    if sys.argv[-1].endswith("__main__.py"):
-        main()
+    main()

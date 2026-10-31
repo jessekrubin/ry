@@ -9,6 +9,9 @@
 
 ## v0.0.106 [unreleased]
 
+- `python -m ry`
+  - reorg and add `build` and `toolchain` fields
+- **breaking:** removed `__pyo3_experimental_async__` (was always `False`)
 - `ryo3-jiter`
   - `parse_json`/`parse_jsonl` read `str` input w/ the fast utf8 path
 - `ryo3-bytes`

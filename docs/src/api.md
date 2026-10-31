@@ -74,7 +74,6 @@ from ry.ryo3.__about__ import __git_sha__ as __git_sha__
 from ry.ryo3.__about__ import __opt_level__ as __opt_level__
 from ry.ryo3.__about__ import __pkg_name__ as __pkg_name__
 from ry.ryo3.__about__ import (
-    __pyo3_experimental_async__ as __pyo3_experimental_async__,
 )
 from ry.ryo3.__about__ import __target__ as __target__
 from ry.ryo3.__about__ import __version__ as __version__
@@ -390,7 +389,6 @@ __target__: str
 __opt_level__: t.Literal[0, 1, 2, 3, "s", "z"]
 __allocator__: t.Literal["mimalloc", "system"]
 __crypto_provider__: t.Literal["ring", "aws-lc-rs"]
-__pyo3_experimental_async__: bool
 __git_repo__: str
 __git_sha__: str
 ```
