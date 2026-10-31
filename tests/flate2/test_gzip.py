@@ -134,3 +134,24 @@ def test_level_gzip(
     decoded = ry.gzip_decompress(output_data)
     assert isinstance(decoded, ry.Bytes)
     assert decoded == input_data
+
+
+def test_gzip_decompress_multi_member() -> None:
+    data = gzip.compress(b"a") + ry.gzip_compress(b"b") + gzip.compress(b"c")
+    assert ry.gzip_decompress(data) == gzip.decompress(data) == b"abc"
+
+
+def test_gzip_decompress_trailing_garbage() -> None:
+    # TODO: maybe dont raise OSError?
+    with pytest.raises(OSError, match="trailing garbage"):
+        ry.gzip_decompress(gzip.compress(b"a") + b"nope")
+
+
+def test_gzip_decompress_truncated_second_member() -> None:
+    data = gzip.compress(b"a") + gzip.compress(b"b")[:-4]
+    with pytest.raises(OSError, match="unexpected end of file"):
+        ry.gzip_decompress(data)
+
+
+def test_gzip_decompress_empty() -> None:
+    assert ry.gzip_decompress(b"") == gzip.decompress(b"") == b""
