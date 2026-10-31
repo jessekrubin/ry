@@ -7,7 +7,7 @@
 
 ---
 
-## v0.0.106 [unreleased]
+## v0.0.106 [2026-10-30]
 
 - `python -m ry`
   - reorg and add `build` and `toolchain` fields
