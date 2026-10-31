@@ -9,21 +9,29 @@ use crate::compression_level::PyCompressionLevel;
 /// Max bulk decompressed size before flip flopping to use the stream decompression path
 const MAX_PREALLOC: u64 = 64 * 1024 * 1024;
 
+/// Max input size for the cached (thread-local) compressor
+///
+/// Big bufs get a temp compressor instead of using a cache size doesnt explode (which it did in testing)
+const MAX_CACHED_INPUT: usize = 128 * 1024;
+
 type ZstdCompressorCache = cell::RefCell<Option<zbulk::Compressor<'static>>>;
 thread_local! {
     static ZSTD_COMPRESSOR: ZstdCompressorCache = const { cell::RefCell::new(None) };
 }
 
 fn zstd_compress_impl(data: &[u8], level: i32) -> PyResult<Vec<u8>> {
-    ZSTD_COMPRESSOR
-        .with_borrow_mut(|cached| match cached {
+    if data.len() > MAX_CACHED_INPUT {
+        zbulk::compress(data, level)
+    } else {
+        ZSTD_COMPRESSOR.with_borrow_mut(|cached| match cached {
             Some(compressor) => {
                 compressor.set_compression_level(level)?;
                 compressor.compress(data)
             }
             None => cached.insert(zbulk::Compressor::new(level)?).compress(data),
         })
-        .map_err(|e| pyo3::exceptions::PyValueError::new_err(format!("zstd compress error: {e}")))
+    }
+    .map_err(|e| pyo3::exceptions::PyValueError::new_err(format!("zstd compress error: {e}")))
 }
 
 type ZstdDecompressorCache = cell::RefCell<Option<zbulk::Decompressor<'static>>>;

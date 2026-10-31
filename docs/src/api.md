@@ -73,11 +73,9 @@ from ry.ryo3.__about__ import __git_repo__ as __git_repo__
 from ry.ryo3.__about__ import __git_sha__ as __git_sha__
 from ry.ryo3.__about__ import __opt_level__ as __opt_level__
 from ry.ryo3.__about__ import __pkg_name__ as __pkg_name__
-from ry.ryo3.__about__ import (
-    __pyo3_experimental_async__ as __pyo3_experimental_async__,
-)
 from ry.ryo3.__about__ import __target__ as __target__
 from ry.ryo3.__about__ import __version__ as __version__
+from ry.ryo3.__about__ import _build_info as _build_info
 from ry.ryo3._aws_lc import awslc_version as awslc_version
 from ry.ryo3._aws_lc import sha1 as sha1
 from ry.ryo3._aws_lc import sha3_256 as sha3_256
@@ -88,13 +86,15 @@ from ry.ryo3._aws_lc import sha256 as sha256
 from ry.ryo3._aws_lc import sha384 as sha384
 from ry.ryo3._aws_lc import sha512 as sha512
 from ry.ryo3._aws_lc import sha512_256 as sha512_256
-from ry.ryo3._brotli import brotli as brotli
-from ry.ryo3._brotli import brotli_decode as brotli_decode
-from ry.ryo3._brotli import brotli_encode as brotli_encode
+from ry.ryo3._brotli import brotli as brotli  # type: ignore[deprecated]  # ty: ignore[deprecated]
+from ry.ryo3._brotli import brotli_compress as brotli_compress
+from ry.ryo3._brotli import brotli_decode as brotli_decode  # type: ignore[deprecated]  # ty: ignore[deprecated]
+from ry.ryo3._brotli import brotli_decompress as brotli_decompress
+from ry.ryo3._brotli import brotli_encode as brotli_encode  # type: ignore[deprecated]  # ty: ignore[deprecated]
 from ry.ryo3._bytes import Bytes as Bytes
-from ry.ryo3._bzip2 import bzip2 as bzip2
-from ry.ryo3._bzip2 import bzip2_decode as bzip2_decode
-from ry.ryo3._bzip2 import bzip2_encode as bzip2_encode
+from ry.ryo3._bzip2 import bzip2 as bzip2  # type: ignore[deprecated]  # ty: ignore[deprecated]
+from ry.ryo3._bzip2 import bzip2_decode as bzip2_decode  # type: ignore[deprecated]  # ty: ignore[deprecated]
+from ry.ryo3._bzip2 import bzip2_encode as bzip2_encode  # type: ignore[deprecated]  # ty: ignore[deprecated]
 from ry.ryo3._cookie import Cookie as Cookie
 from ry.ryo3._crc32fast import crc32 as crc32
 from ry.ryo3._dirs import audio_dir as audio_dir
@@ -121,11 +121,14 @@ from ry.ryo3._errors import PanicError as PanicError
 from ry.ryo3._errors import UnreachableError as UnreachableError
 from ry.ryo3._errors import panic as panic
 from ry.ryo3._errors import unreachable as unreachable
-from ry.ryo3._flate2 import gunzip as gunzip
-from ry.ryo3._flate2 import gzip as gzip
-from ry.ryo3._flate2 import gzip_decode as gzip_decode
-from ry.ryo3._flate2 import gzip_encode as gzip_encode
-from ry.ryo3._flate2 import is_gzipped as is_gzipped
+from ry.ryo3._flate2 import gunzip as gunzip  # type: ignore[deprecated]  # ty: ignore[deprecated]
+from ry.ryo3._flate2 import gzip as gzip  # type: ignore[deprecated]  # ty: ignore[deprecated]
+from ry.ryo3._flate2 import gzip_compress as gzip_compress
+from ry.ryo3._flate2 import gzip_decode as gzip_decode  # type: ignore[deprecated]  # ty: ignore[deprecated]
+from ry.ryo3._flate2 import gzip_decompress as gzip_decompress
+from ry.ryo3._flate2 import gzip_encode as gzip_encode  # type: ignore[deprecated]  # ty: ignore[deprecated]
+from ry.ryo3._flate2 import is_gzip as is_gzip
+from ry.ryo3._flate2 import is_gzipped as is_gzipped  # type: ignore[deprecated]  # ty: ignore[deprecated]
 from ry.ryo3._fnv import fnv1a as fnv1a
 from ry.ryo3._fspath import FsPath as FsPath
 from ry.ryo3._glob import GlobPattern as GlobPattern
@@ -367,11 +370,13 @@ from ry.ryo3._walkdir import walkdir as walkdir
 from ry.ryo3._which import which as which
 from ry.ryo3._which import which_all as which_all
 from ry.ryo3._which import which_re as which_re
+from ry.ryo3._zstd import ZSTD_VERSION as ZSTD_VERSION
+from ry.ryo3._zstd import ZSTD_VERSION_INFO as ZSTD_VERSION_INFO
 from ry.ryo3._zstd import is_zstd as is_zstd
 from ry.ryo3._zstd import zstd_compress as zstd_compress
-from ry.ryo3._zstd import zstd_decode as zstd_decode
+from ry.ryo3._zstd import zstd_decode as zstd_decode  # type: ignore[deprecated]  # ty: ignore[deprecated]
 from ry.ryo3._zstd import zstd_decompress as zstd_decompress
-from ry.ryo3._zstd import zstd_encode as zstd_encode
+from ry.ryo3._zstd import zstd_encode as zstd_encode  # type: ignore[deprecated]  # ty: ignore[deprecated]
 from ry.ryo3.JSON import stringify as stringify
 ```
 
@@ -379,6 +384,16 @@ from ry.ryo3.JSON import stringify as stringify
 
 ```python
 import typing as t
+
+
+class _BuildInfo(t.TypedDict):
+    host: str
+    rustc: str
+    llvm: str
+    linker: str
+    rustflags: str | None
+    cc: str
+
 
 __version__: str
 __authors__: str
@@ -390,9 +405,11 @@ __target__: str
 __opt_level__: t.Literal[0, 1, 2, 3, "s", "z"]
 __allocator__: t.Literal["mimalloc", "system"]
 __crypto_provider__: t.Literal["ring", "aws-lc-rs"]
-__pyo3_experimental_async__: bool
 __git_repo__: str
 __git_sha__: str
+
+
+def _build_info() -> _BuildInfo: ...
 ```
 
 <h2 id="ry.ryo3._aws_lc"><code>ry.ryo3._aws_lc</code></h2>
@@ -482,22 +499,38 @@ sha512_256: type[_Sha[_Sha512_256Name, _Sha512_256BlockSize, _Sha512_256DigestSi
 ```python
 """ryo3-brotli ~ types"""
 
+import sys
 import typing as t
 
 from ry._types import Buffer
 from ry.ryo3._bytes import Bytes
 
-_BrotliQuality: t.TypeAlias = t.Literal[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+if sys.version_info >= (3, 13):
+    from warnings import deprecated
+else:
+    from typing_extensions import deprecated
+
+_BrotliLevel: t.TypeAlias = t.Literal[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
 
 
-def brotli_encode(
-    data: Buffer, quality: _BrotliQuality = 11, *, magic_number: bool = False
+def brotli_compress(
+    data: Buffer, /, level: _BrotliLevel = 11, *, magic_number: bool = False
 ) -> Bytes: ...
+def brotli_decompress(data: Buffer, /) -> Bytes: ...
+@deprecated(
+    "`brotli_encode` is deprecated; use `brotli_compress` instead [removal: v0.0.109]"
+)
+def brotli_encode(
+    data: Buffer, quality: _BrotliLevel = 11, *, magic_number: bool = False
+) -> Bytes: ...
+@deprecated(
+    "`brotli_decode` is deprecated; use `brotli_decompress` instead [removal: v0.0.109]"
+)
 def brotli_decode(data: Buffer) -> Bytes: ...
+@deprecated("`brotli` is deprecated; use `brotli_compress` instead [removal: v0.0.109]")
 def brotli(
-    data: Buffer, quality: _BrotliQuality = 11, *, magic_number: bool = False
-) -> Bytes:
-    """Alias for brotli_encode"""
+    data: Buffer, quality: _BrotliLevel = 11, *, magic_number: bool = False
+) -> Bytes: ...
 ```
 
 <h2 id="ry.ryo3._bytes"><code>ry.ryo3._bytes</code></h2>
@@ -885,20 +918,32 @@ ReadableBuffer: t.TypeAlias = Buffer | bytes | bytearray | memoryview | Bytes
 <h2 id="ry.ryo3._bzip2"><code>ry.ryo3._bzip2</code></h2>
 
 ```python
-"""ryo3-bzip2 ~ types"""
+"""ryo3-bzip2 ~ types (DEPRECATED ~ use the stdlib `bz2`)"""
 
+import sys
 import typing as t
 
 from ry._types import Buffer
 from ry.ryo3._bytes import Bytes
 
+if sys.version_info >= (3, 13):
+    from warnings import deprecated
+else:
+    from typing_extensions import deprecated
+
 _Bzip2Quality: t.TypeAlias = t.Literal[1, 2, 3, 4, 5, 6, 7, 8, 9, "best", "fast"]
 
 
+@deprecated(
+    "`bzip2_decode` is deprecated; use `bz2.decompress` instead [removal: v0.0.109]"
+)
 def bzip2_decode(data: Buffer) -> Bytes: ...
+@deprecated(
+    "`bzip2_encode` is deprecated; use `bz2.compress` instead [removal: v0.0.109]"
+)
 def bzip2_encode(data: Buffer, quality: _Bzip2Quality = 6) -> Bytes: ...
-def bzip2(data: Buffer, quality: _Bzip2Quality = 6) -> Bytes:
-    """Alias for bzip2_encode"""
+@deprecated("`bzip2` is deprecated; use `bz2.compress` instead [removal: v0.0.109]")
+def bzip2(data: Buffer, quality: _Bzip2Quality = 6) -> Bytes: ...
 ```
 
 <h2 id="ry.ryo3._cookie"><code>ry.ryo3._cookie</code></h2>
@@ -1621,24 +1666,39 @@ def panic(msg: str | None = None) -> t.NoReturn:
 ```python
 """ryo3-flate2 ~ types"""
 
+import sys
 import typing as t
 
 from ry import Bytes
 from ry._types import Buffer
 
-_GzipQuality: t.TypeAlias = t.Literal[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, "best", "fast"]
+if sys.version_info >= (3, 13):
+    from warnings import deprecated
+else:
+    from typing_extensions import deprecated
+
+_GzipLevel: t.TypeAlias = t.Literal[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, "best", "fast"]
 
 
-def gzip_encode(data: Buffer, quality: _GzipQuality = 6) -> Bytes: ...
+def gzip_compress(data: Buffer, /, level: _GzipLevel = 6) -> Bytes: ...
+def gzip_decompress(data: Buffer, /) -> Bytes: ...
+def is_gzip(data: Buffer, /) -> bool: ...
+
+
+# ==== DEPRECATED ~ remove in v0.0.109 ====
+@deprecated(
+    "`gzip_encode` is deprecated; use `gzip_compress` instead [removal: v0.0.109]"
+)
+def gzip_encode(data: Buffer, quality: _GzipLevel = 6) -> Bytes: ...
+@deprecated(
+    "`gzip_decode` is deprecated; use `gzip_decompress` instead [removal: v0.0.109]"
+)
 def gzip_decode(data: Buffer) -> Bytes: ...
-def gzip(data: Buffer, quality: _GzipQuality = 6) -> Bytes:
-    """Alias for gzip_encode"""
-
-
-def gunzip(data: Buffer) -> Bytes:
-    """Alias for gzip_decode"""
-
-
+@deprecated("`gzip` is deprecated; use `gzip_compress` instead [removal: v0.0.109]")
+def gzip(data: Buffer, quality: _GzipLevel = 6) -> Bytes: ...
+@deprecated("`gunzip` is deprecated; use `gzip_decompress` instead [removal: v0.0.109]")
+def gunzip(data: Buffer) -> Bytes: ...
+@deprecated("`is_gzipped` is deprecated; use `is_gzip` instead [removal: v0.0.109]")
 def is_gzipped(data: Buffer) -> bool: ...
 ```
 
@@ -9583,21 +9643,59 @@ def which_re(regex: str | Regex, path: str | None = None) -> list[Path]: ...
 <h2 id="ry.ryo3._zstd"><code>ry.ryo3._zstd</code></h2>
 
 ```python
-"""ry.ryo3 root level zstd exports"""
+"""ryo3-zstd ~ types"""
 
-from ry.ryo3.zstd import compress as zstd_compress
-from ry.ryo3.zstd import decode as zstd_decode
-from ry.ryo3.zstd import decompress as zstd_decompress
-from ry.ryo3.zstd import encode as zstd_encode
-from ry.ryo3.zstd import is_zstd as is_zstd
+import sys
+import typing as t
 
-__all__ = (
-    "is_zstd",
-    "zstd_compress",
-    "zstd_decode",
-    "zstd_decompress",
-    "zstd_encode",
+from ry import Bytes
+from ry._types import Buffer
+
+if sys.version_info >= (3, 13):
+    from warnings import deprecated
+else:
+    from typing_extensions import deprecated
+
+_ZstdLevel: t.TypeAlias = t.Literal[
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+]
+
+ZSTD_VERSION: str  # "1.5.7" (c. 2026-10-29)
+ZSTD_VERSION_INFO: tuple[int, int, int]  # (1, 5, 7) (c. 2026-10-29)
+
+
+def zstd_compress(data: Buffer, /, level: _ZstdLevel = 3) -> Bytes: ...
+def zstd_decompress(data: Buffer, /) -> Bytes: ...
+def is_zstd(data: Buffer, /) -> bool: ...
+@deprecated(
+    "`zstd_encode` is deprecated; use `zstd_compress` instead [removal: v0.0.109]"
 )
+def zstd_encode(data: Buffer, level: _ZstdLevel = 3) -> Bytes: ...
+@deprecated(
+    "`zstd_decode` is deprecated; use `zstd_decompress` instead [removal: v0.0.109]"
+)
+def zstd_decode(data: Buffer) -> Bytes: ...
 ```
 
 <h2 id="ry.ryo3.JSON"><code>ry.ryo3.JSON</code></h2>
@@ -9772,67 +9870,60 @@ from ry.ryo3._twox_hash import xxh128_intdigest as xxh128_intdigest
 <h2 id="ry.ryo3.zstd"><code>ry.ryo3.zstd</code></h2>
 
 ```python
-"""ryo3-zstd types"""
+"""ry.zstd submodule ~ DEPRECATED, remove in v0.0.109
 
-import typing as t
+use the flat `ry.zstd_compress` / `ry.zstd_decompress` / `ry.is_zstd` /
+`ry.ZSTD_VERSION` / `ry.ZSTD_VERSION_INFO` instead
+"""
+
+import sys
 
 from ry import Bytes
 from ry._types import Buffer
+from ry.ryo3._zstd import _ZstdLevel
 
-__zstd_version__: str  # zstd version string ("1.5.7" as of 2025-03-14)
-BLOCKSIZELOG_MAX: int
-BLOCKSIZE_MAX: int
-CLEVEL_DEFAULT: int  # default=3 (as of 2025-03-14)
-CONTENTSIZE_ERROR: int
-CONTENTSIZE_UNKNOWN: int
-MAGICNUMBER: int
-MAGIC_DICTIONARY: int
-MAGIC_SKIPPABLE_MASK: int
-MAGIC_SKIPPABLE_START: int
-VERSION_MAJOR: int
-VERSION_MINOR: int
-VERSION_NUMBER: int
-VERSION_RELEASE: int
+if sys.version_info >= (3, 13):
+    from warnings import deprecated
+else:
+    from typing_extensions import deprecated
 
-_ZstdQuality: t.TypeAlias = t.Literal[
-    1,
-    2,
-    3,
-    4,
-    5,
-    6,
-    7,
-    8,
-    9,
-    10,
-    11,
-    12,
-    13,
-    14,
-    15,
-    16,
-    17,
-    18,
-    19,
-    20,
-    21,
-    22,
-]
+# deprecated constants ~ they warn at runtime (served by a module
+# `__getattr__`), but variables can't be marked `@deprecated` in stubs
+__zstd_version__: str  # -> `ry.ZSTD_VERSION`
+BLOCKSIZELOG_MAX: int  # no replacement
+BLOCKSIZE_MAX: int  # no replacement
+CLEVEL_DEFAULT: int  # -> `ry.zstd_compress` default `level=3`
+CONTENTSIZE_ERROR: int  # no replacement
+CONTENTSIZE_UNKNOWN: int  # no replacement
+MAGICNUMBER: int  # -> `ry.is_zstd`
+MAGIC_DICTIONARY: int  # no replacement
+MAGIC_SKIPPABLE_MASK: int  # no replacement
+MAGIC_SKIPPABLE_START: int  # no replacement
+VERSION_MAJOR: int  # -> `ry.ZSTD_VERSION_INFO`
+VERSION_MINOR: int  # -> `ry.ZSTD_VERSION_INFO`
+VERSION_NUMBER: int  # -> `ry.ZSTD_VERSION_INFO`
+VERSION_RELEASE: int  # -> `ry.ZSTD_VERSION_INFO`
 
 
-# __COMPRESSION__
-def compress(data: Buffer, level: _ZstdQuality = 3) -> Bytes: ...
-def encode(data: Buffer, level: _ZstdQuality = 3) -> Bytes: ...
-def zstd(data: Buffer, level: _ZstdQuality = 3) -> Bytes: ...
-
-
-# __DECOMPRESSION__
-def decode(data: Buffer) -> Bytes: ...
+@deprecated(
+    "`ry.zstd.compress` is deprecated; use `ry.zstd_compress` instead [removal: v0.0.109]"
+)
+def compress(data: Buffer, level: _ZstdLevel = 3) -> Bytes: ...
+@deprecated(
+    "`ry.zstd.decompress` is deprecated; use `ry.zstd_decompress` instead [removal: v0.0.109]"
+)
 def decompress(data: Buffer) -> Bytes: ...
+@deprecated(
+    "`ry.zstd.decode` is deprecated; use `ry.zstd_decompress` instead [removal: v0.0.109]"
+)
+def decode(data: Buffer) -> Bytes: ...
+@deprecated(
+    "`ry.zstd.unzstd` is deprecated; use `ry.zstd_decompress` instead [removal: v0.0.109]"
+)
 def unzstd(data: Buffer) -> Bytes: ...
-
-
-# __MAGIC__
+@deprecated(
+    "`ry.zstd.is_zstd` is deprecated; use `ry.is_zstd` instead [removal: v0.0.109]"
+)
 def is_zstd(data: Buffer) -> bool: ...
 ```
 
@@ -10116,11 +10207,11 @@ from ry.ryo3.zstd import VERSION_MINOR as VERSION_MINOR
 from ry.ryo3.zstd import VERSION_NUMBER as VERSION_NUMBER
 from ry.ryo3.zstd import VERSION_RELEASE as VERSION_RELEASE
 from ry.ryo3.zstd import __zstd_version__ as __zstd_version__
-from ry.ryo3.zstd import compress as compress
-from ry.ryo3.zstd import decode as decode
-from ry.ryo3.zstd import decompress as decompress
-from ry.ryo3.zstd import is_zstd as is_zstd
-from ry.ryo3.zstd import unzstd as unzstd
+from ry.ryo3.zstd import compress as compress  # type: ignore[deprecated]  # ty: ignore[deprecated]  # pyrefly: ignore[deprecated]
+from ry.ryo3.zstd import decode as decode  # type: ignore[deprecated]  # ty: ignore[deprecated]  # pyrefly: ignore[deprecated]
+from ry.ryo3.zstd import decompress as decompress  # type: ignore[deprecated]  # ty: ignore[deprecated]  # pyrefly: ignore[deprecated]
+from ry.ryo3.zstd import is_zstd as is_zstd  # type: ignore[deprecated]  # ty: ignore[deprecated]  # pyrefly: ignore[deprecated]
+from ry.ryo3.zstd import unzstd as unzstd  # type: ignore[deprecated]  # ty: ignore[deprecated]  # pyrefly: ignore[deprecated]
 
 __all__ = (
     "BLOCKSIZELOG_MAX",

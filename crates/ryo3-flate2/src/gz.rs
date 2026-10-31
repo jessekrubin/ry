@@ -21,9 +21,7 @@ impl GzEncoderCache {
 
 type GzEncoderCacheRef = cell::RefCell<Option<GzEncoderCache>>;
 thread_local! {
-    // reuse the deflate state (~256kb); this is a trick I used somewhere else
-    // in my life but I am not sure if it actually helps? i imagine it would
-    // IIRC: I was doing this w/ zstd somewhere else
+    // reuse the deflate state (~256kb/thread)
     static GZ_ENCODER: GzEncoderCacheRef = const { cell::RefCell::new(None) };
 }
 
@@ -70,31 +68,58 @@ fn gzip_compress_impl(data: &[u8], level: flate2::Compression) -> PyResult<Vec<u
     })
 }
 
-/// decodes the first gzip member (any trailing bytes are ignored)
-#[expect(clippy::cast_possible_truncation)]
+const GZIP_MAGIC: &[u8; 2] = b"\x1F\x8B";
+/// decodes all gzip members (equiv to cpython's `gzip.decompress`)
 fn gzip_decompress_impl(data: &[u8]) -> PyResult<Vec<u8>> {
-    // gzip trailer ends w/ the decompressed size % 2^32
-    let size_hint_u32 = data.last_chunk::<4>().map_or(0, |n| u32::from_le_bytes(*n));
-    let size_hint = usize::try_from(size_hint_u32)
-        .map_err(|_| io::Error::new(io::ErrorKind::InvalidData, "invalid size hint"))?;
+    // this is what cpython does for empty input (ty hypothesis)
+    if data.is_empty() {
+        return Ok(Vec::new());
+    }
+    // SIZE HINT GUESSTIMATE: gzip trailer ends w/ the decompressed size % 2^32 which gets us a rough estimate of the output size or the required buffer capacity for decompression if the buf is a single member
+    let size_hint = data
+        .last_chunk::<4>()
+        .map_or(0, |n| u32::from_le_bytes(*n) as usize);
     let mut out = Vec::with_capacity(size_hint.min(data.len().saturating_mul(1032)).max(64));
+    // decompress each member in turn
+    let mut rest = data;
+    loop {
+        let consumed = gzip_decompress_member(rest, &mut out)?;
+        rest = &rest[consumed..];
+        if rest.is_empty() {
+            return Ok(out);
+        }
+        // stdlib raises on trailing garbage too
+        if !rest.starts_with(GZIP_MAGIC) {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                "trailing garbage after gzip data",
+            )
+            .into());
+        }
+    }
+}
+
+/// decodes one gzip member onto `out`; returns the number of input bytes used
+#[expect(clippy::cast_possible_truncation)]
+fn gzip_decompress_member(data: &[u8], out: &mut Vec<u8>) -> io::Result<usize> {
     let mut gz_decoder = flate2::Decompress::new_gzip(15);
     loop {
         let status = gz_decoder
             .decompress_vec(
                 &data[gz_decoder.total_in() as usize..],
-                &mut out,
+                out,
                 flate2::FlushDecompress::Finish,
             )
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
         if status == flate2::Status::StreamEnd {
-            return Ok(out);
+            return Ok(gz_decoder.total_in() as usize);
         }
         if out.len() < out.capacity() {
             // room left? eof?
-            return Err(
-                io::Error::new(io::ErrorKind::UnexpectedEof, "unexpected end of file").into(),
-            );
+            return Err(io::Error::new(
+                io::ErrorKind::UnexpectedEof,
+                "unexpected end of file",
+            ));
         }
         out.reserve(out.capacity());
     }
@@ -130,7 +155,7 @@ pub fn gzip_decompress(py: Python<'_>, data: ReadableBuffer) -> PyResult<RyBytes
 #[must_use]
 pub fn is_gzip(data: ReadableBuffer) -> bool {
     let bin: &[u8] = data.as_ref();
-    bin.starts_with(b"\x1F\x8B")
+    bin.starts_with(GZIP_MAGIC)
 }
 
 // ============================================================================

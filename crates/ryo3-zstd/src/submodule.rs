@@ -64,41 +64,47 @@ fn submod_is_zstd(data: ReadableBuffer) -> bool {
     oneshot::is_zstd(data)
 }
 
-/// old constant -> (value, replacement for the warning)
-fn deprecated_constant(py: Python<'_>, name: &str) -> PyResult<Option<(Py<PyAny>, &'static str)>> {
+/// old constant -> (value, replacement for the warning if any)
+fn deprecated_constant(
+    py: Python<'_>,
+    name: &str,
+) -> PyResult<Option<(Py<PyAny>, Option<&'static str>)>> {
     let found = match name {
         "__zstd_version__" => (
             zstd_safe::version_string().into_py_any(py)?,
-            "`ry.ZSTD_VERSION`",
+            Some("`ry.ZSTD_VERSION`"),
         ),
         "VERSION_MAJOR" => (
             zstd_safe::VERSION_MAJOR.into_py_any(py)?,
-            "`ry.ZSTD_VERSION_INFO`",
+            Some("`ry.ZSTD_VERSION_INFO`"),
         ),
         "VERSION_MINOR" => (
             zstd_safe::VERSION_MINOR.into_py_any(py)?,
-            "`ry.ZSTD_VERSION_INFO`",
+            Some("`ry.ZSTD_VERSION_INFO`"),
         ),
         "VERSION_RELEASE" => (
             zstd_safe::VERSION_RELEASE.into_py_any(py)?,
-            "`ry.ZSTD_VERSION_INFO`",
+            Some("`ry.ZSTD_VERSION_INFO`"),
         ),
         "VERSION_NUMBER" => (
             zstd_safe::VERSION_NUMBER.into_py_any(py)?,
-            "`ry.ZSTD_VERSION_INFO`",
+            Some("`ry.ZSTD_VERSION_INFO`"),
         ),
         "CLEVEL_DEFAULT" => (
             zstd_safe::CLEVEL_DEFAULT.into_py_any(py)?,
-            "the `ry.zstd_compress` default (`level=3`)",
+            Some("the `ry.zstd_compress` default (`level=3`)"),
         ),
-        "MAGICNUMBER" => (zstd_safe::MAGICNUMBER.into_py_any(py)?, "`ry.is_zstd`"),
-        "MAGIC_DICTIONARY" => (zstd_safe::MAGIC_DICTIONARY.into_py_any(py)?, "nothing"),
-        "MAGIC_SKIPPABLE_MASK" => (zstd_safe::MAGIC_SKIPPABLE_MASK.into_py_any(py)?, "nothing"),
-        "MAGIC_SKIPPABLE_START" => (zstd_safe::MAGIC_SKIPPABLE_START.into_py_any(py)?, "nothing"),
-        "BLOCKSIZELOG_MAX" => (zstd_safe::BLOCKSIZELOG_MAX.into_py_any(py)?, "nothing"),
-        "BLOCKSIZE_MAX" => (zstd_safe::BLOCKSIZE_MAX.into_py_any(py)?, "nothing"),
-        "CONTENTSIZE_ERROR" => (zstd_safe::CONTENTSIZE_ERROR.into_py_any(py)?, "nothing"),
-        "CONTENTSIZE_UNKNOWN" => (zstd_safe::CONTENTSIZE_UNKNOWN.into_py_any(py)?, "nothing"),
+        "MAGICNUMBER" => (
+            zstd_safe::MAGICNUMBER.into_py_any(py)?,
+            Some("`ry.is_zstd`"),
+        ),
+        "MAGIC_DICTIONARY" => (zstd_safe::MAGIC_DICTIONARY.into_py_any(py)?, None),
+        "MAGIC_SKIPPABLE_MASK" => (zstd_safe::MAGIC_SKIPPABLE_MASK.into_py_any(py)?, None),
+        "MAGIC_SKIPPABLE_START" => (zstd_safe::MAGIC_SKIPPABLE_START.into_py_any(py)?, None),
+        "BLOCKSIZELOG_MAX" => (zstd_safe::BLOCKSIZELOG_MAX.into_py_any(py)?, None),
+        "BLOCKSIZE_MAX" => (zstd_safe::BLOCKSIZE_MAX.into_py_any(py)?, None),
+        "CONTENTSIZE_ERROR" => (zstd_safe::CONTENTSIZE_ERROR.into_py_any(py)?, None),
+        "CONTENTSIZE_UNKNOWN" => (zstd_safe::CONTENTSIZE_UNKNOWN.into_py_any(py)?, None),
         _ => return Ok(None),
     };
     Ok(Some(found))
@@ -111,10 +117,11 @@ fn __getattr__(py: Python<'_>, name: &str) -> PyResult<Py<PyAny>> {
             "module 'ry.zstd' has no attribute '{name}'"
         )));
     };
-    let msg = if replacement == "nothing" {
-        format!("`ry.zstd.{name}` is deprecated with no replacement [removal: v0.0.109]")
-    } else {
-        format!("`ry.zstd.{name}` is deprecated; use {replacement} instead [removal: v0.0.109]")
+    let msg = match replacement {
+        Some(r) => {
+            format!("`ry.zstd.{name}` is deprecated; use {r} instead [removal: v0.0.109]")
+        }
+        None => format!("`ry.zstd.{name}` is deprecated with no replacement [removal: v0.0.109]"),
     };
     let category = py.get_type::<PyDeprecationWarning>();
     let c_msg = std::ffi::CString::new(msg)?;

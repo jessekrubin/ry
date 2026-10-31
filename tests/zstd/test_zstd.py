@@ -113,3 +113,19 @@ def test_decompress() -> None:
     _10x_10y_compressed = b"(\xb5/\xfd\x00X]\x00\x00\x18XXY\x02\x00\xa0\x08\x02`\x01"
     decoded = ry.zstd_decompress(_10x_10y_compressed)
     assert decoded == b"XXXXXXXXXXYYYYYYYYYY"
+
+
+def test_zstd_decompress_multi_frame() -> None:
+    data = ry.zstd_compress(b"a") + ry.zstd_compress(b"b") + ry.zstd_compress(b"c")
+    assert ry.zstd_decompress(data) == b"abc"
+
+
+def test_zstd_decompress_multi_frame_stream_path() -> None:
+    big = b"a" * (65 * 1024 * 1024)
+    data = ry.zstd_compress(big) + ry.zstd_compress(b"b")
+    assert ry.zstd_decompress(data) == big + b"b"
+
+
+def test_zstd_decompress_multi_frame_trailing_garbage() -> None:
+    with pytest.raises(ValueError, match="Unknown frame descriptor"):
+        ry.zstd_decompress(ry.zstd_compress(b"a") + b"nope")

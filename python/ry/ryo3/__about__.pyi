@@ -1,5 +1,13 @@
 import typing as t
 
+class _BuildInfo(t.TypedDict):
+    host: str
+    rustc: str
+    llvm: str
+    linker: str
+    rustflags: str | None
+    cc: str
+
 __version__: str
 __authors__: str
 __build_profile__: str
@@ -10,6 +18,7 @@ __target__: str
 __opt_level__: t.Literal[0, 1, 2, 3, "s", "z"]
 __allocator__: t.Literal["mimalloc", "system"]
 __crypto_provider__: t.Literal["ring", "aws-lc-rs"]
-__pyo3_experimental_async__: bool
 __git_repo__: str
 __git_sha__: str
+
+def _build_info() -> _BuildInfo: ...

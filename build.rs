@@ -1,8 +1,9 @@
+use std::path::Path;
 use std::process::Command;
 
-// cc >= 1.9 + sccache < 0.19 breaks msvc <https://github.com/jessekrubin/ry/issues/915>
-use cc as _;
 use jiff::{Unit, Zoned};
+
+const UNKNOWN: &str = "unknown";
 
 fn git_stdout(args: &[&str]) -> Option<String> {
     let output = Command::new("git").args(args).output().ok()?;
@@ -16,6 +17,90 @@ fn git_stdout(args: &[&str]) -> Option<String> {
         None
     } else {
         Some(trimmed.to_owned())
+    }
+}
+
+/// stdout then stderr (msvc `cl.exe` prints its banner to stderr)
+fn run(cmd: &mut Command) -> Option<String> {
+    let output = cmd.output().ok()?;
+    let mut s = String::from_utf8_lossy(&output.stdout).into_owned();
+    s.push_str(&String::from_utf8_lossy(&output.stderr));
+    Some(s)
+}
+
+fn first_line(s: &str) -> Option<String> {
+    s.lines()
+        .map(str::trim)
+        .find(|l| !l.is_empty())
+        .map(ToOwned::to_owned)
+}
+
+/// rustc version + llvm version via `rustc -vV`
+fn rustc_info() -> (String, String) {
+    let rustc = std::env::var("RUSTC").unwrap_or_else(|_| "rustc".to_owned());
+    let out = run(Command::new(rustc).arg("-vV")).unwrap_or_default();
+    let version = first_line(&out).unwrap_or_else(|| UNKNOWN.to_owned());
+    let llvm = out
+        .lines()
+        .find_map(|l| l.strip_prefix("LLVM version:"))
+        .map_or_else(|| UNKNOWN.to_owned(), |v| v.trim().to_owned());
+    (version, llvm)
+}
+
+/// c compiler as resolved by the `cc` crate (same one c-deps use)
+fn cc_info() -> String {
+    let Ok(tool) = cc::Build::new().try_get_compiler() else {
+        return UNKNOWN.to_owned();
+    };
+    if let Some(desc) = zig_wrapper_desc(tool.path()) {
+        return desc;
+    }
+    let mut cmd = Command::new(tool.path());
+    // tool env has the msvc INCLUDE/LIB/PATH setup
+    cmd.envs(tool.get_envs());
+    // msvc `cl.exe` has no `--version`; prints its banner w/ no args
+    if !tool.is_like_msvc() {
+        cmd.arg("--version");
+    }
+    run(&mut cmd)
+        .and_then(|out| first_line(&out))
+        .unwrap_or_else(|| UNKNOWN.to_owned())
+}
+
+/// cargo-zigbuild (`maturin --zig`) wrapper -> `zig cc (cargo-zigbuild 0.23.1)`
+fn zig_wrapper_desc(path: &Path) -> Option<String> {
+    let fname = path.file_name()?.to_str()?;
+    let kind = if fname.starts_with("zigcxx") {
+        "zig c++"
+    } else if fname.starts_with("zigcc") {
+        "zig cc"
+    } else {
+        return None;
+    };
+    // .../cargo-zigbuild/<version>/wrappers/...
+    let zigbuild_version = path
+        .components()
+        .map(|c| c.as_os_str().to_string_lossy())
+        .skip_while(|c| c != "cargo-zigbuild")
+        .nth(1);
+    Some(zigbuild_version.map_or_else(
+        || kind.to_owned(),
+        |v| format!("{kind} (cargo-zigbuild {v})"),
+    ))
+}
+
+/// linker from `RUSTC_LINKER` (cargo `target.<triple>.linker`) or `-C linker=` in rustflags
+fn linker_info(rustflags: &[&str]) -> String {
+    let linker = std::env::var("RUSTC_LINKER").ok().or_else(|| {
+        rustflags.windows(2).find_map(|w| {
+            w[0].strip_prefix("-Clinker=")
+                .or_else(|| w[1].strip_prefix("linker=").filter(|_| w[0] == "-C"))
+                .map(ToOwned::to_owned)
+        })
+    });
+    match linker {
+        Some(l) => zig_wrapper_desc(Path::new(&l)).unwrap_or(l),
+        None => "default".to_owned(),
     }
 }
 
@@ -53,6 +138,21 @@ fn main() {
         .map(|sha| sha.trim().to_owned())
         .filter(|sha| !sha.is_empty())
         .or_else(|| git_stdout(&["rev-parse", "HEAD"]))
-        .unwrap_or_else(|| "unknown".to_owned());
+        .unwrap_or_else(|| UNKNOWN.to_owned());
     println!("cargo:rustc-env=GIT_SHA={git_sha}");
+
+    // toolchain
+    let host = std::env::var("HOST").expect("HOST env var not found");
+    println!("cargo:rustc-env=HOST={host}");
+    let (rustc_version, llvm_version) = rustc_info();
+    println!("cargo:rustc-env=RUSTC_VERSION={rustc_version}");
+    println!("cargo:rustc-env=LLVM_VERSION={llvm_version}");
+    println!("cargo:rustc-env=CC_INFO={}", cc_info());
+    let encoded_rustflags = std::env::var("CARGO_ENCODED_RUSTFLAGS").unwrap_or_default();
+    let rustflags: Vec<&str> = encoded_rustflags
+        .split('\x1f')
+        .filter(|f| !f.is_empty())
+        .collect();
+    println!("cargo:rustc-env=LINKER={}", linker_info(&rustflags));
+    println!("cargo:rustc-env=RUSTFLAGS={}", rustflags.join(" "));
 }

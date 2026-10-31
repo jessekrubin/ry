@@ -26,7 +26,7 @@ impl Default for PyCompressionLevel {
 impl TryFrom<i32> for PyCompressionLevel {
     type Error = ();
     fn try_from(value: i32) -> Result<Self, Self::Error> {
-        if (1..=22).contains(&value) {
+        if (Self::MIN.0..=Self::MAX.0).contains(&value) {
             Ok(Self::new(value))
         } else {
             Err(())

@@ -68,7 +68,7 @@ members = [
 version = "0.0.106"
 authors = [
   # hopefully you will contribute!
-  "jesse k. rubin <jessekrubin@gmail.com>",
+  "jesse k rubin <jessekrubin@gmail.com>",
 ]
 categories = ["api-bindings"]
 documentation = "https://github.com/jessekrubin/ry"
