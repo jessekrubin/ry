@@ -55,16 +55,16 @@ impl<'py> FromPyObject<'_, 'py> for PyHttpMethod {
     fn extract(obj: Borrowed<'_, 'py, PyAny>) -> Result<Self, Self::Error> {
         if let Ok(s) = obj.extract::<&str>() {
             match s {
-                "GET" | "get" => Ok(Self(http::Method::GET)),
-                "POST" | "post" => Ok(Self(http::Method::POST)),
-                "PUT" | "put" => Ok(Self(http::Method::PUT)),
-                "DELETE" | "delete" => Ok(Self(http::Method::DELETE)),
-                "HEAD" | "head" => Ok(Self(http::Method::HEAD)),
-                "OPTIONS" | "options" => Ok(Self(http::Method::OPTIONS)),
-                "CONNECT" | "connect" => Ok(Self(http::Method::CONNECT)),
-                "PATCH" | "patch" => Ok(Self(http::Method::PATCH)),
-                "TRACE" | "trace" => Ok(Self(http::Method::TRACE)),
-                "QUERY" | "query" => Ok(Self(http::Method::QUERY)),
+                "GET" | "get" => Ok(Self::GET),
+                "POST" | "post" => Ok(Self::POST),
+                "PUT" | "put" => Ok(Self::PUT),
+                "DELETE" | "delete" => Ok(Self::DELETE),
+                "HEAD" | "head" => Ok(Self::HEAD),
+                "OPTIONS" | "options" => Ok(Self::OPTIONS),
+                "CONNECT" | "connect" => Ok(Self::CONNECT),
+                "PATCH" | "patch" => Ok(Self::PATCH),
+                "TRACE" | "trace" => Ok(Self::TRACE),
+                "QUERY" | "query" => Ok(Self::QUERY),
                 _ => py_value_err!("Invalid HTTP method: {s} (options: {HTTP_METHOD_STRINGS})"),
             }
         } else {
