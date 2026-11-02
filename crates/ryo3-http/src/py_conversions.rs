@@ -111,6 +111,7 @@ impl<'py> FromPyObject<'_, 'py> for PyHttpVersion {
     fn extract(ob: Borrowed<'_, 'py, PyAny>) -> Result<Self, Self::Error> {
         if let Ok(s) = ob.cast_exact::<PyString>() {
             let s = s.extract::<&str>()?;
+            // TODO: hidden allocation here
             match s.to_ascii_uppercase().as_str() {
                 "HTTP/0.9" | "0.9" => Ok(Self::HTTP_09),
                 "HTTP/1.0" | "HTTP/1" | "1.0" | "1" => Ok(Self::HTTP_10),

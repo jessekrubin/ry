@@ -35,37 +35,56 @@ impl ReqwestKwargs {
 }
 
 impl<const BLOCKING: bool> ReqwestKwargs<BLOCKING> {
+    /// Apply the query (already url-encoded by `PyQuery`) to the url
+    #[inline]
+    pub(crate) fn apply_query(&mut self, url: &mut reqwest::Url) {
+        let Some(query) = self.query.take() else {
+            return;
+        };
+        let q: &str = query.as_ref();
+        if q.is_empty() {
+            return;
+        }
+        match url.query() {
+            Some(existing) if !existing.is_empty() => {
+                let joined = format!("{existing}&{q}");
+                url.set_query(Some(&joined));
+            }
+            _ => url.set_query(Some(q)),
+        }
+    }
+
     /// Apply the kwargs to the `reqwest::RequestBuilder`
     #[inline]
     pub(crate) fn apply(self, req: reqwest::RequestBuilder) -> PyResult<reqwest::RequestBuilder> {
         let mut req = req;
 
-        // headers
-        if let Some(headers) = self.headers {
-            req = req.headers(headers);
-        }
+        // set `content-type` for json/form if caller did not
+        let default_content_type = match &self.body {
+            PyReqwestBody::Json(_) => Some(HeaderValue::from_static("application/json")),
+            PyReqwestBody::Form(_) => Some(HeaderValue::from_static(
+                "application/x-www-form-urlencoded",
+            )),
+            _ => None,
+        };
 
-        // query
-        if let Some(query) = self.query {
-            // temp hack we know that the query is already url-encoded so we
-            // decode it and then re-encode it...
-            let decoded: Vec<(&str, &str)> = serde_urlencoded::from_str(query.as_ref())
-                .map_err(|err| py_value_error!("failed to decode query params: {err}"))?;
-            req = req.query(&decoded);
+        // headers
+        match (self.headers, default_content_type) {
+            (Some(mut headers), Some(ct)) => {
+                headers.entry(reqwest::header::CONTENT_TYPE).or_insert(ct);
+                req = req.headers(headers);
+            }
+            (Some(headers), None) => req = req.headers(headers),
+            (None, Some(ct)) => req = req.header(reqwest::header::CONTENT_TYPE, ct),
+            (None, None) => {}
         }
 
         // body
         req = match self.body {
             PyReqwestBody::Bytes(b) => req.body(b),
             PyReqwestBody::Stream(s) => req.body(s),
-            PyReqwestBody::Json(j) => req.body(j).header(
-                reqwest::header::CONTENT_TYPE,
-                HeaderValue::from_static("application/json"),
-            ),
-            PyReqwestBody::Form(f) => req.body(f).header(
-                reqwest::header::CONTENT_TYPE,
-                HeaderValue::from_static("application/x-www-form-urlencoded"),
-            ),
+            PyReqwestBody::Json(j) => req.body(j),
+            PyReqwestBody::Form(f) => req.body(f),
             PyReqwestBody::Multipart(_m) => {
                 pytodo!("multipart not implemented (yet)");
             }

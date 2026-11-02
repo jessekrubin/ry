@@ -405,21 +405,12 @@ fn build_request<const BLOCKING: bool>(
     method: Method,
     kwargs: Option<ReqwestKwargs<BLOCKING>>,
 ) -> PyResult<RequestBuilder> {
-    // we can avoid the weird little hackyh query serde song and dance
-    // TODO: FIX THIS?
-    // Cases are:
-    //    - query for the url is set from the UrlLike and query in kwargs is None --
-    //      we are done
-    //    - query in kwargs is Some -- and the url already has a query -- here we do
-    //      the song and dance
-    //    - query in kwargs is Some -- and the url has NO query so we can just set
-    //      the string I think
-    // url is empty and the kwargs do not contain a
-    let rb = client.request(method, url.into_inner());
-    match kwargs {
-        Some(kwargs) => kwargs.apply(rb),
-        None => Ok(rb),
-    }
+    let mut url = url.into_inner();
+    let Some(mut kwargs) = kwargs else {
+        return Ok(client.request(method, url));
+    };
+    kwargs.apply_query(&mut url);
+    kwargs.apply(client.request(method, url))
 }
 
 /// send + wait (blocking; caller has already let go of the gil)
