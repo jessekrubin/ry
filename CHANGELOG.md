@@ -7,6 +7,13 @@
 
 ---
 
+## v0.0.107 [unreleased]
+
+- misc
+  - experiments with disabling pyo3 global-reference-pool
+
+---
+
 ## v0.0.106 [2026-10-30]
 
 - `python -m ry`

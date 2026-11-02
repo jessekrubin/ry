@@ -2,7 +2,6 @@ use std::convert::Into;
 use std::time::Duration;
 
 use pyo3::prelude::*;
-use pyo3::pybacked::PyBackedStr;
 use pyo3::types::PyDict;
 use reqwest::header::{HeaderMap, HeaderValue};
 use ryo3_http::{PyHeadersLike, PyHttpVersion};
@@ -18,7 +17,7 @@ pub(crate) struct ReqwestKwargs<const BLOCKING: bool = false> {
     body: PyReqwestBody,
     timeout: Option<Duration>,
     basic_auth: Option<PyBasicAuth>,
-    bearer_auth: Option<PyBackedStr>,
+    bearer_auth: Option<String>,
     version: Option<PyHttpVersion>,
 }
 
@@ -222,7 +221,7 @@ fn extract_kwargs<const BLOCKING: bool>(
         .get_item(pyo3::intern!(py, "basic_auth"))?
         .map(|b| b.extract())
         .transpose()?;
-    let bearer_auth: Option<PyBackedStr> = dict
+    let bearer_auth: Option<String> = dict
         .get_item(pyo3::intern!(py, "bearer_auth"))?
         .map(|b| b.extract())
         .transpose()?;
