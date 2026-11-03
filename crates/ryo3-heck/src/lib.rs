@@ -10,7 +10,7 @@ macro_rules! ry_heck_pyfunction {
         #[pyfunction]
         #[pyo3(text_signature = "(string: str)")]
         fn $name(string: &str) -> String {
-            string.$case().to_string()
+            string.$case()
         }
     };
 }

@@ -53,7 +53,7 @@ impl PyWsMessage {
                 let data = data
                     .ok_or_else(|| py_value_error!("data required for message w/ kind='text'"))?;
                 let s = data.extract::<PyBackedStr>()?;
-                Ok(Self::from(Message::text(s.to_string())))
+                Ok(Self::from(Message::text(Bytes::from_owner(s))))
             }
             PyWebSocketMessageKind::Binary => {
                 let data = data
@@ -90,10 +90,9 @@ impl PyWsMessage {
         }
     }
 
-    #[expect(clippy::needless_pass_by_value)]
     #[staticmethod]
     fn text(text: PyBackedStr) -> Self {
-        Self::from(Message::text(text.to_string()))
+        Self::from(Message::text(Bytes::from_owner(text)))
     }
 
     #[staticmethod]

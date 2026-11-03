@@ -272,8 +272,17 @@ pub(crate) trait PythonBytesMethods:
     // ```
     fn py_expandtabs(&self, tabsize: usize) -> Result<Self, AllocError> {
         let b = self.as_ref();
-        if b.is_empty() || tabsize == 0 {
-            return Ok(Self::from(b.to_vec()));
+        if b.is_empty() {
+            return Ok(Self::from(vec![]));
+        }
+        if tabsize == 0 {
+            // cpython removes tabs when tabsize is 0
+            let out = b
+                .iter()
+                .copied()
+                .filter(|&byte| byte != b'\t')
+                .collect::<Vec<_>>();
+            return Ok(Self::from(out));
         }
 
         let capacity = {
