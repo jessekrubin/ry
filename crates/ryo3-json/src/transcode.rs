@@ -25,7 +25,7 @@ fn py_minify_json(input: &[u8]) -> PyResult<Vec<u8>> {
 pub(crate) fn minify<'py>(buf: &'py Bound<'py, PyAny>, append_newline: bool) -> PyResult<RyBytes> {
     if let Some(s) = buf.cast_exact_opt::<PyString>() {
         // py-string
-        let json_str = s.to_string();
+        let json_str = s.to_str()?;
         let mut output = py_minify_json(json_str.as_bytes())?;
         if append_newline {
             output.push(b'\n');
@@ -58,7 +58,7 @@ fn py_indent2_json(input: &[u8]) -> PyResult<Vec<u8>> {
 pub(crate) fn fmt<'py>(buf: &'py Bound<'py, PyAny>, append_newline: bool) -> PyResult<RyBytes> {
     if let Some(s) = buf.cast_exact_opt::<PyString>() {
         // py-string
-        let json_str = s.to_string();
+        let json_str = s.to_str()?;
         let mut output = py_indent2_json(json_str.as_bytes())?;
         if append_newline {
             output.push(b'\n');

@@ -92,7 +92,7 @@ impl serde::Serialize for HttpHeaderMapRef<'_> {
         S: serde::Serializer,
     {
         let mut keys = self.0.keys().collect::<Vec<_>>();
-        keys.sort_by_cached_key(|k| k.as_str().to_lowercase());
+        keys.sort_unstable_by_key(|k| k.as_str());
 
         serializer.collect_map(
             keys.into_iter()

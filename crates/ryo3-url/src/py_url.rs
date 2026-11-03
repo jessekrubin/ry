@@ -221,11 +221,7 @@ impl PyUrl {
 
     #[getter]
     fn query_pairs<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
-        let query_pairs = self
-            .0
-            .query_pairs()
-            .map(|(k, v)| (k.into_owned(), v.into_owned()))
-            .collect::<Vec<_>>();
+        let query_pairs = self.0.query_pairs().collect::<Vec<_>>();
         PyTuple::new(py, query_pairs)
     }
 

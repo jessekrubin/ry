@@ -161,22 +161,16 @@ impl PyRegex {
         self.re.replace(haystack, replacement)
     }
 
-    fn replace_all(&self, haystack: &str, replacement: &str) -> String {
-        self.re.replace_all(haystack, replacement).to_string()
+    fn replace_all<'py>(&self, haystack: &'py str, replacement: &str) -> Cow<'py, str> {
+        self.re.replace_all(haystack, replacement)
     }
 
-    fn split(&self, haystack: &str) -> Vec<String> {
-        self.re
-            .split(haystack)
-            .map(std::string::ToString::to_string)
-            .collect()
+    fn split<'py>(&self, haystack: &'py str) -> Vec<&'py str> {
+        self.re.split(haystack).collect()
     }
 
-    fn splitn(&self, haystack: &str, n: usize) -> Vec<String> {
-        self.re
-            .splitn(haystack, n)
-            .map(std::string::ToString::to_string)
-            .collect()
+    fn splitn<'py>(&self, haystack: &'py str, n: usize) -> Vec<&'py str> {
+        self.re.splitn(haystack, n).collect()
     }
 }
 
