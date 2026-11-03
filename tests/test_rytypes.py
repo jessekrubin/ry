@@ -94,10 +94,6 @@ _RY_TYPES: list[type] = [
     ry.xxhash.xxh64,
 ]
 
-_SUBCLASSING_OK: set[type] = {
-    ry.Bytes,
-}
-
 
 def is_exception_subclass(cls: type) -> bool:
     """Check if a class is a subclass of Exception."""
@@ -121,10 +117,7 @@ def test_no_missing_types_from_ry_init(subtests: pytest.Subtests) -> None:
 
 @pytest.mark.parametrize(
     "cls",
-    [
-        pytest.param(cls, id=cls.__name__)
-        for cls in filter(lambda c: c not in _SUBCLASSING_OK, _RY_TYPES)
-    ],
+    [pytest.param(cls, id=cls.__name__) for cls in _RY_TYPES],
 )
 def test_subclassing_fails(cls: t.Any) -> None:
     """

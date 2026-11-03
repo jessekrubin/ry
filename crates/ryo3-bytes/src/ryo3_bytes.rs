@@ -9,11 +9,11 @@ use std::sync::atomic::{AtomicIsize, Ordering};
 
 use bytes::{Bytes, BytesMut};
 use pyo3::buffer::PyUntypedBuffer;
-use pyo3::exceptions::{PyBufferError, PyIndexError, PyValueError};
+use pyo3::exceptions::{PyBufferError, PyIndexError, PyTypeError, PyValueError};
 use pyo3::prelude::*;
 use pyo3::pybacked::PyBackedBytes;
 use pyo3::types::slice::PySliceIndices;
-use pyo3::types::{PyDict, PySlice, PyString, PyTuple};
+use pyo3::types::{PyDict, PyInt, PySlice, PyString, PyTuple};
 use pyo3::{IntoPyObjectExt, ffi};
 
 use crate::alloc::{AllocError, try_with_capacity};
@@ -45,7 +45,9 @@ const PY_HASH_NONE: isize = -1;
 /// data view without copies. In Python, this `PyBytes` object can be passed to Python `bytes` or
 /// `memoryview` constructors, `numpy.frombuffer`, or any other function that supports buffer
 /// protocol input.
-#[pyclass(name = "Bytes", subclass, frozen, immutable_type, sequence, weakref)]
+#[pyclass(name = "Bytes", frozen, sequence, weakref)]
+#[cfg_attr(any(not(Py_LIMITED_API), Py_3_14), pyo3(immutable_type))]
+#[cfg_attr(feature = "subclass", pyo3(subclass))]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyBytes(Bytes, AtomicIsize);
 
@@ -148,46 +150,39 @@ impl RyBytes {
     ///     - If start > stop, the slice is empty
     ///
     /// This is NOT exposed to Python under the `#[pymethods]` impl
-    fn slice(&self, slice: &Bound<'_, PySlice>) -> PyResult<Self> {
-        let len = isize::try_from(self.len())
-            .map_err(|_| pyo3::exceptions::PyOverflowError::new_err("bytes object too large"))?;
-        let PySliceIndices {
+    fn slice(&self, indices: &PySliceIndices) -> Self {
+        let &PySliceIndices {
             start,
             step,
             slicelength,
             ..
-        } = slice.indices(len)?;
+        } = indices;
         if slicelength == 0 {
-            return Ok(Self::new(Bytes::new()));
+            return Self::new(Bytes::new());
         }
         let start = start.unsigned_abs();
+        if step == 1 {
+            return Self::new(self.0.slice(start..start + slicelength));
+        }
         let step_size = step.unsigned_abs();
         let bytes = self.as_slice();
-        if step == 0 {
-            Err(pyo3::exceptions::PyValueError::new_err(
-                "slice step cannot be zero",
-            ))
-        } else if step == 1 {
-            Ok(Self::new(self.0.slice(start..start + slicelength)))
-        } else if step > 0 {
-            Ok(Self::new(
-                bytes[start..]
-                    .iter()
-                    .step_by(step_size)
-                    .take(slicelength)
-                    .copied()
-                    .collect(),
-            ))
+        if step > 0 {
+            bytes[start..]
+                .iter()
+                .step_by(step_size)
+                .take(slicelength)
+                .copied()
+                .collect::<Vec<_>>()
+                .into()
         } else {
-            Ok(Self::new(
-                bytes[..=start]
-                    .iter()
-                    .rev()
-                    .step_by(step_size)
-                    .take(slicelength)
-                    .copied()
-                    .collect(),
-            ))
+            bytes[..=start]
+                .iter()
+                .rev()
+                .step_by(step_size)
+                .take(slicelength)
+                .copied()
+                .collect::<Vec<_>>()
+                .into()
         }
     }
 }
@@ -274,13 +269,16 @@ impl RyBytes {
     fn __add__<'py>(
         slf: PyRef<'py, Self>,
         py: Python<'py>,
-        other: ReadableBuffer,
+        other: ReadableBuffer<'_, 'py>,
     ) -> PyResult<Bound<'py, Self>> {
         if other.is_empty() {
             return slf.into_pyobject_or_pyerr(py);
         }
         if slf.is_empty() {
-            return other.into_rybytes().into_pyobject(py);
+            return match other {
+                ReadableBuffer::RyBytes(rb) => Ok(rb.to_owned()),
+                other => other.into_rybytes().into_pyobject(py),
+            };
         }
         let total_length = slf.len() + other.len();
         let mut vec = try_with_capacity(total_length)?;
@@ -297,25 +295,38 @@ impl RyBytes {
         self.0.as_ref() == other.as_ref()
     }
 
-    fn __getitem__(&self, key: BytesGetItemKey<'_>) -> PyResult<BytesGetItemResult> {
+    fn __getitem__<'py>(
+        slf: PyRef<'py, Self>,
+        key: BytesGetItemKey<'py>,
+    ) -> PyResult<BytesGetItemResult<'py>> {
         match key {
             BytesGetItemKey::Int(signed_index) => {
                 let index = if signed_index < 0 {
                     let offset = signed_index.unsigned_abs();
-                    self.len()
+                    slf.len()
                         .checked_sub(offset)
                         .ok_or_else(|| PyIndexError::new_err("Index out of range"))?
                 } else {
                     usize::try_from(signed_index).expect("wenodis: positive isize aint gonna fail")
                 };
-                self.0
+                slf.0
                     .get(index)
                     .map(|b| BytesGetItemResult::Byte(*b))
                     .ok_or_else(|| PyIndexError::new_err("Index out of range"))
             }
             BytesGetItemKey::Slice(slice) => {
-                let s = self.slice(&slice)?;
-                Ok(BytesGetItemResult::Slice(s))
+                let len = isize::try_from(slf.len()).map_err(|_| {
+                    pyo3::exceptions::PyOverflowError::new_err("bytes object too large")
+                })?;
+                let indices = slice.indices(len)?;
+                // whole buffer ~ same obj (any step works for len <= 1)
+                if indices.slicelength == slf.len()
+                    && (indices.step == 1 || indices.slicelength <= 1)
+                {
+                    let py = slf.py();
+                    return Ok(BytesGetItemResult::Same(slf.into_pyobject_or_pyerr(py)?));
+                }
+                Ok(BytesGetItemResult::Slice(slf.slice(&indices)))
             }
         }
     }
@@ -381,7 +392,7 @@ impl RyBytes {
         slf: PyRef<'py, Self>,
         prefix: ReadableBuffer,
     ) -> PyResult<Bound<'py, Self>> {
-        if slf.0.starts_with(prefix.as_ref()) {
+        if !prefix.is_empty() && slf.0.starts_with(prefix.as_ref()) {
             Self::new(slf.0.slice(prefix.len()..)).into_pyobject(slf.py())
         } else {
             let py = slf.py();
@@ -396,7 +407,7 @@ impl RyBytes {
         slf: PyRef<'py, Self>,
         suffix: ReadableBuffer,
     ) -> PyResult<Bound<'py, Self>> {
-        if slf.0.ends_with(suffix.as_ref()) {
+        if !suffix.is_empty() && slf.0.ends_with(suffix.as_ref()) {
             Self::new(slf.0.slice(0..slf.0.len() - suffix.len())).into_pyobject(slf.py())
         } else {
             let py = slf.py();
@@ -526,17 +537,17 @@ impl RyBytes {
         PythonBytesMethods::py_hashbuffer(self, py)
     }
 
-    fn __iter__(&self) -> PyBytesIter {
+    fn __iter__(&self) -> RyBytesIter {
         self.into()
     }
 
     /// Iterate over overlapping byte slices of length `size`.
     #[pyo3(signature = (size, /, *, reverse = false))]
-    fn windows(&self, size: std::num::NonZeroUsize, reverse: bool) -> PyBytesSliceIter {
+    fn windows(&self, size: std::num::NonZeroUsize, reverse: bool) -> RyBytesSliceIter {
         if reverse {
-            PyBytesSliceIter::windows_rev(self.0.clone(), size)
+            RyBytesSliceIter::windows_rev(self.0.clone(), size)
         } else {
-            PyBytesSliceIter::windows_fwd(self.0.clone(), size)
+            RyBytesSliceIter::windows_fwd(self.0.clone(), size)
         }
     }
 
@@ -680,8 +691,12 @@ impl RyBytes {
     }
 
     #[pyo3(signature = (tabsize = 8))]
-    fn expandtabs(&self, tabsize: usize) -> Result<Self, AllocError> {
-        self.py_expandtabs(tabsize)
+    fn expandtabs(slf: PyRef<'_, Self>, tabsize: usize) -> PyResult<Bound<'_, Self>> {
+        let py = slf.py();
+        if search::memchr(b'\t', slf.as_slice()).is_none() {
+            return slf.into_pyobject_or_pyerr(py);
+        }
+        slf.py_expandtabs(tabsize)?.into_pyobject(py)
     }
 
     #[pyo3(
@@ -954,7 +969,6 @@ impl std::fmt::Debug for RyBytes {
 }
 
 /// A key for the `__getitem__` method of `PyBytes` - int/slice
-#[derive(FromPyObject)]
 enum BytesGetItemKey<'py> {
     /// An integer index
     Int(isize),
@@ -962,14 +976,43 @@ enum BytesGetItemKey<'py> {
     Slice(Bound<'py, PySlice>),
 }
 
-enum BytesGetItemResult {
+impl<'py> FromPyObject<'_, 'py> for BytesGetItemKey<'py> {
+    type Error = PyErr;
+
+    fn extract(ob: Borrowed<'_, 'py, PyAny>) -> Result<Self, Self::Error> {
+        if ob.is_exact_instance_of::<PySlice>() {
+            #[expect(unsafe_code)]
+            let slice = unsafe {
+                // SAFETY: wenodis (see line above)
+                ob.cast_unchecked::<PySlice>()
+            };
+            return Ok(Self::Slice(slice.to_owned()));
+        }
+        match ob.extract::<isize>() {
+            Ok(ix) => Ok(Self::Int(ix)),
+            // same errors as cpython
+            Err(_) if ob.is_instance_of::<PyInt>() => Err(PyIndexError::new_err(
+                "cannot fit 'int' into an index-sized integer",
+            )),
+            Err(_) => Err(PyTypeError::new_err(format!(
+                "byte indices must be integers or slices, not {}",
+                ob.get_type().name()?
+            ))),
+        }
+    }
+}
+
+/// Result of `__getitem__` - int/slice/self
+enum BytesGetItemResult<'py> {
     /// A single byte as an integer
     Byte(u8),
     /// A slice of bytes as a new `PyBytes`
     Slice(RyBytes),
+    /// Whole-buffer slice (`b[:]`)
+    Same(Bound<'py, RyBytes>),
 }
 
-impl<'py> IntoPyObject<'py> for BytesGetItemResult {
+impl<'py> IntoPyObject<'py> for BytesGetItemResult<'py> {
     type Target = PyAny;
     type Output = Bound<'py, Self::Target>;
     type Error = PyErr;
@@ -978,29 +1021,31 @@ impl<'py> IntoPyObject<'py> for BytesGetItemResult {
         match self {
             Self::Byte(b) => b.into_bound_py_any(py),
             Self::Slice(s) => s.into_bound_py_any(py),
+            Self::Same(b) => Ok(b.into_any()),
         }
     }
 }
 
 /// optimized bytes-iterator...
-#[pyclass(name = "ByteIter", immutable_type)]
+#[pyclass(name = "ByteIter")]
+#[cfg_attr(any(not(Py_LIMITED_API), Py_3_14), pyo3(immutable_type))]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
-pub(crate) struct PyBytesIter(::bytes::buf::IntoIter<Bytes>);
+pub(crate) struct RyBytesIter(::bytes::buf::IntoIter<Bytes>);
 
-impl From<Bytes> for PyBytesIter {
+impl From<Bytes> for RyBytesIter {
     fn from(value: Bytes) -> Self {
         Self(value.into_iter())
     }
 }
 
-impl From<&RyBytes> for PyBytesIter {
+impl From<&RyBytes> for RyBytesIter {
     fn from(value: &RyBytes) -> Self {
         value.0.clone().into()
     }
 }
 
 #[pymethods]
-impl PyBytesIter {
+impl RyBytesIter {
     fn __iter__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {
         slf
     }
@@ -1019,14 +1064,15 @@ impl PyBytesIter {
 // ============================================================================
 
 /// Iterator over overlapping byte slices.
-#[pyclass(name = "BytesSliceIter", immutable_type)]
+#[pyclass(name = "BytesSliceIter")]
+#[cfg_attr(any(not(Py_LIMITED_API), Py_3_14), pyo3(immutable_type))]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
-pub struct PyBytesSliceIter {
+pub struct RyBytesSliceIter {
     bytes: Bytes,
     ranges: BytesSliceIterRanges,
 }
 
-impl PyBytesSliceIter {
+impl RyBytesSliceIter {
     /// Create a new windows iterator (forward)
     pub(crate) fn windows_fwd(bytes: Bytes, size: NonZeroUsize) -> Self {
         let ranges =
@@ -1048,7 +1094,7 @@ impl PyBytesSliceIter {
 
 /// PYIMPL
 #[pymethods]
-impl PyBytesSliceIter {
+impl RyBytesSliceIter {
     fn __iter__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {
         slf
     }
@@ -1116,7 +1162,7 @@ impl PyBytesSliceIter {
     }
 }
 
-impl std::fmt::Display for PyBytesSliceIter {
+impl std::fmt::Display for RyBytesSliceIter {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let name = self.ranges.kind().name();
         write!(

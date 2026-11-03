@@ -17,6 +17,12 @@
   - fix: `json=`/`form=` only set `content-type` if not already set
 - `ryo3-http`
   - faster `dict` header ingestion
+- `ryo3-bytes`
+  - **BREAKING:** `ry.Bytes` is no longer subclassable
+  - `subclass` feature to allow python subclasses if you are using `ryo3-bytes`
+    elsewhere (which I (jesse) am)
+  - `immutable_type` gated on `any(not(Py_LIMITED_API), Py_3_14)` so the crate
+    builds w/ `abi3`
 - misc
   - experiments with disabling pyo3 global-reference-pool
   - bump `maturin` to 1.16.0
