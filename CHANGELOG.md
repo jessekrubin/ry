@@ -19,6 +19,7 @@
   - faster `dict` header ingestion
 - misc
   - experiments with disabling pyo3 global-reference-pool
+  - bump `maturin` to 1.16.0
 
 ---
 
