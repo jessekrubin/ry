@@ -1,5 +1,4 @@
 //! http python conversions
-use std::collections::HashMap;
 use std::convert::Infallible;
 
 use http::HeaderMap;
@@ -8,7 +7,6 @@ use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyDict, PyList, PyString};
 use ryo3_core::macros::{py_type_err, py_value_err, py_value_error};
 
-use crate::headers_like::HeaderValueOrValues;
 use crate::http_types::{
     PyHttpHeaderMapRef, PyHttpHeaderName, PyHttpHeaderValue, PyHttpHeaderValueRef, PyHttpMethod,
     PyHttpVersion,
@@ -57,16 +55,16 @@ impl<'py> FromPyObject<'_, 'py> for PyHttpMethod {
     fn extract(obj: Borrowed<'_, 'py, PyAny>) -> Result<Self, Self::Error> {
         if let Ok(s) = obj.extract::<&str>() {
             match s {
-                "GET" | "get" => Ok(Self(http::Method::GET)),
-                "POST" | "post" => Ok(Self(http::Method::POST)),
-                "PUT" | "put" => Ok(Self(http::Method::PUT)),
-                "DELETE" | "delete" => Ok(Self(http::Method::DELETE)),
-                "HEAD" | "head" => Ok(Self(http::Method::HEAD)),
-                "OPTIONS" | "options" => Ok(Self(http::Method::OPTIONS)),
-                "CONNECT" | "connect" => Ok(Self(http::Method::CONNECT)),
-                "PATCH" | "patch" => Ok(Self(http::Method::PATCH)),
-                "TRACE" | "trace" => Ok(Self(http::Method::TRACE)),
-                "QUERY" | "query" => Ok(Self(http::Method::QUERY)),
+                "GET" | "get" => Ok(Self::GET),
+                "POST" | "post" => Ok(Self::POST),
+                "PUT" | "put" => Ok(Self::PUT),
+                "DELETE" | "delete" => Ok(Self::DELETE),
+                "HEAD" | "head" => Ok(Self::HEAD),
+                "OPTIONS" | "options" => Ok(Self::OPTIONS),
+                "CONNECT" | "connect" => Ok(Self::CONNECT),
+                "PATCH" | "patch" => Ok(Self::PATCH),
+                "TRACE" | "trace" => Ok(Self::TRACE),
+                "QUERY" | "query" => Ok(Self::QUERY),
                 _ => py_value_err!("Invalid HTTP method: {s} (options: {HTTP_METHOD_STRINGS})"),
             }
         } else {
@@ -113,6 +111,7 @@ impl<'py> FromPyObject<'_, 'py> for PyHttpVersion {
     fn extract(ob: Borrowed<'_, 'py, PyAny>) -> Result<Self, Self::Error> {
         if let Ok(s) = ob.cast_exact::<PyString>() {
             let s = s.extract::<&str>()?;
+            // TODO: hidden allocation here
             match s.to_ascii_uppercase().as_str() {
                 "HTTP/0.9" | "0.9" => Ok(Self::HTTP_09),
                 "HTTP/1.0" | "HTTP/1" | "1.0" | "1" => Ok(Self::HTTP_10),
@@ -361,8 +360,8 @@ impl<'py> IntoPyObject<'py> for PyHttpHeaderValue {
 impl<'py> FromPyObject<'_, 'py> for PyHttpHeaderValue {
     type Error = pyo3::PyErr;
     fn extract(ob: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
-        if let Ok(s) = ob.extract::<&str>() {
-            http::HeaderValue::from_str(s)
+        if let Ok(s) = ob.cast::<PyString>() {
+            http::HeaderValue::from_str(s.to_str()?)
                 .map(Self::from)
                 .map_err(|e| py_value_error!("invalid-header-value: {e}"))
         } else if let Ok(pyb) = ob.cast::<PyBytes>() {
@@ -379,27 +378,35 @@ impl<'py> FromPyObject<'_, 'py> for PyHttpHeaderValue {
 impl<'py> FromPyObject<'_, 'py> for PyHttpHeaderMap {
     type Error = PyErr;
     fn extract(ob: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
-        if let Ok(d) = ob.cast_exact::<pyo3::types::PyDict>() {
-            let extracted = d.extract::<HashMap<PyHttpHeaderName, HeaderValueOrValues>>()?;
-            let mut hm: http::HeaderMap = HeaderMap::with_capacity(extracted.len());
-            for (k, v) in extracted {
-                match v {
-                    HeaderValueOrValues::One(s) => {
-                        hm.try_insert(k.0, s.into())
+        let Ok(d) = ob.cast_exact::<PyDict>() else {
+            return py_type_err!("Expected dict[str, str | bytes | list[str | bytes]]");
+        };
+        let mut hm: HeaderMap = HeaderMap::with_capacity(d.len());
+        for (k, v) in d.iter() {
+            let name = k.extract::<PyHttpHeaderName>()?.0;
+            if v.is_instance_of::<PyString>() || v.is_instance_of::<PyBytes>() {
+                let hv = v.extract::<PyHttpHeaderValue>()?.0;
+                hm.try_insert(name, hv)
+                    .map_err(|_e| py_value_error!("max-size-reached"))?;
+            } else {
+                let values = v.extract::<Vec<PyHttpHeaderValue>>()?;
+                let mut values = values.into_iter();
+                match values.next() {
+                    Some(first) => {
+                        hm.try_insert(&name, first.0)
                             .map_err(|_e| py_value_error!("max-size-reached"))?;
-                    }
-                    HeaderValueOrValues::Many(v) => {
-                        for s in v {
-                            hm.try_append(&k.0, s.into())
+                        for hv in values {
+                            hm.try_append(&name, hv.0)
                                 .map_err(|_e| py_value_error!("max-size-reached"))?;
                         }
                     }
+                    None => {
+                        hm.remove(&name);
+                    }
                 }
             }
-            Ok(Self::from(hm))
-        } else {
-            py_type_err!("Expected dict[str, str | bytes | list[str | bytes]]")
         }
+        Ok(Self::from(hm))
     }
 }
 

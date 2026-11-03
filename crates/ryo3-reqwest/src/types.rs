@@ -1,5 +1,4 @@
 use pyo3::prelude::*;
-use pyo3::pybacked::PyBackedStr;
 use reqwest::header::HeaderValue;
 use ryo3_bytes::ReadableBuffer;
 use ryo3_core::macros::{py_type_err, py_type_error, py_value_error};
@@ -10,7 +9,7 @@ use crate::constants::DEFAULT_USER_AGENT;
 // ============================================================================
 // BASIC AUTH
 // ============================================================================
-pub(crate) struct PyBasicAuth(PyBackedStr, Option<PyBackedStr>);
+pub(crate) struct PyBasicAuth(String, Option<String>);
 
 impl PyBasicAuth {
     pub(crate) fn username(&self) -> &str {
@@ -26,8 +25,8 @@ impl<'py> FromPyObject<'_, 'py> for PyBasicAuth {
     type Error = PyErr;
 
     fn extract(obj: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
-        let tuple: (PyBackedStr, Option<PyBackedStr>) = obj.extract()?;
-        Ok(Self(tuple.0, tuple.1))
+        let (user, pass): (String, Option<String>) = obj.extract()?;
+        Ok(Self(user, pass))
     }
 }
 

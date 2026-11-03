@@ -7,6 +7,21 @@
 
 ---
 
+## v0.0.107 [unreleased]
+
+- `ryo3-reqwest`
+  - fix: `query` that require escaping dont raise `ValueError` and get
+    serialized and crudely spliced onto the end of the URL; this fixes a long
+    time `TODO` I left myself where I was hackily serializing then deserializing
+    query parameters
+  - fix: `json=`/`form=` only set `content-type` if not already set
+- `ryo3-http`
+  - faster `dict` header ingestion
+- misc
+  - experiments with disabling pyo3 global-reference-pool
+
+---
+
 ## v0.0.106 [2026-10-30]
 
 - `python -m ry`

@@ -23,6 +23,7 @@ impl PyHttpMethod {
     pub const PATCH: Self = Self(http::Method::PATCH);
     pub const TRACE: Self = Self(http::Method::TRACE);
     pub const CONNECT: Self = Self(http::Method::CONNECT);
+    pub const QUERY: Self = Self(http::Method::QUERY);
 }
 
 #[derive(Debug, Clone, PartialEq, Hash, Eq)]

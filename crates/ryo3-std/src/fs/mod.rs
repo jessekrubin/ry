@@ -268,19 +268,25 @@ pub fn read_stream(
 
 #[pyfunction]
 pub fn read(py: Python<'_>, path: PathLike) -> PyResult<RyBytes> {
-    let fbytes = py.detach(|| std::fs::read(path))?;
+    let fbytes = py.detach(|| std::fs::read(&path));
+    drop(path); // drop while attached
+    let fbytes = fbytes?;
     Ok(fbytes.into())
 }
 
 #[pyfunction]
 pub fn read_bytes(py: Python<'_>, path: PathLike) -> PyResult<Py<PyAny>> {
-    let fbytes = py.detach(|| std::fs::read(path))?;
+    let fbytes = py.detach(|| std::fs::read(&path));
+    drop(path); // drop while attached
+    let fbytes = fbytes?;
     Ok(PyBytes::new(py, &fbytes).into())
 }
 
 #[pyfunction]
 pub fn read_text(py: Python<'_>, path: PathLike) -> PyResult<PyUtf8Bytes> {
-    let fbytes = py.detach(|| std::fs::read(path))?;
+    let fbytes = py.detach(|| std::fs::read(&path));
+    drop(path); // drop while attached
+    let fbytes = fbytes?;
     Ok(fbytes.into())
 }
 
@@ -321,7 +327,7 @@ pub fn write(py: Python<'_>, path: PathBuf, data: &Bound<'_, PyAny>) -> PyResult
         let bytes = s.as_bytes();
         py.detach(|| write_impl(path, bytes))
     } else if let Ok(b) = data.extract::<RyBytes>() {
-        py.detach(|| write_impl(path, b))
+        py.detach(|| write_impl(path, &b))
     } else {
         py_type_err!("write - expected str, bytes, bytes-like or buffer-protocol object")
     }
@@ -330,7 +336,7 @@ pub fn write(py: Python<'_>, path: PathBuf, data: &Bound<'_, PyAny>) -> PyResult
 #[pyfunction]
 pub fn write_bytes(py: Python<'_>, path: PathBuf, buf: &Bound<'_, PyAny>) -> PyResult<usize> {
     let bref = buf.extract::<RyBytes>()?;
-    py.detach(|| write_impl(path, bref))
+    py.detach(|| write_impl(path, &bref))
 }
 
 #[expect(clippy::needless_pass_by_value)]
@@ -368,32 +374,37 @@ pub fn copy(py: Python<'_>, from: PathBuf, to: PathBuf) -> PyResult<u64> {
 
 #[pyfunction]
 pub fn remove_file(py: Python<'_>, path: PathLike) -> PyResult<()> {
-    py.detach(|| std::fs::remove_file(path))?;
-    Ok(())
+    let res = py.detach(|| std::fs::remove_file(&path));
+    drop(path); // drop while attached
+    Ok(res?)
 }
 
 #[pyfunction]
 pub fn remove_dir(py: Python<'_>, path: PathLike) -> PyResult<()> {
-    py.detach(|| std::fs::remove_dir(path))?;
-    Ok(())
+    let res = py.detach(|| std::fs::remove_dir(&path));
+    drop(path); // drop while attached
+    Ok(res?)
 }
 
 #[pyfunction]
 pub fn remove_dir_all(py: Python<'_>, path: PathLike) -> PyResult<()> {
-    py.detach(|| std::fs::remove_dir_all(path))?;
-    Ok(())
+    let res = py.detach(|| std::fs::remove_dir_all(&path));
+    drop(path); // drop while attached
+    Ok(res?)
 }
 
 #[pyfunction]
 pub fn create_dir(py: Python<'_>, path: PathLike) -> PyResult<()> {
-    py.detach(|| std::fs::create_dir(path))?;
-    Ok(())
+    let res = py.detach(|| std::fs::create_dir(&path));
+    drop(path); // drop while attached
+    Ok(res?)
 }
 
 #[pyfunction]
 pub fn create_dir_all(py: Python<'_>, path: PathLike) -> PyResult<()> {
-    py.detach(|| std::fs::create_dir_all(path))?;
-    Ok(())
+    let res = py.detach(|| std::fs::create_dir_all(&path));
+    drop(path); // drop while attached
+    Ok(res?)
 }
 
 #[pyfunction]

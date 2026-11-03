@@ -2,13 +2,7 @@ use http::HeaderMap;
 use pyo3::prelude::*;
 use ryo3_core::macros::py_type_err;
 
-use crate::{PyHeaders, PyHttpHeaderMap, PyHttpHeaderValue};
-#[derive(Debug, FromPyObject)]
-pub(crate) enum HeaderValueOrValues {
-    One(PyHttpHeaderValue),
-    Many(Vec<PyHttpHeaderValue>),
-}
-
+use crate::{PyHeaders, PyHttpHeaderMap};
 #[derive(Debug, Clone)]
 pub enum PyHeadersLike {
     Headers(PyHeaders),

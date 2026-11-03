@@ -736,3 +736,51 @@ class TestTodo:
     ) -> None:
         with pytest.raises(NotImplementedError):
             _r = ry.fetch_sync("http://example.com", method="POST", multipart={"a": 1})
+
+
+@pytest.mark.parametrize(
+    ("query", "expected"),
+    [
+        ({"q": "hello world"}, "q=hello+world"),
+        ({"q": "é"}, "q=%C3%A9"),
+        ({"q": "a&b=c"}, "q=a%26b%3Dc"),
+        ([("k", "1"), ("k", "2")], "k=1&k=2"),
+        ({}, None),
+    ],
+)
+def test_blocking_query_needs_escaping(
+    server: ReqtestServer, query: t.Any, expected: str | None
+) -> None:
+    """query values that need (un)escaping used to err up w/ a ValueError"""
+    client = ry.BlockingClient()
+    response = client.get(str(server.url) + "echo", query=query)
+    assert response.status_code == 200
+    assert response.url.query == expected
+
+
+def test_blocking_query_appends_to_existing(server: ReqtestServer) -> None:
+    client = ry.BlockingClient()
+    response = client.get(str(server.url) + "echo?a=1", query={"b": "x y"})
+    assert response.url.query == "a=1&b=x+y"
+
+
+@pytest.mark.parametrize(
+    ("kwargs", "default_ct"),
+    [
+        ({"json": {"x": 1}}, "application/json"),
+        ({"form": {"x": "1"}}, "application/x-www-form-urlencoded"),
+    ],
+)
+def test_blocking_body_content_type_no_dupe(
+    server: ReqtestServer, kwargs: dict[str, t.Any], default_ct: str
+) -> None:
+    """json/form only set content-type if the user did not (no duplicate header)"""
+    client = ry.BlockingClient()
+    url = str(server.url) + "echo"
+    res = client.post(url, **kwargs).json()
+    assert res["headers"]["content-type"] == default_ct
+    # provided wins
+    res = client.post(
+        url, headers={"Content-Type": "application/vnd.custom"}, **kwargs
+    ).json()
+    assert res["headers"]["content-type"] == "application/vnd.custom"
