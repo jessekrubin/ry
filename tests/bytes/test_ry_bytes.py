@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import dataclasses
+import gc
 import sys
 import typing as t
 
@@ -905,6 +906,7 @@ class TestBytesIsEmptyIsUnique:
         assert not b.is_unique()
         assert not cloned.is_unique()
         del cloned
+        gc.collect()  # pypy doesnt free on `del`
         assert b.is_unique()
 
 
