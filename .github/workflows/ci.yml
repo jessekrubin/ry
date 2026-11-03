@@ -75,7 +75,7 @@ jobs:
       - name: Build wheels
         uses: PyO3/maturin-action@e83996d129638aa358a18fbd1dfb82f0b0fb5d3b # v1
         with:
-          maturin-version: v1.15.0
+          maturin-version: v1.16.0
           target: ${{ matrix.platform.target }}
           args: --out dist --interpreter 3.11 3.12 3.13 3.14 3.14t 3.15 3.15t pypy3.11 --profile ${{ env.CARGO_PROFILE }} --features ${{ matrix.platform.features }}
           sccache: ${{ !startsWith(github.ref, 'refs/tags/') }}
@@ -156,7 +156,7 @@ jobs:
       - name: Build wheels
         uses: PyO3/maturin-action@e83996d129638aa358a18fbd1dfb82f0b0fb5d3b # v1
         with:
-          maturin-version: v1.15.0
+          maturin-version: v1.16.0
           target: ${{ matrix.platform.target }}
           args: --out dist --interpreter 3.11 3.12 3.13 3.14 3.14t 3.15 3.15t pypy3.11 --profile ${{ env.CARGO_PROFILE }}
           sccache: ${{ !startsWith(github.ref, 'refs/tags/') }}
@@ -237,7 +237,7 @@ jobs:
       - name: Build wheels
         uses: PyO3/maturin-action@e83996d129638aa358a18fbd1dfb82f0b0fb5d3b # v1
         with:
-          maturin-version: v1.15.0
+          maturin-version: v1.16.0
           target: ${{ matrix.platform.target }}
           args: --out dist --profile ${{ env.CARGO_PROFILE }} --interpreter 3.11 3.12 3.13 3.14 3.15 --features "mimalloc"
           sccache: ${{ !startsWith(github.ref, 'refs/tags/') }}
@@ -282,7 +282,7 @@ jobs:
       - name: Build wheels
         uses: PyO3/maturin-action@e83996d129638aa358a18fbd1dfb82f0b0fb5d3b # v1
         with:
-          maturin-version: v1.15.0
+          maturin-version: v1.16.0
           target: ${{ matrix.platform.target }}
           args: --out dist --interpreter 3.11 3.12 3.13 3.14 3.14t 3.15 3.15t pypy3.11 --profile ${{ env.CARGO_PROFILE }} --features "mimalloc"
           sccache: ${{ !startsWith(github.ref, 'refs/tags/') }}
@@ -309,7 +309,7 @@ jobs:
       - name: Build sdist
         uses: PyO3/maturin-action@e83996d129638aa358a18fbd1dfb82f0b0fb5d3b # v1
         with:
-          maturin-version: v1.15.0
+          maturin-version: v1.16.0
           command: sdist
           args: --out dist
       - name: Upload sdist
