@@ -1,4 +1,4 @@
-//! server-sent events (sse) via the response stream aparatus
+//! server-sent events (sse) via the response stream apparatus
 //!
 //! parsing is done by an adapted sse-decoder which is vendored from `sse-core` (see `decode.rs`);
 //! this is just the glue to the response stream + python

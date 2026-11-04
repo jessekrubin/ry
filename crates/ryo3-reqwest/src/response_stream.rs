@@ -289,7 +289,7 @@ fn py_anext_result(res: Result<Option<Bytes>, reqwest::Error>) -> PyResult<RyByt
     }
 }
 
-// TODO: lines stream ~ allow spliting lines or chunks prolly using
+// TODO: lines stream ~ allow splitting lines or chunks prolly using
 //       memchr + split_to and maybe `keepends: bool= False` kw
 async fn pump_response_body(
     mut stream: BodyStream,

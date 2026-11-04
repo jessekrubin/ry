@@ -176,7 +176,8 @@
 - `ryo3-tokio`
   - fix `AsyncFile.readline(size: int)` bug causing readline to throw away line
     part(s) beyond the buffer limit
-  - the `*_async` fs fns now use `ry.Coroutine` w/ properly working cancelations
+  - the `*_async` fs fns now use `ry.Coroutine` w/ properly working
+    cancellations
   - `AsyncReadDir.take()` defaults to `n=1` like the stub says (this was broke)
   - `AsyncFile` fixes:
     - no more process abort when an `AsyncFile` gets dropped w/ an op in flight
@@ -188,7 +189,7 @@
       an `OSError`)
     - open errors are the right `OSError` subclass w/ `errno`/`filename` (same
       as builtin `open()`)
-    - `closed` doesnt block the event loop if anothe file op is in flight
+    - `closed` doesnt block the event loop if another file op is in flight
 - `ryo3-tokio-rt`
   - `RyJoinHandle` aborts the tokio task on drop; so they dont leave their tasks
     running in the bg
