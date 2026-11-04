@@ -30,6 +30,11 @@
   of a submodule
   - `ry.JSON.parse(...)`, `from ry import JSON` etc. work as before
   - `import ry.JSON` / `from ry.JSON import ...` no longer work
+- `ryo3-json`
+  - `stringify`/`JSON.stringify`/`JSON.dumps` take `dtype=bytes | ry.Bytes`
+    (default `ry.Bytes`) for the output type (same idea as `glob(dtype=...)`)
+  - deprecated (`[removal: v0.0.109]`)
+    - `pybytes=True` -> `dtype=bytes` (passing both raises `TypeError`)
 
 ---
 

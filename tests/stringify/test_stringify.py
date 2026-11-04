@@ -95,19 +95,32 @@ class TestStringifyRecursion:
             _a = ry.stringify([data])
 
 
-def test_stringify_pybytes_output() -> None:
+_STRINGIFY_FNS = pytest.mark.parametrize(
+    "fn", [ry.stringify, ry.JSON.stringify, ry.JSON.dumps], ids=lambda f: f.__name__
+)
+
+
+@_STRINGIFY_FNS
+def test_stringify_dtype_output(fn: t.Any) -> None:
     data = {
         "key": "val",
         "list": [1, 2, 3],
         "dict": {"a": 1, "b": 2},
     }
-    rs_bytes = ry.stringify(data)
-    assert isinstance(rs_bytes, ry.Bytes), "Result should be a `ry.Bytes`"
-    py_bytes = ry.stringify(data, pybytes=True)
-    assert isinstance(py_bytes, bytes), "Result should be a `bytes`"
-    parsed_py = ry.parse_json(py_bytes)
-    parsed_rs = ry.parse_json(rs_bytes)
-    assert parsed_py == parsed_rs
+    rs_bytes = fn(data)
+    assert isinstance(rs_bytes, ry.Bytes)
+    rs_bytes_explicit = fn(data, dtype=ry.Bytes)
+    assert isinstance(rs_bytes_explicit, ry.Bytes)
+    py_bytes = fn(data, dtype=bytes)
+    assert isinstance(py_bytes, bytes)
+    assert py_bytes == bytes(rs_bytes) == bytes(rs_bytes_explicit)
+
+
+@_STRINGIFY_FNS
+@pytest.mark.parametrize("dtype", [str, bytearray, memoryview, int, "bytes"])
+def test_stringify_dtype_invalid(fn: t.Any, dtype: t.Any) -> None:
+    with pytest.raises(TypeError, match="dtype"):
+        fn({"a": 1}, dtype=dtype)
 
 
 def _test_stringify_json(data: t.Any) -> None:

@@ -1,5 +1,6 @@
 import bz2
 import re
+import typing as t
 import warnings
 
 import pytest
@@ -269,3 +270,36 @@ class TestZstdDeprecations:
         )
         # importing alone doesn't warn; only using the old names does
         assert result.returncode == 0, result.stderr
+
+
+class TestStringifyPybytesDeprecation:
+    """`pybytes=` -> `dtype=bytes` on `stringify`/`JSON.stringify`/`JSON.dumps`"""
+
+    _MSG = _deprecation_message("pybytes", "dtype=bytes", "v0.0.109")
+
+    @pytest.mark.parametrize(
+        "fn",
+        [ry.stringify, ry.JSON.stringify, ry.JSON.dumps],
+        ids=lambda f: f.__name__,
+    )
+    @pytest.mark.parametrize(
+        ("pybytes", "expected"), [(True, bytes), (False, ry.Bytes)]
+    )
+    def test_pybytes_warns_and_still_works(
+        self, fn: t.Any, *, pybytes: bool, expected: type
+    ) -> None:
+        with pytest.warns(DeprecationWarning, match=self._MSG):
+            res = fn({"a": 1}, pybytes=pybytes)
+        assert bytes(res) == b'{"a":1}'
+        assert type(res) is expected
+
+    def test_pybytes_and_dtype_mutually_exclusive(self) -> None:
+        with pytest.raises(TypeError, match="mutually exclusive"):
+            ry.stringify({"a": 1}, pybytes=True, dtype=bytes)  # type: ignore[call-overload]  # ty: ignore[no-matching-overload]
+
+    def test_dtype_does_not_warn(self) -> None:
+        with warnings.catch_warnings():
+            warnings.simplefilter("error", DeprecationWarning)
+            ry.stringify({"a": 1})
+            ry.stringify({"a": 1}, dtype=bytes)
+            ry.JSON.dumps({"a": 1}, dtype=ry.Bytes)

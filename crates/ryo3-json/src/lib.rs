@@ -7,12 +7,12 @@ mod transcode;
 
 use pyo3::prelude::*;
 pub use ryo3_json_ser as ser;
-pub use serialize::{dumps, py_to_vec, stringify};
+pub use serialize::{PyJsonDtype, dumps, py_to_vec, stringify};
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(orjson::orjson_default, m)?)?;
     m.add_function(wrap_pyfunction!(serialize::stringify, m)?)?;
-    m.add_class::<PyJson>()?;
+    m.add_class::<RyJson>()?;
     Ok(())
 }
 
@@ -26,10 +26,10 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
 #[pyclass(name = "JSON", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Clone, Copy)]
-pub struct PyJson;
+pub struct RyJson;
 
 #[pymethods]
-impl PyJson {
+impl RyJson {
     #[classattr]
     #[pyo3(name = "JSONDecodeError")]
     fn json_decode_error(py: Python<'_>) -> Py<pyo3::types::PyType> {
