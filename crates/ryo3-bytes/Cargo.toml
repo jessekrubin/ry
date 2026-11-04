@@ -16,11 +16,16 @@ description = "ryo3 + bytes (https://docs.rs/bytes/latest/bytes/)"
 default = ["memchr"]
 ry = ["memchr"]
 memchr = ["dep:memchr"]
+# allow subclassing `Bytes`
+subclass = []
 
 [dependencies]
 bytes = { workspace = true }
 memchr = { workspace = true, optional = true }
 pyo3 = { workspace = true, features = [] }
+
+[build-dependencies]
+pyo3-build-config = { workspace = true }
 
 [lints]
 workspace = true
