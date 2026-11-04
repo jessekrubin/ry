@@ -5,7 +5,6 @@ ry._types.*
 ry.*.__get_pydantic_core_schema__
 ry.*.__get_pydantic_json_schema__
 ry.*.__dbg__
-ry.xxhash.__all__
 ry.zstd.__all__
 # ---------------
 # --- CLASSES ---

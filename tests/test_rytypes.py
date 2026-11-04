@@ -88,11 +88,10 @@ _RY_TYPES: list[type] = [
     ry.sha3_512,
     ry.sha512,
     ry.sha512_256,
-    # submodules
-    ry.xxhash.xxh3_64,
-    ry.xxhash.xxh3_128,
-    ry.xxhash.xxh32,
-    ry.xxhash.xxh64,
+    ry.xxh3_64,
+    ry.xxh3_128,
+    ry.xxh32,
+    ry.xxh64,
 ]
 
 

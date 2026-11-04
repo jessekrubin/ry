@@ -1,6 +1,5 @@
 """ry api ~ type annotations"""
 
-from ry.ryo3 import xxhash as xxhash
 from ry.ryo3 import zstd as zstd
 from ry.ryo3.__about__ import __allocator__ as __allocator__
 from ry.ryo3.__about__ import __authors__ as __authors__
