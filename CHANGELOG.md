@@ -34,7 +34,13 @@
   - `stringify`/`JSON.stringify`/`JSON.dumps` take `dtype=bytes | ry.Bytes`
     (default `ry.Bytes`) for the output type (same idea as `glob(dtype=...)`)
   - deprecated (`[removal: v0.0.109]`)
-    - `pybytes=True` -> `dtype=bytes` (passing both raises `TypeError`)
+    - `pybytes=True` is deprecated, now use `dtype=bytes`
+- **breaking:** `ry.xxhash` is now a plain python module instead of a
+  pyo3-submodule. pyo3 submodules just dont offer enough beyond organization.
+  - `ry.ryo3.xxhash` is gone and hashers officially live at
+    `ry.xxh32`/`ry.xxh64`/ `ry.xxh3_64`/`ry.xxh3_128`
+  - the `xxh*_digest`/`_hexdigest`/`_intdigest` functions are aliases for
+    `ry.xxh*.oneshot`/`oneshot_hex`/`oneshot_int`
 
 ---
 

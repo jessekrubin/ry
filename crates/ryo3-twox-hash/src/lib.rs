@@ -33,4 +33,3 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<xxhash3_128::PyXxHash3_128>()?;
     Ok(())
 }
-
