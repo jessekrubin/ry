@@ -26,6 +26,10 @@
 - misc
   - experiments with disabling pyo3 global-reference-pool
   - bump `maturin` to 1.16.0
+- **breaking:** `ry.JSON` is now an (immutable, non-instantiable) class instead
+  of a submodule
+  - `ry.JSON.parse(...)`, `from ry import JSON` etc. work as before
+  - `import ry.JSON` / `from ry.JSON import ...` no longer work
 
 ---
 

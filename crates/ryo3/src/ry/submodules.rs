@@ -21,19 +21,8 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     let sys = PyModule::import(py, "sys")?;
     let sys_modules = sys.getattr("modules")?.cast_into::<PyDict>()?;
 
-    #[cfg(feature = "jiter")]
-    m.add_wrapped(pyo3::wrap_pymodule!(ryo3_json::json_py_module))?;
-    sys_modules.set_item("ry.JSON", m.getattr("JSON")?)?;
-    let attr = m.getattr("JSON")?;
-    attr.setattr("__name__", "ry.JSON")?;
-
     #[cfg(feature = "twox-hash")]
     m.add_wrapped(pyo3::wrap_pymodule!(twox_hash))?;
-
-    // JSON
-    sys_modules.set_item("ry.JSON", m.getattr("JSON")?)?;
-    let attr = m.getattr("JSON")?;
-    attr.setattr("__name__", "ry.JSON")?;
 
     // xxhash
     sys_modules.set_item("ry.xxhash", m.getattr("xxhash")?)?;

@@ -31,6 +31,7 @@ _RY_TYPES: list[type] = [
     ry.Globster,
     ry.Headers,
     ry.HttpStatus,
+    ry.JSON,
     ry.ISOWeekDate,
     ry.Identity,
     ry.Instant,
