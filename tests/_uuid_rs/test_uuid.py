@@ -35,6 +35,18 @@ def test_pickle() -> None:
     assert str(unpickled) == "12345678-1234-5678-1234-567812345678"
 
 
+@pytest.mark.parametrize("proto", range(pickle.HIGHEST_PROTOCOL + 1))
+def test_pickle_all_protocols(proto: int) -> None:
+    import copy
+
+    u = ryuuid.uuid4()
+    loaded = pickle.loads(pickle.dumps(u, protocol=proto))
+    assert type(loaded) is ryuuid.UUID
+    assert loaded == u
+    assert copy.copy(u) == u
+    assert copy.deepcopy(u) == u
+
+
 def test_uuid_weakref() -> None:
     strong = ryuuid.uuid4()
     weak = weakref.ref(strong)

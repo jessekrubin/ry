@@ -70,6 +70,7 @@ impl PySize {
         self.0.bytes()
     }
 
+    // TODO: don't use SizeWrapper directly... see UUID
     #[expect(clippy::needless_pass_by_value)]
     fn __richcmp__(&self, other: SizeWrapper, op: CompareOp) -> bool {
         match op {

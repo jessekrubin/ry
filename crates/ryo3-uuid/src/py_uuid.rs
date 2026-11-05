@@ -4,7 +4,7 @@ use std::sync::OnceLock;
 use pyo3::BoundObject;
 use pyo3::prelude::*;
 use pyo3::sync::PyOnceLock;
-use pyo3::types::{PyBool, PyString, PyTuple};
+use pyo3::types::{PyString, PyTuple};
 use ryo3_bytes::ExactReadableBuffer;
 use ryo3_core::PyAsciiStr;
 use ryo3_core::macros::{
@@ -237,8 +237,11 @@ impl PyUuid {
         RESERVED_MICROSOFT
     }
 
-    fn __getnewargs__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
-        PyTuple::new(py, [self.pystr_hyphenated(py)])
+    fn __reduce__<'py>(
+        &self,
+        py: Python<'py>,
+    ) -> (Bound<'py, pyo3::types::PyType>, (Bound<'py, PyString>,)) {
+        (py.get_type::<Self>(), (self.pystr_hyphenated(py),))
     }
 
     #[cfg(any(target_pointer_width = "32", target_pointer_width = "64"))]
@@ -318,14 +321,14 @@ impl PyUuid {
         &self,
         other: &Bound<'_, PyAny>,
         op: pyo3::basic::CompareOp,
-    ) -> PyResult<UuidRichCmp> {
+    ) -> PyResult<ryo3_core::PyRichCmp> {
         use ryo3_core::PyCastExactOpt;
         let other = if let Some(u) = other.cast_exact_opt::<Self>() {
             u.get().0
         } else {
             match other.extract::<CPythonUuid>() {
                 Ok(u) => u.0,
-                Err(CPythonUuidError::NotAUuid) => return Ok(UuidRichCmp::NotImpl),
+                Err(CPythonUuidError::NotAUuid) => return Ok(ryo3_core::PyRichCmp::NotImplemented),
                 Err(CPythonUuidError::Py(e)) => return Err(e),
             }
         };
@@ -340,7 +343,25 @@ impl PyUuid {
             pyo3::basic::CompareOp::Gt => a > b,
             pyo3::basic::CompareOp::Ge => a >= b,
         };
-        Ok(UuidRichCmp::Bool(b))
+        Ok(b.into())
+    }
+
+    fn equiv(&self, other: &Bound<'_, PyAny>) -> bool {
+        use ryo3_core::{PyCastExactOpt, PyCastOpt, pystr_read_fast};
+        let b = if let Some(u) = other.cast_exact_opt::<Self>() {
+            Some(u.get().0)
+        } else if let Some(s) = other.cast_opt::<PyString>() {
+            pystr_read_fast(s.as_borrowed())
+                .ok()
+                .and_then(|s| uuid::Uuid::try_parse(s).ok())
+        } else if let Some(b) = other.cast_opt::<pyo3::types::PyBytes>() {
+            uuid::Uuid::from_slice(b.as_bytes()).ok()
+        } else if let Some(i) = other.cast_opt::<pyo3::types::PyInt>() {
+            i.extract::<u128>().ok().map(uuid::Uuid::from_u128)
+        } else {
+            other.extract::<CPythonUuid>().ok().map(Into::into)
+        };
+        b == Some(self.0)
     }
 
     #[getter]
@@ -950,28 +971,6 @@ impl<'a, 'py> FromPyObject<'a, 'py> for PyUuidBytes {
             Ok(Self(*b.as_array()))
         } else {
             py_type_err!("Expected a bytes-like object with length == 16")
-        }
-    }
-}
-
-/// `__richcmp__` return value
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum UuidRichCmp {
-    Bool(bool),
-    NotImpl,
-}
-
-impl<'py> IntoPyObject<'py> for UuidRichCmp {
-    type Target = PyAny;
-    type Output = Borrowed<'py, 'py, PyAny>;
-    type Error = std::convert::Infallible;
-
-    #[inline]
-    fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
-        match self {
-            Self::Bool(false) => Ok(PyBool::new(py, false).into_any()),
-            Self::Bool(true) => Ok(PyBool::new(py, true).into_any()),
-            Self::NotImpl => Ok(pyo3::types::PyNotImplemented::get(py).into_any()),
         }
     }
 }

@@ -9,6 +9,19 @@
 
 ## v0.0.107 [unreleased]
 
+- `ryo3-ulid`
+  - **BREAKING:** `ULID` `==`/`!=`/`<`/... only compare against `ULID` (mirrors
+    `UUID`)
+    - `ulid == str(ulid)`, `ulid == int(ulid)` and `ulid == ulid.bytes` are now
+      `False`, use `ulid.equiv(x)` instead
+  - `hash(ulid)` is now `hash(int(ulid))`
+  - `ULID` is now picklable/copyable (all pickle protocols)
+  - faster `str`/`repr`/`hex`/hex-parsing/`hash`
+- `ryo3-uuid`
+  - `UUID.equiv(other)` loose equality (UUID/int/bytes/str in any format; never
+    raises)
+  - fix: `UUID` pickles w/ pickle protocols 0/1 (`__reduce__` instead of
+    `__getnewargs__`)
 - `ryo3-reqwest`
   - fix: `query` that require escaping dont raise `ValueError` and get
     serialized and crudely spliced onto the end of the URL; this fixes a long

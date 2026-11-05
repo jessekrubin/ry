@@ -1,14 +1,16 @@
-"""
-ulid tests (adapted from `python-ulid`)
+"""ulid tests (adapted from `python-ulid`)
 
-ADAPTED FROM `python-ulid`'s TESTS; REF https://github.com/mdomke/python-ulid/blob/main/tests/test_ulid.py
+ADAPTED FROM `python-ulid`'s TESTS
 
 removed freezegun as it is not really needed nor does pyo3 stuff respect it
+
+REF:  https://github.com/mdomke/python-ulid/blob/main/tests/test_ulid.py
 """
 
 from __future__ import annotations
 
 import datetime as pydt
+import os
 import typing as t
 import uuid
 
@@ -104,22 +106,19 @@ def assert_sorted(seq: list[t.Any]) -> None:
 def test_comparison() -> None:
     now = utcnow()
     ulid1 = ULID.from_datetime(now)
+    ulid2 = ULID.from_datetime(now + pydt.timedelta(milliseconds=1))
 
     assert ulid1 == ulid1
-    assert ulid1 == int(ulid1)
-    assert ulid1 == ulid1.bytes
-    assert ulid1 == str(ulid1)
+    assert ulid1 == ULID.from_int(int(ulid1))
+    assert ulid1 != ulid2
+    assert ulid1 < ulid2
     assert (ulid1 == object()) is False
 
-    later = now + pydt.timedelta(milliseconds=1)
-    ulid2 = ULID.from_datetime(later)
-
-    assert ulid1 < ulid2
-    assert ulid1 < int(ulid2)
-    assert ulid1 < ulid2.bytes
-    assert ulid1 < str(ulid2)
-    with pytest.raises(TypeError):
-        _ = ulid1 < object()  # type: ignore[operator]  # ty:ignore[unsupported-operator]
+    for other in (int(ulid1), str(ulid1), ulid1.bytes):
+        assert ulid1 != other
+        assert ulid1.equiv(other)
+        with pytest.raises(TypeError):
+            _ = ulid1 < other  # type: ignore[operator]  # ty:ignore[unsupported-operator]
 
 
 def test_repr() -> None:
@@ -259,3 +258,125 @@ def test_ulid_min_input(constructor: Callable[[Params], ULID], value: Params) ->
 )
 def test_ulid_max_input(constructor: Callable[[Params], ULID], value: Params) -> None:
     constructor(value)
+
+
+def test_hash_matches_int_hash() -> None:
+    # same as the int hash
+    for u in (
+        ULID(),
+        ULID.NIL,
+        ULID.MAX,
+        ULID.from_int(2**61 - 1),
+        ULID.from_int(2**61),
+    ):
+        assert hash(u) == hash(int(u))
+
+
+@pytest.mark.parametrize(
+    "junk",
+    [-1, 2**128, 2**200, b"", b"abc", b"\0" * 17, "\ud800", "nope"],
+)
+def test_eq_never_raises(junk: object) -> None:
+    u = ULID()
+    assert (u == junk) is False
+    assert (u != junk) is True
+    assert u not in [junk]
+
+
+def test_equiv() -> None:
+    import uuid
+
+    u = ULID()
+    s = str(u)
+    for other in (
+        u,
+        ULID.from_int(int(u)),
+        int(u),
+        u.bytes,
+        s,
+        s.lower(),
+        u.hex,
+        u.hex.lower(),
+        str(u.to_uuid()),
+        u.to_uuid(),
+        uuid.UUID(int=int(u)),
+    ):
+        assert u.equiv(other), other
+    # stricter `==` for comparison
+    assert u != s.lower()
+    assert u != u.hex
+
+
+@pytest.mark.parametrize(
+    "junk",
+    [None, 1.5, -1, 0, 2**128, b"", b"abc", "", "nope", "\ud800", object(), "z" * 26],
+)
+def test_equiv_junk_is_false(junk: object) -> None:
+    assert ULID.from_int(12345).equiv(junk) is False
+
+
+@pytest.mark.parametrize("u", [ULID(), ULID.NIL, ULID.MAX])
+def test_pickle_and_copy(u: ULID) -> None:
+    import copy
+    import pickle
+
+    for proto in range(pickle.HIGHEST_PROTOCOL + 1):
+        loaded = pickle.loads(pickle.dumps(u, protocol=proto))
+        assert type(loaded) is ULID
+        assert loaded == u
+    # pickles as the 26 char string (stable + readable)
+    assert str(u).encode() in pickle.dumps(u)
+    assert copy.copy(u) == u
+    assert copy.deepcopy(u) == u
+
+
+def test_eq_ord_generated() -> None:
+    u = ULID()
+    for name in ("__eq__", "__ne__", "__lt__", "__le__", "__gt__", "__ge__"):
+        assert getattr(u, name)(str(u)) is NotImplemented
+    lo, hi = ULID.from_int(1), ULID.from_int(2)
+    assert lo < hi
+    assert lo <= hi
+    assert hi > lo
+    assert hi >= lo
+    assert lo != hi
+    assert sorted([hi, lo]) == [lo, hi]
+
+
+class TestULIDFork:
+    """child after `os.fork()` must not hand out the parent's next ulid"""
+
+    @pytest.mark.skipif(not hasattr(os, "fork"), reason="no fork")
+    def test_fork_child_generator(self) -> None:
+        # w/o the reset the child keeps the parent's monotonic generator, so a
+        # child ulid in the same ms as the parent's last one is exactly
+        # `last + 1` ~ the same "next" ulid the parent hands out
+        conclusive = 0
+        for _ in range(500):
+            last = ULID()
+            r, w = os.pipe()
+            pid = os.fork()
+            if pid == 0:  # pragma: no cover - child
+                try:
+                    os.write(w, str(ULID()).encode())
+                finally:
+                    os._exit(0)
+            os.close(w)
+            os.waitpid(pid, 0)
+            child = ULID.from_str(os.read(r, 64).decode())
+            os.close(r)
+            if child.milliseconds != last.milliseconds:
+                continue  # crossed a ms ~ proves nothing either way
+            conclusive += 1
+            assert int(child) != int(last) + 1
+            if conclusive >= 10:
+                break
+        if not conclusive:
+            pytest.skip("fork never landed in the same ms")
+
+    def test_reset_generator_callable(self) -> None:
+        assert ULID._reset_generator() is None
+        # generating still works after a reset (and time doesn't go backwards)
+        a = ULID()
+        ULID._reset_generator()
+        assert ULID().milliseconds >= a.milliseconds
