@@ -11,7 +11,7 @@ use twox_hash::XxHash32;
 const HASHLIB_GIL_MINSIZE: usize = 2048;
 
 #[pyclass(name = "xxh32", frozen, immutable_type)]
-#[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3.xxhash"))]
+#[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct PyXxHash32 {
     seed: u32,
     hasher: RyMutex<XxHash32, true>,

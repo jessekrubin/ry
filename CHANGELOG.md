@@ -26,6 +26,21 @@
 - misc
   - experiments with disabling pyo3 global-reference-pool
   - bump `maturin` to 1.16.0
+- **breaking:** `ry.JSON` is now an (immutable, non-instantiable) class instead
+  of a submodule
+  - `ry.JSON.parse(...)`, `from ry import JSON` etc. work as before
+  - `import ry.JSON` / `from ry.JSON import ...` no longer work
+- `ryo3-json`
+  - `stringify`/`JSON.stringify`/`JSON.dumps` take `dtype=bytes | ry.Bytes`
+    (default `ry.Bytes`) for the output type (same idea as `glob(dtype=...)`)
+  - deprecated (`[removal: v0.0.109]`)
+    - `pybytes=True` is deprecated, now use `dtype=bytes`
+- **breaking:** `ry.xxhash` is now a plain python module instead of a
+  pyo3-submodule. pyo3 submodules just dont offer enough beyond organization.
+  - `ry.ryo3.xxhash` is gone and hashers officially live at
+    `ry.xxh32`/`ry.xxh64`/ `ry.xxh3_64`/`ry.xxh3_128`
+  - the `xxh*_digest`/`_hexdigest`/`_intdigest` functions are aliases for
+    `ry.xxh*.oneshot`/`oneshot_hex`/`oneshot_int`
 
 ---
 
@@ -161,7 +176,8 @@
 - `ryo3-tokio`
   - fix `AsyncFile.readline(size: int)` bug causing readline to throw away line
     part(s) beyond the buffer limit
-  - the `*_async` fs fns now use `ry.Coroutine` w/ properly working cancelations
+  - the `*_async` fs fns now use `ry.Coroutine` w/ properly working
+    cancellations
   - `AsyncReadDir.take()` defaults to `n=1` like the stub says (this was broke)
   - `AsyncFile` fixes:
     - no more process abort when an `AsyncFile` gets dropped w/ an op in flight
@@ -173,7 +189,7 @@
       an `OSError`)
     - open errors are the right `OSError` subclass w/ `errno`/`filename` (same
       as builtin `open()`)
-    - `closed` doesnt block the event loop if anothe file op is in flight
+    - `closed` doesnt block the event loop if another file op is in flight
 - `ryo3-tokio-rt`
   - `RyJoinHandle` aborts the tokio task on drop; so they dont leave their tasks
     running in the bg

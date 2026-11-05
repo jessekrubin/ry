@@ -7,16 +7,16 @@ from pathlib import Path
 from ry.protocols import RyIterator
 from ry.ryo3._fspath import FsPath
 
-_T = t.TypeVar("_T", bound=str | Path | FsPath)
+_TGlobPath = t.TypeVar("_TGlobPath", bound=str | Path | FsPath)
 
 @t.final
-class GlobPaths(RyIterator[_T]):
+class GlobPaths(RyIterator[_TGlobPath]):
     """glob::Paths iterable wrapper"""
 
-    def __next__(self) -> _T: ...
-    def __iter__(self) -> GlobPaths[_T]: ...
-    def collect(self) -> list[_T]: ...
-    def take(self, n: int = 1) -> list[_T]: ...
+    def __next__(self) -> _TGlobPath: ...
+    def __iter__(self) -> GlobPaths[_TGlobPath]: ...
+    def collect(self) -> list[_TGlobPath]: ...
+    def take(self, n: int = 1) -> list[_TGlobPath]: ...
 
 @t.overload
 def glob(
@@ -36,8 +36,8 @@ def glob(
     require_literal_separator: bool = False,
     require_literal_leading_dot: bool = False,
     strict: bool = False,
-    dtype: type[_T],
-) -> GlobPaths[_T]: ...
+    dtype: type[_TGlobPath],
+) -> GlobPaths[_TGlobPath]: ...
 
 @t.final
 class GlobPattern:

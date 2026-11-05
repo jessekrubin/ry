@@ -1,6 +1,6 @@
-use pyo3::IntoPyObjectExt;
 use pyo3::exceptions::{PyRecursionError, PyTypeError};
 use pyo3::prelude::*;
+use pyo3::{IntoPyObjectExt, PyTypeInfo};
 use ryo3_bytes::RyBytes;
 use ryo3_serde::{JsonTarget, PyAnySerializer};
 
@@ -111,7 +111,98 @@ impl<'py> JsonSerializer<'py> {
 // stringify_fn!(dumps);
 // ```
 
-#[expect(clippy::fn_params_excessive_bools, reason = "python kwargs")]
+/// stringify w/ into output type
+pub(crate) fn stringify_impl<'py>(
+    py: Python<'py>,
+    obj: &Bound<'py, PyAny>,
+    default: Option<&'py Bound<'py, PyAny>>,
+    fmt: bool,
+    sort_keys: bool,
+    append_newline: bool,
+    dtype: PyJsonDtype,
+) -> PyResult<Bound<'py, PyAny>> {
+    let opts = JsonOptions::new()
+        .with_fmt(fmt)
+        .with_sort_keys(sort_keys)
+        .with_append_newline(append_newline);
+    let serializer = JsonSerializer::new(default, opts)?;
+    serializer.serialize_to_vec(obj.as_borrowed()).map(|v| {
+        if dtype.is_pybytes() {
+            pyo3::types::PyBytes::new(py, &v).into_bound_py_any(py)
+        } else {
+            RyBytes::from(v).into_bound_py_any(py)
+        }
+    })?
+}
+
+/// JSON dumps/stringify return type
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum PyJsonDtype {
+    PyBytes,
+    RyBytes,
+}
+
+impl PyJsonDtype {
+    /// ptr compare against the type objects
+    fn from_ptr(py: Python<'_>, ptr: *mut pyo3::ffi::PyObject) -> Option<Self> {
+        if ptr == pyo3::types::PyBytes::type_object_raw(py).cast() {
+            Some(Self::PyBytes)
+        } else if ptr == RyBytes::type_object_raw(py).cast() {
+            Some(Self::RyBytes)
+        } else {
+            None
+        }
+    }
+
+    #[inline]
+    fn is_pybytes(self) -> bool {
+        matches!(self, Self::PyBytes)
+    }
+}
+
+impl<'a, 'py> FromPyObject<'a, 'py> for PyJsonDtype {
+    type Error = PyErr;
+
+    fn extract(obj: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
+        Self::from_ptr(obj.py(), obj.as_ptr())
+            .ok_or_else(|| PyTypeError::new_err("Invalid dtype (expected `bytes` or `Bytes`)"))
+    }
+}
+
+#[cold]
+fn warn_pybytes_deprecated(py: Python<'_>) -> PyResult<()> {
+    PyErr::warn(
+        py,
+        &py.get_type::<pyo3::exceptions::PyDeprecationWarning>(),
+        c"`pybytes` is deprecated; use `dtype=bytes` instead [removal: v0.0.109]",
+        1,
+    )?;
+    Ok(())
+}
+
+/// DEPRECATED `pybytes` ~ remove in v0.0.109 (explicit `dtype=ry.Bytes` looks like the default)
+fn stringify_kwargs_check(
+    py: Python<'_>,
+    dtype: PyJsonDtype,
+    pybytes: Option<bool>,
+) -> PyResult<PyJsonDtype> {
+    match (dtype, pybytes) {
+        (_, None) => Ok(dtype),
+        (PyJsonDtype::PyBytes, Some(_)) => Err(PyTypeError::new_err(
+            "`pybytes` and `dtype` are mutually exclusive; use `dtype` (`pybytes` is deprecated)",
+        )),
+        (PyJsonDtype::RyBytes, Some(pybytes)) => {
+            warn_pybytes_deprecated(py)?;
+            Ok(if pybytes {
+                PyJsonDtype::PyBytes
+            } else {
+                PyJsonDtype::RyBytes
+            })
+        }
+    }
+}
+
+#[expect(clippy::too_many_arguments, reason = "python kwargs")]
 #[pyfunction(
     signature=(
         obj,
@@ -120,7 +211,8 @@ impl<'py> JsonSerializer<'py> {
         fmt = false,
         sort_keys = false,
         append_newline = false,
-        pybytes = false
+        dtype = PyJsonDtype::RyBytes,
+        pybytes = None
     )
 )]
 pub fn stringify<'py>(
@@ -130,23 +222,14 @@ pub fn stringify<'py>(
     fmt: bool,
     sort_keys: bool,
     append_newline: bool,
-    pybytes: bool,
+    dtype: PyJsonDtype,
+    pybytes: Option<bool>,
 ) -> PyResult<Bound<'py, PyAny>> {
-    let opts = JsonOptions::new()
-        .with_fmt(fmt)
-        .with_sort_keys(sort_keys)
-        .with_append_newline(append_newline);
-    let serializer = JsonSerializer::new(default, opts)?;
-    serializer.serialize_to_vec(obj.as_borrowed()).map(|v| {
-        if pybytes {
-            pyo3::types::PyBytes::new(py, &v).into_bound_py_any(py)
-        } else {
-            RyBytes::from(v).into_bound_py_any(py)
-        }
-    })?
+    let dtype = stringify_kwargs_check(py, dtype, pybytes)?;
+    stringify_impl(py, obj, default, fmt, sort_keys, append_newline, dtype)
 }
 
-#[expect(clippy::fn_params_excessive_bools, reason = "python kwargs")]
+#[expect(clippy::too_many_arguments, reason = "python kwargs")]
 #[pyfunction(
     signature=(
         obj,
@@ -155,7 +238,8 @@ pub fn stringify<'py>(
         fmt = false,
         sort_keys = false,
         append_newline = false,
-        pybytes = false
+        dtype = PyJsonDtype::RyBytes,
+        pybytes = None
     )
 )]
 pub fn dumps<'py>(
@@ -165,7 +249,9 @@ pub fn dumps<'py>(
     fmt: bool,
     sort_keys: bool,
     append_newline: bool,
-    pybytes: bool,
+    dtype: PyJsonDtype,
+    pybytes: Option<bool>,
 ) -> PyResult<Bound<'py, PyAny>> {
-    stringify(py, obj, default, fmt, sort_keys, append_newline, pybytes)
+    let dtype = stringify_kwargs_check(py, dtype, pybytes)?;
+    stringify_impl(py, obj, default, fmt, sort_keys, append_newline, dtype)
 }

@@ -1081,8 +1081,8 @@ data
             b"data: x\n",
             b"data: y\n\n",
         ]);
-        let datas = got.iter().map(|(_, d)| &**d).collect::<Vec<_>>();
-        assert_eq!(datas, ["a\nb", "a\n\nb", "split", "x\ny"]);
+        let data = got.iter().map(|(_, d)| &**d).collect::<Vec<_>>();
+        assert_eq!(data, ["a\nb", "a\n\nb", "split", "x\ny"]);
     }
 
     #[test]
@@ -1099,8 +1099,8 @@ data
     #[test]
     fn test_single_line_then_comment_still_dispatches() {
         let got = messages_from_bytes(&[b"data: x\n: keepalive\n\ndata: y\n\n"]);
-        let datas = got.iter().map(|(_, d)| &**d).collect::<Vec<_>>();
-        assert_eq!(datas, ["x", "y"]);
+        let data = got.iter().map(|(_, d)| &**d).collect::<Vec<_>>();
+        assert_eq!(data, ["x", "y"]);
     }
 
     #[test]

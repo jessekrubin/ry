@@ -58,8 +58,7 @@ def _lib_info() -> dict[str, object]:
 
 def main() -> None:
     """Print package metadata"""
-    json_out = ryo3.stringify(_lib_info(), fmt=True, pybytes=True, append_newline=True)
-    sys.stdout.buffer.write(json_out)
+    sys.stdout.buffer.write(ryo3.stringify(_lib_info(), fmt=True, append_newline=True))
 
 
 if __name__ == "__main__":

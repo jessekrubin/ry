@@ -1,7 +1,5 @@
 """ry api ~ type annotations"""
 
-from ry.ryo3 import JSON as JSON
-from ry.ryo3 import xxhash as xxhash
 from ry.ryo3 import zstd as zstd
 from ry.ryo3.__about__ import __allocator__ as __allocator__
 from ry.ryo3.__about__ import __authors__ as __authors__
@@ -126,6 +124,8 @@ from ry.ryo3._jiter import json_cache_usage as json_cache_usage
 from ry.ryo3._jiter import parse_json as parse_json
 from ry.ryo3._jiter import parse_jsonl as parse_jsonl
 from ry.ryo3._jiter import read_json as read_json
+from ry.ryo3._json import JSON as JSON
+from ry.ryo3._json import stringify as stringify
 from ry.ryo3._lz4rip import Lz4BlockCompressor as Lz4BlockCompressor
 from ry.ryo3._lz4rip import Lz4BlockDecompressor as Lz4BlockDecompressor
 from ry.ryo3._lz4rip import Lz4FrameCompressor as Lz4FrameCompressor
@@ -315,4 +315,3 @@ from ry.ryo3._zstd import zstd_compress as zstd_compress
 from ry.ryo3._zstd import zstd_decode as zstd_decode  # type: ignore[deprecated]  # ty: ignore[deprecated]
 from ry.ryo3._zstd import zstd_decompress as zstd_decompress
 from ry.ryo3._zstd import zstd_encode as zstd_encode  # type: ignore[deprecated]  # ty: ignore[deprecated]
-from ry.ryo3.JSON import stringify as stringify

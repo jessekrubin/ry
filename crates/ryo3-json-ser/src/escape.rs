@@ -156,7 +156,7 @@ pub fn escape_into_swar_u64(src: &str, dst: &mut Vec<u8>) {
         if let Some(hit_ix) = hit_ix {
             // split at the hit and escape the byte at the front of the tail
             let (no_esc_run, tail) = rest.split_at(hit_ix);
-            // and againt split bc we need the first byte separately for escaping
+            // and again split bc we need the first byte separately for escaping
             let Some((&byte, tail)) = tail.split_first() else {
                 unreachable!("wenodis: inbounds")
             };

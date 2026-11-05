@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Protocol, TypeAlias
 import pytest
 
 import ry
+from ry import xxhash as ry_xxhash
 
 from ._xxhash_fixtures import (
     XX32_SEEDS,
@@ -26,11 +27,11 @@ if TYPE_CHECKING:
     ]
 
     _RyHasher: TypeAlias = type[
-        ry.xxhash.xxh32
-        | ry.xxhash.xxh64
-        | ry.xxhash.xxh128
-        | ry.xxhash.xxh3_64
-        | ry.xxhash.xxh3_128
+        ry_xxhash.xxh32
+        | ry_xxhash.xxh64
+        | ry_xxhash.xxh128
+        | ry_xxhash.xxh3_64
+        | ry_xxhash.xxh3_128
     ]
 
 try:
@@ -115,12 +116,12 @@ _python_xxhash_exports: tuple[str, ...] = (
 )
 def test_all_xxhash_attributes(attr_name: str) -> None:
     """Test that all expected attributes exist in ry.xxhash"""
-    assert hasattr(ry.xxhash, attr_name)
-    assert callable(getattr(ry.xxhash, attr_name))
+    assert hasattr(ry_xxhash, attr_name)
+    assert callable(getattr(ry_xxhash, attr_name))
 
 
 def test_attributes_set() -> None:
-    ry_exports = set(filter(lambda n: not n.startswith("_"), dir(ry.xxhash)))
+    ry_exports = set(filter(lambda n: not n.startswith("_"), dir(ry_xxhash)))
     py_xxhash_exports = set(_python_xxhash_exports)
     assert py_xxhash_exports.issubset(ry_exports)
 
@@ -129,9 +130,9 @@ def test_attributes_set() -> None:
 @pytest.mark.parametrize(
     ("ryxx", "pyxx"),
     [
-        (ry.xxhash.xxh32_digest, xxhash.xxh32_digest),
-        (ry.xxhash.xxh32_hexdigest, xxhash.xxh32_hexdigest),
-        (ry.xxhash.xxh32_intdigest, xxhash.xxh32_intdigest),
+        (ry_xxhash.xxh32_digest, xxhash.xxh32_digest),
+        (ry_xxhash.xxh32_hexdigest, xxhash.xxh32_hexdigest),
+        (ry_xxhash.xxh32_intdigest, xxhash.xxh32_intdigest),
     ],
 )
 def test_xxhash_matches_ry_xxh32(
@@ -149,9 +150,9 @@ def test_xxhash_matches_ry_xxh32(
 @pytest.mark.parametrize(
     ("ryxx", "pyxx"),
     [
-        (ry.xxhash.xxh64_digest, xxhash.xxh64_digest),
-        (ry.xxhash.xxh64_hexdigest, xxhash.xxh64_hexdigest),
-        (ry.xxhash.xxh64_intdigest, xxhash.xxh64_intdigest),
+        (ry_xxhash.xxh64_digest, xxhash.xxh64_digest),
+        (ry_xxhash.xxh64_hexdigest, xxhash.xxh64_hexdigest),
+        (ry_xxhash.xxh64_intdigest, xxhash.xxh64_intdigest),
     ],
 )
 def test_xxhash_matches_ry_xxh64(
@@ -169,9 +170,9 @@ def test_xxhash_matches_ry_xxh64(
 @pytest.mark.parametrize(
     ("ryxx", "pyxx"),
     [
-        (ry.xxhash.xxh3_64_digest, xxhash.xxh3_64_digest),
-        (ry.xxhash.xxh3_64_hexdigest, xxhash.xxh3_64_hexdigest),
-        (ry.xxhash.xxh3_64_intdigest, xxhash.xxh3_64_intdigest),
+        (ry_xxhash.xxh3_64_digest, xxhash.xxh3_64_digest),
+        (ry_xxhash.xxh3_64_hexdigest, xxhash.xxh3_64_hexdigest),
+        (ry_xxhash.xxh3_64_intdigest, xxhash.xxh3_64_intdigest),
     ],
 )
 def test_xxhash_matches_ry_xxh3_64(
@@ -189,9 +190,9 @@ def test_xxhash_matches_ry_xxh3_64(
 @pytest.mark.parametrize(
     ("ryxx", "pyxx"),
     [
-        (ry.xxhash.xxh3_128_digest, xxhash.xxh3_128_digest),
-        (ry.xxhash.xxh3_128_hexdigest, xxhash.xxh3_128_hexdigest),
-        (ry.xxhash.xxh3_128_intdigest, xxhash.xxh3_128_intdigest),
+        (ry_xxhash.xxh3_128_digest, xxhash.xxh3_128_digest),
+        (ry_xxhash.xxh3_128_hexdigest, xxhash.xxh3_128_hexdigest),
+        (ry_xxhash.xxh3_128_intdigest, xxhash.xxh3_128_intdigest),
     ],
 )
 def test_xxhash_matches_ry_xxh3_128(
@@ -209,9 +210,9 @@ def test_xxhash_matches_ry_xxh3_128(
 @pytest.mark.parametrize(
     ("ryhasher", "pyhasher", "seeds"),
     [
-        (ry.xxhash.xxh32, xxhash.xxh32, XX32_SEEDS),
-        (ry.xxhash.xxh64, xxhash.xxh64, XX64_SEEDS),
-        (ry.xxhash.xxh128, xxhash.xxh128, XX128_SEEDS),
+        (ry_xxhash.xxh32, xxhash.xxh32, XX32_SEEDS),
+        (ry_xxhash.xxh64, xxhash.xxh64, XX64_SEEDS),
+        (ry_xxhash.xxh128, xxhash.xxh128, XX128_SEEDS),
     ],
 )
 def test_xxhash_hashers_starting_data(
@@ -238,9 +239,9 @@ def test_xxhash_hashers_starting_data(
 @pytest.mark.parametrize(
     ("ryhasher", "pyhasher", "seeds"),
     [
-        (ry.xxhash.xxh32, xxhash.xxh32, XX32_SEEDS),
-        (ry.xxhash.xxh64, xxhash.xxh64, XX64_SEEDS),
-        (ry.xxhash.xxh128, xxhash.xxh128, XX128_SEEDS),
+        (ry_xxhash.xxh32, xxhash.xxh32, XX32_SEEDS),
+        (ry_xxhash.xxh64, xxhash.xxh64, XX64_SEEDS),
+        (ry_xxhash.xxh128, xxhash.xxh128, XX128_SEEDS),
     ],
 )
 def test_xxhash_hashers_starting_update(

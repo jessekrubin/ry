@@ -33,24 +33,3 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<xxhash3_128::PyXxHash3_128>()?;
     Ok(())
 }
-
-#[cfg_attr(
-    not(any(
-        feature = "xxhash32",
-        feature = "xxhash64",
-        feature = "xxhash3_64",
-        feature = "xxhash3_128"
-    )),
-    expect(unused_variables)
-)]
-pub fn pysubmod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    #[cfg(feature = "xxhash32")]
-    xxhash32::pymod_add(m)?;
-    #[cfg(feature = "xxhash64")]
-    xxhash64::pymod_add(m)?;
-    #[cfg(feature = "xxhash3_64")]
-    xxhash3_64::pymod_add(m)?;
-    #[cfg(feature = "xxhash3_128")]
-    xxhash3_128::pymod_add(m)?;
-    Ok(())
-}
