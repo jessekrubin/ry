@@ -505,7 +505,7 @@ impl<'py> FromPyObject<'_, 'py> for UuidLike {
     type Error = PyErr;
     fn extract(obj: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
         if let Ok(uuid_like) = obj.cast::<PyUuid>() {
-            return Ok(Self(*uuid_like.borrow().get()));
+            return Ok(Self(*uuid_like.borrow().inner()));
         } else if let Ok(py_uuid) = obj.extract::<CPythonUuid>() {
             return Ok(Self(py_uuid.into()));
         }

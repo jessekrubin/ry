@@ -4,17 +4,19 @@ use std::sync::OnceLock;
 use pyo3::BoundObject;
 use pyo3::prelude::*;
 use pyo3::sync::PyOnceLock;
-use pyo3::types::PyTuple;
+use pyo3::types::{PyBool, PyString, PyTuple};
 use ryo3_bytes::ExactReadableBuffer;
-use ryo3_core::PyAsciiString;
-use ryo3_core::macros::{any_repr, py_type_err, py_value_err, py_value_error, pytodo};
+use ryo3_core::PyAsciiStr;
+use ryo3_core::macros::{
+    any_repr, py_type_err, py_type_error, py_value_err, py_value_error, pytodo,
+};
 
 static NODE_CACHE: OnceLock<u64> = OnceLock::new();
 
-pub(crate) const RESERVED_NCS: &str = "reserved for NCS compatibility";
-pub(crate) const RFC_4122: &str = "specified in RFC 4122";
-pub(crate) const RESERVED_MICROSOFT: &str = "reserved for Microsoft compatibility";
-pub(crate) const RESERVED_FUTURE: &str = "reserved for future definition";
+pub const RESERVED_NCS: &str = "reserved for NCS compatibility";
+pub const RFC_4122: &str = "specified in RFC 4122";
+pub const RESERVED_MICROSOFT: &str = "reserved for Microsoft compatibility";
+pub const RESERVED_FUTURE: &str = "reserved for future definition";
 
 #[pyclass(name = "UUID", frozen, immutable_type, weakref)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
@@ -24,8 +26,70 @@ pub struct PyUuid(uuid::Uuid);
 
 impl PyUuid {
     #[must_use]
-    pub fn get(&self) -> &uuid::Uuid {
+    pub fn inner(&self) -> &uuid::Uuid {
         &self.0
+    }
+
+    fn pystr_braced<'py>(&self, py: Python<'py>) -> Bound<'py, PyString> {
+        let mut buf = uuid::Uuid::encode_buffer();
+        let s = self.0.braced().encode_lower(&mut buf);
+        let Ok(s) = PyAsciiStr::new(s).into_pyobject(py);
+        s
+    }
+
+    fn pystr_simple<'py>(&self, py: Python<'py>) -> Bound<'py, PyString> {
+        let mut buf = uuid::Uuid::encode_buffer();
+        let s = self.0.simple().encode_lower(&mut buf);
+        let Ok(s) = PyAsciiStr::new(s).into_pyobject(py);
+        s
+    }
+
+    fn pystr_urn<'py>(&self, py: Python<'py>) -> Bound<'py, PyString> {
+        let mut buf = uuid::Uuid::encode_buffer();
+        let s = self.0.urn().encode_lower(&mut buf);
+        let Ok(s) = PyAsciiStr::new(s).into_pyobject(py);
+        s
+    }
+
+    fn pystr_hyphenated<'py>(&self, py: Python<'py>) -> Bound<'py, PyString> {
+        let mut buf = uuid::Uuid::encode_buffer();
+        let s = self.0.hyphenated().encode_lower(&mut buf);
+        let Ok(s) = PyAsciiStr::new(s).into_pyobject(py);
+        s
+    }
+
+    fn pystr_fmt<'py, const B: bool>(
+        &self,
+        py: Python<'py>,
+        kind: UuidFormat<B>,
+    ) -> Bound<'py, PyString> {
+        match kind {
+            UuidFormat::Hyphenated => self.pystr_hyphenated(py),
+            UuidFormat::Simple => self.pystr_simple(py),
+            UuidFormat::Urn => self.pystr_urn(py),
+            UuidFormat::Braced => self.pystr_braced(py),
+        }
+    }
+
+    /// Reseed rng
+    ///
+    /// This is called on unix-y systems (jurassic park) after fork and is
+    /// registered when the module is registered w/ the below snippet:
+    ///
+    /// ```python
+    /// os.register_at_fork(after_in_child=UUID._reseed_rng)
+    /// ```
+    ///
+    /// (this caused a subtle bug in an old server w/ gunicorn I maintain)
+    ///
+    /// REFS:
+    /// - uuid8: <https://github.com/python/cpython/blob/b5bffb9b4ce8f4515df1e0474c8f439e9f580d65/Lib/uuid.py#L940-L957>
+    /// - random: <https://github.com/python/cpython/blob/b5bffb9b4ce8f4515df1e0474c8f439e9f580d65/Lib/random.py#L1012-L1013>
+    /// - uuid4/uuid7: <https://github.com/python/cpython/blob/b5bffb9b4ce8f4515df1e0474c8f439e9f580d65/Lib/uuid.py#L118-L122>
+    fn reseed_rng() -> PyResult<()> {
+        rand::rng()
+            .reseed()
+            .map_err(|e| pyo3::exceptions::PyOSError::new_err(e.to_string()))
     }
 }
 
@@ -174,8 +238,7 @@ impl PyUuid {
     }
 
     fn __getnewargs__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
-        let py_ascii_str: PyAsciiString = self.0.hyphenated().to_string().into();
-        PyTuple::new(py, vec![py_ascii_str])
+        PyTuple::new(py, [self.pystr_hyphenated(py)])
     }
 
     #[cfg(any(target_pointer_width = "32", target_pointer_width = "64"))]
@@ -198,45 +261,86 @@ impl PyUuid {
     }
 
     #[pyo3(name = "to_string")]
-    fn py_to_string(&self) -> PyAsciiString {
-        self.__str__()
+    fn py_to_string<'py>(&self, py: Python<'py>) -> Bound<'py, PyString> {
+        self.pystr_hyphenated(py)
     }
 
-    fn __str__(&self) -> PyAsciiString {
-        self.0.to_string().into()
+    #[pyo3(
+        name = "format",
+        signature = (kind = UuidFormat::Hyphenated),
+        text_signature = "(self, kind=\"hyphenated\")"
+    )]
+    fn py_format<'py>(&self, py: Python<'py>, kind: UuidFormat) -> Bound<'py, PyString> {
+        self.pystr_fmt(py, kind)
     }
 
-    fn __repr__(&self) -> PyAsciiString {
-        format!("{self}").into()
+    #[pyo3(signature = (format_spec, /))]
+    fn __format__<'py>(
+        &self,
+        py: Python<'py>,
+        format_spec: UuidFormat<true>,
+    ) -> Bound<'py, PyString> {
+        self.pystr_fmt(py, format_spec)
+    }
+
+    fn __str__<'py>(&self, py: Python<'py>) -> Bound<'py, PyString> {
+        self.pystr_hyphenated(py)
+    }
+
+    fn __repr__<'py>(&self, py: Python<'py>) -> Bound<'py, PyString> {
+        // stack buf ~ aint no heap string
+        let mut buf = [0u8; 44];
+        buf[..6].copy_from_slice(b"UUID('");
+        self.0.hyphenated().encode_lower(&mut buf[6..42]);
+        buf[42..].copy_from_slice(b"')");
+        let s = std::str::from_utf8(&buf).expect("wenodis: always ascii");
+        let Ok(s) = PyAsciiStr::new(s).into_pyobject(py);
+        s
     }
 
     fn __int__(&self) -> u128 {
         self.0.as_u128()
     }
 
-    // this is aight bc the hash is stable and does match python...
-    fn __richcmp__(&self, other: &Bound<'_, PyAny>, op: pyo3::basic::CompareOp) -> PyResult<bool> {
-        if let Ok(rs_uuid) = other.cast_exact::<Self>() {
-            let other = rs_uuid.get();
-            match op {
-                pyo3::basic::CompareOp::Eq => Ok(self.0 == other.0),
-                pyo3::basic::CompareOp::Ne => Ok(self.0 != other.0),
-                pyo3::basic::CompareOp::Lt => Ok(self.0 < other.0),
-                pyo3::basic::CompareOp::Le => Ok(self.0 <= other.0),
-                pyo3::basic::CompareOp::Gt => Ok(self.0 > other.0),
-                pyo3::basic::CompareOp::Ge => Ok(self.0 >= other.0),
-            }
+    // `other` is `&Bound<PyAny>` on PURPOSE
+    //
+    // WHY?
+    //
+    // A custom extractor will make a type error and add a note via
+    // `add_note(...)` which is (in my napkin benchmarking) slower than
+    // returning NotImplemented directly for non-UUID types.
+    //
+    // A quick bench w/ `timeit` of `uuid == None` showed a 10x perf hit for
+    // using a custom extractor:
+    // - custom extractor: ~300ns
+    // - directly returning NotImplemented: ~29ns
+    fn __richcmp__(
+        &self,
+        other: &Bound<'_, PyAny>,
+        op: pyo3::basic::CompareOp,
+    ) -> PyResult<UuidRichCmp> {
+        use ryo3_core::PyCastExactOpt;
+        let other = if let Some(u) = other.cast_exact_opt::<Self>() {
+            u.get().0
         } else {
-            let other = other.extract::<CPythonUuid>()?;
-            match op {
-                pyo3::basic::CompareOp::Eq => Ok(self.0 == other.0),
-                pyo3::basic::CompareOp::Ne => Ok(self.0 != other.0),
-                pyo3::basic::CompareOp::Lt => Ok(self.0 < other.0),
-                pyo3::basic::CompareOp::Le => Ok(self.0 <= other.0),
-                pyo3::basic::CompareOp::Gt => Ok(self.0 > other.0),
-                pyo3::basic::CompareOp::Ge => Ok(self.0 >= other.0),
+            match other.extract::<CPythonUuid>() {
+                Ok(u) => u.0,
+                Err(CPythonUuidError::NotAUuid) => return Ok(UuidRichCmp::NotImpl),
+                Err(CPythonUuidError::Py(e)) => return Err(e),
             }
-        }
+        };
+        // cmp as u128 (big-endian so same order as the bytes)
+        // ALSO... its faster for some reason?
+        let (a, b) = (self.0.as_u128(), other.as_u128());
+        let b = match op {
+            pyo3::basic::CompareOp::Eq => a == b,
+            pyo3::basic::CompareOp::Ne => a != b,
+            pyo3::basic::CompareOp::Lt => a < b,
+            pyo3::basic::CompareOp::Le => a <= b,
+            pyo3::basic::CompareOp::Gt => a > b,
+            pyo3::basic::CompareOp::Ge => a >= b,
+        };
+        Ok(UuidRichCmp::Bool(b))
     }
 
     #[getter]
@@ -245,8 +349,8 @@ impl PyUuid {
     }
 
     #[getter]
-    fn urn(&self) -> String {
-        self.0.urn().to_string()
+    fn urn<'py>(&self, py: Python<'py>) -> Bound<'py, PyString> {
+        self.pystr_urn(py)
     }
 
     #[expect(clippy::wrong_self_convention)]
@@ -354,8 +458,8 @@ impl PyUuid {
     }
 
     #[getter]
-    fn hex(&self) -> PyAsciiString {
-        self.0.simple().to_string().into()
+    fn hex<'py>(&self, py: Python<'py>) -> Bound<'py, PyString> {
+        self.pystr_simple(py)
     }
 
     #[getter]
@@ -427,16 +531,70 @@ impl PyUuid {
         getnode(py)
     }
 
+    // ========================================================================
+    // CLASSATTR-STATIC FUNCS
+    // allows the `UUID` class to behave almost like the Python `uuid` module
+    // ========================================================================
+    #[classattr]
+    #[pyo3(name = "uuid1")]
+    fn clsattr_uuid1(py: Python<'_>) -> PyResult<Py<PyAny>> {
+        Ok(wrap_pyfunction!(uuid1, py)?.into_any().unbind())
+    }
+
+    #[classattr]
+    #[pyo3(name = "uuid3")]
+    fn clsattr_uuid3(py: Python<'_>) -> PyResult<Py<PyAny>> {
+        Ok(wrap_pyfunction!(uuid3, py)?.into_any().unbind())
+    }
+
+    #[classattr]
+    #[pyo3(name = "uuid4")]
+    fn clsattr_uuid4(py: Python<'_>) -> PyResult<Py<PyAny>> {
+        Ok(wrap_pyfunction!(uuid4, py)?.into_any().unbind())
+    }
+
+    #[classattr]
+    #[pyo3(name = "uuid5")]
+    fn clsattr_uuid5(py: Python<'_>) -> PyResult<Py<PyAny>> {
+        Ok(wrap_pyfunction!(uuid5, py)?.into_any().unbind())
+    }
+
+    #[classattr]
+    #[pyo3(name = "uuid6")]
+    fn clsattr_uuid6(py: Python<'_>) -> PyResult<Py<PyAny>> {
+        Ok(wrap_pyfunction!(uuid6, py)?.into_any().unbind())
+    }
+
+    #[classattr]
+    #[pyo3(name = "uuid7")]
+    fn clsattr_uuid7(py: Python<'_>) -> PyResult<Py<PyAny>> {
+        Ok(wrap_pyfunction!(uuid7, py)?.into_any().unbind())
+    }
+
+    #[classattr]
+    #[pyo3(name = "uuid8")]
+    fn clsattr_uuid8(py: Python<'_>) -> PyResult<Py<PyAny>> {
+        Ok(wrap_pyfunction!(uuid8, py)?.into_any().unbind())
+    }
+
+    /// Reseed the rng
+    #[staticmethod]
+    #[pyo3(name = "_reseed_rng")]
+    fn _py_reseed_rng() -> PyResult<()> {
+        Self::reseed_rng()
+    }
+
     #[staticmethod]
     fn from_any<'py>(value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, Self>> {
+        use ryo3_core::{PyCastExactOpt, PyCastOpt};
         let py = value.py();
-        if let Ok(val) = value.cast_exact::<Self>() {
+        if let Some(val) = value.cast_exact_opt::<Self>() {
             Ok(val.as_borrowed().into_bound())
         } else if let Ok(s) = value.extract::<&str>() {
             Self::from_str(s).map(|dt| dt.into_pyobject(py))?
         } else if let Ok(b) = value.extract::<[u8; 16]>() {
             Self::from_int(u128::from_be_bytes(b)).into_pyobject(py)
-        } else if let Ok(pybytes) = value.cast::<pyo3::types::PyBytes>() {
+        } else if let Some(pybytes) = value.cast_opt::<pyo3::types::PyBytes>() {
             let s = String::from_utf8_lossy(pybytes.as_bytes());
             Self::from_str(&s).map(|dt| dt.into_pyobject(py))?
         } else if let Ok(v) = value.extract::<CPythonUuid>() {
@@ -652,31 +810,75 @@ pub fn uuid8(
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct CPythonUuid(pub(crate) uuid::Uuid);
 
+impl CPythonUuid {
+    fn get_uuid_ob_pointer(py: Python) -> usize {
+        let uuid_mod = py.import("uuid").expect("uuid to be importable");
+        // get a uuid how orjson does it...
+        let uuid_ob = uuid_mod
+            .getattr("NAMESPACE_DNS")
+            .expect("uuid.NAMESPACE_DNS to be available");
+        let uuid_type = uuid_ob.get_type();
+
+        let uuid_type_ptr = uuid_type.as_type_ptr() as usize;
+        // make sure we drop the reference
+        drop(uuid_mod);
+        drop(uuid_ob);
+        drop(uuid_type);
+        uuid_type_ptr
+    }
+
+    fn py_uuid_type_ptr(py: Python) -> usize {
+        static UUID_TYPE_PTR: PyOnceLock<usize> = PyOnceLock::new();
+        *UUID_TYPE_PTR.get_or_init(py, || Self::get_uuid_ob_pointer(py))
+    }
+
+    fn from_borrowed_pyany(obj: Borrowed<'_, '_, PyAny>) -> Result<Self, CPythonUuidError> {
+        let py = obj.py();
+        let uuid_cls_ptr = Self::py_uuid_type_ptr(obj.py());
+        let obj_ptr = obj.get_type().as_type_ptr() as usize;
+        if obj_ptr == uuid_cls_ptr {
+            let Some(uuid_int) = obj.getattr_opt(pyo3::intern!(py, "int"))? else {
+                return Err(CPythonUuidError::NotAUuid);
+            };
+            let uuid_int: u128 = uuid_int.extract()?;
+            Ok(Self(uuid::Uuid::from_u128(uuid_int)))
+        } else {
+            Err(CPythonUuidError::NotAUuid)
+        }
+    }
+}
+
+/// `CPythonUuid` extract error
+///
+/// `NotAUuid` is free-ish to create + drop, and the py `TypeError`
+/// only gets built if it gets turned into a `PyErr`
+#[derive(Debug)]
+pub enum CPythonUuidError {
+    NotAUuid,
+    Py(PyErr),
+}
+
+impl From<PyErr> for CPythonUuidError {
+    fn from(e: PyErr) -> Self {
+        Self::Py(e)
+    }
+}
+
+impl From<CPythonUuidError> for PyErr {
+    fn from(e: CPythonUuidError) -> Self {
+        match e {
+            CPythonUuidError::NotAUuid => {
+                py_type_error!("Expected a `uuid.UUID` instance.")
+            }
+            CPythonUuidError::Py(e) => e,
+        }
+    }
+}
+
 impl From<CPythonUuid> for uuid::Uuid {
     fn from(val: CPythonUuid) -> Self {
         val.0
     }
-}
-
-fn get_uuid_ob_pointer(py: Python) -> usize {
-    let uuid_mod = py.import("uuid").expect("uuid to be importable");
-    // get a uuid how orjson does it...
-    let uuid_ob = uuid_mod
-        .getattr("NAMESPACE_DNS")
-        .expect("uuid.NAMESPACE_DNS to be available");
-    let uuid_type = uuid_ob.get_type();
-
-    let uuid_type_ptr = uuid_type.as_type_ptr() as usize;
-    // make sure we drop the reference
-    drop(uuid_mod);
-    drop(uuid_ob);
-    drop(uuid_type);
-    uuid_type_ptr
-}
-
-fn py_uuid_type_ptr(py: Python) -> usize {
-    static UUID_TYPE_PTR: PyOnceLock<usize> = PyOnceLock::new();
-    *UUID_TYPE_PTR.get_or_init(py, || get_uuid_ob_pointer(py))
 }
 
 // ORIG VERSION THAT USES INSTANCE CHECK
@@ -703,19 +905,10 @@ fn py_uuid_type_ptr(py: Python) -> usize {
 
 // NEW VERSION THAT USES TYPE POINTER COMPARISON
 impl<'py> FromPyObject<'_, 'py> for CPythonUuid {
-    type Error = pyo3::PyErr;
+    type Error = CPythonUuidError;
 
     fn extract(obj: Borrowed<'_, 'py, PyAny>) -> Result<Self, Self::Error> {
-        let py = obj.py();
-        let uuid_cls_ptr = py_uuid_type_ptr(obj.py());
-        let obj_ptr = obj.get_type().as_type_ptr() as usize;
-        if obj_ptr == uuid_cls_ptr {
-            let uuid_int: u128 = obj.getattr(pyo3::intern!(py, "int"))?.extract()?;
-            let bytes = uuid_int.to_be_bytes();
-            Ok(Self(uuid::Uuid::from_bytes(bytes)))
-        } else {
-            py_type_err!("Expected a `uuid.UUID` instance.",)
-        }
+        Self::from_borrowed_pyany(obj)
     }
 }
 
@@ -757,6 +950,75 @@ impl<'a, 'py> FromPyObject<'a, 'py> for PyUuidBytes {
             Ok(Self(*b.as_array()))
         } else {
             py_type_err!("Expected a bytes-like object with length == 16")
+        }
+    }
+}
+
+/// `__richcmp__` return value
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum UuidRichCmp {
+    Bool(bool),
+    NotImpl,
+}
+
+impl<'py> IntoPyObject<'py> for UuidRichCmp {
+    type Target = PyAny;
+    type Output = Borrowed<'py, 'py, PyAny>;
+    type Error = std::convert::Infallible;
+
+    #[inline]
+    fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
+        match self {
+            Self::Bool(false) => Ok(PyBool::new(py, false).into_any()),
+            Self::Bool(true) => Ok(PyBool::new(py, true).into_any()),
+            Self::NotImpl => Ok(pyo3::types::PyNotImplemented::get(py).into_any()),
+        }
+    }
+}
+
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
+enum UuidFormat<const ALLOW_EMPTY: bool = false> {
+    #[default]
+    Hyphenated,
+    Simple,
+    Urn,
+    Braced,
+}
+
+impl<'a, 'py, const ALLOW_EMPTY: bool> FromPyObject<'a, 'py> for UuidFormat<ALLOW_EMPTY> {
+    type Error = PyErr;
+
+    fn extract(ob: Borrowed<'a, 'py, PyAny>) -> PyResult<Self> {
+        const UUID_VALUE_ERROR_MSG: &str =
+            "Invalid uuid format ('hyphenated', 'simple', 'urn', 'braced')";
+        const UUID_TYPE_ERROR_MSG: &str = "Expected str ('hyphenated', 'simple', 'urn', 'braced')";
+        // Copy pasta via this repl snippet to match stdlib
+        // ```python
+        // >>> import uuid
+        // >>> uuid.uuid4().__format__("asdf")
+        // Traceback (most recent call last):
+        //   File "<stdin>", line 1, in <module>
+        // TypeError: unsupported format string passed to UUID.__format__
+        // ```
+
+        const UUID_FORMAT_SPEC_ERROR_MSG: &str =
+            "unsupported format string passed to UUID.__format__";
+        use ryo3_core::{PyCastExactOpt, pystr_read_fast};
+        if let Some(s) = ob.cast_exact_opt::<PyString>() {
+            let s = pystr_read_fast(s)?;
+            if ALLOW_EMPTY && s.is_empty() {
+                return Ok(Self::Hyphenated);
+            }
+            match s {
+                "hyphenated" => Ok(Self::Hyphenated),
+                "simple" => Ok(Self::Simple),
+                "urn" => Ok(Self::Urn),
+                "braced" => Ok(Self::Braced),
+                _ if ALLOW_EMPTY => py_type_err!(UUID_FORMAT_SPEC_ERROR_MSG),
+                _ => py_value_err!(UUID_VALUE_ERROR_MSG),
+            }
+        } else {
+            py_type_err!(UUID_TYPE_ERROR_MSG)
         }
     }
 }
