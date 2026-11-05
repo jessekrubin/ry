@@ -18,7 +18,8 @@ pub const RFC_4122: &str = "specified in RFC 4122";
 pub const RESERVED_MICROSOFT: &str = "reserved for Microsoft compatibility";
 pub const RESERVED_FUTURE: &str = "reserved for future definition";
 
-#[pyclass(name = "UUID", frozen, immutable_type, weakref)]
+#[pyclass(name = "UUID", frozen, weakref)]
+#[cfg_attr(any(not(Py_LIMITED_API), Py_3_14), pyo3(immutable_type))]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize), serde(transparent))]

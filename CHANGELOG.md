@@ -17,11 +17,15 @@
   - `hash(ulid)` is now `hash(int(ulid))`
   - `ULID` is now picklable/copyable (all pickle protocols)
   - faster `str`/`repr`/`hex`/hex-parsing/`hash`
+  - `immutable_type` gated on `any(not(Py_LIMITED_API), Py_3_14)` so the crate
+    builds w/ `abi3`
 - `ryo3-uuid`
   - `UUID.equiv(other)` loose equality (UUID/int/bytes/str in any format; never
     raises)
   - fix: `UUID` pickles w/ pickle protocols 0/1 (`__reduce__` instead of
     `__getnewargs__`)
+  - `immutable_type` gated on `any(not(Py_LIMITED_API), Py_3_14)` so the crate
+    builds w/ `abi3`
 - `ryo3-reqwest`
   - fix: `query` that require escaping dont raise `ValueError` and get
     serialized and crudely spliced onto the end of the URL; this fixes a long
