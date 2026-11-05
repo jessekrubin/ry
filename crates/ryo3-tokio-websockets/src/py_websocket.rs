@@ -1,4 +1,6 @@
+use std::future::{Future, poll_fn};
 use std::num::NonZeroUsize;
+use std::pin::pin;
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -20,7 +22,7 @@ use crate::errors::map_ws_err;
 use crate::types::{PyWsCloseCode, PyWsCloseReason, TokioWsRead, TokioWsWrite, UriLike};
 use crate::{PyMessageLike, PyPingPayload, PyPongPayload, PyWsMessage};
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 struct WebSocketHandshake {
     status: http::StatusCode,
     response_headers: http::HeaderMap,
@@ -28,7 +30,7 @@ struct WebSocketHandshake {
 
 #[derive(Debug, Clone)]
 struct WebSocketConnected {
-    handshake: WebSocketHandshake,
+    handshake: Arc<WebSocketHandshake>,
     writer: Arc<Mutex<TokioWsWrite>>,
     reader: Arc<Mutex<TokioWsRead>>,
 }
@@ -67,7 +69,7 @@ enum WebSocketState {
     Connecting,
     Open(WebSocketConnected),
     Closing(WebSocketConnected),
-    Closed(Option<WebSocketHandshake>),
+    Closed(Option<Arc<WebSocketHandshake>>),
 }
 
 impl WebSocketState {
@@ -75,7 +77,7 @@ impl WebSocketState {
     fn handshake(&self) -> Option<&WebSocketHandshake> {
         match self {
             Self::Open(conn) | Self::Closing(conn) => Some(&conn.handshake),
-            Self::Closed(handshake) => handshake.as_ref(),
+            Self::Closed(handshake) => handshake.as_deref(),
             Self::Connecting => None,
         }
     }
@@ -232,12 +234,17 @@ impl PyWebSocket {
         builder = builder.limits(limits);
 
         let (ws, response) = builder.connect().await.map_err(map_ws_err)?;
+        // Other users of this crate may enable additional TLS stream variants.
+        #[allow(irrefutable_let_patterns)]
+        if let tokio_websockets::MaybeTlsStream::Plain(stream) = ws.get_ref() {
+            stream.set_nodelay(true)?;
+        }
         let (writer, reader) = ws.split();
 
-        let handshake = WebSocketHandshake {
+        let handshake = Arc::new(WebSocketHandshake {
             status: response.status(),
             response_headers: response.headers().clone(),
-        };
+        });
         Ok(WebSocketConnected {
             handshake,
             writer: Arc::new(Mutex::new(writer)),
@@ -474,7 +481,7 @@ impl PyWebSocket {
         timeout: Option<PyTimeout>,
     ) -> PyResult<Bound<'py, RyCoroutine>> {
         let this = self.clone();
-        tokio_coro(py, qualname, async move {
+        Self::io_coro(py, qualname, async move {
             this.recv_required(timeout.map(Into::into)).await
         })
     }
@@ -486,7 +493,29 @@ impl PyWebSocket {
         message: Message,
     ) -> PyResult<Bound<'py, RyCoroutine>> {
         let this = self.clone();
-        tokio_coro(py, qualname, async move { this.send(message).await })
+        Self::io_coro(py, qualname, async move { this.send(message).await })
+    }
+
+    /// Poll I/O on the Python loop instead of spawning a task for each message.
+    /// Enter Tokio for each poll so I/O and receive timers use its drivers;
+    /// the runtime guard is dropped before suspending back to Python.
+    fn io_coro<'py, F, T>(
+        py: Python<'py>,
+        qualname: &'static str,
+        future: F,
+    ) -> PyResult<Bound<'py, RyCoroutine>>
+    where
+        F: Future<Output = PyResult<T>> + Send + 'static,
+        T: for<'a> IntoPyObject<'a> + Send + 'static,
+    {
+        pyloop_coro(py, qualname, async move {
+            let mut future = pin!(future);
+            poll_fn(|cx| {
+                let _rt = get_tokio_runtime().enter();
+                future.as_mut().poll(cx)
+            })
+            .await
+        })
     }
 }
 
@@ -590,7 +619,7 @@ impl PyWebSocket {
 
     fn __anext__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, RyCoroutine>> {
         let this = self.clone();
-        tokio_coro(py, "WebSocket.__anext__", async move {
+        Self::io_coro(py, "WebSocket.__anext__", async move {
             this.recv_msg(None)
                 .await?
                 .ok_or_else(|| PyStopAsyncIteration::new_err("websocket closed"))

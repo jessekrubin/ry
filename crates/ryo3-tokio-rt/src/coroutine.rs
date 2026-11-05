@@ -674,8 +674,18 @@ impl RyCoroutine {
                 *state = CoroutineState::Immediate(Ok(value));
                 return Ok(py.None());
             }
-            CoroutineState::Unstarted(future) => {
+            CoroutineState::Unstarted(mut future) => {
                 let loop_handle = LoopHandle::current(py)?;
+                // Ready operations need no Python future or wakeup allocation.
+                // On Pending, poll again below with the real waker so a wake
+                // racing this initial poll cannot be lost.
+                if let Poll::Ready(result) = future
+                    .as_mut()
+                    .poll_py(py, &mut Context::from_waker(Waker::noop()))
+                {
+                    return Err(result
+                        .map_or_else(|error| error, |value| PyStopIteration::new_err((value,))));
+                }
                 let waker = Arc::new(CoroutineWaker {
                     hub: Arc::downgrade(&loop_handle.0),
                     queued: AtomicBool::new(false),
