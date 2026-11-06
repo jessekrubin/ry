@@ -9,6 +9,10 @@
 
 ## v0.0.108 [unreleased]
 
+- **BREAKING**
+  - removed deprecated `Duration.__int__` ~ use `Duration.as_nanos()` instead
+  - removed deprecated `SignedDuration.__int__` ~ use
+    `SignedDuration.as_nanos()` instead
 - misc
   - fix: `cc` capture on windows for `cl` when running `python -m ry`
     [945](https://github.com/jessekrubin/ry/issues/945)

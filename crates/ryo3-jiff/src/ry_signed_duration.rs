@@ -289,16 +289,6 @@ impl RySignedDuration {
         self.0.as_secs_f64()
     }
 
-    #[pyo3(
-        warn(
-            message = "`SignedDuration.__int__` is deprecated; use `SignedDuration.as_nanos` instead [removal: v0.0.108]",
-            category = pyo3::exceptions::PyDeprecationWarning
-        )
-    )]
-    fn __int__(&self) -> i128 {
-        self.0.as_nanos()
-    }
-
     fn __bool__(&self) -> bool {
         !self.0.is_zero()
     }
