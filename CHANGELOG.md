@@ -29,8 +29,7 @@
 - `ryo3-tokio-websockets` ([@paddor](https://github.com/paddor)!
   [#942](https://github.com/jessekrubin/ry/pull/942))
   - perf: `WebSocket` send/recv (+ `async for`) poll on the asyncio loop w/
-    tokio's runtime context entered instead of spawning a tokio task per
-    message
+    tokio's runtime context entered instead of spawning a tokio task per message
   - perf: handshake metadata is shared (`Arc`) instead of cloned
   - `TCP_NODELAY` (Nagle off) on plain (`ws://`) connections
   - throughput benchmark (`bench/test_websocket_throughput.py`)
@@ -52,6 +51,8 @@
     elsewhere (which I (jesse) am)
   - `immutable_type` gated on `any(not(Py_LIMITED_API), Py_3_14)` so the crate
     builds w/ `abi3`
+- `ryo3-jiff`
+  - bump `jiff` to 0.2.39
 - misc
   - experiments with disabling pyo3 global-reference-pool
   - bump `maturin` to 1.16.0
