@@ -14,7 +14,7 @@ description = "python + tokio-websockets crate (https://crates.io/crates/tokio-w
 
 [features]
 default = []
-json = ["ryo3-jiter"]
+json = ["ryo3-jiter", "ryo3-json"]
 ry = ["json"]
 
 [dependencies]
@@ -26,6 +26,7 @@ ryo3-bytes.workspace = true
 ryo3-core.workspace = true
 ryo3-http.workspace = true
 ryo3-jiter = { workspace = true, optional = true }
+ryo3-json = { workspace = true, optional = true }
 ryo3-macro-rules.workspace = true
 ryo3-std = { workspace = true, features = ["time"] }
 ryo3-tokio-rt.workspace = true

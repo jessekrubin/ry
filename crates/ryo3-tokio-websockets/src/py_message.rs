@@ -371,13 +371,31 @@ impl PyPingPayload {
     }
 }
 
-impl PyTryFrom<ReadableBuffer<'_, '_>> for PyPingPayload {
-    fn py_try_from(value: ReadableBuffer<'_, '_>) -> PyResult<Self> {
-        if value.as_slice().len() > WS_MSG_PINGPONG_PAYLOAD_MAX_LEN {
+impl PyPingPayload {
+    #[inline]
+    fn check_len(len: usize) -> PyResult<()> {
+        if len > WS_MSG_PINGPONG_PAYLOAD_MAX_LEN {
             py_value_err!("ping-payload exceeds the websocket limit of 125 bytes")
         } else {
-            Ok(Self(Message::ping(value.into_bytes())))
+            Ok(())
         }
+    }
+}
+
+impl TryFrom<Bytes> for PyPingPayload {
+    type Error = PyErr;
+
+    fn try_from(value: Bytes) -> PyResult<Self> {
+        Self::check_len(value.len())?;
+        Ok(Self(Message::ping(value)))
+    }
+}
+
+impl PyTryFrom<ReadableBuffer<'_, '_>> for PyPingPayload {
+    fn py_try_from(value: ReadableBuffer<'_, '_>) -> PyResult<Self> {
+        // check before `into_bytes` to avoid copying an oversized buffer
+        Self::check_len(value.as_slice().len())?;
+        Ok(Self(Message::ping(value.into_bytes())))
     }
 }
 
@@ -410,13 +428,31 @@ impl std::default::Default for PyPongPayload {
     }
 }
 
-impl PyTryFrom<ReadableBuffer<'_, '_>> for PyPongPayload {
-    fn py_try_from(value: ReadableBuffer<'_, '_>) -> PyResult<Self> {
-        if value.as_slice().len() > WS_MSG_PINGPONG_PAYLOAD_MAX_LEN {
+impl PyPongPayload {
+    #[inline]
+    fn check_len(len: usize) -> PyResult<()> {
+        if len > WS_MSG_PINGPONG_PAYLOAD_MAX_LEN {
             py_value_err!("pong-payload exceeds the websocket limit of 125 bytes")
         } else {
-            Ok(Self(Message::pong(value.into_bytes())))
+            Ok(())
         }
+    }
+}
+
+impl TryFrom<Bytes> for PyPongPayload {
+    type Error = PyErr;
+
+    fn try_from(value: Bytes) -> PyResult<Self> {
+        Self::check_len(value.len())?;
+        Ok(Self(Message::pong(value)))
+    }
+}
+
+impl PyTryFrom<ReadableBuffer<'_, '_>> for PyPongPayload {
+    fn py_try_from(value: ReadableBuffer<'_, '_>) -> PyResult<Self> {
+        // check before `into_bytes` to avoid copying an oversized buffer
+        Self::check_len(value.as_slice().len())?;
+        Ok(Self(Message::pong(value.into_bytes())))
     }
 }
 

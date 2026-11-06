@@ -18,6 +18,8 @@ use tokio_websockets::{ClientBuilder, Config, Limits, Message};
 use crate::constants::{
     DEFAULT_CLOSE_TIMEOUT, DEFAULT_FLUSH_THRESHOLD, DEFAULT_FRAME_SIZE, DEFAULT_MAX_PAYLOAD_LEN,
 };
+#[cfg(feature = "json")]
+use crate::enums::PyWsPayloadKind;
 use crate::errors::map_ws_err;
 use crate::types::{PyWsCloseCode, PyWsCloseReason, TokioWsRead, TokioWsWrite, UriLike};
 use crate::{PyMessageLike, PyPingPayload, PyPongPayload, PyWsMessage};
@@ -669,6 +671,49 @@ impl PyWebSocket {
         message: PyMessageLike,
     ) -> PyResult<Bound<'py, RyCoroutine>> {
         self.send_coro(py, "WebSocket.send", Message::from(message))
+    }
+
+    /// Serialize `data` to JSON and send it as a text (default), binary, ping or pong message
+    #[cfg(feature = "json")]
+    #[expect(clippy::too_many_arguments, reason = "python kwargs")]
+    #[pyo3(
+        signature = (
+            data,
+            *,
+            kind = PyWsPayloadKind::Text,
+            default = None,
+            fmt = false,
+            sort_keys = false,
+            append_newline = false,
+        ),
+        text_signature = "(self, data, *, kind=\"text\", default=None, fmt=False, sort_keys=False, append_newline=False)"
+    )]
+    fn send_json<'py>(
+        &self,
+        py: Python<'py>,
+        data: &Bound<'py, PyAny>,
+        kind: PyWsPayloadKind,
+        default: Option<&'py Bound<'py, PyAny>>,
+        fmt: bool,
+        sort_keys: bool,
+        append_newline: bool,
+    ) -> PyResult<Bound<'py, RyCoroutine>> {
+        let options = ryo3_json::JsonSerOptions::new()
+            .with_fmt(fmt)
+            .with_sort_keys(sort_keys)
+            .with_append_newline(append_newline);
+        let payload = bytes::Bytes::from(ryo3_json::py_to_vec_with_options(
+            data.as_borrowed(),
+            default,
+            options,
+        )?);
+        let message = match kind {
+            PyWsPayloadKind::Text => Message::text(payload),
+            PyWsPayloadKind::Binary => Message::binary(payload),
+            PyWsPayloadKind::Ping => PyPingPayload::try_from(payload)?.into(),
+            PyWsPayloadKind::Pong => PyPongPayload::try_from(payload)?.into(),
+        };
+        self.send_coro(py, "WebSocket.send_json", message)
     }
 
     #[pyo3(
