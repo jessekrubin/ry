@@ -1,10 +1,10 @@
 #![doc = include_str!("../README.md")]
-mod py_uuid;
-pub use py_uuid::{
-    CPythonUuid, CPythonUuidError, PyUuid, RESERVED_FUTURE, RESERVED_MICROSOFT, RESERVED_NCS,
-    RFC_4122, getnode, uuid1, uuid3, uuid4, uuid5, uuid6, uuid7, uuid8,
-};
+mod ry_uuid;
 use pyo3::prelude::*;
+pub use ry_uuid::{
+    CPythonUuid, CPythonUuidError, RESERVED_FUTURE, RESERVED_MICROSOFT, RESERVED_NCS, RFC_4122,
+    RyUuid, getnode, uuid1, uuid3, uuid4, uuid5, uuid6, uuid7, uuid8,
+};
 pub use uuid;
 
 /// `os.register_at_fork(after_in_child=UUID._reseed_rng)` (once)
@@ -21,7 +21,7 @@ fn register_fork_reseed(py: Python<'_>) -> PyResult<()> {
             .and_then(|os| os.getattr("register_at_fork"))
         {
             res = (|| {
-                let reseed = py.get_type::<PyUuid>().getattr("_reseed_rng")?;
+                let reseed = py.get_type::<RyUuid>().getattr("_reseed_rng")?;
                 let kwargs = pyo3::types::PyDict::new(py);
                 kwargs.set_item("after_in_child", reseed)?;
                 register.call((), Some(&kwargs)).map(|_| ())
@@ -32,7 +32,7 @@ fn register_fork_reseed(py: Python<'_>) -> PyResult<()> {
 }
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    m.add_class::<PyUuid>()?;
+    m.add_class::<RyUuid>()?;
     m.add_function(wrap_pyfunction!(uuid1, m)?)?;
     m.add_function(wrap_pyfunction!(uuid3, m)?)?;
     m.add_function(wrap_pyfunction!(uuid4, m)?)?;

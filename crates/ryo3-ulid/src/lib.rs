@@ -1,7 +1,7 @@
 #![doc = include_str!("../README.md")]
-mod py_ulid;
-pub use py_ulid::PyUlid;
+mod ry_ulid;
 use pyo3::prelude::*;
+pub use ry_ulid::RyUlid;
 
 /// `os.register_at_fork(after_in_child=ULID._reset_generator)` (once)
 ///
@@ -17,7 +17,7 @@ fn register_fork_reset(py: Python<'_>) -> PyResult<()> {
             .and_then(|os| os.getattr("register_at_fork"))
         {
             res = (|| {
-                let reset = py.get_type::<PyUlid>().getattr("_reset_generator")?;
+                let reset = py.get_type::<RyUlid>().getattr("_reset_generator")?;
                 let kwargs = pyo3::types::PyDict::new(py);
                 kwargs.set_item("after_in_child", reset)?;
                 register.call((), Some(&kwargs)).map(|_| ())
@@ -28,7 +28,7 @@ fn register_fork_reset(py: Python<'_>) -> PyResult<()> {
 }
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    m.add_class::<PyUlid>()?;
+    m.add_class::<RyUlid>()?;
 
     #[cfg(unix)]
     register_fork_reset(m.py())?;

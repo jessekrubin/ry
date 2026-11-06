@@ -170,7 +170,7 @@ ry_type_serializer_struct! (
 // ===========================================================================
 ry_type_serializer_struct! (
     #[cfg(feature = "ryo3-ulid")]
-    PyUlidSerializer => ryo3_ulid::PyUlid
+    PyUlidSerializer => ryo3_ulid::RyUlid
 );
 // ===========================================================================
 // URL
@@ -184,7 +184,7 @@ ry_type_serializer_struct! (
 // ===========================================================================
 ry_type_serializer_struct! (
     #[cfg(feature = "ryo3-uuid")]
-    PyUuidSerializer => ryo3_uuid::PyUuid
+    PyUuidSerializer => ryo3_uuid::RyUuid
 );
 
 // ===========================================================================

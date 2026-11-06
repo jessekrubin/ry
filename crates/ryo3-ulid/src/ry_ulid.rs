@@ -7,7 +7,7 @@ use ryo3_core::macros::{
     py_overflow_error, py_runtime_error, py_type_err, py_value_err, py_value_error,
 };
 use ryo3_core::{PyAsciiStr, pystr_read_fast};
-use ryo3_uuid::{CPythonUuid, PyUuid};
+use ryo3_uuid::{CPythonUuid, RyUuid};
 use ulid::Ulid;
 use uuid::Uuid;
 
@@ -30,15 +30,15 @@ fn gen_new() -> PyResult<Ulid> {
 #[cfg_attr(any(not(Py_LIMITED_API), Py_3_14), pyo3(immutable_type))]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[cfg_attr(feature = "serde", derive(serde::Serialize), serde(transparent))]
-pub struct PyUlid(Ulid);
+pub struct RyUlid(Ulid);
 
 #[cfg(feature = "serde")]
-impl<'de> serde::Deserialize<'de> for PyUlid {
+impl<'de> serde::Deserialize<'de> for RyUlid {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: serde::Deserializer<'de>,
     {
-        Ulid::deserialize(deserializer).map(PyUlid)
+        Ulid::deserialize(deserializer).map(RyUlid)
     }
 }
 
@@ -53,7 +53,7 @@ impl From<PyUlidDecodeError> for PyErr {
     }
 }
 
-impl PyUlid {
+impl RyUlid {
     #[must_use]
     pub const fn new(ulid: Ulid) -> Self {
         Self(ulid)
@@ -127,7 +127,7 @@ impl PyUlid {
 }
 
 #[pymethods]
-impl PyUlid {
+impl RyUlid {
     /// The number of bits in a Ulid's time portion
     #[classattr]
     pub const TIME_BITS: u8 = 48;
@@ -222,7 +222,7 @@ impl PyUlid {
             <[u8; 16]>::try_from(pybytes.as_bytes())
                 .ok()
                 .map(u128::from_be_bytes)
-        } else if let Some(u) = other.cast_exact_opt::<PyUuid>() {
+        } else if let Some(u) = other.cast_exact_opt::<RyUuid>() {
             Some(u.get().inner().as_u128())
         } else {
             other
@@ -334,16 +334,16 @@ impl PyUlid {
     }
 
     #[expect(clippy::wrong_self_convention)]
-    fn to_uuid(&self) -> PyUuid {
+    fn to_uuid(&self) -> RyUuid {
         let b = self.0.to_bytes();
-        ryo3_uuid::PyUuid::from(Uuid::from_bytes(b))
+        ryo3_uuid::RyUuid::from(Uuid::from_bytes(b))
     }
 
     #[expect(clippy::wrong_self_convention)]
-    fn to_uuid4(&self) -> PyUuid {
+    fn to_uuid4(&self) -> RyUuid {
         let mut b = uuid::Builder::from_u128(self.to_u128());
         b.set_version(uuid::Version::Random);
-        PyUuid::from(b.into_uuid())
+        RyUuid::from(b.into_uuid())
     }
 
     #[staticmethod]
@@ -386,7 +386,7 @@ impl PyUlid {
         } else if let Some(pybytes) = value.cast_opt::<PyBytes>() {
             let b = pybytes.extract::<[u8; 16]>()?;
             Ok(Self::from_bytes(b))
-        } else if let Some(py_uuid) = value.cast_exact_opt::<PyUuid>() {
+        } else if let Some(py_uuid) = value.cast_exact_opt::<RyUuid>() {
             Ok(Self::from_uuid(UuidLike(*py_uuid.get().inner())))
         } else if let Ok(c_uuid) = value.extract::<CPythonUuid>() {
             Ok(Self::from_uuid(UuidLike(c_uuid.into())))
@@ -497,13 +497,13 @@ impl PyUlid {
     }
 }
 
-impl From<Ulid> for PyUlid {
+impl From<Ulid> for RyUlid {
     fn from(ulid: Ulid) -> Self {
         Self(ulid)
     }
 }
 
-impl std::fmt::Display for PyUlid {
+impl std::fmt::Display for RyUlid {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "ULID('{}')", self.0)
     }
@@ -516,7 +516,7 @@ impl<'py> FromPyObject<'_, 'py> for UuidLike {
     type Error = PyErr;
     fn extract(obj: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
         use ryo3_core::PyCastExactOpt;
-        if let Some(uuid_like) = obj.cast_exact_opt::<PyUuid>() {
+        if let Some(uuid_like) = obj.cast_exact_opt::<RyUuid>() {
             Ok(Self(*uuid_like.get().inner()))
         } else if let Ok(py_uuid) = obj.extract::<CPythonUuid>() {
             Ok(Self(py_uuid.into()))
@@ -532,8 +532,8 @@ mod pydantic {
     use pyo3::types::PyType;
     use ryo3_pydantic::GetPydanticCoreSchemaCls;
 
-    use super::PyUlid;
-    impl GetPydanticCoreSchemaCls for PyUlid {
+    use super::RyUlid;
+    impl GetPydanticCoreSchemaCls for RyUlid {
         fn get_pydantic_core_schema<'py>(
             cls: &Bound<'py, PyType>,
             source: &Bound<'py, PyAny>,
