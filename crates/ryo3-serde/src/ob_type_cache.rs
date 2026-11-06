@@ -147,12 +147,12 @@ impl PyTypeCache {
             // UUID
             // ----------------------------------------------------------------
             #[cfg(feature = "ryo3-uuid")]
-            ry_uuid: ryo3_uuid::PyUuid::type_object_raw(py) as usize,
+            ry_uuid: ryo3_uuid::RyUuid::type_object_raw(py) as usize,
             // ----------------------------------------------------------------
             // ULID
             // ----------------------------------------------------------------
             #[cfg(feature = "ryo3-ulid")]
-            ry_ulid: ryo3_ulid::PyUlid::type_object_raw(py) as usize,
+            ry_ulid: ryo3_ulid::RyUlid::type_object_raw(py) as usize,
             // ----------------------------------------------------------------
             // URL
             // ----------------------------------------------------------------

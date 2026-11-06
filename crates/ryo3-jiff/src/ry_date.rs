@@ -5,7 +5,6 @@ use std::ops::Sub;
 use jiff::Zoned;
 use jiff::civil::{Date, DateArithmetic, Weekday};
 use pyo3::prelude::*;
-use pyo3::pyclass::CompareOp;
 use pyo3::types::{PyDict, PyTuple};
 use pyo3::{BoundObject, IntoPyObject};
 use ryo3_core::{PyAsciiString, map_py_overflow_err, map_py_value_err};
@@ -28,7 +27,7 @@ use crate::util::SpanKwargs;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize), serde(transparent))]
-#[pyclass(name = "Date", frozen, immutable_type)]
+#[pyclass(name = "Date", frozen, immutable_type, eq, ord)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyDate(pub(crate) Date);
 
@@ -118,17 +117,6 @@ impl RyDate {
             .to_zoned(tz.to_inner())
             .map(RyZoned::from)
             .map_err(map_py_value_err)
-    }
-
-    fn __richcmp__(&self, other: &Self, op: CompareOp) -> bool {
-        match op {
-            CompareOp::Eq => self.0 == other.0,
-            CompareOp::Ne => self.0 != other.0,
-            CompareOp::Lt => self.0 < other.0,
-            CompareOp::Le => self.0 <= other.0,
-            CompareOp::Gt => self.0 > other.0,
-            CompareOp::Ge => self.0 >= other.0,
-        }
     }
 
     #[pyo3(name = "to_string")]

@@ -679,3 +679,33 @@ class TestSpanArithmetic:
         s2 = ry.timespan(hours=13, minutes=30)
         s3 = s1 - s2
         assert s3 == ry.timespan(days=1, hours=12)
+
+
+@pytest.mark.parametrize("unit", ["year", "month", "week", "day"])
+def test_span_total_zero_calendar_unit(unit: t.Any) -> None:
+    # jiff#668 (fixed in jiff 0.2.39)
+    # PANICKED ~ zero span + calendar unit panicked
+    # REFS:
+    # - issue: https://github.com/BurntSushi/jiff/issues/668
+    # - pr: https://github.com/BurntSushi/jiff/pull/667
+    assert ry.TimeSpan().total(unit, relative=ry.date(2020, 1, 1)) == 0.0
+
+
+@pytest.mark.parametrize(
+    ("s", "expected"),
+    [
+        ("175307617h 1m", "PT175307616H61M"),
+        ("175307617h 1m ago", "-PT175307616H61M"),
+        ("200000000h 30m", "PT175307616H1481543070M"),
+        ("200000000:30:00", "PT175307616H1481543070M"),
+        ("10518456961m 1s", "PT10518456960M61S"),
+        ("631107417601s 1ms", "PT631107417601.001S"),
+        ("PT175307617h1m", "PT175307616H61M"),
+    ],
+)
+def test_span_parse_large_carry(s: str, expected: str) -> None:
+    # jiff#660 (fixed in jiff 0.2.39)
+    # REFS:
+    # - issue: https://github.com/BurntSushi/jiff/issues/660
+    # - pr: https://github.com/BurntSushi/jiff/pull/662
+    assert str(ry.TimeSpan.parse(s)) == expected

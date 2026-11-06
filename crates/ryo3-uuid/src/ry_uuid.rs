@@ -23,9 +23,9 @@ pub const RESERVED_FUTURE: &str = "reserved for future definition";
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize), serde(transparent))]
-pub struct PyUuid(uuid::Uuid);
+pub struct RyUuid(uuid::Uuid);
 
-impl PyUuid {
+impl RyUuid {
     #[must_use]
     pub fn inner(&self) -> &uuid::Uuid {
         &self.0
@@ -95,7 +95,7 @@ impl PyUuid {
 }
 
 #[cfg(feature = "serde")]
-impl<'de> serde::Deserialize<'de> for PyUuid {
+impl<'de> serde::Deserialize<'de> for RyUuid {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: serde::Deserializer<'de>,
@@ -104,13 +104,13 @@ impl<'de> serde::Deserialize<'de> for PyUuid {
     }
 }
 
-impl AsRef<uuid::Uuid> for PyUuid {
+impl AsRef<uuid::Uuid> for RyUuid {
     fn as_ref(&self) -> &uuid::Uuid {
         &self.0
     }
 }
 
-impl From<uuid::Uuid> for PyUuid {
+impl From<uuid::Uuid> for RyUuid {
     fn from(value: uuid::Uuid) -> Self {
         Self(value)
     }
@@ -131,7 +131,7 @@ fn get_version(uuid: u8) -> PyResult<uuid::Version> {
 }
 
 #[pymethods]
-impl PyUuid {
+impl RyUuid {
     #[new]
     #[pyo3(
         signature = (
@@ -396,7 +396,7 @@ impl PyUuid {
     #[pyo3(signature = (s, /))]
     fn from_str(s: &str) -> PyResult<Self> {
         uuid::Uuid::parse_str(s)
-            .map(PyUuid)
+            .map(RyUuid)
             .map_err(|e| py_value_error!("invalid UUID string: {}", e))
     }
 
@@ -650,14 +650,14 @@ impl PyUuid {
     }
 }
 
-impl std::fmt::Display for PyUuid {
+impl std::fmt::Display for RyUuid {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "UUID('{}')", self.0)
     }
 }
 
 #[cfg(not(Py_3_14))]
-impl PyUuid {
+impl RyUuid {
     fn py_time(&self) -> u64 {
         let high = u64::from(self.time_hi_version()) & 0x0fff;
         let mid = u64::from(self.time_mid());
@@ -666,7 +666,7 @@ impl PyUuid {
 }
 
 #[cfg(Py_3_14)]
-impl PyUuid {
+impl RyUuid {
     fn py_time(&self) -> u64 {
         let version_rfc = (
             self.version(),
@@ -711,12 +711,12 @@ pub fn getnode(py: Python<'_>) -> PyResult<u64> {
 /// random 14-bit sequence number is chosen.
 #[pyfunction(signature = (node = None, clock_seq = None))]
 #[expect(unused_variables)]
-pub fn uuid1(node: Option<u64>, clock_seq: Option<u16>) -> PyResult<PyUuid> {
+pub fn uuid1(node: Option<u64>, clock_seq: Option<u16>) -> PyResult<RyUuid> {
     pytodo!("UUID1 is not implemented yet");
 }
 
 #[pyfunction]
-pub fn uuid3(namespace: &PyUuid, name: &Bound<'_, PyAny>) -> PyResult<PyUuid> {
+pub fn uuid3(namespace: &RyUuid, name: &Bound<'_, PyAny>) -> PyResult<RyUuid> {
     if let Ok(s) = name.extract::<&str>() {
         Ok(uuid::Uuid::new_v3(&namespace.0, s.as_bytes()).into())
     } else if let Ok(b) = name.extract::<&[u8]>() {
@@ -727,12 +727,12 @@ pub fn uuid3(namespace: &PyUuid, name: &Bound<'_, PyAny>) -> PyResult<PyUuid> {
 }
 
 #[pyfunction]
-pub fn uuid4() -> PyResult<PyUuid> {
-    Ok(PyUuid(uuid::Uuid::new_v4()))
+pub fn uuid4() -> PyResult<RyUuid> {
+    Ok(RyUuid(uuid::Uuid::new_v4()))
 }
 
 #[pyfunction]
-pub fn uuid5(namespace: &PyUuid, name: &Bound<'_, PyAny>) -> PyResult<PyUuid> {
+pub fn uuid5(namespace: &RyUuid, name: &Bound<'_, PyAny>) -> PyResult<RyUuid> {
     if let Ok(s) = name.extract::<&str>() {
         Ok(uuid::Uuid::new_v5(&namespace.0, s.as_bytes()).into())
     } else if let Ok(b) = name.extract::<&[u8]>() {
@@ -758,7 +758,7 @@ pub fn uuid5(namespace: &PyUuid, name: &Bound<'_, PyAny>) -> PyResult<PyUuid> {
 /// This function will panic if it fails to convert the node ID to a 6-byte, but
 /// there is no-way-jose that could happen AFAICT.
 #[pyfunction(signature = (node = None, clock_seq = None))]
-pub fn uuid6(py: Python<'_>, node: Option<u64>, clock_seq: Option<u16>) -> PyResult<PyUuid> {
+pub fn uuid6(py: Python<'_>, node: Option<u64>, clock_seq: Option<u16>) -> PyResult<RyUuid> {
     let node = node.map_or_else(|| getnode(py), |n| Ok(n & 0xFFFF_FFFF_FFFF))?;
     let node_arr = node.to_be_bytes();
     let node_id: &[u8; 6] = &node_arr[2..8].try_into().expect("no-way-jose");
@@ -769,7 +769,7 @@ pub fn uuid6(py: Python<'_>, node: Option<u64>, clock_seq: Option<u16>) -> PyRes
 }
 
 #[pyfunction(signature = (timestamp = None))]
-pub fn uuid7(timestamp: Option<u64>) -> PyResult<PyUuid> {
+pub fn uuid7(timestamp: Option<u64>) -> PyResult<RyUuid> {
     match timestamp {
         Some(ms) => {
             // check ms < 2^60 bc UUIDv7 uses 60 bits for timestamp
@@ -794,7 +794,7 @@ pub fn uuid8(
     b: Option<u16>,
     c: Option<u64>,
     buf: Option<PyUuidBytes>,
-) -> PyResult<PyUuid> {
+) -> PyResult<RyUuid> {
     use rand::prelude::*;
 
     if let Some(bts) = buf {
@@ -804,7 +804,7 @@ pub fn uuid8(
                 return py_value_err!("uuid8(): pass either bytes=... or a/b/c, not both",);
             }
         }
-        return Ok(PyUuid::from(uuid::Uuid::new_v8(bts.0)));
+        return Ok(RyUuid::from(uuid::Uuid::new_v8(bts.0)));
     }
 
     let mut rng = rand::rng();
@@ -821,7 +821,7 @@ pub fn uuid8(
     // least significant 62 bits of c
     ubuf[8..16].copy_from_slice(&c62.to_be_bytes());
 
-    Ok(PyUuid::from(uuid::Uuid::new_v8(ubuf)))
+    Ok(RyUuid::from(uuid::Uuid::new_v8(ubuf)))
 }
 
 // ----------------------------------------------------------------------------
@@ -936,7 +936,7 @@ impl<'py> FromPyObject<'_, 'py> for CPythonUuid {
 }
 
 #[cfg(feature = "pydantic")]
-impl ryo3_pydantic::GetPydanticCoreSchemaCls for PyUuid {
+impl ryo3_pydantic::GetPydanticCoreSchemaCls for RyUuid {
     fn get_pydantic_core_schema<'py>(
         cls: &Bound<'py, pyo3::types::PyType>,
         source: &Bound<'py, PyAny>,

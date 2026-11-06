@@ -24,6 +24,7 @@
 - [`ry.ryo3._jiff`](#ry.ryo3._jiff)
 - [`ry.ryo3._jiff_tz`](#ry.ryo3._jiff_tz)
 - [`ry.ryo3._jiter`](#ry.ryo3._jiter)
+- [`ry.ryo3._json`](#ry.ryo3._json)
 - [`ry.ryo3._lz4rip`](#ry.ryo3._lz4rip)
 - [`ry.ryo3._memchr`](#ry.ryo3._memchr)
 - [`ry.ryo3._orjson`](#ry.ryo3._orjson)
@@ -46,22 +47,16 @@
 - [`ry.ryo3._walkdir`](#ry.ryo3._walkdir)
 - [`ry.ryo3._which`](#ry.ryo3._which)
 - [`ry.ryo3._zstd`](#ry.ryo3._zstd)
-- [`ry.ryo3.JSON`](#ry.ryo3.JSON)
-- [`ry.ryo3.xxhash`](#ry.ryo3.xxhash)
 - [`ry.ryo3.zstd`](#ry.ryo3.zstd)
 - [`ry._types`](#ry._types)
 - [`ry.dev._lz4rip`](#ry.dev._lz4rip)
-- [`ry.JSON`](#ry.JSON)
 - [`ry.protocols`](#ry.protocols)
-- [`ry.xxhash`](#ry.xxhash)
 - [`ry.zstd`](#ry.zstd)
 <h2 id="ry.ryo3.__init__"><code>ry.ryo3.__init__</code></h2>
 
 ```python
 """ry api ~ type annotations"""
 
-from ry.ryo3 import JSON as JSON
-from ry.ryo3 import xxhash as xxhash
 from ry.ryo3 import zstd as zstd
 from ry.ryo3.__about__ import __allocator__ as __allocator__
 from ry.ryo3.__about__ import __authors__ as __authors__
@@ -186,6 +181,8 @@ from ry.ryo3._jiter import json_cache_usage as json_cache_usage
 from ry.ryo3._jiter import parse_json as parse_json
 from ry.ryo3._jiter import parse_jsonl as parse_jsonl
 from ry.ryo3._jiter import read_json as read_json
+from ry.ryo3._json import JSON as JSON
+from ry.ryo3._json import stringify as stringify
 from ry.ryo3._lz4rip import Lz4BlockCompressor as Lz4BlockCompressor
 from ry.ryo3._lz4rip import Lz4BlockDecompressor as Lz4BlockDecompressor
 from ry.ryo3._lz4rip import Lz4FrameCompressor as Lz4FrameCompressor
@@ -377,7 +374,6 @@ from ry.ryo3._zstd import zstd_compress as zstd_compress
 from ry.ryo3._zstd import zstd_decode as zstd_decode  # type: ignore[deprecated]  # ty: ignore[deprecated]
 from ry.ryo3._zstd import zstd_decompress as zstd_decompress
 from ry.ryo3._zstd import zstd_encode as zstd_encode  # type: ignore[deprecated]  # ty: ignore[deprecated]
-from ry.ryo3.JSON import stringify as stringify
 ```
 
 <h2 id="ry.ryo3.__about__"><code>ry.ryo3.__about__</code></h2>
@@ -547,6 +543,7 @@ else:
     from typing_extensions import Buffer as Buffer
 
 
+@t.final
 class Bytes(Buffer):
     """
     A buffer implementing the Python buffer protocol, allowing zero-copy access
@@ -610,7 +607,7 @@ class Bytes(Buffer):
     def __bytes__(self) -> bytes:
         """Return the underlying data as a Python `bytes` object."""
 
-    def __iter__(self) -> t.Iterator[int]: ...
+    def __iter__(self) -> _BytesIter: ...
     def removeprefix(self, prefix: Buffer, /) -> Bytes:
         """
         If the binary data starts with the prefix string, return `bytes[len(prefix):]`.
@@ -852,7 +849,7 @@ class Bytes(Buffer):
         >>> b = Bytes.copy_from(b"unique-nu-yawk")
         >>> b.is_unique()
         True
-        >>> shared = b[:]
+        >>> shared = b.clone()
         >>> b.is_unique()
         False
 
@@ -898,16 +895,23 @@ class Bytes(Buffer):
         """Return the hash via `pyo3::ffi::compat::Py_HashBuffer`"""
 
 
+class _BytesIter(t.Protocol):
+    def __iter__(self) -> t.Self: ...
+    def __next__(self) -> int: ...
+    def __len__(self) -> int: ...
+
+
 class _BytesSliceIter(t.Protocol):
     def __iter__(self) -> t.Self: ...
     def __next__(self) -> Bytes: ...
-    def next(self) -> Bytes: ...
+    def next(self) -> Bytes | None: ...
     def collect(self) -> list[Bytes]: ...
     def take(self, n: int = 1, /) -> list[Bytes]: ...
     def count(self) -> int: ...
     def size_hint(self) -> tuple[int, int | None]: ...
     def last(self) -> Bytes | None: ...
     def nth(self, n: int, /) -> Bytes | None: ...
+    @property
     def kind(self) -> t.Literal["windows", "windows-reverse"]: ...
     def __len__(self) -> int: ...
 
@@ -1914,17 +1918,17 @@ from pathlib import Path
 from ry.protocols import RyIterator
 from ry.ryo3._fspath import FsPath
 
-_T = t.TypeVar("_T", bound=str | Path | FsPath)
+_TGlobPath = t.TypeVar("_TGlobPath", bound=str | Path | FsPath)
 
 
 @t.final
-class GlobPaths(RyIterator[_T]):
+class GlobPaths(RyIterator[_TGlobPath]):
     """glob::Paths iterable wrapper"""
 
-    def __next__(self) -> _T: ...
-    def __iter__(self) -> GlobPaths[_T]: ...
-    def collect(self) -> list[_T]: ...
-    def take(self, n: int = 1) -> list[_T]: ...
+    def __next__(self) -> _TGlobPath: ...
+    def __iter__(self) -> GlobPaths[_TGlobPath]: ...
+    def collect(self) -> list[_TGlobPath]: ...
+    def take(self, n: int = 1) -> list[_TGlobPath]: ...
 
 
 @t.overload
@@ -1945,8 +1949,8 @@ def glob(
     require_literal_separator: bool = False,
     require_literal_leading_dot: bool = False,
     strict: bool = False,
-    dtype: type[_T],
-) -> GlobPaths[_T]: ...
+    dtype: type[_TGlobPath],
+) -> GlobPaths[_TGlobPath]: ...
 
 
 @t.final
@@ -5777,6 +5781,268 @@ class JSONDecodeError(ValueError):
     def kind(self) -> _JsonErrorKind: ...
 ```
 
+<h2 id="ry.ryo3._json"><code>ry.ryo3._json</code></h2>
+
+```python
+"""ryo3-json ~ types"""
+
+import sys
+import typing as t
+
+from ry._types import Buffer
+from ry.ryo3._bytes import Bytes
+from ry.ryo3._jiter import JSONDecodeError as _JSONDecodeError
+from ry.ryo3._jiter import _JsonValue
+
+if sys.version_info >= (3, 13):
+    from warnings import deprecated
+else:
+    from typing_extensions import deprecated
+
+
+# `dtype=` output type ~ `ry.Bytes` (default) or `bytes`
+@t.overload
+def stringify(
+    obj: t.Any,
+    *,
+    default: t.Callable[[t.Any], t.Any] | None = None,
+    fmt: bool = False,
+    sort_keys: bool = False,
+    append_newline: bool = False,
+    dtype: type[Bytes] = ...,
+) -> Bytes: ...
+@t.overload
+def stringify(
+    obj: t.Any,
+    *,
+    default: t.Callable[[t.Any], t.Any] | None = None,
+    fmt: bool = False,
+    sort_keys: bool = False,
+    append_newline: bool = False,
+    dtype: type[bytes],
+) -> bytes: ...
+@t.overload
+@deprecated("`pybytes` is deprecated; use `dtype=bytes` instead [removal: v0.0.109]")
+def stringify(
+    obj: t.Any,
+    *,
+    default: t.Callable[[t.Any], t.Any] | None = None,
+    fmt: bool = False,
+    sort_keys: bool = False,
+    append_newline: bool = False,
+    pybytes: t.Literal[True],
+) -> bytes: ...
+@t.overload
+@deprecated("`pybytes` is deprecated; use `dtype=bytes` instead [removal: v0.0.109]")
+def stringify(
+    obj: t.Any,
+    *,
+    default: t.Callable[[t.Any], t.Any] | None = None,
+    fmt: bool = False,
+    sort_keys: bool = False,
+    append_newline: bool = False,
+    pybytes: t.Literal[False],
+) -> Bytes: ...
+
+
+@t.final
+class JSON:
+    """`ry.JSON` namespace (not instantiable)"""
+
+    JSONDecodeError = _JSONDecodeError
+
+    @staticmethod
+    def minify(buf: Buffer | str, /, append_newline: bool = False) -> Bytes:
+        """Return minified json data (remove whitespace, newlines)
+
+        Parameters
+        ----------
+        buf : Buffer | str
+            JSON buffer/string to minify
+
+        Returns
+        -------
+        Bytes
+            Minified JSON data as a `Bytes` object.
+
+        Examples
+        --------
+        >>> import json as pyjson
+        >>> from ry.ryo3 import JSON
+        >>> data = {"key": "value", "number": 123, "bool": True}
+        >>> json_str = pyjson.dumps(data, indent=2)
+        >>> print(json_str)
+        {
+          "key": "value",
+          "number": 123,
+          "bool": true
+        }
+        >>> bytes(JSON.minify(json_str))
+        b'{"key":"value","number":123,"bool":true}'
+
+        """
+
+    @staticmethod
+    def fmt(buf: Buffer | str, /, append_newline: bool = False) -> Bytes:
+        r"""Return formatted json data (add indentation, newlines)
+
+        Parameters
+        ----------
+        buf : Buffer | str
+            JSON buffer/string to format
+
+        Returns
+        -------
+        Bytes
+            Formatted JSON data as a `Bytes` object.
+
+        Examples
+        --------
+        >>> import json as pyjson
+        >>> from ry.ryo3 import JSON
+        >>> data = {"key": "value", "number": 123, "bool": True}
+        >>> json_str = pyjson.dumps(data, indent=2)
+        >>> print(json_str)
+        {
+          "key": "value",
+          "number": 123,
+          "bool": true
+        }
+        >>> bytes(JSON.fmt(json_str)).decode()
+        '{\n  "key": "value",\n  "number": 123,\n  "bool": true\n}'
+        >>> print(bytes(JSON.fmt(json_str)).decode())
+        {
+          "key": "value",
+          "number": 123,
+          "bool": true
+        }
+
+        """
+
+    @t.overload
+    @staticmethod
+    def stringify(
+        obj: t.Any,
+        *,
+        default: t.Callable[[t.Any], t.Any] | None = None,
+        fmt: bool = False,
+        sort_keys: bool = False,
+        append_newline: bool = False,
+        dtype: type[Bytes] = ...,
+    ) -> Bytes: ...
+    @t.overload
+    @staticmethod
+    def stringify(
+        obj: t.Any,
+        *,
+        default: t.Callable[[t.Any], t.Any] | None = None,
+        fmt: bool = False,
+        sort_keys: bool = False,
+        append_newline: bool = False,
+        dtype: type[bytes],
+    ) -> bytes: ...
+    @t.overload
+    @deprecated(
+        "`pybytes` is deprecated; use `dtype=bytes` instead [removal: v0.0.109]"
+    )
+    @staticmethod
+    def stringify(
+        obj: t.Any,
+        *,
+        default: t.Callable[[t.Any], t.Any] | None = None,
+        fmt: bool = False,
+        sort_keys: bool = False,
+        append_newline: bool = False,
+        pybytes: t.Literal[True],
+    ) -> bytes: ...
+    @t.overload
+    @deprecated(
+        "`pybytes` is deprecated; use `dtype=bytes` instead [removal: v0.0.109]"
+    )
+    @staticmethod
+    def stringify(
+        obj: t.Any,
+        *,
+        default: t.Callable[[t.Any], t.Any] | None = None,
+        fmt: bool = False,
+        sort_keys: bool = False,
+        append_newline: bool = False,
+        pybytes: t.Literal[False],
+    ) -> Bytes: ...
+    @t.overload
+    @staticmethod
+    def dumps(
+        obj: t.Any,
+        *,
+        default: t.Callable[[t.Any], t.Any] | None = None,
+        fmt: bool = False,
+        sort_keys: bool = False,
+        append_newline: bool = False,
+        dtype: type[Bytes] = ...,
+    ) -> Bytes: ...
+    @t.overload
+    @staticmethod
+    def dumps(
+        obj: t.Any,
+        *,
+        default: t.Callable[[t.Any], t.Any] | None = None,
+        fmt: bool = False,
+        sort_keys: bool = False,
+        append_newline: bool = False,
+        dtype: type[bytes],
+    ) -> bytes: ...
+    @t.overload
+    @deprecated(
+        "`pybytes` is deprecated; use `dtype=bytes` instead [removal: v0.0.109]"
+    )
+    @staticmethod
+    def dumps(
+        obj: t.Any,
+        *,
+        default: t.Callable[[t.Any], t.Any] | None = None,
+        fmt: bool = False,
+        sort_keys: bool = False,
+        append_newline: bool = False,
+        pybytes: t.Literal[True],
+    ) -> bytes: ...
+    @t.overload
+    @deprecated(
+        "`pybytes` is deprecated; use `dtype=bytes` instead [removal: v0.0.109]"
+    )
+    @staticmethod
+    def dumps(
+        obj: t.Any,
+        *,
+        default: t.Callable[[t.Any], t.Any] | None = None,
+        fmt: bool = False,
+        sort_keys: bool = False,
+        append_newline: bool = False,
+        pybytes: t.Literal[False],
+    ) -> Bytes: ...
+    @staticmethod
+    def loads(
+        data: Buffer | bytes | str,
+        *,
+        allow_inf_nan: bool = False,
+        cache_mode: t.Literal[True, False, "all", "keys", "none"] = "all",
+        partial_mode: t.Literal[True, False, "off", "on", "trailing-strings"] = False,
+        catch_duplicate_keys: bool = False,
+    ) -> _JsonValue: ...
+    @staticmethod
+    def parse(
+        data: Buffer | bytes | str,
+        *,
+        allow_inf_nan: bool = False,
+        cache_mode: t.Literal[True, False, "all", "keys", "none"] = "all",
+        partial_mode: t.Literal[True, False, "off", "on", "trailing-strings"] = False,
+        catch_duplicate_keys: bool = False,
+    ) -> _JsonValue: ...
+    @staticmethod
+    def cache_clear() -> None: ...
+    @staticmethod
+    def cache_usage() -> int: ...
+```
+
 <h2 id="ry.ryo3._lz4rip"><code>ry.ryo3._lz4rip</code></h2>
 
 ```python
@@ -9030,61 +9296,6 @@ class xxh3_128:  # noqa: N801
     def oneshot_hex(
         data: Buffer, *, seed: int = 0, secret: Buffer | None = None
     ) -> str: ...
-
-
-xxh128 = xxh3_128
-
-# -----------------------------------------------------------------------------
-# ONE-SHOT FUNCTIONS
-# -----------------------------------------------------------------------------
-
-
-# xxh32
-def xxh32_digest(data: Buffer, *, seed: int = 0) -> bytes: ...
-def xxh32_hexdigest(data: Buffer, *, seed: int = 0) -> str: ...
-def xxh32_intdigest(data: Buffer, *, seed: int = 0) -> int: ...
-
-
-# xxh64
-def xxh64_digest(data: Buffer, *, seed: int = 0) -> bytes: ...
-def xxh64_hexdigest(data: Buffer, *, seed: int = 0) -> str: ...
-def xxh64_intdigest(data: Buffer, *, seed: int = 0) -> int: ...
-
-
-# xxh3
-def xxh3_64_digest(
-    data: Buffer, *, seed: int = 0, secret: Buffer | None = None
-) -> bytes: ...
-def xxh3_64_intdigest(
-    data: Buffer, *, seed: int = 0, secret: Buffer | None = None
-) -> int: ...
-def xxh3_64_hexdigest(
-    data: Buffer, *, seed: int = 0, secret: Buffer | None = None
-) -> str: ...
-
-
-# xxh128
-def xxh3_128_digest(
-    data: Buffer, *, seed: int = 0, secret: Buffer | None = None
-) -> bytes: ...
-def xxh3_128_intdigest(
-    data: Buffer, *, seed: int = 0, secret: Buffer | None = None
-) -> int: ...
-def xxh3_128_hexdigest(
-    data: Buffer, *, seed: int = 0, secret: Buffer | None = None
-) -> str: ...
-
-
-# xxh128
-def xxh128_digest(
-    data: Buffer, *, seed: int = 0, secret: Buffer | None = None
-) -> bytes: ...
-def xxh128_hexdigest(
-    data: Buffer, *, seed: int = 0, secret: Buffer | None = None
-) -> str: ...
-def xxh128_intdigest(
-    data: Buffer, *, seed: int = 0, secret: Buffer | None = None
-) -> int: ...
 ```
 
 <h2 id="ry.ryo3._ulid"><code>ry.ryo3._ulid</code></h2>
@@ -9119,6 +9330,7 @@ class ULID(FromStr):
     # ----------------
     # INSTANCE METHODS
     # ----------------
+    def equiv(self, other: object, /) -> bool: ...
     def to_bytes(self) -> builtins.bytes: ...
     def to_uuid(self) -> uuid.UUID: ...
     def to_uuid4(self) -> uuid.UUID: ...
@@ -9164,18 +9376,20 @@ class ULID(FromStr):
     def from_int(cls, i: int) -> ULID: ...
     @classmethod
     def parse(cls, value: t.Any) -> ULID: ...
+    @staticmethod
+    def _reset_generator() -> None: ...
 
     # -------
     # DUNDERS
     # -------
     def __int__(self) -> int: ...
     def __bytes__(self) -> builtins.bytes: ...
-    def __lt__(self, other: t.Self | int | str | builtins.bytes, /) -> bool: ...
-    def __le__(self, other: t.Self | int | str | builtins.bytes, /) -> bool: ...
+    def __lt__(self, other: t.Self, /) -> bool: ...
+    def __le__(self, other: t.Self, /) -> bool: ...
     def __eq__(self, other: object, /) -> bool: ...
     def __ne__(self, other: object, /) -> bool: ...
-    def __gt__(self, other: t.Self | int | str | builtins.bytes, /) -> bool: ...
-    def __ge__(self, other: t.Self | int | str | builtins.bytes, /) -> bool: ...
+    def __gt__(self, other: t.Self, /) -> bool: ...
+    def __ge__(self, other: t.Self, /) -> bool: ...
     def __hash__(self) -> int: ...
 
     # --------
@@ -9413,15 +9627,17 @@ import uuid as pyuuid
 from ry._types import Buffer
 from ry.protocols import FromStr
 
-# Type aliases (_Bytes/_Int aliases `builtins.bytes`/`builtins.int`)
+# aliases ~ `UUID.int` / `UUID.bytes` shadow the builtins inside the class
 _Bytes: t.TypeAlias = builtins.bytes
 _Int: t.TypeAlias = builtins.int
-_V: t.TypeAlias = t.Literal[1, 2, 3, 4, 5, 6, 7, 8]
+_UuidVersion: t.TypeAlias = t.Literal[1, 2, 3, 4, 5, 6, 7, 8]
 _UuidFields: t.TypeAlias = tuple[int, int, int, int, int, int]
 
 
 @t.final
 class UUID(FromStr):
+    """UUID class & namespace (hybrid)"""
+
     NAMESPACE_DNS: t.Final[UUID]
     NAMESPACE_URL: t.Final[UUID]
     NAMESPACE_OID: t.Final[UUID]
@@ -9434,15 +9650,21 @@ class UUID(FromStr):
     RESERVED_FUTURE: t.Final = "reserved for future definition"
 
     @t.overload
-    def __new__(cls, hex: str, *, version: _V | None = None) -> t.Self: ...
+    def __new__(cls, hex: str, *, version: _UuidVersion | None = None) -> t.Self: ...
     @t.overload
-    def __new__(cls, *, bytes: _Bytes, version: _V | None = None) -> t.Self: ...
+    def __new__(
+        cls, *, bytes: _Bytes, version: _UuidVersion | None = None
+    ) -> t.Self: ...
     @t.overload
-    def __new__(cls, *, bytes_le: _Bytes, version: _V | None = None) -> t.Self: ...
+    def __new__(
+        cls, *, bytes_le: _Bytes, version: _UuidVersion | None = None
+    ) -> t.Self: ...
     @t.overload
-    def __new__(cls, *, fields: _UuidFields, version: _V | None = None) -> t.Self: ...
+    def __new__(
+        cls, *, fields: _UuidFields, version: _UuidVersion | None = None
+    ) -> t.Self: ...
     @t.overload
-    def __new__(cls, *, int: _Int, version: _V | None = None) -> t.Self: ...
+    def __new__(cls, *, int: _Int, version: _UuidVersion | None = None) -> t.Self: ...
     @t.overload
     def __new__(
         cls,
@@ -9451,10 +9673,36 @@ class UUID(FromStr):
         bytes_le: None = None,
         fields: None = None,
         int: None = None,
-        version: _V | None = None,
+        version: _UuidVersion | None = None,
     ) -> t.NoReturn: ...
     @staticmethod
     def getnode() -> _Int: ...
+    @staticmethod
+    def uuid1(node: _Int | None = None, clock_seq: _Int | None = None) -> UUID: ...
+    @staticmethod
+    def uuid3(namespace: UUID, name: str | _Bytes) -> UUID: ...
+    @staticmethod
+    def uuid4() -> UUID: ...
+    @staticmethod
+    def uuid5(namespace: UUID, name: str | _Bytes) -> UUID: ...
+    @staticmethod
+    def uuid6(node: _Int | None = None, clock_seq: _Int | None = None) -> UUID: ...
+    @staticmethod
+    def uuid7(timestamp: _Int | None = None) -> UUID: ...
+    @t.overload
+    @staticmethod
+    def uuid8(*, buf: Buffer) -> UUID: ...  # 16 bytes buffer
+    @t.overload
+    @staticmethod
+    def uuid8(
+        a: _Int | None = None,
+        b: _Int | None = None,
+        c: _Int | None = None,
+        *,
+        buf: None = None,
+    ) -> UUID: ...
+    @staticmethod
+    def _reseed_rng() -> None: ...
     @property
     def is_nil(self) -> bool: ...
     @property
@@ -9488,9 +9736,15 @@ class UUID(FromStr):
     @property
     def variant(self) -> str: ...
     @property
-    def version(self) -> t.Literal[1, 2, 3, 4, 5, 6, 7, 8] | None: ...
+    def version(self) -> _UuidVersion | None: ...
+    def equiv(self, other: object, /) -> bool: ...
     def to_py(self) -> pyuuid.UUID: ...
     def to_string(self) -> str: ...
+    def format(
+        self,
+        kind: t.Literal["hyphenated", "simple", "urn", "braced"] = "hyphenated",
+    ) -> str: ...
+    def __format__(self, format_spec: str, /) -> str: ...
     # --- CLASSMETHODS --
     @classmethod
     def from_bytes(cls, b: _Bytes) -> t.Self: ...
@@ -9535,18 +9789,6 @@ def uuid8(
     *,
     buf: None = None,
 ) -> UUID: ...
-
-
-NAMESPACE_DNS: t.Final[UUID]
-NAMESPACE_URL: t.Final[UUID]
-NAMESPACE_OID: t.Final[UUID]
-NAMESPACE_X500: t.Final[UUID]
-NIL: t.Final[UUID]
-MAX: t.Final[UUID]
-RESERVED_NCS: t.Final = "reserved for NCS compatibility"
-RFC_4122: t.Final = "specified in RFC 4122"
-RESERVED_MICROSOFT: t.Final = "reserved for Microsoft compatibility"
-RESERVED_FUTURE: t.Final = "reserved for future definition"
 ```
 
 <h2 id="ry.ryo3._walkdir"><code>ry.ryo3._walkdir</code></h2>
@@ -9698,175 +9940,6 @@ def zstd_encode(data: Buffer, level: _ZstdLevel = 3) -> Bytes: ...
 def zstd_decode(data: Buffer) -> Bytes: ...
 ```
 
-<h2 id="ry.ryo3.JSON"><code>ry.ryo3.JSON</code></h2>
-
-```python
-"""ry.ryo3.JSON"""
-
-import typing as t
-
-from ry._types import Buffer
-from ry.ryo3._bytes import Bytes
-from ry.ryo3._jiter import JSONDecodeError as JSONDecodeError
-from ry.ryo3._jiter import _JsonPrimitive as _JsonPrimitive
-from ry.ryo3._jiter import _JsonValue as _JsonValue
-
-
-def minify(buf: Buffer | str, /, append_newline: bool = False) -> Bytes:
-    """Return minified json data (remove whitespace, newlines)
-
-    Parameters
-    ----------
-    buf : Buffer | str
-        JSON buffer/string to minify
-
-    Returns
-    -------
-    Bytes
-        Minified JSON data as a `Bytes` object.
-
-    Examples
-    --------
-    >>> import json as pyjson
-    >>> from ry.ryo3 import JSON
-    >>> data = {"key": "value", "number": 123, "bool": True}
-    >>> json_str = pyjson.dumps(data, indent=2)
-    >>> print(json_str)
-    {
-      "key": "value",
-      "number": 123,
-      "bool": true
-    }
-    >>> bytes(JSON.minify(json_str))
-    b'{"key":"value","number":123,"bool":true}'
-
-    """
-
-
-def fmt(buf: Buffer | str, /, append_newline: bool = False) -> Bytes:
-    r"""Return formatted json data (add indentation, newlines)
-
-    Parameters
-    ----------
-    buf : Buffer | str
-        JSON buffer/string to format
-
-    Returns
-    -------
-    Bytes
-        Formatted JSON data as a `Bytes` object.
-
-    Examples
-    --------
-    >>> import json as pyjson
-    >>> from ry.ryo3 import JSON
-    >>> data = {"key": "value", "number": 123, "bool": True}
-    >>> json_str = pyjson.dumps(data, indent=2)
-    >>> print(json_str)
-    {
-      "key": "value",
-      "number": 123,
-      "bool": true
-    }
-    >>> bytes(JSON.fmt(json_str)).decode()
-    '{\n  "key": "value",\n  "number": 123,\n  "bool": true\n}'
-    >>> print(bytes(JSON.fmt(json_str)).decode())
-    {
-      "key": "value",
-      "number": 123,
-      "bool": true
-    }
-
-    """
-
-
-@t.overload
-def stringify(
-    obj: t.Any,
-    *,
-    default: t.Callable[[t.Any], t.Any] | None = None,
-    fmt: bool = False,
-    sort_keys: bool = False,
-    append_newline: bool = False,
-    pybytes: t.Literal[True],
-) -> bytes: ...
-@t.overload
-def stringify(
-    obj: t.Any,
-    *,
-    default: t.Callable[[t.Any], t.Any] | None = None,
-    fmt: bool = False,
-    sort_keys: bool = False,
-    append_newline: bool = False,
-    pybytes: t.Literal[False] = False,
-) -> Bytes: ...
-@t.overload
-def dumps(
-    obj: t.Any,
-    *,
-    default: t.Callable[[t.Any], t.Any] | None = None,
-    fmt: bool = False,
-    sort_keys: bool = False,
-    append_newline: bool = False,
-    pybytes: t.Literal[True],
-) -> bytes: ...
-@t.overload
-def dumps(
-    obj: t.Any,
-    *,
-    default: t.Callable[[t.Any], t.Any] | None = None,
-    fmt: bool = False,
-    sort_keys: bool = False,
-    append_newline: bool = False,
-    pybytes: t.Literal[False] = False,
-) -> Bytes: ...
-def loads(
-    data: Buffer | bytes | str,
-    *,
-    allow_inf_nan: bool = False,
-    cache_mode: t.Literal[True, False, "all", "keys", "none"] = "all",
-    partial_mode: t.Literal[True, False, "off", "on", "trailing-strings"] = False,
-    catch_duplicate_keys: bool = False,
-) -> _JsonValue: ...
-def parse(
-    data: Buffer | bytes | str,
-    *,
-    allow_inf_nan: bool = False,
-    cache_mode: t.Literal[True, False, "all", "keys", "none"] = "all",
-    partial_mode: t.Literal[True, False, "off", "on", "trailing-strings"] = False,
-    catch_duplicate_keys: bool = False,
-) -> _JsonValue: ...
-def cache_clear() -> None: ...
-def cache_usage() -> int: ...
-```
-
-<h2 id="ry.ryo3.xxhash"><code>ry.ryo3.xxhash</code></h2>
-
-```python
-"""ry.ryo3.xxhash submodule types"""
-
-from ry.ryo3._twox_hash import xxh3_64 as xxh3_64
-from ry.ryo3._twox_hash import xxh3_64_digest as xxh3_64_digest
-from ry.ryo3._twox_hash import xxh3_64_hexdigest as xxh3_64_hexdigest
-from ry.ryo3._twox_hash import xxh3_64_intdigest as xxh3_64_intdigest
-from ry.ryo3._twox_hash import xxh3_128 as xxh3_128
-from ry.ryo3._twox_hash import xxh3_128_digest as xxh3_128_digest
-from ry.ryo3._twox_hash import xxh3_128_hexdigest as xxh3_128_hexdigest
-from ry.ryo3._twox_hash import xxh3_128_intdigest as xxh3_128_intdigest
-from ry.ryo3._twox_hash import xxh32 as xxh32
-from ry.ryo3._twox_hash import xxh32_digest as xxh32_digest
-from ry.ryo3._twox_hash import xxh32_hexdigest as xxh32_hexdigest
-from ry.ryo3._twox_hash import xxh32_intdigest as xxh32_intdigest
-from ry.ryo3._twox_hash import xxh64 as xxh64
-from ry.ryo3._twox_hash import xxh64_digest as xxh64_digest
-from ry.ryo3._twox_hash import xxh64_hexdigest as xxh64_hexdigest
-from ry.ryo3._twox_hash import xxh64_intdigest as xxh64_intdigest
-from ry.ryo3._twox_hash import xxh128 as xxh128
-from ry.ryo3._twox_hash import xxh128_digest as xxh128_digest
-from ry.ryo3._twox_hash import xxh128_hexdigest as xxh128_hexdigest
-from ry.ryo3._twox_hash import xxh128_intdigest as xxh128_intdigest
-```
-
 <h2 id="ry.ryo3.zstd"><code>ry.ryo3.zstd</code></h2>
 
 ```python
@@ -9994,36 +10067,6 @@ OpenMode: TypeAlias = Literal[
 
 ```
 
-<h2 id="ry.JSON"><code>ry.JSON</code></h2>
-
-```python
-"""ry.JSON"""
-
-from ry.ryo3.JSON import JSONDecodeError as JSONDecodeError
-from ry.ryo3.JSON import _JsonPrimitive as _JsonPrimitive
-from ry.ryo3.JSON import _JsonValue as _JsonValue
-from ry.ryo3.JSON import cache_clear as cache_clear
-from ry.ryo3.JSON import cache_usage as cache_usage
-from ry.ryo3.JSON import dumps as dumps
-from ry.ryo3.JSON import fmt as fmt
-from ry.ryo3.JSON import loads as loads
-from ry.ryo3.JSON import minify as minify
-from ry.ryo3.JSON import parse as parse
-from ry.ryo3.JSON import stringify as stringify
-
-__all__ = (
-    "JSONDecodeError",
-    "cache_clear",
-    "cache_usage",
-    "dumps",
-    "fmt",
-    "loads",
-    "minify",
-    "parse",
-    "stringify",
-)
-```
-
 <h2 id="ry.protocols"><code>ry.protocols</code></h2>
 
 ```python
@@ -10140,54 +10183,6 @@ class ToPyTzInfo(t.Protocol):
     """Objects that can be converted to a Python `datetime.tzinfo`."""
 
     def to_pytzinfo(self) -> pydt.tzinfo: ...
-```
-
-<h2 id="ry.xxhash"><code>ry.xxhash</code></h2>
-
-```python
-from ry.ryo3.xxhash import xxh3_64 as xxh3_64
-from ry.ryo3.xxhash import xxh3_64_digest as xxh3_64_digest
-from ry.ryo3.xxhash import xxh3_64_hexdigest as xxh3_64_hexdigest
-from ry.ryo3.xxhash import xxh3_64_intdigest as xxh3_64_intdigest
-from ry.ryo3.xxhash import xxh3_128 as xxh3_128
-from ry.ryo3.xxhash import xxh3_128_digest as xxh3_128_digest
-from ry.ryo3.xxhash import xxh3_128_hexdigest as xxh3_128_hexdigest
-from ry.ryo3.xxhash import xxh3_128_intdigest as xxh3_128_intdigest
-from ry.ryo3.xxhash import xxh32 as xxh32
-from ry.ryo3.xxhash import xxh32_digest as xxh32_digest
-from ry.ryo3.xxhash import xxh32_hexdigest as xxh32_hexdigest
-from ry.ryo3.xxhash import xxh32_intdigest as xxh32_intdigest
-from ry.ryo3.xxhash import xxh64 as xxh64
-from ry.ryo3.xxhash import xxh64_digest as xxh64_digest
-from ry.ryo3.xxhash import xxh64_hexdigest as xxh64_hexdigest
-from ry.ryo3.xxhash import xxh64_intdigest as xxh64_intdigest
-from ry.ryo3.xxhash import xxh128 as xxh128
-from ry.ryo3.xxhash import xxh128_digest as xxh128_digest
-from ry.ryo3.xxhash import xxh128_hexdigest as xxh128_hexdigest
-from ry.ryo3.xxhash import xxh128_intdigest as xxh128_intdigest
-
-__all__ = (
-    "xxh3_64",
-    "xxh3_64_digest",
-    "xxh3_64_hexdigest",
-    "xxh3_64_intdigest",
-    "xxh3_128",
-    "xxh3_128_digest",
-    "xxh3_128_hexdigest",
-    "xxh3_128_intdigest",
-    "xxh32",
-    "xxh32_digest",
-    "xxh32_hexdigest",
-    "xxh32_intdigest",
-    "xxh64",
-    "xxh64_digest",
-    "xxh64_hexdigest",
-    "xxh64_intdigest",
-    "xxh128",
-    "xxh128_digest",
-    "xxh128_hexdigest",
-    "xxh128_intdigest",
-)
 ```
 
 <h2 id="ry.zstd"><code>ry.zstd</code></h2>
