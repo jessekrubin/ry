@@ -5,14 +5,16 @@ from __future__ import annotations
 import operator
 import pickle
 import random
+import typing as t
 import uuid as pyuuid
-from typing import TYPE_CHECKING
 
 import pytest
 
 import ry.uuid as ryuuid
 
-if TYPE_CHECKING:
+if t.TYPE_CHECKING:
+    from types import ModuleType
+
     from pytest_benchmark.fixture import BenchmarkFixture
 
 _UUID_STR = "550e8400-e29b-41d4-a716-446655440000"
@@ -43,16 +45,16 @@ _OBJS = [
 
 @pytest.mark.benchmark(group="uuid-gen-uuid4")
 @pytest.mark.parametrize("lib", _LIBS)
-def test_uuid4(benchmark: BenchmarkFixture, lib: object) -> None:
-    benchmark(lib.uuid4)  # type: ignore[attr-defined]
+def test_uuid4(benchmark: BenchmarkFixture, lib: ModuleType) -> None:
+    benchmark(lib.uuid4)
 
 
 @pytest.mark.benchmark(group="uuid-gen-uuid7")
 @pytest.mark.parametrize("lib", _LIBS)
-def test_uuid7(benchmark: BenchmarkFixture, lib: object) -> None:
+def test_uuid7(benchmark: BenchmarkFixture, lib: ModuleType) -> None:
     if not hasattr(lib, "uuid7"):
         pytest.skip("no uuid7 (stdlib < 3.14)")
-    benchmark(lib.uuid7)  # type: ignore[attr-defined]
+    benchmark(lib.uuid7)
 
 
 @pytest.mark.benchmark(group="uuid-gen-uuid8")
@@ -65,7 +67,7 @@ def test_uuid8_random_ry(benchmark: BenchmarkFixture) -> None:
 def test_uuid8_random_stdlib(benchmark: BenchmarkFixture) -> None:
     if not hasattr(pyuuid, "uuid8"):
         pytest.skip("no uuid8 (stdlib < 3.14)")
-    benchmark(pyuuid.uuid8)  # type: ignore[attr-defined]
+    benchmark(pyuuid.uuid8)
 
 
 # =============================================================================
@@ -113,13 +115,13 @@ _FORMATS = ["hyphenated", "simple", "urn", "braced"]
 @pytest.mark.benchmark(group="uuid-format-method")
 @pytest.mark.parametrize("fmt", _FORMATS)
 def test_format_method_ry(benchmark: BenchmarkFixture, fmt: str) -> None:
-    benchmark(_RY.format, fmt)  # type: ignore[attr-defined]
+    benchmark(_RY.format, fmt)
 
 
 @_needs_format
 @pytest.mark.benchmark(group="uuid-format-method")
 def test_format_method_default_ry(benchmark: BenchmarkFixture) -> None:
-    benchmark(_RY.format)  # type: ignore[attr-defined]
+    benchmark(_RY.format)
 
 
 @pytest.mark.benchmark(group="uuid-format-method")
@@ -156,7 +158,7 @@ _FROM_ANY_INPUTS = [
 @pytest.mark.benchmark(group="uuid-from-any")
 @pytest.mark.parametrize("value", _FROM_ANY_INPUTS)
 def test_from_any(benchmark: BenchmarkFixture, value: object) -> None:
-    benchmark(ryuuid.UUID.from_any, value)  # type: ignore[attr-defined]
+    benchmark(ryuuid.UUID.from_any, value)  # type: ignore[attr-defined]  # ty:ignore[unresolved-attribute]
 
 
 # =============================================================================
@@ -202,12 +204,12 @@ _CMP_CASES = [
 @pytest.mark.parametrize(("op", "a", "b"), _CMP_CASES)
 def test_richcmp(
     benchmark: BenchmarkFixture,
-    op: object,
+    op: t.Callable[[t.Any, t.Any], t.Any],
     a: object,
     b: object,
 ) -> None:
     try:
-        op(a, b)  # type: ignore[operator]
+        op(a, b)
     except TypeError as e:
         # old builds raise on `ry_uuid == <not a uuid>`
         pytest.skip(f"raises: {e}")
@@ -220,14 +222,14 @@ _INTS = [_rng.getrandbits(128) for _ in range(1_000)]
 
 @pytest.mark.benchmark(group="uuid-sorted-1000")
 @pytest.mark.parametrize("lib", _LIBS)
-def test_sorted_1000(benchmark: BenchmarkFixture, lib: object) -> None:
-    data = [lib.UUID(int=i) for i in _INTS]  # type: ignore[attr-defined]
+def test_sorted_1000(benchmark: BenchmarkFixture, lib: ModuleType) -> None:
+    data = [lib.UUID(int=i) for i in _INTS]
     benchmark(sorted, data)
 
 
 @pytest.mark.benchmark(group="uuid-in-list-1000-miss")
 @pytest.mark.parametrize("lib", _LIBS)
-def test_in_list_1000_miss(benchmark: BenchmarkFixture, lib: object) -> None:
-    data = [lib.UUID(int=i) for i in _INTS]  # type: ignore[attr-defined]
-    needle = lib.UUID(int=0)  # type: ignore[attr-defined]
+def test_in_list_1000_miss(benchmark: BenchmarkFixture, lib: ModuleType) -> None:
+    data = [lib.UUID(int=i) for i in _INTS]
+    needle = lib.UUID(int=0)
     benchmark(operator.contains, data, needle)

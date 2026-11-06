@@ -347,6 +347,7 @@ impl PyUuid {
         Ok(b.into())
     }
 
+    #[pyo3(signature = (other, /))]
     fn equiv(&self, other: &Bound<'_, PyAny>) -> bool {
         use ryo3_core::{PyCastExactOpt, PyCastOpt, pystr_read_fast};
         let b = if let Some(u) = other.cast_exact_opt::<Self>() {

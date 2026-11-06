@@ -8,6 +8,7 @@ if sys.version_info >= (3, 12):
 else:
     from typing_extensions import Buffer as Buffer
 
+@t.final
 class Bytes(Buffer):
     """
     A buffer implementing the Python buffer protocol, allowing zero-copy access

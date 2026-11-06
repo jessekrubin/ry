@@ -206,6 +206,7 @@ impl PyUlid {
         (py.get_type::<Self>(), (self.pystr(py),))
     }
 
+    #[pyo3(signature = (other, /))]
     fn equiv(&self, other: &Bound<'_, PyAny>) -> bool {
         use ryo3_core::{PyCastExactOpt, PyCastOpt};
         let a = self.to_u128();

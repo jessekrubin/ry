@@ -184,20 +184,20 @@ class TestUUIDFormat:
 
     def test_format_bad_value(self) -> None:
         with pytest.raises(ValueError, match="Invalid uuid format"):
-            _RY.format("nope")  # type: ignore[arg-type]
+            _RY.format("nope")  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
 
     def test_format_invalid_type(self) -> None:
         with pytest.raises(TypeError):
-            _RY.format(123)  # type: ignore[arg-type]
+            _RY.format(123)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
 
     def test_dunder_format(self) -> None:
         # requires arg
         with pytest.raises(TypeError):
-            _RY.__format__()  # type: ignore[call-arg]  # noqa: PLC2801
+            _RY.__format__()  # type: ignore[call-arg]  # noqa: PLC2801  # ty:ignore[missing-argument]
         with pytest.raises(TypeError):
-            _RY.__format__(123)  # type: ignore[arg-type] # noqa: PLC2801
+            _RY.__format__(123)  # type: ignore[arg-type]  # noqa: PLC2801  # ty:ignore[invalid-argument-type]
         with pytest.raises(TypeError):
-            _RY.__format__(format_spec="")  # type: ignore[call-arg]  # noqa: PLC2801
+            _RY.__format__(format_spec="")  # type: ignore[call-arg]  # noqa: PLC2801  # ty:ignore[positional-only-parameter-as-kwarg]
 
 
 class TestUUIDRichcmp:
@@ -240,7 +240,7 @@ class TestUUIDRichcmp:
     def test_dunder_eq_not_implemented(self) -> None:
         u = ryuuid.UUID(_LO)
         assert u.__eq__(None) is NotImplemented  # noqa: PLC2801
-        assert u.__lt__(1) is NotImplemented  # type: ignore[arg-type]  # noqa: PLC2801
+        assert u.__lt__(1) is NotImplemented  # type: ignore[operator]  # noqa: PLC2801
 
     def test_mixed_list(self) -> None:
         u = ryuuid.UUID(_LO)
