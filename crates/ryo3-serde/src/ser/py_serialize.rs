@@ -203,7 +203,7 @@ where
             // __ULID__
             #[cfg(feature = "ryo3-ulid")]
             PyObType::RyUlid => {
-                ry_types::PyUlidSerializer::new_unchecked(self.obj).serialize(serializer)
+                ry_types::RyUlidSerializer::new_unchecked(self.obj).serialize(serializer)
             }
             // __URL__
             #[cfg(feature = "ryo3-url")]
@@ -213,7 +213,7 @@ where
             // __UUID__
             #[cfg(feature = "ryo3-uuid")]
             PyObType::RyUuid => {
-                ry_types::PyUuidSerializer::new_unchecked(self.obj).serialize(serializer)
+                ry_types::RyUuidSerializer::new_unchecked(self.obj).serialize(serializer)
             }
             // ------------------------------------------------------------
             // UNKNOWN

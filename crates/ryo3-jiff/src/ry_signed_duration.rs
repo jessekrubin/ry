@@ -3,7 +3,6 @@ use std::hash::{DefaultHasher, Hash, Hasher};
 use std::ops::{Div, Mul};
 
 use jiff::{SignedDuration, SignedDurationRound, Span};
-use pyo3::basic::CompareOp;
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyFloat, PyInt, PyTuple};
 use pyo3::{BoundObject, IntoPyObjectExt};
@@ -24,7 +23,7 @@ use crate::ry_span::RySpan;
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize), serde(transparent))]
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
-#[pyclass(name = "SignedDuration", frozen, immutable_type)]
+#[pyclass(name = "SignedDuration", frozen, immutable_type, eq, ord)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RySignedDuration(pub(crate) SignedDuration);
 
@@ -508,17 +507,6 @@ impl RySignedDuration {
             Ok(self.0 == extract_ed)
         } else {
             py_type_err!("comparison not supported between SignedDuration and given type")
-        }
-    }
-
-    fn __richcmp__(&self, other: &Self, op: CompareOp) -> bool {
-        match op {
-            CompareOp::Eq => self.0 == other.0,
-            CompareOp::Ne => self.0 != other.0,
-            CompareOp::Lt => self.0 < other.0,
-            CompareOp::Le => self.0 <= other.0,
-            CompareOp::Gt => self.0 > other.0,
-            CompareOp::Ge => self.0 >= other.0,
         }
     }
 

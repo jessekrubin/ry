@@ -204,27 +204,6 @@ impl PyDuration {
     // ========================================================================
     // MATHS/OPERATORS
     // ========================================================================
-    // OLD VERSION ALLOWING FOR DURATION/DELTA COMPARISONS
-    // fn __richcmp__(&self, other: PyDurationComparable, op: CompareOp) -> bool {
-    //     match other {
-    //         PyDurationComparable::PyDuration(other) => match op {
-    //             CompareOp::Eq => self.0 == other.0,
-    //             CompareOp::Ne => self.0 != other.0,
-    //             CompareOp::Lt => self.0 < other.0,
-    //             CompareOp::Le => self.0 <= other.0,
-    //             CompareOp::Gt => self.0 > other.0,
-    //             CompareOp::Ge => self.0 >= other.0,
-    //         },
-    //         PyDurationComparable::Duration(other) => match op {
-    //             CompareOp::Eq => self.0 == other,
-    //             CompareOp::Ne => self.0 != other,
-    //             CompareOp::Lt => self.0 < other,
-    //             CompareOp::Le => self.0 <= other,
-    //             CompareOp::Gt => self.0 > other,
-    //             CompareOp::Ge => self.0 >= other,
-    //         },
-    //     }
-    // }
     fn __richcmp__(&self, other: &Self, op: CompareOp) -> bool {
         match op {
             CompareOp::Eq => self.0 == other.0,

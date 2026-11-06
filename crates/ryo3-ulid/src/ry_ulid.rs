@@ -1,15 +1,13 @@
-use std::fmt::Write;
-use std::hash::{DefaultHasher, Hash, Hasher};
 use std::sync::{Mutex, OnceLock};
 use std::time::SystemTime;
 
 use pyo3::prelude::*;
-use pyo3::types::PyBytes;
-use ryo3_core::PyAsciiString;
+use pyo3::types::{PyBytes, PyInt, PyString};
 use ryo3_core::macros::{
     py_overflow_error, py_runtime_error, py_type_err, py_value_err, py_value_error,
 };
-use ryo3_uuid::{CPythonUuid, PyUuid};
+use ryo3_core::{PyAsciiStr, pystr_read_fast};
+use ryo3_uuid::{CPythonUuid, RyUuid};
 use ulid::Ulid;
 use uuid::Uuid;
 
@@ -27,19 +25,20 @@ fn gen_new() -> PyResult<Ulid> {
         .map_err(|_| py_overflow_error!("ulid-generator overflow"))
 }
 
-#[pyclass(name = "ULID", frozen, immutable_type, weakref)]
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[pyclass(name = "ULID", frozen, weakref, eq, ord)]
+#[cfg_attr(any(not(Py_LIMITED_API), Py_3_14), pyo3(immutable_type))]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[cfg_attr(feature = "serde", derive(serde::Serialize), serde(transparent))]
-#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct PyUlid(Ulid);
+pub struct RyUlid(Ulid);
 
 #[cfg(feature = "serde")]
-impl<'de> serde::Deserialize<'de> for PyUlid {
+impl<'de> serde::Deserialize<'de> for RyUlid {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: serde::Deserializer<'de>,
     {
-        Ulid::deserialize(deserializer).map(PyUlid)
+        Ulid::deserialize(deserializer).map(RyUlid)
     }
 }
 
@@ -54,35 +53,40 @@ impl From<PyUlidDecodeError> for PyErr {
     }
 }
 
-impl PyUlid {
+impl RyUlid {
     #[must_use]
     pub const fn new(ulid: Ulid) -> Self {
         Self(ulid)
     }
 
-    fn to_u128(self) -> u128 {
-        let b = self.0.to_bytes();
-        u128::from_be_bytes(b)
+    const fn to_u128(self) -> u128 {
+        self.0.0
     }
 
     fn hex2bytes(hex: &str) -> PyResult<[u8; 16]> {
         if hex.len() != 32 {
             return py_value_err!("Hex string must be exactly 32 characters long");
         }
-        #[expect(clippy::cast_possible_truncation)]
-        let char2byte = |c: char| {
-            c.to_digit(16)
-                .map(|d| d as u8)
-                .ok_or_else(|| py_value_error!("Invalid hex character"))
-        };
+        Uuid::try_parse(hex)
+            .map(Uuid::into_bytes)
+            .map_err(|_| py_value_error!("Invalid hex character"))
+    }
 
-        let mut bytes = [0u8; 16];
-        for (i, chunk) in hex.as_bytes().chunks(2).enumerate() {
-            let high = char2byte(chunk[0] as char)?;
-            let low = char2byte(chunk[1] as char)?;
-            bytes[i] = (high << 4) | low;
+    fn parse_str_u128(s: &str) -> Option<u128> {
+        match s.len() {
+            ulid::ULID_LEN => Ulid::from_string(s).ok().map(|u| u.0),
+            32 | 36 => Uuid::try_parse(s).ok().map(|u| u.as_u128()),
+            _ => None,
         }
-        Ok(bytes)
+    }
+
+    /// 26 char crockford string
+    fn pystr<'py>(&self, py: Python<'py>) -> Bound<'py, PyString> {
+        // stack buf, no heap string
+        let mut buf = [0u8; ulid::ULID_LEN];
+        let s = self.0.array_to_str(&mut buf);
+        let Ok(s) = PyAsciiStr::new(s).into_pyobject(py);
+        s
     }
 
     const fn from_stringc(encoded: &str) -> Result<Self, PyUlidDecodeError> {
@@ -99,10 +103,31 @@ impl PyUlid {
     const fn from_u128(value: u128) -> Self {
         Self(Ulid(value))
     }
+
+    /// Reset the (monotonic) ulid generator
+    ///
+    /// This is called on unix-y systems after fork and is registered when the
+    /// module is registered w/ the below snippet:
+    ///
+    /// ```python
+    /// os.register_at_fork(after_in_child=ULID._reset_generator)
+    /// ```
+    ///
+    /// w/o it the child inherits the parent's generator state and hands out
+    /// the same "next" ulid as the parent (see `UUID._reseed_rng` for the
+    /// rng side of things). `try_lock` bc a lock held by a thread that didn't
+    /// survive the fork would deadlock here.
+    fn reset_generator() {
+        if let Some(g) = ULID_GENERATOR.get()
+            && let Ok(mut g) = g.try_lock()
+        {
+            *g = ulid::Generator::new();
+        }
+    }
 }
 
 #[pymethods]
-impl PyUlid {
+impl RyUlid {
     /// The number of bits in a Ulid's time portion
     #[classattr]
     pub const TIME_BITS: u8 = 48;
@@ -125,17 +150,16 @@ impl PyUlid {
     #[new]
     #[pyo3(signature = (value = None))]
     pub fn py_new(value: Option<Bound<'_, PyAny>>) -> PyResult<Self> {
+        use ryo3_core::PyCastOpt;
         if let Some(value) = value {
-            // IF IS BYTES
-            if let Ok(b) = value.cast::<PyBytes>() {
-                let slice = b.as_bytes();
-                let b: [u8; 16] = slice
+            if let Some(s) = value.cast_opt::<PyString>() {
+                Self::from_str(pystr_read_fast(s.as_borrowed())?)
+            } else if let Some(b) = value.cast_opt::<PyBytes>() {
+                let b: [u8; 16] = b
+                    .as_bytes()
                     .try_into()
                     .map_err(|_| py_value_error!("ULID must be exactly 16 bytes long"))?;
                 Ok(Self::from_bytes(b))
-            } else if let Ok(str) = value.cast::<pyo3::types::PyString>() {
-                let cs = str.to_str()?;
-                Self::from_string(cs)
             } else {
                 py_type_err!("Expected a ULID string (26 or 32 characters) or bytes (16 bytes)")
             }
@@ -145,88 +169,79 @@ impl PyUlid {
         }
     }
 
-    fn __str__(&self) -> PyAsciiString {
-        self.0.to_string().into()
+    fn __str__<'py>(&self, py: Python<'py>) -> Bound<'py, PyString> {
+        self.pystr(py)
     }
 
-    fn __repr__(&self) -> PyAsciiString {
-        format!("{self}").into()
+    fn __repr__<'py>(&self, py: Python<'py>) -> Bound<'py, PyString> {
+        // stack buf ~ `ULID('` + 26 + `')`
+        let mut buf = [0u8; 34];
+        buf[..6].copy_from_slice(b"ULID('");
+        let mut ubuf = [0u8; ulid::ULID_LEN];
+        buf[6..32].copy_from_slice(self.0.array_to_str(&mut ubuf).as_bytes());
+        buf[32..].copy_from_slice(b"')");
+        let s = std::str::from_utf8(&buf).expect("wenodis: always ascii");
+        let Ok(s) = PyAsciiStr::new(s).into_pyobject(py);
+        s
     }
 
     fn __int__(&self) -> u128 {
-        let b = self.0.to_bytes();
-        u128::from_be_bytes(b)
+        self.to_u128()
     }
 
-    fn __hash__(&self) -> u64 {
-        let mut hasher = DefaultHasher::new();
-        self.0.hash(&mut hasher);
-        hasher.finish()
-    }
-
-    fn __richcmp__(&self, other: &Bound<'_, PyAny>, op: pyo3::basic::CompareOp) -> PyResult<bool> {
-        if let Ok(pyint) = other.cast::<pyo3::types::PyInt>() {
-            let other: u128 = pyint.extract()?;
-            match op {
-                pyo3::basic::CompareOp::Eq => Ok(self.to_u128() == other),
-                pyo3::basic::CompareOp::Ne => Ok(self.to_u128() != other),
-                pyo3::basic::CompareOp::Lt => Ok(self.to_u128() < other),
-                pyo3::basic::CompareOp::Le => Ok(self.to_u128() <= other),
-                pyo3::basic::CompareOp::Gt => Ok(self.to_u128() > other),
-                pyo3::basic::CompareOp::Ge => Ok(self.to_u128() >= other),
-            }
-        } else if other.is_instance_of::<pyo3::types::PyString>() {
-            let s = other.cast::<pyo3::types::PyString>()?;
-            let cs = s.to_str()?;
-            let this_str = self.0.to_string();
-            match op {
-                pyo3::basic::CompareOp::Eq => Ok(this_str.as_str() == cs),
-                pyo3::basic::CompareOp::Ne => Ok(this_str.as_str() != cs),
-                pyo3::basic::CompareOp::Lt => Ok(this_str.as_str() < cs),
-                pyo3::basic::CompareOp::Le => Ok(this_str.as_str() <= cs),
-                pyo3::basic::CompareOp::Gt => Ok(this_str.as_str() > cs),
-                pyo3::basic::CompareOp::Ge => Ok(this_str.as_str() >= cs),
-            }
-        } else if let Ok(rs_ulid) = other.cast_exact::<Self>() {
-            let other = rs_ulid.borrow().0;
-            match op {
-                pyo3::basic::CompareOp::Eq => Ok(self.0 == other),
-                pyo3::basic::CompareOp::Ne => Ok(self.0 != other),
-                pyo3::basic::CompareOp::Lt => Ok(self.0 < other),
-                pyo3::basic::CompareOp::Le => Ok(self.0 <= other),
-                pyo3::basic::CompareOp::Gt => Ok(self.0 > other),
-                pyo3::basic::CompareOp::Ge => Ok(self.0 >= other),
-            }
-        } else if let Ok(pybytes) = other.cast::<PyBytes>() {
-            let slice = pybytes.as_bytes();
-            if slice.len() == 16 {
-                let ulid = Ulid::from_bytes(
-                    slice
-                        .try_into()
-                        .expect("wenodis: never to happen; checked length above"),
-                );
-                match op {
-                    pyo3::basic::CompareOp::Eq => Ok(self.0 == ulid),
-                    pyo3::basic::CompareOp::Ne => Ok(self.0 != ulid),
-                    pyo3::basic::CompareOp::Lt => Ok(self.0 < ulid),
-                    pyo3::basic::CompareOp::Le => Ok(self.0 <= ulid),
-                    pyo3::basic::CompareOp::Gt => Ok(self.0 > ulid),
-                    pyo3::basic::CompareOp::Ge => Ok(self.0 >= ulid),
-                }
-            } else {
-                py_value_err!("Bytes must be exactly 16 bytes long")
-            }
+    fn __hash__(&self) -> isize {
+        // python's int hash modulus (`sys.hash_info.modulus`)
+        const M: u128 = if isize::BITS >= 64 {
+            (1 << 61) - 1
         } else {
-            match op {
-                pyo3::basic::CompareOp::Eq => Ok(false),
-                pyo3::basic::CompareOp::Ne => Ok(true),
-                _ => py_type_err!("Cannot compare ULID with the given type"),
-            }
-        }
+            (1 << 31) - 1
+        };
+        (self.to_u128() % M) as isize
+    }
+
+    fn __reduce__<'py>(
+        &self,
+        py: Python<'py>,
+    ) -> (Bound<'py, pyo3::types::PyType>, (Bound<'py, PyString>,)) {
+        (py.get_type::<Self>(), (self.pystr(py),))
+    }
+
+    #[pyo3(signature = (other, /))]
+    fn equiv(&self, other: &Bound<'_, PyAny>) -> bool {
+        use ryo3_core::{PyCastExactOpt, PyCastOpt};
+        let a = self.to_u128();
+        let b = if let Some(u) = other.cast_exact_opt::<Self>() {
+            Some(u.get().to_u128())
+        } else if let Some(i) = other.cast_opt::<PyInt>() {
+            i.extract::<u128>().ok()
+        } else if let Some(s) = other.cast_opt::<PyString>() {
+            pystr_read_fast(s.as_borrowed())
+                .ok()
+                .and_then(Self::parse_str_u128)
+        } else if let Some(pybytes) = other.cast_opt::<PyBytes>() {
+            <[u8; 16]>::try_from(pybytes.as_bytes())
+                .ok()
+                .map(u128::from_be_bytes)
+        } else if let Some(u) = other.cast_exact_opt::<RyUuid>() {
+            Some(u.get().inner().as_u128())
+        } else {
+            other
+                .extract::<CPythonUuid>()
+                .ok()
+                .map(|u| Uuid::from(u).as_u128())
+        };
+        b == Some(a)
     }
 
     fn __bytes__<'py>(&self, py: Python<'py>) -> Bound<'py, PyBytes> {
         PyBytes::new(py, &self.0.to_bytes())
+    }
+
+    /// Reset the ulid generator
+    #[staticmethod]
+    #[pyo3(name = "_reset_generator")]
+    fn _py_reset_generator() {
+        Self::reset_generator();
     }
 
     #[staticmethod]
@@ -319,21 +334,24 @@ impl PyUlid {
     }
 
     #[expect(clippy::wrong_self_convention)]
-    fn to_uuid(&self) -> PyUuid {
+    fn to_uuid(&self) -> RyUuid {
         let b = self.0.to_bytes();
-        ryo3_uuid::PyUuid::from(Uuid::from_bytes(b))
+        ryo3_uuid::RyUuid::from(Uuid::from_bytes(b))
     }
 
     #[expect(clippy::wrong_self_convention)]
-    fn to_uuid4(&self) -> PyUuid {
+    fn to_uuid4(&self) -> RyUuid {
         let mut b = uuid::Builder::from_u128(self.to_u128());
         b.set_version(uuid::Version::Random);
-        PyUuid::from(b.into_uuid())
+        RyUuid::from(b.into_uuid())
     }
 
     #[staticmethod]
     fn parse(value: &Bound<'_, PyAny>) -> PyResult<Self> {
-        if let Ok(pyint) = value.cast::<pyo3::types::PyInt>() {
+        use ryo3_core::{PyCastExactOpt, PyCastOpt};
+        if let Some(rs_ulid) = value.cast_exact_opt::<Self>() {
+            Ok(*rs_ulid.get())
+        } else if let Some(pyint) = value.cast_opt::<PyInt>() {
             let i = pyint.extract::<u128>()?;
             if let Ok(smaller_int) = u64::try_from(i) {
                 let ulid = Ulid::from_datetime(
@@ -343,9 +361,8 @@ impl PyUlid {
             }
             // if the integer is too damn big, treat it as a ulid int (u128)
             Ok(Self::from_int(i))
-        } else if value.is_instance_of::<pyo3::types::PyString>() {
-            let s = value.cast::<pyo3::types::PyString>()?;
-            let cs = s.to_str()?;
+        } else if let Some(s) = value.cast_opt::<PyString>() {
+            let cs = pystr_read_fast(s.as_borrowed())?;
             // uuid string length
             match cs.len() {
                 36 => {
@@ -366,15 +383,11 @@ impl PyUlid {
         else if value.is_instance_of::<pyo3::types::PyFloat>() {
             let f = value.extract::<f64>()?;
             Self::from_timestamp_seconds(f)
-        } else if let Ok(rs_ulid) = value.cast_exact::<Self>() {
-            let inner = rs_ulid.borrow().0;
-            Ok(Self(inner))
-        } else if value.is_instance_of::<PyBytes>() {
-            let pybytes = value.cast::<PyBytes>()?;
+        } else if let Some(pybytes) = value.cast_opt::<PyBytes>() {
             let b = pybytes.extract::<[u8; 16]>()?;
             Ok(Self::from_bytes(b))
-        } else if let Ok(py_uuid) = value.cast::<PyUuid>() {
-            return Ok(Self::from_uuid(UuidLike(*py_uuid.borrow().get())));
+        } else if let Some(py_uuid) = value.cast_exact_opt::<RyUuid>() {
+            Ok(Self::from_uuid(UuidLike(*py_uuid.get().inner())))
         } else if let Ok(c_uuid) = value.extract::<CPythonUuid>() {
             Ok(Self::from_uuid(UuidLike(c_uuid.into())))
         } else if let Ok(dt) = value.extract::<SystemTime>() {
@@ -404,15 +417,13 @@ impl PyUlid {
     }
 
     #[getter]
-    fn hex(&self) -> PyAsciiString {
-        self.0
-            .to_bytes()
-            .into_iter()
-            .fold(String::new(), |mut output, b| {
-                let _ = write!(output, "{b:02X}");
-                output
-            })
-            .into()
+    fn hex<'py>(&self, py: Python<'py>) -> Bound<'py, PyString> {
+        let mut buf = Uuid::encode_buffer();
+        let s = Uuid::from_u128(self.to_u128())
+            .simple()
+            .encode_upper(&mut buf);
+        let Ok(s) = PyAsciiStr::new(s).into_pyobject(py);
+        s
     }
 
     #[getter]
@@ -486,13 +497,13 @@ impl PyUlid {
     }
 }
 
-impl From<Ulid> for PyUlid {
+impl From<Ulid> for RyUlid {
     fn from(ulid: Ulid) -> Self {
         Self(ulid)
     }
 }
 
-impl std::fmt::Display for PyUlid {
+impl std::fmt::Display for RyUlid {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "ULID('{}')", self.0)
     }
@@ -504,12 +515,14 @@ struct UuidLike(pub(crate) Uuid);
 impl<'py> FromPyObject<'_, 'py> for UuidLike {
     type Error = PyErr;
     fn extract(obj: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
-        if let Ok(uuid_like) = obj.cast::<PyUuid>() {
-            return Ok(Self(*uuid_like.borrow().get()));
+        use ryo3_core::PyCastExactOpt;
+        if let Some(uuid_like) = obj.cast_exact_opt::<RyUuid>() {
+            Ok(Self(*uuid_like.get().inner()))
         } else if let Ok(py_uuid) = obj.extract::<CPythonUuid>() {
-            return Ok(Self(py_uuid.into()));
+            Ok(Self(py_uuid.into()))
+        } else {
+            py_type_err!("Expected a `uuid.UUID` instance.")
         }
-        py_type_err!("Expected a `uuid.UUID` instance.")
     }
 }
 
@@ -519,8 +532,8 @@ mod pydantic {
     use pyo3::types::PyType;
     use ryo3_pydantic::GetPydanticCoreSchemaCls;
 
-    use super::PyUlid;
-    impl GetPydanticCoreSchemaCls for PyUlid {
+    use super::RyUlid;
+    impl GetPydanticCoreSchemaCls for RyUlid {
         fn get_pydantic_core_schema<'py>(
             cls: &Bound<'py, PyType>,
             source: &Bound<'py, PyAny>,

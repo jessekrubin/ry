@@ -41,6 +41,8 @@ RY_OBJECTS = [
     ry.Headers({"Content-Type": "application/json", "X-Request-ID": "123"}),
     # size
     ry.Size(10_000),
+    # ulid
+    ry.ULID(),
     # jiff objects
     *RY_JIFF_OBJECTS,
 ]

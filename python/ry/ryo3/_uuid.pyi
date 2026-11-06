@@ -12,14 +12,16 @@ import uuid as pyuuid
 from ry._types import Buffer
 from ry.protocols import FromStr
 
-# Type aliases (_Bytes/_Int aliases `builtins.bytes`/`builtins.int`)
+# aliases ~ `UUID.int` / `UUID.bytes` shadow the builtins inside the class
 _Bytes: t.TypeAlias = builtins.bytes
 _Int: t.TypeAlias = builtins.int
-_V: t.TypeAlias = t.Literal[1, 2, 3, 4, 5, 6, 7, 8]
+_UuidVersion: t.TypeAlias = t.Literal[1, 2, 3, 4, 5, 6, 7, 8]
 _UuidFields: t.TypeAlias = tuple[int, int, int, int, int, int]
 
 @t.final
 class UUID(FromStr):
+    """UUID class & namespace (hybrid)"""
+
     NAMESPACE_DNS: t.Final[UUID]
     NAMESPACE_URL: t.Final[UUID]
     NAMESPACE_OID: t.Final[UUID]
@@ -32,15 +34,21 @@ class UUID(FromStr):
     RESERVED_FUTURE: t.Final = "reserved for future definition"
 
     @t.overload
-    def __new__(cls, hex: str, *, version: _V | None = None) -> t.Self: ...
+    def __new__(cls, hex: str, *, version: _UuidVersion | None = None) -> t.Self: ...
     @t.overload
-    def __new__(cls, *, bytes: _Bytes, version: _V | None = None) -> t.Self: ...
+    def __new__(
+        cls, *, bytes: _Bytes, version: _UuidVersion | None = None
+    ) -> t.Self: ...
     @t.overload
-    def __new__(cls, *, bytes_le: _Bytes, version: _V | None = None) -> t.Self: ...
+    def __new__(
+        cls, *, bytes_le: _Bytes, version: _UuidVersion | None = None
+    ) -> t.Self: ...
     @t.overload
-    def __new__(cls, *, fields: _UuidFields, version: _V | None = None) -> t.Self: ...
+    def __new__(
+        cls, *, fields: _UuidFields, version: _UuidVersion | None = None
+    ) -> t.Self: ...
     @t.overload
-    def __new__(cls, *, int: _Int, version: _V | None = None) -> t.Self: ...
+    def __new__(cls, *, int: _Int, version: _UuidVersion | None = None) -> t.Self: ...
     @t.overload
     def __new__(
         cls,
@@ -49,10 +57,36 @@ class UUID(FromStr):
         bytes_le: None = None,
         fields: None = None,
         int: None = None,
-        version: _V | None = None,
+        version: _UuidVersion | None = None,
     ) -> t.NoReturn: ...
     @staticmethod
     def getnode() -> _Int: ...
+    @staticmethod
+    def uuid1(node: _Int | None = None, clock_seq: _Int | None = None) -> UUID: ...
+    @staticmethod
+    def uuid3(namespace: UUID, name: str | _Bytes) -> UUID: ...
+    @staticmethod
+    def uuid4() -> UUID: ...
+    @staticmethod
+    def uuid5(namespace: UUID, name: str | _Bytes) -> UUID: ...
+    @staticmethod
+    def uuid6(node: _Int | None = None, clock_seq: _Int | None = None) -> UUID: ...
+    @staticmethod
+    def uuid7(timestamp: _Int | None = None) -> UUID: ...
+    @t.overload
+    @staticmethod
+    def uuid8(*, buf: Buffer) -> UUID: ...  # 16 bytes buffer
+    @t.overload
+    @staticmethod
+    def uuid8(
+        a: _Int | None = None,
+        b: _Int | None = None,
+        c: _Int | None = None,
+        *,
+        buf: None = None,
+    ) -> UUID: ...
+    @staticmethod
+    def _reseed_rng() -> None: ...
     @property
     def is_nil(self) -> bool: ...
     @property
@@ -86,9 +120,14 @@ class UUID(FromStr):
     @property
     def variant(self) -> str: ...
     @property
-    def version(self) -> t.Literal[1, 2, 3, 4, 5, 6, 7, 8] | None: ...
+    def version(self) -> _UuidVersion | None: ...
+    def equiv(self, other: object, /) -> bool: ...
     def to_py(self) -> pyuuid.UUID: ...
     def to_string(self) -> str: ...
+    def format(
+        self, kind: t.Literal["hyphenated", "simple", "urn", "braced"] = "hyphenated"
+    ) -> str: ...
+    def __format__(self, format_spec: str, /) -> str: ...
     # --- CLASSMETHODS --
     @classmethod
     def from_bytes(cls, b: _Bytes) -> t.Self: ...
@@ -132,14 +171,3 @@ def uuid8(
     *,
     buf: None = None,
 ) -> UUID: ...
-
-NAMESPACE_DNS: t.Final[UUID]
-NAMESPACE_URL: t.Final[UUID]
-NAMESPACE_OID: t.Final[UUID]
-NAMESPACE_X500: t.Final[UUID]
-NIL: t.Final[UUID]
-MAX: t.Final[UUID]
-RESERVED_NCS: t.Final = "reserved for NCS compatibility"
-RFC_4122: t.Final = "specified in RFC 4122"
-RESERVED_MICROSOFT: t.Final = "reserved for Microsoft compatibility"
-RESERVED_FUTURE: t.Final = "reserved for future definition"

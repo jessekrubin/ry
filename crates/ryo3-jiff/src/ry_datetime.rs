@@ -4,7 +4,6 @@ use std::ops::Sub;
 
 use jiff::Zoned;
 use jiff::civil::{DateTime, DateTimeArithmetic, DateTimeRound, Weekday};
-use pyo3::basic::CompareOp;
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyTuple};
 use pyo3::{BoundObject, IntoPyObjectExt};
@@ -29,7 +28,7 @@ use crate::{RyDate, RyDateTimeRound, RyTimestamp};
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize), serde(transparent))]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd)]
-#[pyclass(name = "DateTime", frozen, immutable_type)]
+#[pyclass(name = "DateTime", frozen, immutable_type, eq, ord)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyDateTime(pub(crate) DateTime);
 
@@ -120,17 +119,6 @@ impl RyDateTime {
     #[staticmethod]
     fn today() -> Self {
         Self::from(DateTime::from(Zoned::now()))
-    }
-
-    fn __richcmp__(&self, other: &Self, op: CompareOp) -> bool {
-        match op {
-            CompareOp::Eq => self.0 == other.0,
-            CompareOp::Ne => self.0 != other.0,
-            CompareOp::Lt => self.0 < other.0,
-            CompareOp::Le => self.0 <= other.0,
-            CompareOp::Gt => self.0 > other.0,
-            CompareOp::Ge => self.0 >= other.0,
-        }
     }
 
     #[getter]

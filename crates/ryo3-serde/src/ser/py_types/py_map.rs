@@ -210,7 +210,7 @@ macro_rules! serialize_map_value {
             // __ULID__
             #[cfg(feature = "ryo3-ulid")]
             PyObType::RyUlid => {
-                $map.serialize_value(&ry_types::PyUlidSerializer::new_unchecked($value))?;
+                $map.serialize_value(&ry_types::RyUlidSerializer::new_unchecked($value))?;
             }
             // __URL__
             #[cfg(feature = "ryo3-url")]
@@ -220,7 +220,7 @@ macro_rules! serialize_map_value {
             // __UUID__
             #[cfg(feature = "ryo3-uuid")]
             PyObType::RyUuid => {
-                $map.serialize_value(&ry_types::PyUuidSerializer::new_unchecked($value))?;
+                $map.serialize_value(&ry_types::RyUuidSerializer::new_unchecked($value))?;
             }
             // ------------------------------------------------------------
             // UNKNOWN

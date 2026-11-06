@@ -5,7 +5,6 @@ use jiff::SignedDuration;
 use jiff::tz::{Offset, OffsetRound};
 use pyo3::BoundObject;
 use pyo3::prelude::*;
-use pyo3::pyclass::CompareOp;
 use pyo3::types::{PyDict, PyTuple};
 use ryo3_core::{PyAsciiString, map_py_overflow_err, map_py_value_err};
 use ryo3_jiff_core::{JiffOffset, JiffRoundMode, JiffSignedDuration, JiffUnit};
@@ -20,7 +19,7 @@ use crate::ry_timezone::RyTimeZone;
 use crate::spanish::Spanish;
 use crate::util::SpanKwargs;
 
-#[pyclass(name = "Offset", frozen, immutable_type)]
+#[pyclass(name = "Offset", frozen, immutable_type, eq, ord)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Clone, Copy, Eq, Hash, PartialEq, PartialOrd, Ord)]
 pub struct RyOffset(pub(crate) Offset);
@@ -254,17 +253,6 @@ impl RyOffset {
         let mut hasher = DefaultHasher::new();
         self.0.hash(&mut hasher);
         hasher.finish()
-    }
-
-    fn __richcmp__(&self, other: &Self, op: CompareOp) -> bool {
-        match op {
-            CompareOp::Eq => self.0 == other.0,
-            CompareOp::Ne => self.0 != other.0,
-            CompareOp::Lt => self.0 < other.0,
-            CompareOp::Le => self.0 <= other.0,
-            CompareOp::Gt => self.0 > other.0,
-            CompareOp::Ge => self.0 >= other.0,
-        }
     }
 
     fn __add__(&self, other: Spanish) -> PyResult<Self> {

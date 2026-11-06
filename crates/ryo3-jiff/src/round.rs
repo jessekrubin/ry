@@ -115,7 +115,7 @@ impl RoundOptions {
 // DateTimeRound
 // ----------------------------------------------------------------------------
 #[derive(Clone, Copy, Debug)]
-#[pyclass(name = "DateTimeRound", frozen, immutable_type)]
+#[pyclass(name = "DateTimeRound", frozen, immutable_type, eq)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyDateTimeRound {
     pub(crate) options: RoundOptions,
@@ -150,10 +150,6 @@ impl RyDateTimeRound {
 
     fn __repr__(&self) -> PyAsciiString {
         format!("{self}").into()
-    }
-
-    fn __eq__(&self, other: &Self) -> bool {
-        self.options == other.options
     }
 
     #[expect(clippy::wrong_self_convention)]
@@ -234,7 +230,7 @@ impl Display for RyDateTimeRound {
 // SignedDurationRound
 // ----------------------------------------------------------------------------
 #[derive(Clone, Copy, Debug)]
-#[pyclass(name = "SignedDurationRound", frozen, immutable_type)]
+#[pyclass(name = "SignedDurationRound", frozen, immutable_type, eq)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RySignedDurationRound {
     options: RoundOptions,
@@ -263,10 +259,6 @@ impl RySignedDurationRound {
 
     fn __repr__(&self) -> PyAsciiString {
         format!("{self}").into()
-    }
-
-    fn __eq__(&self, other: &Self) -> bool {
-        self.options == other.options
     }
 
     #[expect(clippy::wrong_self_convention)]
@@ -350,7 +342,7 @@ impl Display for RySignedDurationRound {
 // TimeRound
 // ----------------------------------------------------------------------------
 #[derive(Clone, Copy, Debug)]
-#[pyclass(name = "TimeRound", frozen, immutable_type)]
+#[pyclass(name = "TimeRound", frozen, immutable_type, eq)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyTimeRound {
     options: RoundOptions,
@@ -379,10 +371,6 @@ impl RyTimeRound {
 
     fn __repr__(&self) -> PyAsciiString {
         format!("{self}").into()
-    }
-
-    fn __eq__(&self, other: &Self) -> bool {
-        self.options == other.options
     }
 
     #[expect(clippy::wrong_self_convention)]
@@ -468,7 +456,7 @@ impl Display for RyTimeRound {
 // TimestampRound
 // ----------------------------------------------------------------------------
 #[derive(Clone, Copy, Debug)]
-#[pyclass(name = "TimestampRound", frozen, immutable_type)]
+#[pyclass(name = "TimestampRound", frozen, immutable_type, eq)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyTimestampRound {
     options: RoundOptions,
@@ -502,10 +490,6 @@ impl RyTimestampRound {
 
     fn __repr__(&self) -> PyAsciiString {
         format!("{self}").into()
-    }
-
-    fn __eq__(&self, other: &Self) -> bool {
-        self.options == other.options
     }
 
     #[expect(clippy::wrong_self_convention)]
@@ -585,7 +569,7 @@ impl Display for RyTimestampRound {
 // ZonedDateTimeRound
 // ---------------------------------------------------------------------------
 #[derive(Clone, Copy, Debug)]
-#[pyclass(name = "ZonedDateTimeRound", frozen, immutable_type)]
+#[pyclass(name = "ZonedDateTimeRound", frozen, immutable_type, eq)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyZonedDateTimeRound {
     options: RoundOptions,
@@ -619,10 +603,6 @@ impl RyZonedDateTimeRound {
 
     fn __repr__(&self) -> PyAsciiString {
         format!("{self}").into()
-    }
-
-    fn __eq__(&self, other: &Self) -> bool {
-        self.options == other.options
     }
 
     #[expect(clippy::wrong_self_convention)]
@@ -703,7 +683,7 @@ impl Display for RyZonedDateTimeRound {
 // OffsetRound
 // ----------------------------------------------------------------------------
 #[derive(Clone, Copy, Debug)]
-#[pyclass(name = "OffsetRound", frozen, immutable_type)]
+#[pyclass(name = "OffsetRound", frozen, immutable_type, eq)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyOffsetRound {
     options: RoundOptions,
@@ -732,10 +712,6 @@ impl RyOffsetRound {
 
     fn __repr__(&self) -> PyAsciiString {
         format!("{self}").into()
-    }
-
-    fn __eq__(&self, other: &Self) -> bool {
-        self.options == other.options
     }
 
     #[expect(clippy::wrong_self_convention)]
@@ -872,3 +848,39 @@ impl_from_round_options_for!(ZonedRound);
 // impl_round_struct_new!(RyTimeRound, TimeRound);
 // impl_round_struct_new!(RyTimestampRound, TimestampRound);
 // impl_round_struct_new!(RyZonedRound, ZonedRound);
+
+impl PartialEq for RyDateTimeRound {
+    fn eq(&self, other: &Self) -> bool {
+        self.options == other.options
+    }
+}
+
+impl PartialEq for RySignedDurationRound {
+    fn eq(&self, other: &Self) -> bool {
+        self.options == other.options
+    }
+}
+
+impl PartialEq for RyTimeRound {
+    fn eq(&self, other: &Self) -> bool {
+        self.options == other.options
+    }
+}
+
+impl PartialEq for RyTimestampRound {
+    fn eq(&self, other: &Self) -> bool {
+        self.options == other.options
+    }
+}
+
+impl PartialEq for RyZonedDateTimeRound {
+    fn eq(&self, other: &Self) -> bool {
+        self.options == other.options
+    }
+}
+
+impl PartialEq for RyOffsetRound {
+    fn eq(&self, other: &Self) -> bool {
+        self.options == other.options
+    }
+}

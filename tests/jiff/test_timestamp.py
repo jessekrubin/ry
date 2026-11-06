@@ -154,6 +154,18 @@ class TestTimestampFrom:
         ts_neg = ry.Timestamp.from_nanosecond(-1)
         assert ts_neg == ry.Timestamp.parse("1969-12-31T23:59:59.999999999Z")
 
+    def test_from_nanosecond_bounds(self) -> None:
+        # jiff#645 (fixed in jiff 0.2.39)
+        # - issue: https://github.com/BurntSushi/jiff/issues/645
+        # - pr: https://github.com/BurntSushi/jiff/pull/648
+        lo = ry.Timestamp.MIN.as_nanosecond()
+        hi = ry.Timestamp.MAX.as_nanosecond()
+        assert ry.Timestamp.from_nanosecond(lo) == ry.Timestamp.MIN
+        assert ry.Timestamp.from_nanosecond(hi) == ry.Timestamp.MAX
+        for n in (lo - 1, hi + 1):
+            with pytest.raises(ValueError, match="not in the required range"):
+                ry.Timestamp.from_nanosecond(n)
+
 
 class TestTimestampSinceUntil:
     def test_since(self) -> None:

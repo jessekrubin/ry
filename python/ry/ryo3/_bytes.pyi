@@ -8,6 +8,7 @@ if sys.version_info >= (3, 12):
 else:
     from typing_extensions import Buffer as Buffer
 
+@t.final
 class Bytes(Buffer):
     """
     A buffer implementing the Python buffer protocol, allowing zero-copy access
@@ -290,7 +291,7 @@ class Bytes(Buffer):
         >>> b = Bytes.copy_from(b"unique-nu-yawk")
         >>> b.is_unique()
         True
-        >>> shared = b[:]
+        >>> shared = b.clone()
         >>> b.is_unique()
         False
 

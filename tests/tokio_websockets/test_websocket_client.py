@@ -71,6 +71,26 @@ async def test_ws_ctx_manager_handshake_stuff(websocket_server: WsTestServer) ->
     assert websocket_server.requests[-1].headers["x-client-header"] == "roundtrip"
 
 
+async def test_websocket_headers_are_snapshots(websocket_server: WsTestServer) -> None:
+    ws = ry.WebSocket(websocket_server.url())
+    async with ws:
+        headers = ws.headers
+        assert headers is not None
+        assert headers["x-ws-path"] == "/echo"
+        headers["x-ws-path"] = "/changed"
+        assert ws.headers is not None
+        assert ws.headers["x-ws-path"] == "/echo"
+
+    assert ws.headers is not None
+    assert ws.headers["x-ws-path"] == "/echo"
+    assert headers["x-ws-path"] == "/changed"
+
+    async with ws:
+        assert ws.headers is not None
+        assert ws.headers["x-ws-path"] == "/echo"
+        assert headers["x-ws-path"] == "/changed"
+
+
 async def test_websocket_recv_reports_server_messages_and_close_frame(
     websocket_server: WsTestServer,
 ) -> None:
@@ -150,6 +170,51 @@ async def test_websocket_send_parse_json(websocket_server: WsTestServer) -> None
     assert msg1.is_text
     assert msg1.data == '{"data":123}'
     assert msg1.json() == {"data": 123}
+
+
+async def test_websocket_send_waits_until_awaited(
+    websocket_server: WsTestServer,
+) -> None:
+    async with ry.websocket(websocket_server.url()) as ws:
+        send = ws.send("deferred")
+        await asyncio.sleep(0)
+        with pytest.raises(RuntimeError, match="recv timeout"):
+            await ws.recv(timeout=0.01)
+        await send
+        with pytest.raises(RuntimeError, match="already awaited"):
+            await send
+        assert (await ws.recv(timeout=1)).data == "deferred"
+
+
+async def test_websocket_recv_timeout_keeps_socket_usable(
+    websocket_server: WsTestServer,
+) -> None:
+    async with ry.websocket(websocket_server.url(), recv_timeout=0.01) as ws:
+        with pytest.raises(RuntimeError, match="recv timeout"):
+            await ws.recv()
+        await ws.send("after-timeout")
+        assert (await ws.recv(timeout=1)).data == "after-timeout"
+
+
+@pytest.mark.parametrize("payload_size", [32, 256 * 1024])
+async def test_websocket_concurrent_send_receive(
+    websocket_server: WsTestServer, payload_size: int
+) -> None:
+    payload = b"x" * payload_size
+    expected = [index.to_bytes(4, "big") + payload for index in range(32)]
+    async with ry.websocket(websocket_server.url()) as ws:
+
+        async def send() -> None:
+            for message in expected:
+                await ws.send(message)
+
+        async def receive() -> list[bytes]:
+            return [bytes(await ws.recv()) for _ in expected]
+
+        _, received = await asyncio.wait_for(
+            asyncio.gather(send(), receive()), timeout=5
+        )
+        assert received == expected
 
 
 async def test_cancelled_recv_releases_underlying_conn_thingy(
