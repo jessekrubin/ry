@@ -58,12 +58,25 @@ fn cc_info() -> String {
     let mut cmd = Command::new(tool.path());
     // tool env has the msvc INCLUDE/LIB/PATH setup
     cmd.envs(tool.get_envs());
-    // msvc `cl.exe` has no `--version`; prints its banner w/ no args
-    if !tool.is_like_msvc() {
+    // cl.exe has no `--version`; clang-cl and other compilers do.
+    if !tool.is_like_msvc() || tool.is_like_clang_cl() {
         cmd.arg("--version");
     }
     run(&mut cmd)
-        .and_then(|out| first_line(&out))
+        .and_then(|out| {
+            if tool.is_like_msvc() && !tool.is_like_clang_cl() {
+                // cl.exe prints usage and its version banner split on stdout
+                // and stderr (which is classic windows bullshit); current
+                // setup may not capture the may not stdout/stderr in the
+                // display order... SO... crudely search for `Version`
+                out.lines()
+                    .map(str::trim)
+                    .find(|line| line.contains("Version") && !line.starts_with("usage:"))
+                    .map(ToOwned::to_owned)
+            } else {
+                first_line(&out)
+            }
+        })
         .unwrap_or_else(|| UNKNOWN.to_owned())
 }
 
