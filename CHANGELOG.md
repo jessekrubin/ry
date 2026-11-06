@@ -7,8 +7,12 @@
 
 ---
 
-## [Unreleased]
+## v0.0.108 [unreleased]
 
+- **BREAKING**
+  - removed deprecated `Duration.__int__` ~ use `Duration.as_nanos()` instead
+  - removed deprecated `SignedDuration.__int__` ~ use
+    `SignedDuration.as_nanos()` instead
 - `ryo3-brotli`
   - use `burli-encode` for Brotli compression and `burli-decode` for decompression
   - **BREAKING:** compression accepts levels `0` through `5`, defaults to `5`
@@ -17,15 +21,6 @@
 - `ryo3-reqwest`
   - decode Brotli response bodies incrementally with `burli-decode` for async
     and blocking clients, streams, and SSE; remove the `brotli` crate dependency
-
----
-
-## v0.0.108 [unreleased]
-
-- **BREAKING**
-  - removed deprecated `Duration.__int__` ~ use `Duration.as_nanos()` instead
-  - removed deprecated `SignedDuration.__int__` ~ use
-    `SignedDuration.as_nanos()` instead
 - misc
   - fix: `cc` capture on windows for `cl` when running `python -m ry`
     [945](https://github.com/jessekrubin/ry/issues/945)
