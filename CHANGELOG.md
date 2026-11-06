@@ -7,6 +7,16 @@
 
 ---
 
+## [Unreleased]
+
+- `ryo3-brotli`
+  - use `burli-encode` for Brotli compression; keep `brotli` for decompression
+  - **BREAKING:** compression accepts levels `0` through `5`, defaults to `5`
+    instead of `11`, and no longer accepts `magic_number`; this also applies to
+    the deprecated `brotli_encode` and `brotli` aliases
+
+---
+
 ## v0.0.108 [unreleased]
 
 - **BREAKING**
