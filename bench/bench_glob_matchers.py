@@ -4,17 +4,17 @@ import fnmatch
 import pathlib
 import random
 import re
-from typing import TYPE_CHECKING
+import typing as t
 
 import pytest
 
 import ry
 
-if TYPE_CHECKING:
+if t.TYPE_CHECKING:
     from pytest_benchmark.fixture import BenchmarkFixture
 
-PATTERN = "*.py"
-FILENAMES_RAW = [
+_PATTERN = "*.py"
+_FILENAMES_RAW = [
     "src/main.py",
     "src/utils/helpers.py",
     "src/lib/math_ops.py",
@@ -31,35 +31,35 @@ FILENAMES_RAW = [
     "READHER.md",
     "WOOFME.md",
 ]
-FILENAMES = FILENAMES_RAW * 10  # repeat to simulate load
-random.shuffle(FILENAMES)
+_FILENAMES = _FILENAMES_RAW * 10  # repeat to simulate load
+random.shuffle(_FILENAMES)
 
 
-ry_glob_match = ry.Glob(PATTERN).is_match_str
-ry_pattern_match = ry.GlobPattern(PATTERN).matches
+ry_glob_match = ry.Glob(_PATTERN).is_match_str
+ry_pattern_match = ry.GlobPattern(_PATTERN).matches
 ry_regex_match = ry.Regex(r".*\.py$").is_match
 
 
 def fnmatch_std(name: str) -> bool:
-    return fnmatch.fnmatch(name, PATTERN)
+    return fnmatch.fnmatch(name, _PATTERN)
 
 
 def fnmatch_case(name: str) -> bool:
-    return fnmatch.fnmatchcase(name, PATTERN)
+    return fnmatch.fnmatchcase(name, _PATTERN)
 
 
 def path_match(name: str) -> bool:
-    return pathlib.Path(name).match(PATTERN)
+    return pathlib.Path(name).match(_PATTERN)
 
 
-_py_regex = re.compile(fnmatch.translate(PATTERN))
+_py_regex = re.compile(fnmatch.translate(_PATTERN))
 
 
 def regex_match(name: str) -> bool:
     return _py_regex.match(name) is not None
 
 
-FUNCTIONS = [
+_FUNCTIONS = [
     fnmatch_std,
     fnmatch_case,
     path_match,
@@ -72,12 +72,12 @@ FUNCTIONS = [
 
 def test_all_equiv() -> None:
     """Test that all functions return the same result."""
-    for name in FILENAMES:
-        results = [fn(name) for fn in FUNCTIONS]
+    for name in _FILENAMES:
+        results = [fn(name) for fn in _FUNCTIONS]
         assert all(result == results[0] for result in results[1:]), f"Failed for {name}"
 
 
-_benchmark = pytest.mark.benchmark(group="fnmatch", warmup=True, min_rounds=10000)
+_benchmark = pytest.mark.benchmark(group="glob-fnmatch", warmup=True, min_rounds=10000)
 # ===================
 # == RY-BENCHMARKS ==
 # ===================
@@ -86,7 +86,7 @@ _benchmark = pytest.mark.benchmark(group="fnmatch", warmup=True, min_rounds=1000
 @_benchmark
 def test_ry_pattern(benchmark: BenchmarkFixture) -> None:
     def _fn() -> None:
-        for name in FILENAMES:
+        for name in _FILENAMES:
             ry_pattern_match(name)
 
     benchmark(_fn)
@@ -95,7 +95,7 @@ def test_ry_pattern(benchmark: BenchmarkFixture) -> None:
 @_benchmark
 def test_ry_glob(benchmark: BenchmarkFixture) -> None:
     def _fn() -> None:
-        for name in FILENAMES:
+        for name in _FILENAMES:
             ry_glob_match(name)
 
     benchmark(_fn)
@@ -104,7 +104,7 @@ def test_ry_glob(benchmark: BenchmarkFixture) -> None:
 @_benchmark
 def test_ry_regex(benchmark: BenchmarkFixture) -> None:
     def _fn() -> None:
-        for name in FILENAMES:
+        for name in _FILENAMES:
             ry_regex_match(name)
 
     benchmark(_fn)
@@ -116,7 +116,7 @@ def test_ry_regex(benchmark: BenchmarkFixture) -> None:
 @_benchmark
 def test_fnmatch(benchmark: BenchmarkFixture) -> None:
     def _fn() -> None:
-        for name in FILENAMES:
+        for name in _FILENAMES:
             fnmatch_std(name)
 
     benchmark(_fn)
@@ -125,7 +125,7 @@ def test_fnmatch(benchmark: BenchmarkFixture) -> None:
 @_benchmark
 def test_fnmatchcase(benchmark: BenchmarkFixture) -> None:
     def _fn() -> None:
-        for name in FILENAMES:
+        for name in _FILENAMES:
             fnmatch_case(name)
 
     benchmark(_fn)
@@ -133,10 +133,10 @@ def test_fnmatchcase(benchmark: BenchmarkFixture) -> None:
 
 @_benchmark
 def test_regex_match(benchmark: BenchmarkFixture) -> None:
-    regex = re.compile(fnmatch.translate(PATTERN))
+    regex = re.compile(fnmatch.translate(_PATTERN))
 
     def _fn() -> None:
-        for name in FILENAMES:
+        for name in _FILENAMES:
             _ = regex.match(name) is not None
 
     benchmark(_fn)
@@ -146,7 +146,7 @@ def test_regex_match(benchmark: BenchmarkFixture) -> None:
 @pytest.mark.skip(reason="pathlib is slow af")
 def test_pathlib_match(benchmark: BenchmarkFixture) -> None:
     def _fn() -> None:
-        for name in FILENAMES:
-            pathlib.Path(name).match(PATTERN)
+        for name in _FILENAMES:
+            pathlib.Path(name).match(_PATTERN)
 
     benchmark(_fn)

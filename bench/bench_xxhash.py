@@ -39,21 +39,22 @@ _IMPL_PARAMS = [pytest.param(m, id=k) for k, m in _IMPLS.items()]
 def test_oneshot_intdigest(
     benchmark: BenchmarkFixture, impl: ModuleType, algo: str, size: str
 ) -> None:
-    benchmark.group = f"oneshot-intdigest-{algo}-{size}"
+    benchmark.group = f"xxhash-oneshot-intdigest-{algo}-{size}"
     fn = getattr(impl, f"{algo}_intdigest")
     data = _DATA[size]
     benchmark(fn, data)
 
 
 @pytest.mark.parametrize("impl", _IMPL_PARAMS)
+@pytest.mark.parametrize("size", ["16B", "4KiB"])
 @pytest.mark.parametrize("kind", ["digest", "hexdigest"])
 @pytest.mark.parametrize("algo", _ALGOS)
 def test_oneshot_out(
-    benchmark: BenchmarkFixture, impl: ModuleType, algo: str, kind: str
+    benchmark: BenchmarkFixture, impl: ModuleType, algo: str, kind: str, size: str
 ) -> None:
-    benchmark.group = f"oneshot-{kind}-{algo}-16B"
+    benchmark.group = f"xxhash-oneshot-{kind}-{algo}-{size}"
     fn = getattr(impl, f"{algo}_{kind}")
-    benchmark(fn, _DATA["16B"])
+    benchmark(fn, _DATA[size])
 
 
 @pytest.mark.parametrize("impl", _IMPL_PARAMS)
@@ -61,7 +62,7 @@ def test_oneshot_out(
 def test_new_update_intdigest(
     benchmark: BenchmarkFixture, impl: ModuleType, algo: str
 ) -> None:
-    benchmark.group = f"hasher-new-update-intdigest-{algo}-256B"
+    benchmark.group = f"xxhash-hasher-new-update-intdigest-{algo}-256B"
     cls = getattr(impl, algo)
     data = _DATA["256B"]
 
@@ -76,7 +77,7 @@ def test_new_update_intdigest(
 @pytest.mark.parametrize("impl", _IMPL_PARAMS)
 @pytest.mark.parametrize("algo", _ALGOS)
 def test_new(benchmark: BenchmarkFixture, impl: ModuleType, algo: str) -> None:
-    benchmark.group = f"hasher-new-{algo}"
+    benchmark.group = f"xxhash-hasher-new-{algo}"
     benchmark(getattr(impl, algo))
 
 
@@ -86,7 +87,7 @@ def test_chunked_update(
     benchmark: BenchmarkFixture, impl: ModuleType, algo: str
 ) -> None:
     # 1MiB in 4KiB chunks
-    benchmark.group = f"hasher-chunked-1MiB-by-4KiB-{algo}"
+    benchmark.group = f"xxhash-hasher-chunked-1MiB-by-4KiB-{algo}"
     cls = getattr(impl, algo)
     data = memoryview(_DATA["1MiB"])
     chunks = [data[i : i + 4096] for i in range(0, len(data), 4096)]

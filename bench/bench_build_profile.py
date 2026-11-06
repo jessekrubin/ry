@@ -1,13 +1,13 @@
 from __future__ import annotations
 
+import typing as t
 import warnings
-from typing import TYPE_CHECKING
 
 import pytest
 
 import ry
 
-if TYPE_CHECKING:
+if t.TYPE_CHECKING:
     from pytest_benchmark.fixture import BenchmarkFixture
 
 

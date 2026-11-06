@@ -1,14 +1,14 @@
 from __future__ import annotations
 
 import random
+import typing as t
 from functools import cache
-from typing import TYPE_CHECKING
 
 import pytest
 
 import ry
 
-if TYPE_CHECKING:
+if t.TYPE_CHECKING:
     from pytest_benchmark.fixture import BenchmarkFixture
 
 _RANDOM_FLOAT = 0.12345678901234567890

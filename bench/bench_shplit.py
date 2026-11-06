@@ -1,14 +1,14 @@
 from __future__ import annotations
 
+import typing as t
 from shlex import split as py_shplit
-from typing import TYPE_CHECKING
 
 import pytest
 
 from ry import shplit as ry_shplit
 from tests._shlex.test_shplit import SHPLITESTS
 
-if TYPE_CHECKING:
+if t.TYPE_CHECKING:
     from pytest_benchmark.fixture import BenchmarkFixture
 
 SHPLIT_STRINGS = [e.string for e in SHPLITESTS]

@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 import gzip
-from typing import TYPE_CHECKING
+import typing as t
 
 import pytest
 
 import ry
 
-if TYPE_CHECKING:
+if t.TYPE_CHECKING:
     from collections.abc import Callable
 
     from pytest_benchmark.fixture import BenchmarkFixture
