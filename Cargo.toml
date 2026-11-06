@@ -170,7 +170,7 @@ jiff = { version = "0.2.39", default-features = false, features = [
   "perf-inline",
   "tzdb-bundle-always",
 ] }
-jiter = { version = "0.18", default-features = false, features = ["python"] }
+jiter = { version = "0.19", default-features = false, features = ["python"] }
 lz4rip = { version = "0.12.1", default-features = false, features = ["std"] }
 memchr = { version = "2.7.5", default-features = false, features = [] }
 mime = { version = "0.3.18", default-features = false, features = [] }
@@ -343,4 +343,4 @@ lto = "fat"
 # pyo3-macros = { git = "https://github.com/pyo3/pyo3.git" }
 # pyo3-macros-backend = { git = "https://github.com/pyo3/pyo3.git" }
 # jiter = { git = "https://github.com/jessekrubin/jiter.git", branch = "jkr/pyo3-0.29" }
-jiter = { git = "https://github.com/pydantic/jiter.git" }
+# jiter = { git = "https://github.com/pydantic/jiter.git" }

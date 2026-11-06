@@ -16,6 +16,7 @@
 - misc
   - fix: `cc` capture on windows for `cl` when running `python -m ry`
     [945](https://github.com/jessekrubin/ry/issues/945)
+- `ryo3-jiter`: update to v0.19.0
 
 ---
 
