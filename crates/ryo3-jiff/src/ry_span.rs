@@ -20,7 +20,7 @@ use crate::{RyDate, RyDateTime, RyTime, RyTimestamp, RyZoned, constants, timespa
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize), serde(transparent))]
 #[derive(Debug, Clone, Copy)]
-#[pyclass(name = "TimeSpan", frozen, immutable_type, mapping)]
+#[pyclass(name = "TimeSpan", frozen, immutable_type, mapping, eq)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RySpan(pub(crate) Span);
 
@@ -233,18 +233,6 @@ impl RySpan {
         ryo3_jiff_core::fmt::FRIENDLY_SPAN_PRINTER
             .designator(designator.into())
             .span_to_string(&self.0)
-    }
-
-    fn __eq__(&self, other: &Self) -> bool {
-        let self_fieldwise = self.0.fieldwise();
-        let other_fieldwise = other.0.fieldwise();
-        self_fieldwise == other_fieldwise
-    }
-
-    fn __ne__(&self, other: &Self) -> bool {
-        let self_fieldwise = self.0.fieldwise();
-        let other_fieldwise = other.0.fieldwise();
-        self_fieldwise != other_fieldwise
     }
 
     fn negate(&self) -> Self {

@@ -96,7 +96,7 @@ impl DifferenceOptions {
 // DateDifference
 // ============================================================================
 #[derive(Debug, Clone, Copy)]
-#[pyclass(name = "DateDifference", frozen, immutable_type)]
+#[pyclass(name = "DateDifference", frozen, immutable_type, eq)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyDateDifference {
     date: RyDate,
@@ -157,10 +157,6 @@ impl RyDateDifference {
 
     fn __repr__(&self) -> PyAsciiString {
         format!("{self}").into()
-    }
-
-    fn __eq__(&self, other: &Self) -> bool {
-        self.date == other.date && self.options == other.options
     }
 
     #[getter]
@@ -336,7 +332,7 @@ impl DateDifferenceArg<'_, '_> {
 // ============================================================================
 
 #[derive(Debug, Clone, Copy)]
-#[pyclass(name = "DateTimeDifference", frozen, immutable_type)]
+#[pyclass(name = "DateTimeDifference", frozen, immutable_type, eq)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyDateTimeDifference {
     datetime: RyDateTime,
@@ -396,10 +392,6 @@ impl RyDateTimeDifference {
 
     fn __repr__(&self) -> PyAsciiString {
         format!("{self}").into()
-    }
-
-    fn __eq__(&self, other: &Self) -> bool {
-        self.datetime == other.datetime && self.options == other.options
     }
 
     #[getter]
@@ -574,7 +566,7 @@ impl DateTimeDifferenceArg<'_, '_> {
 // TimeDifference
 // ============================================================================
 #[derive(Debug, Clone, Copy)]
-#[pyclass(name = "TimeDifference", frozen, immutable_type)]
+#[pyclass(name = "TimeDifference", frozen, immutable_type, eq)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyTimeDifference {
     time: RyTime,
@@ -635,10 +627,6 @@ impl RyTimeDifference {
 
     fn __repr__(&self) -> PyAsciiString {
         format!("{self}").into()
-    }
-
-    fn __eq__(&self, other: &Self) -> bool {
-        self.time == other.time && self.options == other.options
     }
 
     #[getter]
@@ -819,7 +807,7 @@ impl TimeDifferenceArg<'_, '_> {
 // TimestampDifference
 // ============================================================================
 #[derive(Debug, Clone, Copy)]
-#[pyclass(name = "TimestampDifference", frozen, immutable_type)]
+#[pyclass(name = "TimestampDifference", frozen, immutable_type, eq)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyTimestampDifference {
     timestamp: RyTimestamp,
@@ -879,10 +867,6 @@ impl RyTimestampDifference {
 
     fn __repr__(&self) -> PyAsciiString {
         format!("{self}").into()
-    }
-
-    fn __eq__(&self, other: &Self) -> bool {
-        self.timestamp == other.timestamp && self.options == other.options
     }
 
     #[getter]
@@ -1056,7 +1040,7 @@ impl TimestampDifferenceArg<'_, '_> {
 // ZonedDateTimeDifference
 // ============================================================================
 #[derive(Debug, Clone)]
-#[pyclass(name = "ZonedDateTimeDifference", frozen, immutable_type)]
+#[pyclass(name = "ZonedDateTimeDifference", frozen, immutable_type, eq)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyZonedDifference {
     zoned: RyZoned,
@@ -1107,10 +1091,6 @@ impl RyZonedDifference {
 
     fn __repr__(&self) -> PyAsciiString {
         format!("{self}").into()
-    }
-
-    fn __eq__(&self, other: &Self) -> bool {
-        self.zoned == other.zoned && self.options == other.options
     }
 
     #[getter]
@@ -1216,5 +1196,35 @@ impl std::fmt::Display for RyZonedDifference {
         write!(f, ", mode=\"{}\"", self.options.mode)?;
         write!(f, ", increment={}", self.options.increment)?;
         write!(f, ")")
+    }
+}
+
+impl PartialEq for RyDateDifference {
+    fn eq(&self, other: &Self) -> bool {
+        self.date == other.date && self.options == other.options
+    }
+}
+
+impl PartialEq for RyDateTimeDifference {
+    fn eq(&self, other: &Self) -> bool {
+        self.datetime == other.datetime && self.options == other.options
+    }
+}
+
+impl PartialEq for RyTimeDifference {
+    fn eq(&self, other: &Self) -> bool {
+        self.time == other.time && self.options == other.options
+    }
+}
+
+impl PartialEq for RyTimestampDifference {
+    fn eq(&self, other: &Self) -> bool {
+        self.timestamp == other.timestamp && self.options == other.options
+    }
+}
+
+impl PartialEq for RyZonedDifference {
+    fn eq(&self, other: &Self) -> bool {
+        self.zoned == other.zoned && self.options == other.options
     }
 }

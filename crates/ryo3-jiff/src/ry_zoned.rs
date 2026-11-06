@@ -6,7 +6,6 @@ use jiff::civil::{Date, Weekday};
 use jiff::tz::TimeZone;
 use jiff::{Zoned, ZonedArithmetic, ZonedDifference, ZonedRound};
 use pyo3::prelude::*;
-use pyo3::pyclass::CompareOp;
 use pyo3::types::{PyDict, PyTuple};
 use pyo3::{BoundObject, IntoPyObjectExt};
 use ryo3_core::{PyAsciiString, map_py_overflow_err, map_py_value_err};
@@ -33,8 +32,8 @@ use crate::spanish::{DurationLike, Spanish};
 use crate::util::SpanKwargs;
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize), serde(transparent))]
-#[derive(Debug, Clone, PartialEq, Eq)]
-#[pyclass(name = "ZonedDateTime", frozen, immutable_type)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd)]
+#[pyclass(name = "ZonedDateTime", frozen, immutable_type, eq, ord)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyZoned(pub(crate) Zoned);
 
@@ -203,17 +202,6 @@ impl RyZoned {
 
     fn to_rfc2822(&self) -> PyResult<String> {
         jiff::fmt::rfc2822::to_string(&self.0).map_err(map_py_value_err)
-    }
-
-    fn __richcmp__(&self, other: &Self, op: CompareOp) -> bool {
-        match op {
-            CompareOp::Eq => self.0 == other.0,
-            CompareOp::Ne => self.0 != other.0,
-            CompareOp::Lt => self.0 < other.0,
-            CompareOp::Le => self.0 <= other.0,
-            CompareOp::Gt => self.0 > other.0,
-            CompareOp::Ge => self.0 >= other.0,
-        }
     }
 
     #[pyo3(name = "to_string")]

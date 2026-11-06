@@ -16,7 +16,7 @@ use crate::ry_timestamp::RyTimestamp;
 use crate::ry_zoned::RyZoned;
 
 #[derive(Debug, Clone)]
-#[pyclass(name = "TimeZone", frozen, immutable_type)]
+#[pyclass(name = "TimeZone", frozen, immutable_type, eq)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyTimeZone(pub(crate) TimeZone);
 
@@ -91,10 +91,6 @@ impl RyTimeZone {
             }
         }
         hasher.finish()
-    }
-
-    fn __eq__(&self, other: &Self) -> bool {
-        self.0.eq(&other.0)
     }
 
     fn equiv<'py>(&self, other: &'py Bound<'py, PyAny>) -> PyResult<bool> {
@@ -419,5 +415,11 @@ impl<'py> IntoPyObject<'py> for PyTimeZoneTransitionsVec<'_> {
             objects.push(d);
         }
         PyList::new(py, objects)
+    }
+}
+
+impl PartialEq for RyTimeZone {
+    fn eq(&self, other: &Self) -> bool {
+        self.0.eq(&other.0)
     }
 }

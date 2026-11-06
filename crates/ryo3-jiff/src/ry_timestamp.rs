@@ -4,7 +4,6 @@ use std::ops::Sub;
 use jiff::tz::TimeZone;
 use jiff::{Timestamp, TimestampArithmetic, TimestampRound, Zoned};
 use pyo3::BoundObject;
-use pyo3::basic::CompareOp;
 use pyo3::prelude::*;
 use pyo3::types::{PyFloat, PyInt, PyTuple};
 use ryo3_core::{PyAsciiString, PyCastExactOpt, PyCastOpt, map_py_overflow_err, map_py_value_err};
@@ -24,7 +23,7 @@ use crate::{
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize), serde(transparent))]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd)]
-#[pyclass(name = "Timestamp", frozen, immutable_type)]
+#[pyclass(name = "Timestamp", frozen, immutable_type, eq, ord)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyTimestamp(pub(crate) Timestamp);
 
@@ -145,17 +144,6 @@ impl RyTimestamp {
     #[expect(clippy::wrong_self_convention)]
     fn to_pytime(&self) -> JiffTime {
         self.0.to_zoned(TimeZone::UTC).time().into()
-    }
-
-    fn __richcmp__(&self, other: &Self, op: CompareOp) -> bool {
-        match op {
-            CompareOp::Eq => self.0 == other.0,
-            CompareOp::Ne => self.0 != other.0,
-            CompareOp::Lt => self.0 < other.0,
-            CompareOp::Le => self.0 <= other.0,
-            CompareOp::Gt => self.0 > other.0,
-            CompareOp::Ge => self.0 >= other.0,
-        }
     }
 
     #[pyo3(name = "to_string")]
