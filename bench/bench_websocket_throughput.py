@@ -3,10 +3,10 @@
 Build both revisions in release mode, then run this file against each package::
 
     PYTHONPATH=/path/to/before/python uv run pytest -vv \
-        bench/test_websocket_throughput.py --benchmark-only \
+        bench/bench_websocket_throughput.py --benchmark-only \
         --benchmark-json=scratch/websocket-before.json
     PYTHONPATH=/path/to/after/python uv run pytest -vv \
-        bench/test_websocket_throughput.py --benchmark-only \
+        bench/bench_websocket_throughput.py --benchmark-only \
         --benchmark-json=scratch/websocket-after.json
 
 The Python ``websockets`` peer shares the client's asyncio loop, so these rates
