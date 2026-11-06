@@ -73,11 +73,11 @@ use pyo3::prelude::*;
 //     #[cfg(feature = "ryo3-jiff")]  ry_timezone => ryo3_jiff::RyTimeZone;
 //     #[cfg(feature = "ryo3-jiff")]  ry_zoned => ryo3_jiff::RyZoned;
 //     // ulid
-//     #[cfg(feature = "ryo3-ulid")]  ry_ulid => ryo3_ulid::PyUlid;
+//     #[cfg(feature = "ryo3-ulid")]  ry_ulid => ryo3_ulid::RyUlid;
 //     // url
 //     #[cfg(feature = "ryo3-url")]   ry_url => ryo3_url::PyUrl;
 //     // uuid
-//     #[cfg(feature = "ryo3-uuid")]  ry_uuid => ryo3_uuid::PyUuid;
+//     #[cfg(feature = "ryo3-uuid")]  ry_uuid => ryo3_uuid::RyUuid;
 // }
 macro_rules! ry_type_serializer_struct {
     (
@@ -170,7 +170,7 @@ ry_type_serializer_struct! (
 // ===========================================================================
 ry_type_serializer_struct! (
     #[cfg(feature = "ryo3-ulid")]
-    PyUlidSerializer => ryo3_ulid::RyUlid
+    RyUlidSerializer => ryo3_ulid::RyUlid
 );
 // ===========================================================================
 // URL
@@ -184,7 +184,7 @@ ry_type_serializer_struct! (
 // ===========================================================================
 ry_type_serializer_struct! (
     #[cfg(feature = "ryo3-uuid")]
-    PyUuidSerializer => ryo3_uuid::RyUuid
+    RyUuidSerializer => ryo3_uuid::RyUuid
 );
 
 // ===========================================================================

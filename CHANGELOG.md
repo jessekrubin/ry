@@ -10,7 +10,7 @@
 ## v0.0.107 [2026-11-05]
 
 - `ryo3-ulid`
-  - **INTERNAL:** Renamed pyclass to `RyUlid`
+  - **INTERNAL:** renamed rust pyclass `PyUlid` -> `RyUlid`
   - **BREAKING:** `ULID` `==`/`!=`/`<`/... only compare against `ULID` (mirrors
     `UUID`)
     - `ulid == str(ulid)`, `ulid == int(ulid)` and `ulid == ulid.bytes` are now
@@ -21,7 +21,7 @@
   - `immutable_type` gated on `any(not(Py_LIMITED_API), Py_3_14)` so the crate
     builds w/ `abi3`
 - `ryo3-uuid`
-  - **INTERNAL:** Renamed pyclass to `RyUuid`
+  - **INTERNAL:** renamed rust pyclass `PyUuid` -> `RyUuid`
   - `UUID.equiv(other)` loose equality (UUID/int/bytes/str in any format; never
     raises)
   - fix: `UUID` pickles w/ pickle protocols 0/1 (`__reduce__` instead of
@@ -57,8 +57,9 @@
   - perf: use `#[pyclass(eq, ord)]` for comparison over custom `__richcmp__`
     impls; there was something a long long long time ago that made my custom
     rich-cmp faster, but now `#[pyclass(eq, ord)]` is the way to go as it
-    doesn't inadvertently create py-errs (on extract which would be fast except
-    for the `add_note` call which iirc attaches to the GIL
+    doesn't inadvertently create py-errs: a failed `other: &Self` extract built
+    a `TypeError`, formatted a "while processing 'other'" note and called
+    `add_note` on it, just to throw it away and return `NotImplemented`
   - bump `jiff` to 0.2.39
 - misc
   - experiments with disabling pyo3 global-reference-pool
