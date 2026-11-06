@@ -2,6 +2,11 @@
 
 ryo3-wrapper for `reqwest`
 
+Brotli response bodies are decoded incrementally with `burli-decode` for both
+async and blocking clients, including response streams and SSE. `brotli=False`
+disables negotiation and decoding of Brotli responses. Explicit `Accept-Encoding`
+headers are preserved. Gzip, deflate, and Zstandard decoding remain in `reqwest`.
+
 [//]: # "<GENERATED>"
 
 ## Ref

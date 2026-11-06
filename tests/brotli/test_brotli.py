@@ -44,8 +44,19 @@ def test_decompress_legacy_streams(encoded: bytes) -> None:
 
 def test_invalid_decompress() -> None:
     invalid_data = b"\x00\x01\x02\x03\x04\x05"
-    with pytest.raises(ValueError, match="Invalid Data"):
+    with pytest.raises(ValueError, match="Brotli decode error"):
         ry.brotli_decompress(invalid_data)
+
+
+def test_truncated_stream() -> None:
+    encoded = ry.brotli_compress(b"hello world" * 1000)
+    with pytest.raises(ValueError, match="Brotli decode error"):
+        ry.brotli_decompress(bytes(encoded)[:-1])
+
+
+def test_trailing_data() -> None:
+    encoded = bytes(ry.brotli_compress(b"hello world"))
+    assert ry.brotli_decompress(encoded + b"trailing data") == b"hello world"
 
 
 class TestBrotliArgsKwargs:

@@ -19,6 +19,7 @@ aws-lc-rs = ["rustls/aws-lc-rs"]
 ry = ["ryo3-tokio-rt/ry"]
 
 [dependencies]
+burli-decode = { workspace = true, features = ["std"] }
 bytes.workspace = true
 encoding_rs.workspace = true
 futures-core.workspace = true
@@ -30,7 +31,7 @@ jiter.workspace = true
 memchr.workspace = true
 mime.workspace = true
 pyo3 = { workspace = true, features = [] }
-reqwest = { workspace = true, default-features = false, features = ["brotli", "charset", "cookies", "deflate", "form", "gzip", "hickory-dns", "http2", "json", "multipart", "query", "rustls-no-provider", "socks", "stream", "zstd"] }
+reqwest = { workspace = true, default-features = false, features = ["charset", "cookies", "deflate", "form", "gzip", "hickory-dns", "http2", "json", "multipart", "query", "rustls-no-provider", "socks", "stream", "zstd"] }
 rustls = { workspace = true, features = ["logging", "prefer-post-quantum", "std", "tls12"] }
 rustls-native-certs.workspace = true
 ryo3-bytes.workspace = true

@@ -298,6 +298,55 @@ _SSE_CHUNKS = (
 )
 
 
+async def brotli_response(
+    scope: uvt.HTTPScope, receive: Receive, send: Send
+) -> AsyncGenerator[uvt.ASGISendEvent]:
+    mode = scope["path"].rsplit("/", 1)[-1]
+    if mode == "redirect":
+        yield uvt.HTTPResponseStartEvent(
+            type="http.response.start",
+            status=302,
+            headers=[(b"location", b"/brotli/valid"), (b"content-length", b"0")],
+        )
+        yield uvt.HTTPResponseBodyEvent(type="http.response.body", body=b"")
+        return
+    data = b"" if mode == "empty" else big_body(200_000)
+    if mode == "sse":
+        data = b"data: hello\n\ndata: world\n\n"
+    body = bytes(ry.brotli_compress(data))
+    if mode == "legacy":
+        # Previous encoder, quality 11, with its nonstandard magic header.
+        body = b"k\x11\x00\xe1\x97\x80\x01\x141\x01\x80_\n++H\x08\x00\xe0\x01"
+    elif mode == "wire-empty":
+        body = b""
+    elif mode == "invalid":
+        body = b"\xff\xff\xff\xff"
+    elif mode == "truncated":
+        body = body[:-1]
+    elif mode == "trailing":
+        body += b"trailing data"
+    encoding = b"unknown" if mode == "unknown" else b"br"
+    yield uvt.HTTPResponseStartEvent(
+        type="http.response.start",
+        status=200,
+        headers=[
+            (b"content-encoding", encoding),
+            (b"content-length", str(len(body)).encode()),
+            (
+                b"content-type",
+                b"text/event-stream" if mode == "sse" else b"application/octet-stream",
+            ),
+            (b"x-brotli-test", b"preserved"),
+        ],
+    )
+    for offset in range(0, max(len(body), 1), 7):
+        yield uvt.HTTPResponseBodyEvent(
+            type="http.response.body",
+            body=body[offset : offset + 7],
+            more_body=offset + 7 < len(body),
+        )
+
+
 async def sse_response(
     scope: uvt.HTTPScope, receive: Receive, send: Send
 ) -> AsyncGenerator[uvt.ASGISendEvent]:
@@ -330,6 +379,7 @@ _Handler: t.TypeAlias = Callable[
     [uvt.HTTPScope, Receive, Send], AsyncGenerator[uvt.ASGISendEvent]
 ]
 _ROUTES: tuple[tuple[str, _Handler], ...] = (
+    ("/brotli/", brotli_response),
     ("/echo", echo),
     ("/howdy", howdy),
     ("/500", five_hundred),

@@ -31,21 +31,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "alloc-no-stdlib"
-version = "3.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c2fb6cfd47bf496ff64095c20eaba0c201404ee38714d4142fcfa1dc334fcc7a"
-
-[[package]]
-name = "alloc-stdlib"
-version = "0.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0b5c1865780388bfa186411ab5f247819487fc4864c6e9c3106611fa347586e1"
-dependencies = [
- "alloc-no-stdlib",
-]
-
-[[package]]
 name = "alloca"
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -180,27 +165,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "brotli"
-version = "9.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "627b7cfb0578f0eafce087a90fcd40add1231900b69e4d4de2d456260a4f5d81"
-dependencies = [
- "alloc-no-stdlib",
- "alloc-stdlib",
- "brotli-decompressor",
-]
-
-[[package]]
-name = "brotli-decompressor"
-version = "6.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "34c6783f42c21c952ad7112b354f0ba2f10760e9decea5b1b60523d6e270faaf"
-dependencies = [
- "alloc-no-stdlib",
- "alloc-stdlib",
-]
-
-[[package]]
 name = "bstr"
 version = "1.13.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -221,6 +185,15 @@ name = "burli-core"
 version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "35e485b05bf984b3ec41921ac734239b4c3d02acaa1e3d143b08ffa6d98705a6"
+
+[[package]]
+name = "burli-decode"
+version = "0.3.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "590d0c434f413916b4328d0eac394a340424b4bf31641b1d37debc1f3dbd018b"
+dependencies = [
+ "burli-core",
+]
 
 [[package]]
 name = "burli-encode"
@@ -364,7 +337,6 @@ version = "0.4.46"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cae36683101b2899f48bd31f8db9839437356188e3b1ff23096e73dab09ba8fe"
 dependencies = [
- "brotli",
  "compression-core",
  "flate2",
  "memchr",
@@ -2157,7 +2129,7 @@ dependencies = [
 name = "ryo3-brotli"
 version = "0.0.108"
 dependencies = [
- "brotli",
+ "burli-decode",
  "burli-encode",
  "pyo3",
  "ryo3-bytes",
@@ -2428,6 +2400,7 @@ dependencies = [
 name = "ryo3-reqwest"
 version = "0.0.108"
 dependencies = [
+ "burli-decode",
  "bytes",
  "encoding_rs",
  "futures-core",

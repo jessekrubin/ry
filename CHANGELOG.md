@@ -10,10 +10,13 @@
 ## [Unreleased]
 
 - `ryo3-brotli`
-  - use `burli-encode` for Brotli compression; keep `brotli` for decompression
+  - use `burli-encode` for Brotli compression and `burli-decode` for decompression
   - **BREAKING:** compression accepts levels `0` through `5`, defaults to `5`
     instead of `11`, and no longer accepts `magic_number`; this also applies to
     the deprecated `brotli_encode` and `brotli` aliases
+- `ryo3-reqwest`
+  - decode Brotli response bodies incrementally with `burli-decode` for async
+    and blocking clients, streams, and SSE; remove the `brotli` crate dependency
 
 ---
 

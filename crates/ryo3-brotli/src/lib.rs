@@ -1,7 +1,6 @@
 #![doc = include_str!("../README.md")]
 use std::io::Read;
 
-use ::brotli as br;
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use ryo3_bytes::{ReadableBuffer, RyBytes};
@@ -13,7 +12,7 @@ fn brotli_compress_impl(data: &[u8], level: PyBrotliLevel) -> PyResult<Vec<u8>> 
 
 fn brotli_decompress_impl(data: &[u8]) -> PyResult<Vec<u8>> {
     let mut decompressed = Vec::new();
-    br::Decompressor::new(data, 4 * 1024)
+    burli_decode::streaming::StreamDecoder::new(data)
         .read_to_end(&mut decompressed)
         .map_err(|e| PyValueError::new_err(format!("Brotli decode error: {e:?}")))?;
     Ok(decompressed)

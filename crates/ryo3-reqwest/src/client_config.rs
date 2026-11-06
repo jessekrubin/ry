@@ -1,6 +1,6 @@
 use pyo3::prelude::*;
 use pyo3::types::PyDict;
-use reqwest::header::HeaderValue;
+use reqwest::header::{ACCEPT_ENCODING, HeaderValue};
 use ryo3_core::py_dict::KwargsIter;
 use ryo3_http::{PyHeaders, PyHeadersLike};
 use ryo3_macro_rules::{py_type_err, py_value_error};
@@ -336,6 +336,28 @@ impl<'py> FromPyObject<'_, 'py> for ClientConfig {
 }
 
 impl ClientConfig {
+    pub(crate) fn brotli(&self) -> bool {
+        self.brotli
+    }
+
+    /// Match tower-http's negotiation order, including our own Brotli decoder.
+    fn accept_encoding(&self) -> Option<HeaderValue> {
+        let encodings = [
+            (self.zstd, "zstd"),
+            (self.gzip, "gzip"),
+            (self.deflate, "deflate"),
+            (self.brotli, "br"),
+        ]
+        .into_iter()
+        .filter_map(|(enabled, name)| enabled.then_some(name))
+        .collect::<Vec<_>>();
+        if encodings.is_empty() {
+            None
+        } else {
+            Some(HeaderValue::from_str(&encodings.join(",")).expect("static encoding names"))
+        }
+    }
+
     #[inline]
     fn apply_http2_opts(
         &self,
@@ -418,7 +440,8 @@ impl ClientConfig {
         let mut client_builder = client_builder
             .connection_verbose(self.connection_verbose)
             .gzip(self.gzip)
-            .brotli(self.brotli)
+            // Do not enable reqwest's decoder if another crate enables its feature.
+            .no_brotli()
             .deflate(self.deflate)
             .zstd(self.zstd)
             .cookie_store(self.cookies)
@@ -455,9 +478,17 @@ impl ClientConfig {
         if let Some(user_agent) = &self.user_agent {
             client_builder = client_builder.user_agent(user_agent.clone());
         }
-        if let Some(headers) = &self.headers {
-            client_builder = client_builder.default_headers(headers.0.py_read().clone());
+        let mut headers = self
+            .headers
+            .as_ref()
+            .map(|headers| headers.0.py_read().clone())
+            .unwrap_or_default();
+        if !headers.contains_key(ACCEPT_ENCODING)
+            && let Some(accept) = self.accept_encoding()
+        {
+            headers.insert(ACCEPT_ENCODING, accept);
         }
+        client_builder = client_builder.default_headers(headers);
         if let Some(timeout) = &self.timeout {
             client_builder = client_builder.timeout(timeout.into());
         }
