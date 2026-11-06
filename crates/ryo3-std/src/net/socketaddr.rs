@@ -52,7 +52,7 @@ impl PySocketAddrV4 {
         format!("{self}").into()
     }
 
-    fn __richcmp__(&self, other: Self, op: pyo3::basic::CompareOp) -> bool {
+    fn __richcmp__(&self, other: &Self, op: pyo3::basic::CompareOp) -> bool {
         match op {
             pyo3::basic::CompareOp::Eq => self.0 == other.0,
             pyo3::basic::CompareOp::Ne => self.0 != other.0,

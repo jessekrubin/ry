@@ -6,7 +6,6 @@ from typing import TYPE_CHECKING, Protocol, TypeAlias
 
 import pytest
 
-import ry
 from ry import xxhash as ry_xxhash
 
 from ._xxhash_fixtures import (

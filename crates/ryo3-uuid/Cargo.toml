@@ -30,7 +30,7 @@ ryo3-bytes.workspace = true
 ryo3-core.workspace = true
 ryo3-pydantic = { workspace = true, optional = true }
 serde = { workspace = true, optional = true, features = ["derive"] }
-uuid = { workspace = true, features = ["v1", "v3", "v4", "v5", "v6", "v7", "v8"] }
+uuid = { workspace = true, features = ["v1", "v3", "v4", "v5", "v6", "v7", "v8", "fast-rng"] }
 
 [dev-dependencies]
 serde = { workspace = true, features = ["derive"] }
