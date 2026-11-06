@@ -26,6 +26,18 @@
     `__getnewargs__`)
   - `immutable_type` gated on `any(not(Py_LIMITED_API), Py_3_14)` so the crate
     builds w/ `abi3`
+- `ryo3-tokio-websockets` ([@paddor](https://github.com/paddor)!
+  [#942](https://github.com/jessekrubin/ry/pull/942))
+  - perf: `WebSocket` send/recv (+ `async for`) poll on the asyncio loop w/
+    tokio's runtime context entered instead of spawning a tokio task per
+    message
+  - perf: handshake metadata is shared (`Arc`) instead of cloned
+  - `TCP_NODELAY` (Nagle off) on plain (`ws://`) connections
+  - throughput benchmark (`bench/test_websocket_throughput.py`)
+- `ryo3-tokio-rt`
+  - perf: `ry.Coroutine` polls a new future once before allocating the python
+    wakeup state, so already-ready operations skip it entirely
+    ([#942](https://github.com/jessekrubin/ry/pull/942))
 - `ryo3-reqwest`
   - fix: `query` that require escaping dont raise `ValueError` and get
     serialized and crudely spliced onto the end of the URL; this fixes a long
