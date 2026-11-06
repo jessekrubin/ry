@@ -291,7 +291,7 @@ class Bytes(Buffer):
         >>> b = Bytes.copy_from(b"unique-nu-yawk")
         >>> b.is_unique()
         True
-        >>> shared = b[:]
+        >>> shared = b.clone()
         >>> b.is_unique()
         False
 
