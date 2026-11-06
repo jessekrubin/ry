@@ -95,13 +95,13 @@ def test_repr(benchmark: BenchmarkFixture, u: object) -> None:
 @pytest.mark.benchmark(group="uuid-hex")
 @pytest.mark.parametrize("u", _OBJS)
 def test_hex(benchmark: BenchmarkFixture, u: pyuuid.UUID) -> None:
-    benchmark(lambda: u.hex)
+    benchmark(operator.attrgetter("hex"), u)
 
 
 @pytest.mark.benchmark(group="uuid-urn")
 @pytest.mark.parametrize("u", _OBJS)
 def test_urn(benchmark: BenchmarkFixture, u: pyuuid.UUID) -> None:
-    benchmark(lambda: u.urn)
+    benchmark(operator.attrgetter("urn"), u)
 
 
 # =============================================================================

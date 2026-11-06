@@ -4,14 +4,14 @@ from __future__ import annotations
 
 import operator
 import random
+import typing as t
 import uuid as pyuuid
-from typing import TYPE_CHECKING
 
 import pytest
 
 from ry import ULID
 
-if TYPE_CHECKING:
+if t.TYPE_CHECKING:
     from collections.abc import Callable
 
     from pytest_benchmark.fixture import BenchmarkFixture

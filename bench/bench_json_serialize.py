@@ -2,13 +2,12 @@ from __future__ import annotations
 
 import random
 import typing as t
-from typing import TYPE_CHECKING
 
 import pytest
 
 import ry
 
-if TYPE_CHECKING:
+if t.TYPE_CHECKING:
     import datetime as pydt
 
     from pytest_benchmark.fixture import BenchmarkFixture
@@ -117,7 +116,6 @@ _STRINGIFY_FUNCTIONS = [
 _STRINGIFY_FUNCTION_IDS = [e.__name__ for e in _STRINGIFY_FUNCTIONS]
 
 
-@pytest.mark.benchmark(group="stringify")
 @pytest.mark.parametrize(
     "data_fn",
     [
@@ -136,13 +134,11 @@ def test_bench_serialize(
     data_fn: t.Callable[[], t.Any],
     stringify_fn: t.Callable[[t.Any], object],
 ) -> None:
-    # set the group
-    benchmark.group = data_fn.__name__  # ty:ignore[unresolved-attribute]
+    benchmark.group = f"stringify-{data_fn.__name__}"  # ty:ignore[unresolved-attribute]
     data = data_fn()
     benchmark(stringify_fn, data)
 
 
-@pytest.mark.benchmark(group="stringify")
 @pytest.mark.parametrize(
     "stringify_fn",
     _STRINGIFY_FUNCTIONS,
@@ -152,6 +148,6 @@ def test_bench_serialize_x100(
     benchmark: BenchmarkFixture,
     stringify_fn: t.Callable[[t.Any], object],
 ) -> None:
-    benchmark.group = "x100"
+    benchmark.group = "stringify-x100"
     data = x100()
     benchmark(stringify_fn, data)

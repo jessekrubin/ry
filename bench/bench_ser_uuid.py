@@ -1,15 +1,15 @@
 from __future__ import annotations
 
+import typing as t
 import uuid as pyuuid
 from functools import cache
-from typing import TYPE_CHECKING
 
 import pytest
 
 import ry
 import ry.uuid as ryuuid
 
-if TYPE_CHECKING:
+if t.TYPE_CHECKING:
     from pytest_benchmark.fixture import BenchmarkFixture
 
 _UUID_STR = "550e8400-e29b-41d4-a716-446655440000"

@@ -61,8 +61,8 @@ test-release: build-release
     uv run pytest
 
 # benchmark ry python package
-bench: build-release
-    uv run pytest -vv
+bench *ARGS: build-release
+    uv run pytest bench --benchmark-only --benchmark-warmup=on {{ ARGS }}
 
 # ci rust checks
 ci:

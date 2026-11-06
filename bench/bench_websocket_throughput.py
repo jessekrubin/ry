@@ -3,10 +3,10 @@
 Build both revisions in release mode, then run this file against each package::
 
     PYTHONPATH=/path/to/before/python uv run pytest -vv \
-        bench/test_websocket_throughput.py --benchmark-only \
+        bench/bench_websocket_throughput.py --benchmark-only \
         --benchmark-json=scratch/websocket-before.json
     PYTHONPATH=/path/to/after/python uv run pytest -vv \
-        bench/test_websocket_throughput.py --benchmark-only \
+        bench/bench_websocket_throughput.py --benchmark-only \
         --benchmark-json=scratch/websocket-after.json
 
 The Python ``websockets`` peer shares the client's asyncio loop, so these rates
@@ -18,15 +18,15 @@ messages/second and payload MiB/second; pytest's OPS column counts batches/secon
 from __future__ import annotations
 
 import asyncio
+import typing as t
 from contextlib import AsyncExitStack
-from typing import TYPE_CHECKING, Literal
 
 import pytest
 from websockets.asyncio.server import serve
 
 import ry
 
-if TYPE_CHECKING:
+if t.TYPE_CHECKING:
     from pytest_benchmark.fixture import BenchmarkFixture
     from websockets.asyncio.server import ServerConnection
     from websockets.http11 import Request, Response
@@ -36,7 +36,9 @@ _ACK = b"done"
 
 
 async def _serve_messages(
-    connection: ServerConnection, payload: bytes, direction: Literal["send", "receive"]
+    connection: ServerConnection,
+    payload: bytes,
+    direction: t.Literal["send", "receive"],
 ) -> None:
     if direction == "send":
         received = 0
@@ -53,7 +55,7 @@ async def _serve_messages(
 
 
 async def _transfer(
-    client: ry.WebSocket, payload: bytes, direction: Literal["send", "receive"]
+    client: ry.WebSocket, payload: bytes, direction: t.Literal["send", "receive"]
 ) -> None:
     if direction == "send":
         for _ in range(_MESSAGES_PER_BATCH):
@@ -61,8 +63,12 @@ async def _transfer(
         assert bytes(await client.recv()) == _ACK
     else:
         await client.send(_ACK)
+        message = None
         for _ in range(_MESSAGES_PER_BATCH):
             message = await client.recv()
+        if message is None:
+            msg = "Did not receive any message"
+            raise RuntimeError(msg)
         assert bytes(message) == payload
 
 
@@ -72,7 +78,7 @@ async def _transfer(
 @pytest.mark.parametrize("extra_headers", [0, 16])
 def test_websocket_throughput(
     benchmark: BenchmarkFixture,
-    direction: Literal["send", "receive"],
+    direction: t.Literal["send", "receive"],
     payload_size: int,
     extra_headers: int,
 ) -> None:

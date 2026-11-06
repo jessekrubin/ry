@@ -1,29 +1,29 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+import typing as t
 
 import pytest
 
 import ry
 
-if TYPE_CHECKING:
+if t.TYPE_CHECKING:
     from pytest_benchmark.fixture import BenchmarkFixture
 
-ALL_BYTES = bytes(list(range(256)))
-ALL_BYTES_10X = ALL_BYTES * 10
+_ALL_BYTES = bytes(list(range(256)))
+_ALL_BYTES_10X = _ALL_BYTES * 10
 
 
 class TestBytes2String:
-    @pytest.mark.benchmark(group="bytes2str")
+    @pytest.mark.benchmark(group="bytes-repr")
     def test_python_bytes_string(self, benchmark: BenchmarkFixture) -> None:
         def bytes2str(b: bytes) -> int:
             return len(repr(b))
 
-        benchmark(bytes2str, ALL_BYTES_10X)
+        benchmark(bytes2str, _ALL_BYTES_10X)
 
-    @pytest.mark.benchmark(group="bytes2str")
+    @pytest.mark.benchmark(group="bytes-repr")
     def test_ry_bytes_string(self, benchmark: BenchmarkFixture) -> None:
-        ry_b = ry.Bytes(ALL_BYTES_10X)
+        ry_b = ry.Bytes(_ALL_BYTES_10X)
 
         def bytes2str(b: ry.Bytes) -> int:
             return len(repr(b))

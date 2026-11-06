@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+import operator
+import typing as t
 
 import pytest
 
 import ry
 
-if TYPE_CHECKING:
+if t.TYPE_CHECKING:
     from pytest_benchmark.fixture import BenchmarkFixture
 
 _DEFAULT_TEST_HEADERS: dict[str, str] = {
@@ -37,13 +38,13 @@ def _build_update_dict(size: int) -> dict[str, str]:
     return {f"X-Up-{i}": f"u{i}" for i in range(size)}
 
 
-@pytest.mark.benchmark(group="init")
+@pytest.mark.benchmark(group="headers-init")
 @pytest.mark.parametrize("size", [8, 64])
 def test_bench_headers_init_from_dict(benchmark: BenchmarkFixture, size: int) -> None:
     benchmark(_build_headers, size)
 
 
-@pytest.mark.benchmark(group="init")
+@pytest.mark.benchmark(group="headers-init")
 @pytest.mark.parametrize("size", [8, 64])
 def test_bench_headers_init_from_headers(
     benchmark: BenchmarkFixture, size: int
@@ -123,7 +124,7 @@ def test_bench_headers_to_dict(benchmark: BenchmarkFixture, size: int) -> None:
 def test_bench_headers_merge(benchmark: BenchmarkFixture, size: int) -> None:
     h = _build_headers(size)
     other = _build_headers(size)
-    benchmark(lambda: h | other)
+    benchmark(operator.or_, h, other)
 
 
 # =============================================================================

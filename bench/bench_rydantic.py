@@ -5,14 +5,13 @@ import datetime as pydt
 import typing as t
 import zoneinfo
 from ipaddress import IPv4Address, IPv6Address
-from typing import TYPE_CHECKING
 
 import pydantic
 import pytest
 
 import ry
 
-if TYPE_CHECKING:
+if t.TYPE_CHECKING:
     from pytest_benchmark.fixture import BenchmarkFixture
 
 _T = t.TypeVar("_T")
