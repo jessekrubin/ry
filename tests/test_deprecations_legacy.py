@@ -174,7 +174,7 @@ class TestDurationIntDeprecation:
                 "Duration.__int__", "Duration.as_nanos", "v0.0.108"
             ),
         ):
-            assert int(ry.Duration(*secs_nanos)) == expected  # type: ignore[attr-defined]  # ty:ignore[unresolved-attribute]
+            assert int(ry.Duration(*secs_nanos)) == expected  # type: ignore[call-overload]  # ty:ignore[invalid-argument-type]
 
     @pytest.mark.parametrize(
         ("secs_nanos", "expected"),
@@ -189,4 +189,4 @@ class TestDurationIntDeprecation:
                 "SignedDuration.__int__", "SignedDuration.as_nanos", "v0.0.108"
             ),
         ):
-            assert int(ry.SignedDuration(*secs_nanos)) == expected  # type: ignore[attr-defined]  # ty:ignore[unresolved-attribute]
+            assert int(ry.SignedDuration(*secs_nanos)) == expected  # type: ignore[call-overload]  # ty:ignore[invalid-argument-type]

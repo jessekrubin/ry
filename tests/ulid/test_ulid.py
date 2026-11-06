@@ -346,8 +346,10 @@ def test_eq_ord_generated() -> None:
 class TestULIDFork:
     """child after `os.fork()` must not hand out the parent's next ulid"""
 
-    @pytest.mark.skipif(not hasattr(os, "fork"), reason="no fork")
     def test_fork_child_generator(self) -> None:
+        fork = getattr(os, "fork", None)
+        if fork is None:
+            pytest.skip("no fork")
         # w/o the reset the child keeps the parent's monotonic generator, so a
         # child ulid in the same ms as the parent's last one is exactly
         # `last + 1` ~ the same "next" ulid the parent hands out
@@ -355,7 +357,7 @@ class TestULIDFork:
         for _ in range(500):
             last = ULID()
             r, w = os.pipe()
-            pid = os.fork()
+            pid = fork()
             if pid == 0:  # pragma: no cover - child
                 try:
                     os.write(w, str(ULID()).encode())
