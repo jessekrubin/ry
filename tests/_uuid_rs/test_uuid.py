@@ -255,14 +255,16 @@ class TestUUIDFork:
     revealed by old flask server + gunicorn i was messing with
     """
 
-    @pytest.mark.skipif(not hasattr(os, "fork"), reason="no fork")
     @pytest.mark.parametrize("gen", ["uuid4", "uuid7", "uuid8"])
     def test_fork_child_generator(self, gen: str) -> None:
+        fork = getattr(os, "fork", None)
+        if fork is None:
+            pytest.skip("no fork")
         fn = getattr(ryuuid, gen)
         fn()
         for _ in range(10):
             r, w = os.pipe()
-            pid = os.fork()
+            pid = fork()
             if pid == 0:  # pragma: no cover - child
                 try:
                     os.write(w, str(fn()).encode())

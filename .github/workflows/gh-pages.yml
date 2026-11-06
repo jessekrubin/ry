@@ -37,7 +37,8 @@ jobs:
           tool: mdbook,lychee
 
       - name: build-docs
-        run: cd docs && mdbook build && lychee book --exclude=http://www.adobe.com/
+        # stupid adobe && shields.io likes to timeout sometimes
+        run: cd docs && mdbook build && lychee book --exclude=http://www.adobe.com/ --exclude='^https://img\.shields\.io/'
 
       - name: upload-artifact
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7

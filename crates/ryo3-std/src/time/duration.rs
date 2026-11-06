@@ -191,16 +191,6 @@ impl PyDuration {
         self.0.as_secs_f64()
     }
 
-    #[pyo3(
-        warn(
-            message = "`Duration.__int__` is deprecated; use `Duration.as_nanos` instead [removal: v0.0.108]",
-            category = pyo3::exceptions::PyDeprecationWarning
-        )
-    )]
-    fn __int__(&self) -> u128 {
-        self.0.as_nanos()
-    }
-
     // ========================================================================
     // MATHS/OPERATORS
     // ========================================================================

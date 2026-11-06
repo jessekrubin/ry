@@ -3,7 +3,6 @@
 import datetime as pydt
 import ipaddress
 import pathlib
-import sys
 import typing as t
 from types import TracebackType
 
@@ -13,11 +12,6 @@ from ry._types import (
 )
 from ry.protocols import FromStr, RyIterator, ToPy, ToPyTimeDelta, ToString, _Parse
 from ry.ryo3._bytes import Bytes
-
-if sys.version_info >= (3, 13):
-    from warnings import deprecated
-else:
-    from typing_extensions import deprecated
 
 # =============================================================================
 # CONSTANTS
@@ -101,10 +95,6 @@ class Duration(FromStr, ToPyTimeDelta, ToPy[pydt.timedelta], ToString, _Parse):
     def __hash__(self) -> int: ...
     def __bool__(self) -> bool: ...
     def __float__(self) -> float: ...
-    @deprecated(
-        "`Duration.__int__` is deprecated; use `Duration.as_nanos` instead [removal: v0.0.108]"
-    )
-    def __int__(self) -> int: ...
     @t.overload
     def __truediv__(self, other: t.Self | pydt.timedelta, /) -> float: ...
     @t.overload
