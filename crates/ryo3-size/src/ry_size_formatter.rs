@@ -5,16 +5,17 @@ use ryo3_core::PyAsciiString;
 
 use crate::types::{PyBase, PyStyle};
 
-#[pyclass(name = "SizeFormatter", frozen, immutable_type)]
+#[pyclass(name = "SizeFormatter", frozen)]
+#[cfg_attr(any(not(Py_LIMITED_API), Py_3_14), pyo3(immutable_type))]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
-pub struct PySizeFormatter {
+pub struct RySizeFormatter {
     formatter: size::fmt::SizeFormatter,
     base: PyBase,
     style: PyStyle,
     scale: Option<u8>,
 }
 
-impl PySizeFormatter {
+impl RySizeFormatter {
     fn new(base: PyBase, style: PyStyle, scale: Option<u8>) -> Self {
         let formatter = size::fmt::SizeFormatter::new()
             .with_base(base.into())
@@ -30,7 +31,7 @@ impl PySizeFormatter {
 }
 
 #[pymethods]
-impl PySizeFormatter {
+impl RySizeFormatter {
     #[new]
     #[pyo3(
         signature = (base = PyBase::default(), style = PyStyle::default(), scale = None),
@@ -95,13 +96,13 @@ impl PySizeFormatter {
     }
 }
 
-impl From<(PyBase, PyStyle, Option<u8>)> for PySizeFormatter {
+impl From<(PyBase, PyStyle, Option<u8>)> for RySizeFormatter {
     fn from((base, style, scale): (PyBase, PyStyle, Option<u8>)) -> Self {
         Self::py_new(base, style, scale)
     }
 }
 
-impl std::fmt::Display for PySizeFormatter {
+impl std::fmt::Display for RySizeFormatter {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,

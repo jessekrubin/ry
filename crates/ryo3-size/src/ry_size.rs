@@ -10,23 +10,24 @@ use ryo3_core::macros::{py_overflow_err, py_overflow_error, py_type_err, py_type
 use crate::types::{PyBase, PyStyle};
 
 #[derive(Debug, Clone, Copy)]
-#[pyclass(name = "Size", frozen, immutable_type)]
+#[pyclass(name = "Size", frozen)]
+#[cfg_attr(any(not(Py_LIMITED_API), Py_3_14), pyo3(immutable_type))]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
-pub struct PySize(size::Size);
+pub struct RySize(size::Size);
 
-impl From<size::Size> for PySize {
+impl From<size::Size> for RySize {
     fn from(size: size::Size) -> Self {
         Self(size)
     }
 }
 
-impl From<i64> for PySize {
+impl From<i64> for RySize {
     fn from(size: i64) -> Self {
         Self::from_const(size)
     }
 }
 
-impl PySize {
+impl RySize {
     const fn from_const(size: i64) -> Self {
         Self(size::Size::from_const(size))
     }
@@ -34,7 +35,7 @@ impl PySize {
 
 #[expect(clippy::trivially_copy_pass_by_ref)]
 #[pymethods]
-impl PySize {
+impl RySize {
     #[new]
     fn py_new(size: i64) -> Self {
         Self(size::Size::from_const(size))
@@ -533,7 +534,7 @@ impl PySize {
     }
 }
 
-impl<'py> FromPyObject<'_, 'py> for PySize {
+impl<'py> FromPyObject<'_, 'py> for RySize {
     type Error = pyo3::PyErr;
 
     fn extract(obj: Borrowed<'_, 'py, PyAny>) -> Result<Self, Self::Error> {
@@ -543,7 +544,7 @@ impl<'py> FromPyObject<'_, 'py> for PySize {
     }
 }
 
-impl From<Borrowed<'_, '_, Self>> for PySize {
+impl From<Borrowed<'_, '_, Self>> for RySize {
     fn from(value: Borrowed<'_, '_, Self>) -> Self {
         Self(value.get().0)
     }
@@ -556,7 +557,7 @@ impl<'py> FromPyObject<'_, 'py> for SizeWrapper {
     type Error = pyo3::PyErr;
 
     fn extract(obj: Borrowed<'_, 'py, PyAny>) -> Result<Self, Self::Error> {
-        if let Ok(s) = obj.cast_exact::<PySize>() {
+        if let Ok(s) = obj.cast_exact::<RySize>() {
             Ok(Self(s.get().0))
         } else if let Ok(i) = obj.extract::<i64>() {
             Ok(Self(size::Size::from_const(i)))
@@ -568,7 +569,7 @@ impl<'py> FromPyObject<'_, 'py> for SizeWrapper {
     }
 }
 
-impl FromStr for PySize {
+impl FromStr for RySize {
     type Err = size::ParseSizeError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
@@ -628,13 +629,13 @@ impl_intermediate_to_size_fn!(into_exbibytes, from_exbibytes);
 
 #[derive(Debug, Clone, Copy, FromPyObject)]
 enum PySizeArithmetic {
-    Size(PySize),
+    Size(RySize),
     Int64(i64),
     UInt64(u64),
     Float64(f64), // must make float last
 }
 
-impl std::fmt::Display for PySize {
+impl std::fmt::Display for RySize {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "Size({})", self.0.bytes())
     }
