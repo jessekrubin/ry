@@ -99,13 +99,9 @@ class TestBrotliDeprecations:
         with pytest.warns(DeprecationWarning, match=msg):
             assert getattr(ry, old)(self._DATA, quality=5) == expected
         with pytest.warns(DeprecationWarning, match=msg):
-            assert getattr(ry, old)(self._DATA) == expected
-
-    @pytest.mark.parametrize("old", ["brotli_encode", "brotli"])
-    @pytest.mark.parametrize("magic_number", [False, True])
-    def test_magic_number_removed(self, old: str, *, magic_number: bool) -> None:
-        with pytest.raises(TypeError, match="magic_number"):
-            getattr(ry, old)(self._DATA, magic_number=magic_number)
+            assert getattr(ry, old)(self._DATA, magic_number=True) == (
+                ry.brotli_compress(self._DATA, magic_number=True)
+            )
 
     def test_decompress_alias(self) -> None:
         compressed = ry.brotli_compress(self._DATA)
@@ -117,17 +113,19 @@ class TestBrotliDeprecations:
         ):
             assert ry.brotli_decode(compressed) == ry.brotli_decompress(compressed)  # type: ignore[deprecated]  # ty:ignore[deprecated]
 
-    @pytest.mark.parametrize("old", ["brotli_encode", "brotli"])
-    @pytest.mark.parametrize("quality", [6, 11, 12])
-    def test_quality_value_error(self, old: str, quality: int) -> None:
+    def test_quality_value_error(self) -> None:
         with (
             pytest.warns(
                 DeprecationWarning,
-                match=_deprecation_message(old, "brotli_compress", "v0.0.109"),
+                match=_deprecation_message(
+                    "brotli_encode", "brotli_compress", "v0.0.109"
+                ),
             ),
-            pytest.raises(ValueError, match="Compression level must be an integer 0-5"),
+            pytest.raises(
+                ValueError, match="Compression level must be an integer 0-11"
+            ),
         ):
-            getattr(ry, old)(b"data", quality=quality)
+            ry.brotli_encode(b"data", quality=12)  # type: ignore[arg-type,deprecated]  # ty:ignore[invalid-argument-type, deprecated]
 
 
 class TestBzip2Deprecations:

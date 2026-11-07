@@ -124,7 +124,7 @@ _(aka: questions that I have been asking myself)_
 | `uuid`             | [`ryo3-uuid`](https://github.com/jessekrubin/ry/tree/main/crates/ryo3-uuid)                         |
 | `which`            | [`ryo3-which`](https://github.com/jessekrubin/ry/tree/main/crates/ryo3-which)                       |
 | **Compression**    | **~**                                                                                               |
-| `burli`            | [`ryo3-brotli`](https://github.com/jessekrubin/ry/tree/main/crates/ryo3-brotli)                     |
+| `brotli`           | [`ryo3-brotli`](https://github.com/jessekrubin/ry/tree/main/crates/ryo3-brotli)                     |
 | `flate2`           | [`ryo3-flate2`](https://github.com/jessekrubin/ry/tree/main/crates/ryo3-flate2)                     |
 | `lz4rip`           | [`ryo3-lz4rip`](https://github.com/jessekrubin/ry/tree/main/crates/ryo3-lz4rip)                     |
 | `zstd`             | [`ryo3-zstd`](https://github.com/jessekrubin/ry/tree/main/crates/ryo3-zstd)                         |
