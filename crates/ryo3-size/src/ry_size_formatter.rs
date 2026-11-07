@@ -5,16 +5,17 @@ use ryo3_core::PyAsciiString;
 
 use crate::types::{PyBase, PyStyle};
 
-#[pyclass(name = "SizeFormatter", frozen, immutable_type)]
+#[pyclass(name = "SizeFormatter", frozen, eq)]
+#[cfg_attr(any(not(Py_LIMITED_API), Py_3_14), pyo3(immutable_type))]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
-pub struct PySizeFormatter {
+pub struct RySizeFormatter {
     formatter: size::fmt::SizeFormatter,
     base: PyBase,
     style: PyStyle,
     scale: Option<u8>,
 }
 
-impl PySizeFormatter {
+impl RySizeFormatter {
     fn new(base: PyBase, style: PyStyle, scale: Option<u8>) -> Self {
         let formatter = size::fmt::SizeFormatter::new()
             .with_base(base.into())
@@ -29,8 +30,14 @@ impl PySizeFormatter {
     }
 }
 
+impl PartialEq for RySizeFormatter {
+    fn eq(&self, other: &Self) -> bool {
+        self.base == other.base && self.style == other.style && self.scale == other.scale
+    }
+}
+
 #[pymethods]
-impl PySizeFormatter {
+impl RySizeFormatter {
     #[new]
     #[pyo3(
         signature = (base = PyBase::default(), style = PyStyle::default(), scale = None),
@@ -38,10 +45,6 @@ impl PySizeFormatter {
     )]
     fn py_new(base: PyBase, style: PyStyle, scale: Option<u8>) -> Self {
         Self::new(base, style, scale)
-    }
-
-    fn __eq__(&self, other: &Self) -> bool {
-        self.base == other.base && self.style == other.style && self.scale == other.scale
     }
 
     fn __getnewargs__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
@@ -95,13 +98,13 @@ impl PySizeFormatter {
     }
 }
 
-impl From<(PyBase, PyStyle, Option<u8>)> for PySizeFormatter {
+impl From<(PyBase, PyStyle, Option<u8>)> for RySizeFormatter {
     fn from((base, style, scale): (PyBase, PyStyle, Option<u8>)) -> Self {
         Self::py_new(base, style, scale)
     }
 }
 
-impl std::fmt::Display for PySizeFormatter {
+impl std::fmt::Display for RySizeFormatter {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,

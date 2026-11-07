@@ -3,38 +3,117 @@ use std::str::FromStr;
 
 use pyo3::prelude::*;
 use pyo3::pyclass::CompareOp;
-use pyo3::types::PyTuple;
-use ryo3_core::PyAsciiString;
-use ryo3_core::macros::{py_overflow_err, py_overflow_error, py_type_err, py_type_error};
+use pyo3::types::{PyFloat, PyInt, PyTuple};
+use ryo3_core::macros::{py_overflow_err, py_overflow_error, py_type_error};
+use ryo3_core::{
+    FromPyOperand, PyAsciiString, PyNotImplementedOr, PyOperandArg, PyRichCmp, pynumber_check,
+};
 
 use crate::types::{PyBase, PyStyle};
 
 #[derive(Debug, Clone, Copy)]
-#[pyclass(name = "Size", frozen, immutable_type)]
+#[pyclass(name = "Size", frozen)]
+#[cfg_attr(any(not(Py_LIMITED_API), Py_3_14), pyo3(immutable_type))]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
-pub struct PySize(size::Size);
+pub struct RySize(size::Size);
 
-impl From<size::Size> for PySize {
+impl From<size::Size> for RySize {
     fn from(size: size::Size) -> Self {
         Self(size)
     }
 }
 
-impl From<i64> for PySize {
+impl From<i64> for RySize {
     fn from(size: i64) -> Self {
         Self::from_const(size)
     }
 }
 
-impl PySize {
+impl RySize {
     const fn from_const(size: i64) -> Self {
         Self(size::Size::from_const(size))
+    }
+
+    fn py_try_add(self, rhs: PySizeOperand) -> PyResult<Self> {
+        self.0
+            .bytes()
+            .checked_add(rhs.bytes_for_add_sub())
+            .map(Self::from)
+            .ok_or_else(|| py_overflow_error!("overflow"))
+    }
+
+    fn py_try_sub(self, rhs: PySizeOperand) -> PyResult<Self> {
+        self.0
+            .bytes()
+            .checked_sub(rhs.bytes_for_add_sub())
+            .map(Self::from)
+            .ok_or_else(|| py_overflow_error!("overflow"))
+    }
+
+    /// `lhs - self` (`__rsub__`)
+    fn py_try_rsub(self, lhs: PySizeOperand) -> PyResult<Self> {
+        lhs.bytes_for_add_sub()
+            .checked_sub(self.0.bytes())
+            .map(Self::from)
+            .ok_or_else(|| py_overflow_error!("overflow"))
+    }
+
+    #[expect(clippy::cast_precision_loss, clippy::cast_possible_truncation)]
+    fn py_try_mul(self, rhs: PySizeOperand) -> PyResult<Self> {
+        let base = self.0.bytes();
+        if base == 0 {
+            return Ok(Self::from(0));
+        }
+        let result_bytes: Option<i64> = match rhs {
+            PySizeOperand::Size(s) => base.checked_mul(s.bytes()),
+
+            PySizeOperand::Int64(i) => base.checked_mul(i),
+            PySizeOperand::UInt64(u) => {
+                let product = i128::from(base)
+                    .checked_mul(i128::from(u))
+                    .ok_or_else(|| py_overflow_error!("overflow (size * u64)"))?;
+                if (i128::from(i64::MIN)..=i128::from(i64::MAX)).contains(&product) {
+                    product.try_into().ok()
+                } else {
+                    None
+                }
+            }
+            PySizeOperand::Float64(f) => {
+                if !(f.is_finite()) {
+                    return py_overflow_err!("Cannot multiply Size by NaN or infinite float");
+                }
+                let result_f64 = (base as f64) * f;
+                if !result_f64.is_finite() {
+                    return py_overflow_err!("Overflow in Size * float");
+                }
+                let rounded = result_f64.round();
+                if rounded < i64::MIN as f64 || rounded > i64::MAX as f64 {
+                    None
+                } else {
+                    let result = rounded as i64;
+                    Some(result)
+                }
+            }
+        };
+        result_bytes
+            .map(Self::from)
+            .ok_or_else(|| py_overflow_error!("Overflow in Size multiplication"))
+    }
+
+    /// compare as a python `int` (big ints, floats)
+    fn py_int_richcmp(self, other: &Bound<'_, PyAny>, op: CompareOp) -> PyResult<PyRichCmp> {
+        self.0
+            .bytes()
+            .into_pyobject(other.py())?
+            .rich_compare(other, op)?
+            .is_truthy()
+            .map(PyRichCmp::from)
     }
 }
 
 #[expect(clippy::trivially_copy_pass_by_ref)]
 #[pymethods]
-impl PySize {
+impl RySize {
     #[new]
     fn py_new(size: i64) -> Self {
         Self(size::Size::from_const(size))
@@ -70,17 +149,23 @@ impl PySize {
         self.0.bytes()
     }
 
-    // TODO: don't use SizeWrapper directly... see UUID
-    #[expect(clippy::needless_pass_by_value)]
-    fn __richcmp__(&self, other: SizeWrapper, op: CompareOp) -> bool {
-        match op {
-            CompareOp::Eq => self.0 == other.0,
-            CompareOp::Ne => self.0 != other.0,
-            CompareOp::Lt => self.0 < other.0,
-            CompareOp::Le => self.0 <= other.0,
-            CompareOp::Gt => self.0 > other.0,
-            CompareOp::Ge => self.0 >= other.0,
-        }
+    fn __richcmp__(&self, other: &Bound<'_, PyAny>, op: CompareOp) -> PyResult<PyRichCmp> {
+        use ryo3_core::PyCastExactOpt;
+        let other_bytes = if let Some(s) = other.cast_exact_opt::<Self>() {
+            s.get().0.bytes()
+        } else if other.is_instance_of::<PyInt>() {
+            match other.extract::<i64>() {
+                Ok(i) => i,
+                // big int: let python do it (exact)
+                Err(_) => return self.py_int_richcmp(other, op),
+            }
+        } else if other.is_instance_of::<PyFloat>() {
+            // python int-vs-float compare is exact (no truncating the float)
+            return self.py_int_richcmp(other, op);
+        } else {
+            return Ok(PyRichCmp::NotImplemented);
+        };
+        Ok(op.matches(self.0.bytes().cmp(&other_bytes)).into())
     }
 
     #[pyo3(
@@ -125,72 +210,28 @@ impl PySize {
         Self(size::Size::from_const(self.0.bytes().not()))
     }
 
-    #[expect(clippy::needless_pass_by_value)]
-    fn __add__(&self, other: SizeWrapper) -> PyResult<Self> {
-        self.0
-            .bytes()
-            .checked_add(other.0.bytes())
-            .map(Self::from)
-            .ok_or_else(|| py_overflow_error!("overflow"))
+    fn __add__(&self, other: PySizeOperandArg) -> PyResult<PyNotImplementedOr<Self>> {
+        other.try_map(|rhs| self.py_try_add(rhs))
     }
 
-    #[expect(clippy::needless_pass_by_value)]
-    fn __sub__(&self, other: SizeWrapper) -> PyResult<Self> {
-        self.0
-            .bytes()
-            .checked_sub(other.0.bytes())
-            .map(Self::from)
-            .ok_or_else(|| py_overflow_error!("overflow"))
+    fn __radd__(&self, other: PySizeOperandArg) -> PyResult<PyNotImplementedOr<Self>> {
+        other.try_map(|lhs| self.py_try_add(lhs))
     }
 
-    #[expect(clippy::cast_precision_loss, clippy::cast_possible_truncation)]
-    fn __mul__(&self, other: PySizeArithmetic) -> PyResult<Self> {
-        let base = self.0.bytes();
-
-        if self.0.bytes() == 0 {
-            return Ok(Self::from(0));
-        }
-        let result_bytes: Option<i64> = match other {
-            PySizeArithmetic::Size(s) => base.checked_mul(s.0.bytes()),
-
-            PySizeArithmetic::Int64(i) => base.checked_mul(i),
-            PySizeArithmetic::UInt64(u) => {
-                let lhs = i128::from(base);
-                let rhs = i128::from(u);
-                let product = lhs
-                    .checked_mul(rhs)
-                    .ok_or_else(|| py_overflow_error!("overflow (size * u64)"))?;
-                if (i128::from(i64::MIN)..=i128::from(i64::MAX)).contains(&product) {
-                    product.try_into().ok()
-                } else {
-                    None
-                }
-            }
-
-            PySizeArithmetic::Float64(f) => {
-                if !(f.is_finite()) {
-                    return py_overflow_err!("Cannot multiply Size by NaN or infinite float");
-                }
-                let result_f64 = (base as f64) * f;
-                if !result_f64.is_finite() {
-                    return py_overflow_err!("Overflow in Size * float");
-                }
-                let rounded = result_f64.round();
-                if rounded < i64::MIN as f64 || rounded > i64::MAX as f64 {
-                    None
-                } else {
-                    let result = rounded as i64;
-                    Some(result)
-                }
-            }
-        };
-        result_bytes
-            .ok_or_else(|| py_overflow_error!("Overflow in Size multiplication"))
-            .map(Self::from)
+    fn __sub__(&self, other: PySizeOperandArg) -> PyResult<PyNotImplementedOr<Self>> {
+        other.try_map(|rhs| self.py_try_sub(rhs))
     }
 
-    fn __rmul__(&self, other: PySizeArithmetic) -> PyResult<Self> {
-        self.__mul__(other)
+    fn __rsub__(&self, other: PySizeOperandArg) -> PyResult<PyNotImplementedOr<Self>> {
+        other.try_map(|lhs| self.py_try_rsub(lhs))
+    }
+
+    fn __mul__(&self, other: PySizeOperandArg) -> PyResult<PyNotImplementedOr<Self>> {
+        other.try_map(|rhs| self.py_try_mul(rhs))
+    }
+
+    fn __rmul__(&self, other: PySizeOperandArg) -> PyResult<PyNotImplementedOr<Self>> {
+        other.try_map(|rhs| self.py_try_mul(rhs))
     }
 
     #[staticmethod]
@@ -533,7 +574,7 @@ impl PySize {
     }
 }
 
-impl<'py> FromPyObject<'_, 'py> for PySize {
+impl<'py> FromPyObject<'_, 'py> for RySize {
     type Error = pyo3::PyErr;
 
     fn extract(obj: Borrowed<'_, 'py, PyAny>) -> Result<Self, Self::Error> {
@@ -543,32 +584,13 @@ impl<'py> FromPyObject<'_, 'py> for PySize {
     }
 }
 
-impl From<Borrowed<'_, '_, Self>> for PySize {
+impl From<Borrowed<'_, '_, Self>> for RySize {
     fn from(value: Borrowed<'_, '_, Self>) -> Self {
         Self(value.get().0)
     }
 }
 
-#[derive(Debug, Clone)]
-struct SizeWrapper(size::Size);
-
-impl<'py> FromPyObject<'_, 'py> for SizeWrapper {
-    type Error = pyo3::PyErr;
-
-    fn extract(obj: Borrowed<'_, 'py, PyAny>) -> Result<Self, Self::Error> {
-        if let Ok(s) = obj.cast_exact::<PySize>() {
-            Ok(Self(s.get().0))
-        } else if let Ok(i) = obj.extract::<i64>() {
-            Ok(Self(size::Size::from_const(i)))
-        } else if let Ok(f) = obj.extract::<f64>() {
-            Ok(Self(size::Size::from_bytes(f)))
-        } else {
-            py_type_err!("expected `Size`, int, or float")
-        }
-    }
-}
-
-impl FromStr for PySize {
+impl FromStr for RySize {
     type Err = size::ParseSizeError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
@@ -626,15 +648,50 @@ impl_intermediate_to_size_fn!(into_eib, from_eib);
 impl_intermediate_to_size_fn!(into_exabytes, from_exabytes);
 impl_intermediate_to_size_fn!(into_exbibytes, from_exbibytes);
 
-#[derive(Debug, Clone, Copy, FromPyObject)]
-enum PySizeArithmetic {
-    Size(PySize),
+/// rhs of `+`/`-`/`*`
+#[derive(Debug, Clone, Copy)]
+enum PySizeOperand {
+    Size(size::Size),
     Int64(i64),
     UInt64(u64),
-    Float64(f64), // must make float last
+    Float64(f64),
+}
+type PySizeOperandArg = PyOperandArg<PySizeOperand>;
+
+impl FromPyOperand for PySizeOperand {
+    fn from_py_operand(ob: Borrowed<'_, '_, PyAny>) -> Option<Self> {
+        use ryo3_core::PyCastExactOpt;
+        if let Some(s) = ob.cast_exact_opt::<RySize>() {
+            Some(Self::Size(s.get().0))
+        } else if let Some(f) = ob.cast_exact_opt::<PyFloat>() {
+            // exact float has no `__index__` so the int extracts can't succeed
+            Some(Self::Float64(f.value()))
+        } else if !pynumber_check(ob) {
+            // not a number (None, str, ...): every extract below would fail
+            None
+        } else if let Ok(i) = ob.extract::<i64>() {
+            Some(Self::Int64(i))
+        } else if let Ok(u) = ob.extract::<u64>() {
+            Some(Self::UInt64(u))
+        } else {
+            ob.extract::<f64>().ok().map(Self::Float64)
+        }
+    }
 }
 
-impl std::fmt::Display for PySize {
+impl PySizeOperand {
+    #[expect(clippy::cast_precision_loss)]
+    fn bytes_for_add_sub(self) -> i64 {
+        match self {
+            Self::Size(s) => s.bytes(),
+            Self::Int64(i) => i,
+            Self::UInt64(u) => size::Size::from_bytes(u as f64).bytes(),
+            Self::Float64(f) => size::Size::from_bytes(f).bytes(),
+        }
+    }
+}
+
+impl std::fmt::Display for RySize {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "Size({})", self.0.bytes())
     }

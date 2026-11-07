@@ -2,9 +2,11 @@ pub mod errors;
 mod map_pyerr;
 mod py_cast;
 pub mod py_dict;
+mod py_int;
 pub mod py_list;
+mod py_not_implemented;
+mod py_operand;
 mod py_parse;
-mod py_richcmp;
 mod py_str;
 mod py_try_from;
 pub mod repr;
@@ -13,8 +15,10 @@ pub mod types;
 pub use errors::{FeatureNotEnabledError, PanicError, UnreachableError};
 pub use map_pyerr::{map_py_overflow_err, map_py_runtime_err, map_py_value_err};
 pub use py_cast::{PyCastExactOpt, PyCastOpt};
+pub use py_int::pynumber_check;
+pub use py_not_implemented::{PyNotImplementedOr, PyRichCmp};
+pub use py_operand::{FromPyOperand, PyOperandArg};
 pub use py_parse::{PyFromStr, PyFromStrArg, PyParse, PyParseArg};
-pub use py_richcmp::PyRichCmp;
 pub use py_str::{
     PyAsciiStr, PyAsciiString, pystr_read_fast, pystr_read_fast_opt, pystring_ascii_new,
     pystring_fast_new, pystring_fast_new_ascii,
