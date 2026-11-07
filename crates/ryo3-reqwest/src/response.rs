@@ -54,6 +54,13 @@ enum OwnedBody {
     Buffered(bytes::Bytes),
 }
 
+/// Headers and body normalized at the transport boundary.
+#[derive(Debug)]
+pub(crate) struct ResponseParts {
+    pub(crate) head: RyResponseHead,
+    pub(crate) body: reqwest::Body,
+}
+
 impl OwnedBody {
     fn into_stream(self, status: reqwest::StatusCode, min_read_size: usize) -> ResponseStreamInner {
         match self {
@@ -142,35 +149,19 @@ async fn prefetch_body(mut body: reqwest::Body, content_length: u64) -> Response
     }
 }
 
-fn split_response(res: reqwest::Response) -> (RyResponseHead, reqwest::Body) {
-    let url = res.url().clone();
-    let content_length = res.content_length();
-    let remote_addr = res.remote_addr();
-    let res: http::Response<reqwest::Body> = res.into();
-    let (parts, body) = res.into_parts();
-    let head = RyResponseHead::from_parts(
-        parts.status,
-        parts.headers,
-        url,
-        content_length,
-        parts.version,
-        remote_addr,
-    );
-    (head, body)
-}
-
-/// head + (maybe prefetched) body ~ small known-length bodies that are already
-/// here get read w/ the head
-async fn split_prefetched(res: reqwest::Response) -> (RyResponseHead, ResponseBody) {
-    let prefetch_len = res
-        .content_length()
-        .filter(|&length| length <= PREFETCH_MAX_LEN);
-    let (head, body) = split_response(res);
-    let body = match prefetch_len {
-        Some(length) => prefetch_body(body, length).await,
-        None => ResponseBody::Stream(body),
-    };
-    (head, body)
+impl ResponseParts {
+    /// Read small known-length bodies that have already arrived with the head.
+    async fn prefetch(self) -> (RyResponseHead, ResponseBody) {
+        let prefetch_len = self
+            .head
+            .content_length
+            .filter(|&length| length <= PREFETCH_MAX_LEN);
+        let body = match prefetch_len {
+            Some(length) => prefetch_body(self.body, length).await,
+            None => ResponseBody::Stream(self.body),
+        };
+        (self.head, body)
+    }
 }
 
 fn take_owned(body: &RyMutex<ResponseBody>) -> PyResult<OwnedBody> {
@@ -182,8 +173,8 @@ fn take_owned(body: &RyMutex<ResponseBody>) -> PyResult<OwnedBody> {
 }
 
 impl RyResponse {
-    pub(crate) async fn from_response(res: reqwest::Response) -> Self {
-        let (head, body) = split_prefetched(res).await;
+    pub(crate) async fn from_parts(parts: ResponseParts) -> Self {
+        let (head, body) = parts.prefetch().await;
         Self {
             head,
             body: RyMutex::new(body),
@@ -224,8 +215,8 @@ impl RyResponse {
 }
 
 impl RyBlockingResponse {
-    pub(crate) async fn from_response(res: reqwest::Response) -> Self {
-        let (head, body) = split_prefetched(res).await;
+    pub(crate) async fn from_parts(parts: ResponseParts) -> Self {
+        let (head, body) = parts.prefetch().await;
         Self {
             head,
             body: RyMutex::new(body),

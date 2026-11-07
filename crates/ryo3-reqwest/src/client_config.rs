@@ -7,6 +7,7 @@ use ryo3_macro_rules::{py_type_err, py_value_error};
 use ryo3_std::time::{PyDuration, PyTimeout};
 
 use crate::constants::DEFAULT_USER_AGENT;
+use crate::decoding::Decoding;
 use crate::proxy::PyProxies;
 use crate::tls::{RyCertificate, RyCertificateRevocationList, RyIdentity, py_load_native_certs};
 use crate::tls_version::PyTlsVersion;
@@ -48,10 +49,7 @@ pub struct ClientConfig {
     read_timeout: Option<PyDuration>,
     connect_timeout: Option<PyDuration>,
     // -- compression --
-    gzip: bool,
-    brotli: bool,
-    deflate: bool,
-    zstd: bool,
+    decoding: Decoding,
     // -- pool --
     pool_max_idle_per_host: usize,
     pool_idle_timeout: Option<PyDuration>,
@@ -100,10 +98,7 @@ impl Default for ClientConfig {
             connection_verbose: false,
             referer: true,
             // compression
-            gzip: true,
-            brotli: true,
-            deflate: true,
-            zstd: true,
+            decoding: Decoding::default(),
             // http prefs
             http1_only: false,
             https_only: false,
@@ -194,16 +189,16 @@ impl<'py> FromPyObject<'_, 'py> for ClientConfig {
                     cfg.referer = v.extract::<bool>()?;
                 }
                 "gzip" => {
-                    cfg.gzip = v.extract::<bool>()?;
+                    cfg.decoding.gzip = v.extract::<bool>()?;
                 }
                 "brotli" => {
-                    cfg.brotli = v.extract::<bool>()?;
+                    cfg.decoding.brotli = v.extract::<bool>()?;
                 }
                 "deflate" => {
-                    cfg.deflate = v.extract::<bool>()?;
+                    cfg.decoding.deflate = v.extract::<bool>()?;
                 }
                 "zstd" => {
-                    cfg.zstd = v.extract::<bool>()?;
+                    cfg.decoding.zstd = v.extract::<bool>()?;
                 }
                 "connection_verbose" => {
                     cfg.connection_verbose = v.extract::<bool>()?;
@@ -336,6 +331,10 @@ impl<'py> FromPyObject<'_, 'py> for ClientConfig {
 }
 
 impl ClientConfig {
+    pub(crate) fn decoding(&self) -> Decoding {
+        self.decoding
+    }
+
     #[inline]
     fn apply_http2_opts(
         &self,
@@ -417,10 +416,6 @@ impl ClientConfig {
     pub(crate) fn apply(&self, client_builder: reqwest::ClientBuilder) -> reqwest::ClientBuilder {
         let mut client_builder = client_builder
             .connection_verbose(self.connection_verbose)
-            .gzip(self.gzip)
-            .brotli(self.brotli)
-            .deflate(self.deflate)
-            .zstd(self.zstd)
             .cookie_store(self.cookies)
             .hickory_dns(self.hickory_dns)
             .referer(self.referer)
@@ -455,9 +450,12 @@ impl ClientConfig {
         if let Some(user_agent) = &self.user_agent {
             client_builder = client_builder.user_agent(user_agent.clone());
         }
-        if let Some(headers) = &self.headers {
-            client_builder = client_builder.default_headers(headers.0.py_read().clone());
-        }
+        let headers = self
+            .headers
+            .as_ref()
+            .map(|headers| headers.0.py_read().clone())
+            .unwrap_or_default();
+        client_builder = self.decoding.configure(client_builder, headers);
         if let Some(timeout) = &self.timeout {
             client_builder = client_builder.timeout(timeout.into());
         }
@@ -520,10 +518,10 @@ impl ClientConfig {
             "redirect" => self.redirect,
             "resolve" => resolve,
             "referer" => self.referer,
-            "gzip" => self.gzip,
-            "brotli" => self.brotli,
-            "deflate" => self.deflate,
-            "zstd" => self.zstd,
+            "gzip" => self.decoding.gzip,
+            "brotli" => self.decoding.brotli,
+            "deflate" => self.decoding.deflate,
+            "zstd" => self.decoding.zstd,
             "hickory_dns" => self.hickory_dns,
             "http1_only" => self.http1_only,
             "https_only" => self.https_only,

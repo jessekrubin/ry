@@ -18,6 +18,9 @@
   - removed deprecated `Duration.__int__` ~ use `Duration.as_nanos()` instead
   - removed deprecated `SignedDuration.__int__` ~ use
     `SignedDuration.as_nanos()` instead
+- `ryo3-reqwest`
+  - decode Brotli response bodies incrementally with `burli-decode` for async
+    and blocking clients, streams, and SSE
 - misc
   - fix: `cc` capture on windows for `cl` when running `python -m ry`
     [945](https://github.com/jessekrubin/ry/issues/945)

@@ -1,8 +1,10 @@
 #![doc = include_str!("../README.md")]
+mod brotli;
 mod charset;
 mod client;
 mod client_config;
 mod constants;
+mod decoding;
 mod errors;
 mod fetch;
 mod form_data;

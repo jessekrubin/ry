@@ -6,6 +6,7 @@ use ryo3_http::PyHttpMethod;
 use ryo3_tokio_rt::{RyCoroutine, get_tokio_runtime};
 use ryo3_url::UrlLike;
 
+use crate::decoding::Decoding;
 use crate::errors::map_reqwest_err;
 use crate::request::{BlockingReqwestKwargs, ReqwestKwargs};
 use crate::response::RyBlockingResponse;
@@ -52,9 +53,10 @@ impl RyClient {
             // raised on await like it would be from an `async def`
             Err(e) => return ryo3_tokio_rt::failed_coro(py, qualname, e),
         };
+        let decoding = self.cfg.decoding();
         let send = async move {
             let response = rb.send().await.map_err(map_reqwest_err)?;
-            Ok(RyResponse::from_response(response).await)
+            Ok(RyResponse::from_parts(decoding.decode(response)).await)
         };
         // first poll is on the loop thread ~ pull any async body there before
         // the request goes over to tokio (saves a tokio -> loop round trip)
@@ -73,7 +75,8 @@ impl RyClient {
         method: Method,
         kwargs: Option<BlockingReqwestKwargs>,
     ) -> PyResult<RyBlockingResponse> {
-        build_request(&self.client, url, method, kwargs).map(send_sync)?
+        build_request(&self.client, url, method, kwargs)
+            .and_then(|req| send_sync(req, self.cfg.decoding()))
     }
 }
 
@@ -93,7 +96,8 @@ impl RyBlockingClient {
         method: Method,
         kwargs: Option<BlockingReqwestKwargs>,
     ) -> PyResult<RyBlockingResponse> {
-        build_request(&self.client, url, method, kwargs).map(send_sync)?
+        build_request(&self.client, url, method, kwargs)
+            .and_then(|req| send_sync(req, self.cfg.decoding()))
     }
 }
 
@@ -415,12 +419,12 @@ fn build_request<const BLOCKING: bool>(
 
 /// send + wait (blocking; caller has already let go of the gil)
 #[inline]
-fn send_sync(req: RequestBuilder) -> PyResult<RyBlockingResponse> {
+fn send_sync(req: RequestBuilder, decoding: Decoding) -> PyResult<RyBlockingResponse> {
     // `send()` MUST be called inside the async block ~ w/ a timeout set reqwest
     // makes a `tokio::time::sleep` right in `send()`, which panics (== abort in
     // release) when there is no tokio rt context
     get_tokio_runtime().block_on(async {
         let response = req.send().await.map_err(map_reqwest_err)?;
-        Ok(RyBlockingResponse::from_response(response).await)
+        Ok(RyBlockingResponse::from_parts(decoding.decode(response)).await)
     })
 }

@@ -145,6 +145,7 @@ mimalloc = { version = "0.1.52", default-features = false, features = [] }
 # external
 aws-lc-rs = { version = "1.18.2", default-features = true }
 brotli = { version = "9", default-features = false }
+burli-decode = { version = "0.3.6", default-features = false }
 bytes = { version = "1.11.0", default-features = false }
 bzip2 = { version = "0.6.1", default-features = false, features = ["default"] }
 cookie = { version = "0.18.1", default-features = false, features = [
