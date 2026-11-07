@@ -10,10 +10,11 @@ homepage.workspace = true
 keywords.workspace = true
 license.workspace = true
 repository.workspace = true
-description = "brotli - wraps brotli (https://crates.io/crates/brotli)"
+description = "Brotli compression and decompression with burli"
 
 [dependencies]
-brotli = { workspace = true, features = ["std"] }
+burli-decode = { workspace = true, features = ["std"] }
+burli-encode = { workspace = true, features = ["std"] }
 pyo3 = { workspace = true, features = [] }
 ryo3-bytes.workspace = true
 

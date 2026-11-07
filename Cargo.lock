@@ -217,6 +217,30 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "72f5acc6cb2ba439de613abc23857ec3d78374d8ed5ac84e9d11336e87da8649"
 
 [[package]]
+name = "burli-core"
+version = "0.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "35e485b05bf984b3ec41921ac734239b4c3d02acaa1e3d143b08ffa6d98705a6"
+
+[[package]]
+name = "burli-decode"
+version = "0.3.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "590d0c434f413916b4328d0eac394a340424b4bf31641b1d37debc1f3dbd018b"
+dependencies = [
+ "burli-core",
+]
+
+[[package]]
+name = "burli-encode"
+version = "0.3.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "34d3b3edb3e3ea238de9a7b19622436932a47243f6171f96af5d8ae6ab1410ba"
+dependencies = [
+ "burli-core",
+]
+
+[[package]]
 name = "bytemuck"
 version = "1.25.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2143,7 +2167,8 @@ dependencies = [
 name = "ryo3-brotli"
 version = "0.0.108"
 dependencies = [
- "brotli",
+ "burli-decode",
+ "burli-encode",
  "pyo3",
  "ryo3-bytes",
 ]
