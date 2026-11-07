@@ -172,6 +172,82 @@ async def test_websocket_send_parse_json(websocket_server: WsTestServer) -> None
     assert msg1.json() == {"data": 123}
 
 
+async def test_websocket_send_json(websocket_server: WsTestServer) -> None:
+    payload = {"b": 2, "a": [1, 2, 3], "s": "héllo"}
+    async with ry.WebSocket(websocket_server.url("/echo")) as ws:
+        await ws.send_json(payload)
+        msg = await ws.recv()
+        assert msg.kind == "text"
+        assert msg.is_text
+        assert msg.json() == payload
+
+        await ws.send_json(payload, kind="binary")
+        msg = await ws.recv()
+        assert msg.kind == "binary"
+        assert msg.json() == payload
+
+        await ws.send_json(payload, sort_keys=True)
+        msg = await ws.recv()
+        assert msg.data == ry.stringify(payload, sort_keys=True).decode()
+
+        await ws.send_json(payload, fmt=True, append_newline=True)
+        msg = await ws.recv()
+        assert msg.data == ry.stringify(payload, fmt=True, append_newline=True).decode()
+        assert t.cast("str", msg.data).endswith("\n")
+
+
+async def test_websocket_send_json_default(websocket_server: WsTestServer) -> None:
+    class Thing:
+        pass
+
+    async with ry.WebSocket(websocket_server.url("/echo")) as ws:
+        await ws.send_json({"thing": Thing()}, default=lambda _: "thing")
+        msg = await ws.recv()
+        assert msg.json() == {"thing": "thing"}
+
+
+async def test_websocket_send_json_ping_pong(websocket_server: WsTestServer) -> None:
+    async with ry.WebSocket(websocket_server.url("/echo")) as ws:
+        # server auto-replies to the ping w/ a pong w/ same payload
+        await ws.send_json({"ping": 1}, kind="ping")
+        msg = await ws.recv()
+        assert msg.kind == "pong"
+        assert msg.json() == {"ping": 1}
+
+        # un-requested pong is ignored by the server
+        await ws.send_json({"pong": 1}, kind="pong")
+        await ws.send_json("still-open")
+        msg = await ws.recv()
+        assert msg.json() == "still-open"
+
+
+async def test_websocket_send_json_errors(websocket_server: WsTestServer) -> None:
+    async with ry.WebSocket(websocket_server.url("/echo")) as ws:
+        with pytest.raises(ValueError, match="Invalid message kind: close"):
+            await ws.send_json({}, kind="close")  # type: ignore[arg-type]  # ty: ignore[invalid-argument-type]
+        with pytest.raises(ValueError, match="Invalid message kind"):
+            await ws.send_json({}, kind="nope")  # type: ignore[arg-type]  # ty: ignore[invalid-argument-type]
+        with pytest.raises(TypeError, match="Expected a string for message kind"):
+            await ws.send_json({}, kind=1)  # type: ignore[arg-type]  # ty: ignore[invalid-argument-type]
+        with pytest.raises(ValueError, match="ping-payload exceeds"):
+            await ws.send_json("x" * 124, kind="ping")  # 126 bytes w/ quotes
+        with pytest.raises(ValueError, match="pong-payload exceeds"):
+            await ws.send_json("x" * 124, kind="pong")
+        with pytest.raises(TypeError):
+            await ws.send_json({"x": object()})
+        await ws.send_json([1])
+        msg = await ws.recv()
+        assert msg.json() == [1]
+
+
+async def test_websocket_send_json_requires_open_connection(
+    websocket_server: WsTestServer,
+) -> None:
+    ws = ry.WebSocket(websocket_server.url("/echo"))
+    with pytest.raises(RuntimeError, match="WebSocket not connected"):
+        await ws.send_json({"a": 1})
+
+
 async def test_websocket_send_waits_until_awaited(
     websocket_server: WsTestServer,
 ) -> None:

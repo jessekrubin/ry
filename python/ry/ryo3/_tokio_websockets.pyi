@@ -226,6 +226,44 @@ class WebSocket:
         """Receive the next message from the WebSocket connection"""
     async def send(self, message: WsMessage | str | Buffer) -> None:
         """Send a message over the WebSocket connection"""
+    async def send_json(
+        self,
+        data: t.Any,
+        *,
+        kind: t.Literal["text", "binary", "ping", "pong"] = "text",
+        default: t.Callable[[t.Any], t.Any] | None = None,
+        fmt: bool = False,
+        sort_keys: bool = False,
+        append_newline: bool = False,
+    ) -> None:
+        """Serialize `data` to JSON and send it over the WebSocket connection
+
+        Parameters
+        ----------
+        data : Any
+            JSON-serializable object
+        kind : Literal["text", "binary", "ping", "pong"], optional
+            websocket message kind to send the JSON as, by default "text";
+            ping/pong payloads are limited to 125 bytes
+        default : Callable[[Any], Any] | None, optional
+            fallback serializer for otherwise unsupported types, by default None
+        fmt : bool, optional
+            pretty-print (2-space indent), by default False
+        sort_keys : bool, optional
+            sort object keys, by default False
+        append_newline : bool, optional
+            append a trailing newline, by default False
+
+        Serialization options are the same as `ry.stringify` (minus `dtype`)
+
+        Raises
+        ------
+        ValueError
+            if `kind` is "close" (use `WebSocket.close`) or a ping/pong
+            payload exceeds 125 bytes
+        TypeError
+            if `data` is not JSON-serializable
+        """
     async def close(
         self, code: int = 1_000, reason: str | Buffer | None = None
     ) -> None:

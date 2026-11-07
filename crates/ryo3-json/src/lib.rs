@@ -2,12 +2,13 @@
 
 pub mod orjson;
 mod ser_opts;
+pub use ser_opts::JsonSerOptions;
 mod serialize;
 mod transcode;
 
 use pyo3::prelude::*;
 pub use ryo3_json_ser as ser;
-pub use serialize::{PyJsonDtype, dumps, py_to_vec, stringify};
+pub use serialize::{PyJsonDtype, dumps, py_to_vec, py_to_vec_with_options, stringify};
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(orjson::orjson_default, m)?)?;

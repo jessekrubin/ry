@@ -64,3 +64,41 @@ impl<'py> IntoPyObject<'py> for PyWebSocketMessageKind {
         Ok(s)
     }
 }
+
+/// Message kinds w/ an arbitrary payload
+///
+/// used by `WebSocket.send_json`
+#[cfg(feature = "json")]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum PyWsPayloadKind {
+    Text,
+    Binary,
+    Ping,
+    Pong,
+}
+
+#[cfg(feature = "json")]
+impl TryFrom<PyWebSocketMessageKind> for PyWsPayloadKind {
+    type Error = PyErr;
+
+    fn try_from(kind: PyWebSocketMessageKind) -> PyResult<Self> {
+        match kind {
+            PyWebSocketMessageKind::Text => Ok(Self::Text),
+            PyWebSocketMessageKind::Binary => Ok(Self::Binary),
+            PyWebSocketMessageKind::Ping => Ok(Self::Ping),
+            PyWebSocketMessageKind::Pong => Ok(Self::Pong),
+            PyWebSocketMessageKind::Close => py_value_err!(
+                "Invalid message kind: close (options: 'text', 'binary', 'ping', 'pong'); use `WebSocket.close()` to send a close message"
+            ),
+        }
+    }
+}
+
+#[cfg(feature = "json")]
+impl<'py> FromPyObject<'_, 'py> for PyWsPayloadKind {
+    type Error = PyErr;
+
+    fn extract(ob: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
+        ob.extract::<PyWebSocketMessageKind>()?.try_into()
+    }
+}

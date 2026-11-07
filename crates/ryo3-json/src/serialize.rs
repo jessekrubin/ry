@@ -5,7 +5,7 @@ use ryo3_bytes::RyBytes;
 use ryo3_serde::{JsonTarget, PyAnySerializer};
 
 use crate::ser::{self, JsonSerError};
-use crate::ser_opts::JsonOptions;
+use crate::ser_opts::JsonSerOptions;
 
 fn map_ser_err(e: &JsonSerError) -> PyErr {
     if e.to_string() == ryo3_serde::RECURSION_ERR_MSG {
@@ -20,14 +20,24 @@ pub fn py_to_vec(obj: Borrowed<'_, '_, PyAny>) -> PyResult<Vec<u8>> {
     ser::to_vec(&s).map_err(|e| map_ser_err(&e))
 }
 
+/// Serialize a python object to JSON bytes w/ optional `default` callable and
+/// [`JsonSerOptions`] (same options as `ry.stringify` minus `dtype`)
+pub fn py_to_vec_with_options<'py>(
+    obj: Borrowed<'_, 'py, PyAny>,
+    default: Option<&'py Bound<'py, PyAny>>,
+    options: JsonSerOptions,
+) -> PyResult<Vec<u8>> {
+    JsonSerializer::new(default, options)?.serialize_to_vec(obj)
+}
+
 #[derive(Debug, Default)]
 struct JsonSerializer<'py> {
     default: Option<&'py Bound<'py, PyAny>>,
-    opts: JsonOptions,
+    opts: JsonSerOptions,
 }
 
 impl<'py> JsonSerializer<'py> {
-    fn new(default: Option<&'py Bound<'py, PyAny>>, options: JsonOptions) -> PyResult<Self> {
+    fn new(default: Option<&'py Bound<'py, PyAny>>, options: JsonSerOptions) -> PyResult<Self> {
         let slf = JsonSerializer {
             default,
             opts: options,
@@ -96,7 +106,7 @@ impl<'py> JsonSerializer<'py> {
 //         ) -> PyResult<Bound<'py, PyAny>> {
 //             let serializer = JsonSerializer::new(
 //                 default,
-//                 JsonOptions {
+//                 JsonSerOptions {
 //                     fmt,
 //                     sort_keys,
 //                     append_newline,
@@ -121,7 +131,7 @@ pub(crate) fn stringify_impl<'py>(
     append_newline: bool,
     dtype: PyJsonDtype,
 ) -> PyResult<Bound<'py, PyAny>> {
-    let opts = JsonOptions::new()
+    let opts = JsonSerOptions::new()
         .with_fmt(fmt)
         .with_sort_keys(sort_keys)
         .with_append_newline(append_newline);

@@ -5,7 +5,7 @@ use bytes::Bytes;
 use pyo3::IntoPyObjectExt;
 use pyo3::prelude::*;
 use pyo3::pybacked::PyBackedStr;
-use pyo3::types::{PyDict, PyTuple};
+use pyo3::types::{PyDict, PyString, PyTuple};
 use ryo3_bytes::{ReadableBuffer, RyBytes};
 use ryo3_core::PyTryFrom;
 use ryo3_core::macros::{py_type_err, py_value_err, py_value_error};
@@ -16,24 +16,25 @@ use crate::constants::WS_MSG_PINGPONG_PAYLOAD_MAX_LEN;
 use crate::types::{PyWsCloseCode, PyWsCloseReason};
 
 #[derive(Debug, Clone)]
-#[pyclass(name = "WsMessage", frozen, immutable_type)]
+#[pyclass(name = "WsMessage", frozen)]
+#[cfg_attr(any(not(Py_LIMITED_API), Py_3_14), pyo3(immutable_type))]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
-pub struct PyWsMessage(pub(crate) Message);
+pub struct RyWsMessage(pub(crate) Message);
 
-impl PyWsMessage {
+impl RyWsMessage {
     fn payload_bytes(&self) -> Bytes {
         self.0.clone().into_payload().into()
     }
 }
 
-impl PartialEq for PyWsMessage {
+impl PartialEq for RyWsMessage {
     fn eq(&self, other: &Self) -> bool {
         self.kind() == other.kind() && self.0.as_payload().deref() == other.0.as_payload().deref()
     }
 }
 
 #[pymethods]
-impl PyWsMessage {
+impl RyWsMessage {
     #[new]
     #[pyo3(signature = (kind, data = None, *, code = None, reason = None))]
     fn py_new(
@@ -145,7 +146,7 @@ impl PyWsMessage {
     }
 
     fn __len__(&self) -> usize {
-        self.payload_bytes().len()
+        self.0.as_payload().len()
     }
 
     fn __getnewargs_ex__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
@@ -287,7 +288,7 @@ impl PyWsMessage {
     }
 }
 
-impl std::fmt::Display for PyWsMessage {
+impl std::fmt::Display for RyWsMessage {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         if let Some(text) = self.0.as_text() {
             write!(f, "WsMessage.text({text:?})")
@@ -314,8 +315,8 @@ enum PyPayLoadData<'a> {
     Binary(Bytes),
 }
 
-impl<'a> From<&'a PyWsMessage> for PyPayLoadData<'a> {
-    fn from(msg: &'a PyWsMessage) -> Self {
+impl<'a> From<&'a RyWsMessage> for PyPayLoadData<'a> {
+    fn from(msg: &'a RyWsMessage) -> Self {
         if let Some(text) = msg.0.as_text() {
             Self::Text(text)
         } else {
@@ -340,22 +341,23 @@ impl<'py> IntoPyObject<'py> for PyPayLoadData<'py> {
 }
 
 pub(crate) enum PyMessageLike {
-    Message(PyWsMessage),
+    Message(RyWsMessage),
     Text(PyBackedStr),
-    Bytes(RyBytes),
+    Bytes(Bytes),
 }
 
 impl<'py> FromPyObject<'_, 'py> for PyMessageLike {
     type Error = PyErr;
 
     fn extract(obj: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
-        // TODO: remove clones and stuff here
-        if let Ok(msg) = obj.cast_exact::<PyWsMessage>() {
+        use ryo3_core::PyCastExactOpt;
+        if let Some(msg) = obj.cast_exact_opt::<RyWsMessage>() {
             Ok(Self::Message(msg.get().clone()))
-        } else if let Ok(text) = obj.extract::<PyBackedStr>() {
-            Ok(Self::Text(text))
+        } else if obj.is_instance_of::<PyString>() {
+            // propagate (e.g. lone surrogates can't be utf-8 encoded)
+            Ok(Self::Text(obj.extract::<PyBackedStr>()?))
         } else if let Ok(bytes) = obj.extract::<ReadableBuffer>() {
-            Ok(Self::Bytes(bytes.into_rybytes()))
+            Ok(Self::Bytes(bytes.into_bytes()))
         } else {
             py_type_err!("expected Message, str, or bytes-like object")
         }
@@ -371,13 +373,31 @@ impl PyPingPayload {
     }
 }
 
-impl PyTryFrom<ReadableBuffer<'_, '_>> for PyPingPayload {
-    fn py_try_from(value: ReadableBuffer<'_, '_>) -> PyResult<Self> {
-        if value.as_slice().len() > WS_MSG_PINGPONG_PAYLOAD_MAX_LEN {
+impl PyPingPayload {
+    #[inline]
+    fn check_len(len: usize) -> PyResult<()> {
+        if len > WS_MSG_PINGPONG_PAYLOAD_MAX_LEN {
             py_value_err!("ping-payload exceeds the websocket limit of 125 bytes")
         } else {
-            Ok(Self(Message::ping(value.into_bytes())))
+            Ok(())
         }
+    }
+}
+
+impl TryFrom<Bytes> for PyPingPayload {
+    type Error = PyErr;
+
+    fn try_from(value: Bytes) -> PyResult<Self> {
+        Self::check_len(value.len())?;
+        Ok(Self(Message::ping(value)))
+    }
+}
+
+impl PyTryFrom<ReadableBuffer<'_, '_>> for PyPingPayload {
+    fn py_try_from(value: ReadableBuffer<'_, '_>) -> PyResult<Self> {
+        // check before `into_bytes` to avoid copying an oversized buffer
+        Self::check_len(value.as_slice().len())?;
+        Ok(Self(Message::ping(value.into_bytes())))
     }
 }
 
@@ -410,13 +430,31 @@ impl std::default::Default for PyPongPayload {
     }
 }
 
-impl PyTryFrom<ReadableBuffer<'_, '_>> for PyPongPayload {
-    fn py_try_from(value: ReadableBuffer<'_, '_>) -> PyResult<Self> {
-        if value.as_slice().len() > WS_MSG_PINGPONG_PAYLOAD_MAX_LEN {
+impl PyPongPayload {
+    #[inline]
+    fn check_len(len: usize) -> PyResult<()> {
+        if len > WS_MSG_PINGPONG_PAYLOAD_MAX_LEN {
             py_value_err!("pong-payload exceeds the websocket limit of 125 bytes")
         } else {
-            Ok(Self(Message::pong(value.into_bytes())))
+            Ok(())
         }
+    }
+}
+
+impl TryFrom<Bytes> for PyPongPayload {
+    type Error = PyErr;
+
+    fn try_from(value: Bytes) -> PyResult<Self> {
+        Self::check_len(value.len())?;
+        Ok(Self(Message::pong(value)))
+    }
+}
+
+impl PyTryFrom<ReadableBuffer<'_, '_>> for PyPongPayload {
+    fn py_try_from(value: ReadableBuffer<'_, '_>) -> PyResult<Self> {
+        // check before `into_bytes` to avoid copying an oversized buffer
+        Self::check_len(value.as_slice().len())?;
+        Ok(Self(Message::pong(value.into_bytes())))
     }
 }
 

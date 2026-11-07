@@ -17,6 +17,10 @@
   - fix: `cc` capture on windows for `cl` when running `python -m ry`
     [945](https://github.com/jessekrubin/ry/issues/945)
 - `ryo3-jiter`: update to v0.19.0
+- `ryo3-tokio-websockets`
+  - `WebSocket.send_json(data, *, kind="text", **stringify_kwargs)` added
+  - **INTERNAL:** renamed `#[pyclass]` instances `PyWebSocket` -> `RyWebSocket`
+    and `PyWsMessage` -> `RyWsMessage`
 
 ---
 

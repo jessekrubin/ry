@@ -18,9 +18,11 @@ use tokio_websockets::{ClientBuilder, Config, Limits, Message};
 use crate::constants::{
     DEFAULT_CLOSE_TIMEOUT, DEFAULT_FLUSH_THRESHOLD, DEFAULT_FRAME_SIZE, DEFAULT_MAX_PAYLOAD_LEN,
 };
+#[cfg(feature = "json")]
+use crate::enums::PyWsPayloadKind;
 use crate::errors::map_ws_err;
 use crate::types::{PyWsCloseCode, PyWsCloseReason, TokioWsRead, TokioWsWrite, UriLike};
-use crate::{PyMessageLike, PyPingPayload, PyPongPayload, PyWsMessage};
+use crate::{PyMessageLike, PyPingPayload, PyPongPayload, RyWsMessage};
 
 #[derive(Debug)]
 struct WebSocketHandshake {
@@ -159,17 +161,18 @@ struct WebSocketInner {
 }
 
 #[derive(Debug, Clone)]
-#[pyclass(name = "WebSocket", frozen, immutable_type)]
+#[pyclass(name = "WebSocket", frozen)]
+#[cfg_attr(any(not(Py_LIMITED_API), Py_3_14), pyo3(immutable_type))]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
-pub struct PyWebSocket(Arc<WebSocketInner>);
+pub struct RyWebSocket(Arc<WebSocketInner>);
 
-impl From<WebSocketConfig> for PyWebSocket {
+impl From<WebSocketConfig> for RyWebSocket {
     fn from(cfg: WebSocketConfig) -> Self {
         Self::new(cfg)
     }
 }
 
-impl PyWebSocket {
+impl RyWebSocket {
     fn new(cfg: WebSocketConfig) -> Self {
         let inner = WebSocketInner {
             cfg,
@@ -335,7 +338,7 @@ impl PyWebSocket {
     }
 
     #[inline]
-    async fn recv_msg(&self, timeout: Option<Duration>) -> PyResult<Option<PyWsMessage>> {
+    async fn recv_msg(&self, timeout: Option<Duration>) -> PyResult<Option<RyWsMessage>> {
         let conn = match &*self.0.state.py_lock() {
             WebSocketState::Open(conn) | WebSocketState::Closing(conn) => conn.clone(),
             WebSocketState::Connecting | WebSocketState::Closed(_) => {
@@ -360,7 +363,7 @@ impl PyWebSocket {
                 if msg.is_close() {
                     self.close_current_connection(&conn);
                 }
-                Ok(Some(PyWsMessage::from(msg)))
+                Ok(Some(RyWsMessage::from(msg)))
             }
             Ok(None) => {
                 // peer gone... ws is `Closed` and mark before raising/returning
@@ -375,7 +378,7 @@ impl PyWebSocket {
     }
 
     #[inline]
-    async fn recv_required(&self, timeout: Option<Duration>) -> PyResult<PyWsMessage> {
+    async fn recv_required(&self, timeout: Option<Duration>) -> PyResult<RyWsMessage> {
         if let Some(msg) = self.recv_msg(timeout).await? {
             Ok(msg)
         } else {
@@ -433,7 +436,7 @@ impl PyWebSocket {
     }
 }
 
-impl std::fmt::Display for PyWebSocket {
+impl std::fmt::Display for RyWebSocket {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
@@ -444,7 +447,7 @@ impl std::fmt::Display for PyWebSocket {
     }
 }
 
-impl PyWebSocket {
+impl RyWebSocket {
     fn connect_coro<'py>(
         slf: Py<Self>,
         py: Python<'py>,
@@ -520,7 +523,7 @@ impl PyWebSocket {
 }
 
 #[pymethods]
-impl PyWebSocket {
+impl RyWebSocket {
     #[new]
     #[pyo3(
         signature = (
@@ -671,6 +674,49 @@ impl PyWebSocket {
         self.send_coro(py, "WebSocket.send", Message::from(message))
     }
 
+    /// Serialize `data` to JSON and send it as a text (default), binary, ping or pong message
+    #[cfg(feature = "json")]
+    #[expect(clippy::too_many_arguments, reason = "python kwargs")]
+    #[pyo3(
+        signature = (
+            data,
+            *,
+            kind = PyWsPayloadKind::Text,
+            default = None,
+            fmt = false,
+            sort_keys = false,
+            append_newline = false,
+        ),
+        text_signature = "(self, data, *, kind=\"text\", default=None, fmt=False, sort_keys=False, append_newline=False)"
+    )]
+    fn send_json<'py>(
+        &self,
+        py: Python<'py>,
+        data: &Bound<'py, PyAny>,
+        kind: PyWsPayloadKind,
+        default: Option<&'py Bound<'py, PyAny>>,
+        fmt: bool,
+        sort_keys: bool,
+        append_newline: bool,
+    ) -> PyResult<Bound<'py, RyCoroutine>> {
+        let options = ryo3_json::JsonSerOptions::new()
+            .with_fmt(fmt)
+            .with_sort_keys(sort_keys)
+            .with_append_newline(append_newline);
+        let payload = bytes::Bytes::from(ryo3_json::py_to_vec_with_options(
+            data.as_borrowed(),
+            default,
+            options,
+        )?);
+        let message = match kind {
+            PyWsPayloadKind::Text => Message::text(payload),
+            PyWsPayloadKind::Binary => Message::binary(payload),
+            PyWsPayloadKind::Ping => PyPingPayload::try_from(payload)?.into(),
+            PyWsPayloadKind::Pong => PyPongPayload::try_from(payload)?.into(),
+        };
+        self.send_coro(py, "WebSocket.send_json", message)
+    }
+
     #[pyo3(
         signature = (code = PyWsCloseCode::NORMAL_CLOSURE, reason = None),
         text_signature = "(self, code=1_000, reason=None)"
@@ -681,7 +727,7 @@ impl PyWebSocket {
         code: PyWsCloseCode,
         reason: Option<PyWsCloseReason>,
     ) -> PyResult<Bound<'py, RyCoroutine>> {
-        let pymsg = PyWsMessage::close(code, reason)?;
+        let pymsg = RyWsMessage::close(code, reason)?;
         self.close_coro(py, "WebSocket.close", pymsg.into())
     }
 
@@ -728,8 +774,8 @@ pub(crate) fn websocket(
     max_payload_len: NonZeroUsize,
     close_timeout: Option<PyTimeout>,
     recv_timeout: Option<PyTimeout>,
-) -> PyWebSocket {
-    PyWebSocket::py_new(
+) -> RyWebSocket {
+    RyWebSocket::py_new(
         uri,
         headers,
         max_payload_len,
