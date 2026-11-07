@@ -311,6 +311,8 @@ async def brotli_response(
         yield uvt.HTTPResponseBodyEvent(type="http.response.body", body=b"")
         return
     data = b"" if mode == "empty" else big_body(200_000)
+    if mode == "boundary":
+        data = big_body(64 * 1024)
     if mode == "sse":
         data = b"data: hello\n\ndata: world\n\n"
     body = bytes(ry.brotli_compress(data))

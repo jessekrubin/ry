@@ -43,7 +43,8 @@ async def _bytes(response: Response) -> bytes:
 
 
 @pytest.mark.parametrize(
-    "mode", ["valid", "empty", "wire-empty", "legacy", "trailing", "redirect"]
+    "mode",
+    ["valid", "boundary", "empty", "wire-empty", "legacy", "trailing", "redirect"],
 )
 async def test_decode(
     server: ReqtestServer, client_cls: type[Client], mode: str
@@ -52,6 +53,8 @@ async def test_decode(
     expected = b"" if mode in ("empty", "wire-empty") else big_body(200_000)
     if mode == "legacy":
         expected = b"XXXXXXXXXXYYYYYYYYYY"
+    elif mode == "boundary":
+        expected = big_body(64 * 1024)
     assert response.status == 200
     assert response.content_encoding is None
     assert response.content_length is None
@@ -59,6 +62,7 @@ async def test_decode(
     assert "content-length" not in response.headers
     assert response.headers["x-brotli-test"] == "preserved"
     assert response.version == "HTTP/1.1"
+    assert response.remote_addr is not None
     assert str(response.url).endswith(
         "/brotli/valid" if mode == "redirect" else f"/brotli/{mode}"
     )
