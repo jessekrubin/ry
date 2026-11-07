@@ -6,6 +6,8 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     ryo3_aws_lc::pymod_add(m)?;
     #[cfg(feature = "brotli")]
     ryo3_brotli::pymod_add(m)?;
+    #[cfg(feature = "burli")]
+    ryo3_burli::pymod_add(m)?;
     #[cfg(feature = "bzip2")]
     ryo3_bzip2::pymod_add(m)?;
     #[cfg(feature = "bytes")]

@@ -6,6 +6,7 @@
 - [`ry.ryo3.__about__`](#ry.ryo3.__about__)
 - [`ry.ryo3._aws_lc`](#ry.ryo3._aws_lc)
 - [`ry.ryo3._brotli`](#ry.ryo3._brotli)
+- [`ry.ryo3._burli`](#ry.ryo3._burli)
 - [`ry.ryo3._bytes`](#ry.ryo3._bytes)
 - [`ry.ryo3._bzip2`](#ry.ryo3._bzip2)
 - [`ry.ryo3._cookie`](#ry.ryo3._cookie)
@@ -81,11 +82,11 @@ from ry.ryo3._aws_lc import sha256 as sha256
 from ry.ryo3._aws_lc import sha384 as sha384
 from ry.ryo3._aws_lc import sha512 as sha512
 from ry.ryo3._aws_lc import sha512_256 as sha512_256
-from ry.ryo3._brotli import brotli as brotli  # type: ignore[deprecated]  # ty: ignore[deprecated]
-from ry.ryo3._brotli import brotli_compress as brotli_compress
 from ry.ryo3._brotli import brotli_decode as brotli_decode  # type: ignore[deprecated]  # ty: ignore[deprecated]
 from ry.ryo3._brotli import brotli_decompress as brotli_decompress
-from ry.ryo3._brotli import brotli_encode as brotli_encode  # type: ignore[deprecated]  # ty: ignore[deprecated]
+from ry.ryo3._burli import brotli as brotli  # type: ignore[deprecated]  # ty: ignore[deprecated]
+from ry.ryo3._burli import brotli_compress as brotli_compress
+from ry.ryo3._burli import brotli_encode as brotli_encode  # type: ignore[deprecated]  # ty: ignore[deprecated]
 from ry.ryo3._bytes import Bytes as Bytes
 from ry.ryo3._bzip2 import bzip2 as bzip2  # type: ignore[deprecated]  # ty: ignore[deprecated]
 from ry.ryo3._bzip2 import bzip2_decode as bzip2_decode  # type: ignore[deprecated]  # ty: ignore[deprecated]
@@ -496,6 +497,29 @@ sha512_256: type[_Sha[_Sha512_256Name, _Sha512_256BlockSize, _Sha512_256DigestSi
 """ryo3-brotli ~ types"""
 
 import sys
+
+from ry._types import Buffer
+from ry.ryo3._bytes import Bytes
+
+if sys.version_info >= (3, 13):
+    from warnings import deprecated
+else:
+    from typing_extensions import deprecated
+
+
+def brotli_decompress(data: Buffer, /) -> Bytes: ...
+@deprecated(
+    "`brotli_decode` is deprecated; use `brotli_decompress` instead [removal: v0.0.109]"
+)
+def brotli_decode(data: Buffer) -> Bytes: ...
+```
+
+<h2 id="ry.ryo3._burli"><code>ry.ryo3._burli</code></h2>
+
+```python
+"""ryo3-burli ~ types"""
+
+import sys
 import typing as t
 
 from ry._types import Buffer
@@ -510,18 +534,11 @@ _BrotliLevel: t.TypeAlias = t.Literal[0, 1, 2, 3, 4, 5]
 
 
 def brotli_compress(data: Buffer, /, level: _BrotliLevel = 5) -> Bytes: ...
-def brotli_decompress(data: Buffer, /) -> Bytes: ...
 @deprecated(
     "`brotli_encode` is deprecated; use `brotli_compress` instead [removal: v0.0.109]"
 )
 def brotli_encode(data: Buffer, quality: _BrotliLevel = 5) -> Bytes: ...
-@deprecated(
-    "`brotli_decode` is deprecated; use `brotli_decompress` instead [removal: v0.0.109]"
-)
-def brotli_decode(data: Buffer) -> Bytes: ...
-@deprecated(
-    "`brotli` is deprecated; use `brotli_compress` instead [removal: v0.0.109]"
-)
+@deprecated("`brotli` is deprecated; use `brotli_compress` instead [removal: v0.0.109]")
 def brotli(data: Buffer, quality: _BrotliLevel = 5) -> Bytes: ...
 ```
 

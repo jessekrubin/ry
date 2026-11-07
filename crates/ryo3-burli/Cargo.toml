@@ -1,0 +1,21 @@
+[package]
+name = "ryo3-burli"
+version.workspace = true
+authors.workspace = true
+categories.workspace = true
+documentation.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+homepage.workspace = true
+keywords.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "burli ~ wraps burli (https://crates.io/crates/burli)"
+
+[dependencies]
+burli-encode = { workspace = true, features = ["std"] }
+pyo3 = { workspace = true, features = [] }
+ryo3-bytes.workspace = true
+
+[lints]
+workspace = true

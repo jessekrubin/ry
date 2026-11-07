@@ -17,6 +17,7 @@ macro_rules! ryo3_features_reexport {
 }
 ryo3_features_reexport! {
     "brotli", ryo3_brotli,
+    "burli", ryo3_burli,
     "bytes", ryo3_bytes,
     "bzip2", ryo3_bzip2,
     "cookie", ryo3_cookie,

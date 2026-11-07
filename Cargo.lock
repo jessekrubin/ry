@@ -223,15 +223,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "35e485b05bf984b3ec41921ac734239b4c3d02acaa1e3d143b08ffa6d98705a6"
 
 [[package]]
-name = "burli-decode"
-version = "0.3.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "590d0c434f413916b4328d0eac394a340424b4bf31641b1d37debc1f3dbd018b"
-dependencies = [
- "burli-core",
-]
-
-[[package]]
 name = "burli-encode"
 version = "0.3.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2114,6 +2105,7 @@ dependencies = [
  "pyo3-build-config",
  "ryo3-aws-lc",
  "ryo3-brotli",
+ "ryo3-burli",
  "ryo3-bytes",
  "ryo3-bzip2",
  "ryo3-cookie",
@@ -2167,7 +2159,15 @@ dependencies = [
 name = "ryo3-brotli"
 version = "0.0.108"
 dependencies = [
- "burli-decode",
+ "brotli",
+ "pyo3",
+ "ryo3-bytes",
+]
+
+[[package]]
+name = "ryo3-burli"
+version = "0.0.108"
+dependencies = [
  "burli-encode",
  "pyo3",
  "ryo3-bytes",
