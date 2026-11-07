@@ -284,15 +284,33 @@ def test_size_reflected() -> None:
     assert res_sub == b - a
 
 
-@pytest.mark.parametrize("other", [5, 2.5])
-def test_size_reflected_number_unsupported(other: float) -> None:
-    size = ry.Size(3)
-    assert size - other
-    assert size + other
+@pytest.mark.parametrize("other", [5, 2.5, True])
+def test_size_rhs_num(other: float) -> None:
+    size = Size(3)
+    assert other + size == size + other
+    assert isinstance(other + size, Size)
+    assert other - size == -(size - other)
+    assert isinstance(other - size, Size)
+
+
+def test_size_rhs_ints() -> None:
+    assert 5 + Size(3) == Size(8)
+    assert 5 - Size(3) == Size(2)
+    assert 3 - Size(5) == Size(-2)
+    assert sum([Size(1), Size(2), Size(3)]) == Size(6)
+    with pytest.raises(OverflowError):
+        _ = -2 - Size(2**63 - 1)
+
+
+@pytest.mark.parametrize("other", [None, "1 KiB", b"1", object(), [1]])
+def test_size_reflected_unknown_types(other: object) -> None:
+    s = Size(10)
+    assert s.__radd__(other) is NotImplemented  # type: ignore[operator]  # ty: ignore[invalid-argument-type]  # noqa: PLC2801
+    assert s.__rsub__(other) is NotImplemented  # type: ignore[operator]  # noqa: PLC2801
     with pytest.raises(TypeError):
-        _sub = other - size  # type: ignore[operator]  # ty: ignore[unsupported-operator]
+        _ = other + s  # type: ignore[operator]
     with pytest.raises(TypeError):
-        _ = other + size  # type: ignore[operator]  # ty: ignore[unsupported-operator]
+        _ = other - s  # type: ignore[operator]
 
 
 @pytest.mark.parametrize(
@@ -334,18 +352,18 @@ def test_size_formatter_eq() -> None:
 @pytest.mark.parametrize("other", [None, "1 KiB", b"1", object(), [1]])
 def test_size_arithmetic_unknown_types(other: object) -> None:
     s = Size(10)
-    assert s.__add__(other) is NotImplemented  # noqa: PLC2801
-    assert s.__sub__(other) is NotImplemented  # noqa: PLC2801
-    assert s.__mul__(other) is NotImplemented  # noqa: PLC2801
-    assert s.__rmul__(other) is NotImplemented  # noqa: PLC2801
-    for f in (
-        lambda: s + other,  # type: ignore[operator]
-        lambda: s - other,  # type: ignore[operator]
-        lambda: s * other,  # type: ignore[operator]
-        lambda: other * s,  # type: ignore[operator]
-    ):
-        with pytest.raises(TypeError):
-            f()
+    assert s.__add__(other) is NotImplemented  # type: ignore[operator]  # ty: ignore[invalid-argument-type]  # noqa: PLC2801
+    assert s.__sub__(other) is NotImplemented  # type: ignore[operator]  # noqa: PLC2801
+    assert s.__mul__(other) is NotImplemented  # type: ignore[operator]  # noqa: PLC2801
+    assert s.__rmul__(other) is NotImplemented  # type: ignore[operator]  # noqa: PLC2801
+    with pytest.raises(TypeError):
+        _ = s + other  # type: ignore[operator]
+    with pytest.raises(TypeError):
+        _ = s - other  # type: ignore[operator]
+    with pytest.raises(TypeError):
+        _ = s * other  # type: ignore[operator]
+    with pytest.raises(TypeError):
+        _ = other * s  # type: ignore[operator]
 
 
 def test_size_arithmetic_number_protocols() -> None:
@@ -362,11 +380,11 @@ def test_size_arithmetic_number_protocols() -> None:
             return 1.5
 
     s = Size(10)
-    assert s + Idx() == Size(17)  # type: ignore[operator]
-    assert s * Idx() == Size(70)  # type: ignore[operator]
-    assert s * Flt() == Size(15)  # type: ignore[operator]
-    assert s * Fraction(5, 2) == Size(25)  # type: ignore[operator]
-    assert s * Decimal("2.5") == Size(25)  # type: ignore[operator]
+    assert s + Idx() == Size(17)  # type: ignore[operator]  # ty: ignore[unsupported-operator]
+    assert s * Idx() == Size(70)  # type: ignore[operator]  # ty: ignore[unsupported-operator]
+    assert s * Flt() == Size(15)  # type: ignore[operator]  # ty: ignore[unsupported-operator]
+    assert s * Fraction(5, 2) == Size(25)  # type: ignore[operator]  # ty: ignore[unsupported-operator]
+    assert s * Decimal("2.5") == Size(25)  # type: ignore[operator]  # ty: ignore[unsupported-operator]
     assert 3 * s == Size(30)
     with pytest.raises(OverflowError):
         _ = s * 2**63

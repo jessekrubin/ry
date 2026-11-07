@@ -6,7 +6,7 @@ use pyo3::pyclass::CompareOp;
 use pyo3::types::{PyFloat, PyInt, PyTuple};
 use ryo3_core::macros::{py_overflow_err, py_overflow_error, py_type_error};
 use ryo3_core::{
-    PyAsciiString, PyNotImplementedOr, FromPyOperand, PyOperandArg, PyRichCmp, pynumber_check,
+    FromPyOperand, PyAsciiString, PyNotImplementedOr, PyOperandArg, PyRichCmp, pynumber_check,
 };
 
 use crate::types::{PyBase, PyStyle};
@@ -46,6 +46,14 @@ impl RySize {
         self.0
             .bytes()
             .checked_sub(rhs.bytes_for_add_sub())
+            .map(Self::from)
+            .ok_or_else(|| py_overflow_error!("overflow"))
+    }
+
+    /// `lhs - self` (`__rsub__`)
+    fn py_try_rsub(self, lhs: PySizeOperand) -> PyResult<Self> {
+        lhs.bytes_for_add_sub()
+            .checked_sub(self.0.bytes())
             .map(Self::from)
             .ok_or_else(|| py_overflow_error!("overflow"))
     }
@@ -206,8 +214,16 @@ impl RySize {
         other.try_map(|rhs| self.py_try_add(rhs))
     }
 
+    fn __radd__(&self, other: PySizeOperandArg) -> PyResult<PyNotImplementedOr<Self>> {
+        other.try_map(|lhs| self.py_try_add(lhs))
+    }
+
     fn __sub__(&self, other: PySizeOperandArg) -> PyResult<PyNotImplementedOr<Self>> {
         other.try_map(|rhs| self.py_try_sub(rhs))
+    }
+
+    fn __rsub__(&self, other: PySizeOperandArg) -> PyResult<PyNotImplementedOr<Self>> {
+        other.try_map(|lhs| self.py_try_rsub(lhs))
     }
 
     fn __mul__(&self, other: PySizeOperandArg) -> PyResult<PyNotImplementedOr<Self>> {
