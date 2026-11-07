@@ -22,7 +22,7 @@ use crate::constants::{
 use crate::enums::PyWsPayloadKind;
 use crate::errors::map_ws_err;
 use crate::types::{PyWsCloseCode, PyWsCloseReason, TokioWsRead, TokioWsWrite, UriLike};
-use crate::{PyMessageLike, PyPingPayload, PyPongPayload, PyWsMessage};
+use crate::{PyMessageLike, PyPingPayload, PyPongPayload, RyWsMessage};
 
 #[derive(Debug)]
 struct WebSocketHandshake {
@@ -163,15 +163,15 @@ struct WebSocketInner {
 #[derive(Debug, Clone)]
 #[pyclass(name = "WebSocket", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
-pub struct PyWebSocket(Arc<WebSocketInner>);
+pub struct RyWebSocket(Arc<WebSocketInner>);
 
-impl From<WebSocketConfig> for PyWebSocket {
+impl From<WebSocketConfig> for RyWebSocket {
     fn from(cfg: WebSocketConfig) -> Self {
         Self::new(cfg)
     }
 }
 
-impl PyWebSocket {
+impl RyWebSocket {
     fn new(cfg: WebSocketConfig) -> Self {
         let inner = WebSocketInner {
             cfg,
@@ -337,7 +337,7 @@ impl PyWebSocket {
     }
 
     #[inline]
-    async fn recv_msg(&self, timeout: Option<Duration>) -> PyResult<Option<PyWsMessage>> {
+    async fn recv_msg(&self, timeout: Option<Duration>) -> PyResult<Option<RyWsMessage>> {
         let conn = match &*self.0.state.py_lock() {
             WebSocketState::Open(conn) | WebSocketState::Closing(conn) => conn.clone(),
             WebSocketState::Connecting | WebSocketState::Closed(_) => {
@@ -362,7 +362,7 @@ impl PyWebSocket {
                 if msg.is_close() {
                     self.close_current_connection(&conn);
                 }
-                Ok(Some(PyWsMessage::from(msg)))
+                Ok(Some(RyWsMessage::from(msg)))
             }
             Ok(None) => {
                 // peer gone... ws is `Closed` and mark before raising/returning
@@ -377,7 +377,7 @@ impl PyWebSocket {
     }
 
     #[inline]
-    async fn recv_required(&self, timeout: Option<Duration>) -> PyResult<PyWsMessage> {
+    async fn recv_required(&self, timeout: Option<Duration>) -> PyResult<RyWsMessage> {
         if let Some(msg) = self.recv_msg(timeout).await? {
             Ok(msg)
         } else {
@@ -435,7 +435,7 @@ impl PyWebSocket {
     }
 }
 
-impl std::fmt::Display for PyWebSocket {
+impl std::fmt::Display for RyWebSocket {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
@@ -446,7 +446,7 @@ impl std::fmt::Display for PyWebSocket {
     }
 }
 
-impl PyWebSocket {
+impl RyWebSocket {
     fn connect_coro<'py>(
         slf: Py<Self>,
         py: Python<'py>,
@@ -522,7 +522,7 @@ impl PyWebSocket {
 }
 
 #[pymethods]
-impl PyWebSocket {
+impl RyWebSocket {
     #[new]
     #[pyo3(
         signature = (
@@ -726,7 +726,7 @@ impl PyWebSocket {
         code: PyWsCloseCode,
         reason: Option<PyWsCloseReason>,
     ) -> PyResult<Bound<'py, RyCoroutine>> {
-        let pymsg = PyWsMessage::close(code, reason)?;
+        let pymsg = RyWsMessage::close(code, reason)?;
         self.close_coro(py, "WebSocket.close", pymsg.into())
     }
 
@@ -773,8 +773,8 @@ pub(crate) fn websocket(
     max_payload_len: NonZeroUsize,
     close_timeout: Option<PyTimeout>,
     recv_timeout: Option<PyTimeout>,
-) -> PyWebSocket {
-    PyWebSocket::py_new(
+) -> RyWebSocket {
+    RyWebSocket::py_new(
         uri,
         headers,
         max_payload_len,

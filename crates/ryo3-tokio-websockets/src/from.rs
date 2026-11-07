@@ -1,17 +1,17 @@
 use tokio_websockets::{CloseCode, Message};
 
-use crate::py_websocket::WebSocketReadyState;
+use crate::ry_websocket::WebSocketReadyState;
 use crate::types::PyWsCloseCode;
-use crate::{PyMessageLike, PyPingPayload, PyPongPayload, PyWebSocketMessageKind, PyWsMessage};
+use crate::{PyMessageLike, PyPingPayload, PyPongPayload, PyWebSocketMessageKind, RyWsMessage};
 
-impl From<Message> for PyWsMessage {
+impl From<Message> for RyWsMessage {
     fn from(value: Message) -> Self {
         Self(value)
     }
 }
 
-impl From<PyWsMessage> for Message {
-    fn from(value: PyWsMessage) -> Self {
+impl From<RyWsMessage> for Message {
+    fn from(value: RyWsMessage) -> Self {
         value.0
     }
 }
@@ -27,13 +27,13 @@ impl From<PyMessageLike> for Message {
     }
 }
 
-impl From<PyPingPayload> for PyWsMessage {
+impl From<PyPingPayload> for RyWsMessage {
     fn from(value: PyPingPayload) -> Self {
         Self(value.into_inner())
     }
 }
 
-impl From<PyPongPayload> for PyWsMessage {
+impl From<PyPongPayload> for RyWsMessage {
     fn from(value: PyPongPayload) -> Self {
         Self(value.into_inner())
     }
@@ -69,8 +69,8 @@ impl From<&Message> for PyWebSocketMessageKind {
     }
 }
 
-impl From<&PyWsMessage> for PyWebSocketMessageKind {
-    fn from(message: &PyWsMessage) -> Self {
+impl From<&RyWsMessage> for PyWebSocketMessageKind {
+    fn from(message: &RyWsMessage) -> Self {
         (&message.0).into()
     }
 }

@@ -19,6 +19,8 @@
 - `ryo3-jiter`: update to v0.19.0
 - `ryo3-tokio-websockets`
   - `WebSocket.send_json(data, *, kind="text", **stringify_kwargs)` added
+  - **INTERNAL:** renamed `#[pyclass]` instances `PyWebSocket` -> `RyWebSocket` and
+    `PyWsMessage` -> `RyWsMessage`
 
 ---
 

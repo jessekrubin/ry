@@ -18,22 +18,22 @@ use crate::types::{PyWsCloseCode, PyWsCloseReason};
 #[derive(Debug, Clone)]
 #[pyclass(name = "WsMessage", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
-pub struct PyWsMessage(pub(crate) Message);
+pub struct RyWsMessage(pub(crate) Message);
 
-impl PyWsMessage {
+impl RyWsMessage {
     fn payload_bytes(&self) -> Bytes {
         self.0.clone().into_payload().into()
     }
 }
 
-impl PartialEq for PyWsMessage {
+impl PartialEq for RyWsMessage {
     fn eq(&self, other: &Self) -> bool {
         self.kind() == other.kind() && self.0.as_payload().deref() == other.0.as_payload().deref()
     }
 }
 
 #[pymethods]
-impl PyWsMessage {
+impl RyWsMessage {
     #[new]
     #[pyo3(signature = (kind, data = None, *, code = None, reason = None))]
     fn py_new(
@@ -287,7 +287,7 @@ impl PyWsMessage {
     }
 }
 
-impl std::fmt::Display for PyWsMessage {
+impl std::fmt::Display for RyWsMessage {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         if let Some(text) = self.0.as_text() {
             write!(f, "WsMessage.text({text:?})")
@@ -314,8 +314,8 @@ enum PyPayLoadData<'a> {
     Binary(Bytes),
 }
 
-impl<'a> From<&'a PyWsMessage> for PyPayLoadData<'a> {
-    fn from(msg: &'a PyWsMessage) -> Self {
+impl<'a> From<&'a RyWsMessage> for PyPayLoadData<'a> {
+    fn from(msg: &'a RyWsMessage) -> Self {
         if let Some(text) = msg.0.as_text() {
             Self::Text(text)
         } else {
@@ -340,7 +340,7 @@ impl<'py> IntoPyObject<'py> for PyPayLoadData<'py> {
 }
 
 pub(crate) enum PyMessageLike {
-    Message(PyWsMessage),
+    Message(RyWsMessage),
     Text(PyBackedStr),
     Bytes(Bytes),
 }
@@ -349,8 +349,8 @@ impl<'py> FromPyObject<'_, 'py> for PyMessageLike {
     type Error = PyErr;
 
     fn extract(obj: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
-        use ryo3_core::{PyCastExactOpt};
-        if let Some(msg) = obj.cast_exact_opt::<PyWsMessage>() {
+        use ryo3_core::PyCastExactOpt;
+        if let Some(msg) = obj.cast_exact_opt::<RyWsMessage>() {
             Ok(Self::Message(msg.get().clone()))
         } else if obj.is_instance_of::<PyString>() {
             // propagate (e.g. lone surrogates can't be utf-8 encoded)
