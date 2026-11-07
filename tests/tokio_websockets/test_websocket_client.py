@@ -224,11 +224,11 @@ async def test_websocket_send_json_ping_pong(websocket_server: WsTestServer) -> 
 async def test_websocket_send_json_errors(websocket_server: WsTestServer) -> None:
     async with ry.WebSocket(websocket_server.url("/echo")) as ws:
         with pytest.raises(ValueError, match="Invalid message kind: close"):
-            await ws.send_json({}, kind="close")  # type: ignore[arg-type]
+            await ws.send_json({}, kind="close")  # type: ignore[arg-type]  # ty: ignore[invalid-argument-type]
         with pytest.raises(ValueError, match="Invalid message kind"):
-            await ws.send_json({}, kind="nope")  # type: ignore[arg-type]
+            await ws.send_json({}, kind="nope")  # type: ignore[arg-type]  # ty: ignore[invalid-argument-type]
         with pytest.raises(TypeError, match="Expected a string for message kind"):
-            await ws.send_json({}, kind=1)  # type: ignore[arg-type]
+            await ws.send_json({}, kind=1)  # type: ignore[arg-type]  # ty: ignore[invalid-argument-type]
         with pytest.raises(ValueError, match="ping-payload exceeds"):
             await ws.send_json("x" * 124, kind="ping")  # 126 bytes w/ quotes
         with pytest.raises(ValueError, match="pong-payload exceeds"):
