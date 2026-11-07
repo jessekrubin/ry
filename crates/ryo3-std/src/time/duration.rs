@@ -2,7 +2,6 @@ use std::hash::{DefaultHasher, Hash, Hasher};
 use std::ops::{Div, Mul};
 use std::time::Duration;
 
-use pyo3::basic::CompareOp;
 use pyo3::prelude::*;
 use pyo3::types::{PyAnyMethods, PyDict, PyDictMethods, PyFloat, PyInt, PyTuple};
 use pyo3::{BoundObject, IntoPyObjectExt};
@@ -27,8 +26,8 @@ const DAYS_PER_WEEK: u64 = 7;
 const MAX_DAYS: u64 = u64::MAX / (SECS_PER_MINUTE * MINS_PER_HOUR * HOURS_PER_DAY);
 const SECS_PER_WEEK: u64 = SECS_PER_MINUTE * MINS_PER_HOUR * HOURS_PER_DAY * DAYS_PER_WEEK;
 
-#[derive(Copy, Clone, PartialEq, Eq)]
-#[pyclass(name = "Duration", frozen, immutable_type)]
+#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[pyclass(name = "Duration", frozen, immutable_type, eq, ord)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct PyDuration(pub(crate) Duration);
 
@@ -194,17 +193,6 @@ impl PyDuration {
     // ========================================================================
     // MATHS/OPERATORS
     // ========================================================================
-    fn __richcmp__(&self, other: &Self, op: CompareOp) -> bool {
-        match op {
-            CompareOp::Eq => self.0 == other.0,
-            CompareOp::Ne => self.0 != other.0,
-            CompareOp::Lt => self.0 < other.0,
-            CompareOp::Le => self.0 <= other.0,
-            CompareOp::Gt => self.0 > other.0,
-            CompareOp::Ge => self.0 >= other.0,
-        }
-    }
-
     fn __add__(&self, other: DurationLike) -> PyResult<Self> {
         self.0
             .checked_add(other.into())

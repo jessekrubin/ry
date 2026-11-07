@@ -14,7 +14,7 @@ use crate::http_types::{
 };
 use crate::{PyHeadersLike, PyHttpHeaderMap};
 
-#[pyclass(name = "Headers", frozen, immutable_type, mapping)]
+#[pyclass(name = "Headers", frozen, immutable_type, eq, mapping)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Clone, Debug)]
 pub struct PyHeaders(pub Arc<RyRwLock<HeaderMap, false>>);
@@ -162,16 +162,6 @@ impl PyHeaders {
     #[must_use]
     fn __len__(&self) -> usize {
         self.with_read(http::HeaderMap::len)
-    }
-
-    #[must_use]
-    fn __eq__(&self, other: &Self) -> bool {
-        self.with_read(|inner| inner == &*(other.read()))
-    }
-
-    #[must_use]
-    fn __ne__(&self, other: &Self) -> bool {
-        !self.__eq__(other)
     }
 
     #[must_use]

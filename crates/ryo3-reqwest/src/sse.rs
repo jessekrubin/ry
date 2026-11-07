@@ -29,7 +29,7 @@ mod decode;
 /// default max event size 512KiB (same as sse-core)
 pub(crate) const SSE_MAX_EVENT_SIZE: NonZeroUsize = NonZeroUsize::new(512 * 1024).expect("wenodis");
 
-#[pyclass(name = "ServerSentEvent", frozen, immutable_type)]
+#[pyclass(name = "ServerSentEvent", frozen, immutable_type, eq)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct RyServerSentEvent(MessageEvent);
@@ -83,10 +83,6 @@ impl RyServerSentEvent {
             .with_partial_mode(partial_mode)
             .with_catch_duplicate_keys(catch_duplicate_keys);
         options.parse(py, self.0.data.as_bytes())
-    }
-
-    fn __eq__(&self, other: &Self) -> bool {
-        self == other
     }
 
     fn __repr__(&self) -> String {

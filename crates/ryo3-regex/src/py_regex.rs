@@ -6,12 +6,18 @@ use regex::{Regex, RegexBuilder};
 
 use crate::py_regex_options::PyRegexOptions;
 
-#[pyclass(name = "Regex", frozen, immutable_type)]
+#[pyclass(name = "Regex", frozen, immutable_type, eq)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Clone, Debug)]
 pub struct PyRegex {
     pub re: Regex,
     pub options: Option<PyRegexOptions>,
+}
+
+impl PartialEq for PyRegex {
+    fn eq(&self, other: &Self) -> bool {
+        self.re.as_str() == other.re.as_str() && self.options == other.options
+    }
 }
 
 impl TryFrom<&str> for PyRegex {
@@ -114,14 +120,6 @@ impl PyRegex {
 
     fn __repr__(&self) -> String {
         format!("{self}")
-    }
-
-    fn __eq__(&self, other: &Self) -> bool {
-        self.re.as_str() == other.re.as_str() && self.options == other.options
-    }
-
-    fn __ne__(&self, other: &Self) -> bool {
-        !self.__eq__(other)
     }
 
     /// Returns true if and only if there is a match for the regex anywhere in the haystack given.

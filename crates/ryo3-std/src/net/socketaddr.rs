@@ -11,19 +11,19 @@ use crate::net::ipaddr::{IpAddrLike, PyIpAddr, PyIpv4Addr};
 use crate::net::ipaddr_props::IpAddrProps;
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize), serde(transparent))]
-#[pyclass(name = "SocketAddrV4", frozen, immutable_type)]
+#[pyclass(name = "SocketAddrV4", frozen, immutable_type, eq, ord)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, PartialOrd, Ord)]
 pub struct PySocketAddrV4(pub(crate) SocketAddrV4);
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize), serde(transparent))]
-#[pyclass(name = "SocketAddrV6", frozen, immutable_type)]
+#[pyclass(name = "SocketAddrV6", frozen, immutable_type, eq, ord)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, PartialOrd, Ord)]
 pub struct PySocketAddrV6(pub(crate) SocketAddrV6);
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize), serde(transparent))]
-#[pyclass(name = "SocketAddr", frozen, immutable_type)]
+#[pyclass(name = "SocketAddr", frozen, immutable_type, eq, ord)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, PartialOrd, Ord)]
 pub struct PySocketAddr(pub(crate) SocketAddr);
@@ -50,17 +50,6 @@ impl PySocketAddrV4 {
 
     fn __repr__(&self) -> PyAsciiString {
         format!("{self}").into()
-    }
-
-    fn __richcmp__(&self, other: &Self, op: pyo3::basic::CompareOp) -> bool {
-        match op {
-            pyo3::basic::CompareOp::Eq => self.0 == other.0,
-            pyo3::basic::CompareOp::Ne => self.0 != other.0,
-            pyo3::basic::CompareOp::Lt => self.0 < other.0,
-            pyo3::basic::CompareOp::Le => self.0 <= other.0,
-            pyo3::basic::CompareOp::Gt => self.0 > other.0,
-            pyo3::basic::CompareOp::Ge => self.0 >= other.0,
-        }
     }
 
     fn __hash__(&self) -> u64 {
@@ -261,17 +250,6 @@ impl PySocketAddrV6 {
 
     fn __repr__(&self) -> String {
         format!("{self}")
-    }
-
-    fn __richcmp__(&self, other: &Self, op: pyo3::basic::CompareOp) -> bool {
-        match op {
-            pyo3::basic::CompareOp::Eq => self.0 == other.0,
-            pyo3::basic::CompareOp::Ne => self.0 != other.0,
-            pyo3::basic::CompareOp::Lt => self.0 < other.0,
-            pyo3::basic::CompareOp::Le => self.0 <= other.0,
-            pyo3::basic::CompareOp::Gt => self.0 > other.0,
-            pyo3::basic::CompareOp::Ge => self.0 >= other.0,
-        }
     }
 
     fn __hash__(&self) -> u64 {
@@ -495,17 +473,6 @@ impl PySocketAddr {
 
     fn __repr__(&self) -> String {
         format!("{self}")
-    }
-
-    fn __richcmp__(&self, other: &Self, op: pyo3::basic::CompareOp) -> bool {
-        match op {
-            pyo3::basic::CompareOp::Eq => self.0 == other.0,
-            pyo3::basic::CompareOp::Ne => self.0 != other.0,
-            pyo3::basic::CompareOp::Lt => self.0 < other.0,
-            pyo3::basic::CompareOp::Le => self.0 <= other.0,
-            pyo3::basic::CompareOp::Gt => self.0 > other.0,
-            pyo3::basic::CompareOp::Ge => self.0 >= other.0,
-        }
     }
 
     fn __hash__(&self) -> u64 {

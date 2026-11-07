@@ -12,19 +12,31 @@ use crate::response::RyBlockingResponse;
 use crate::{ClientConfig, RyResponse};
 
 #[derive(Debug, Clone)]
-#[pyclass(name = "Client", frozen, immutable_type)]
+#[pyclass(name = "Client", frozen, immutable_type, eq)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyClient {
     client: reqwest::Client,
     cfg: ClientConfig,
 }
 
+impl PartialEq for RyClient {
+    fn eq(&self, other: &Self) -> bool {
+        self.cfg == other.cfg
+    }
+}
+
 #[derive(Debug, Clone)]
-#[pyclass(name = "BlockingClient", frozen, immutable_type)]
+#[pyclass(name = "BlockingClient", frozen, immutable_type, eq)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyBlockingClient {
     client: reqwest::Client,
     cfg: ClientConfig,
+}
+
+impl PartialEq for RyBlockingClient {
+    fn eq(&self, other: &Self) -> bool {
+        self.cfg == other.cfg
+    }
 }
 
 impl RyClient {
@@ -124,14 +136,6 @@ impl RyClient {
 
     fn config<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
         self.cfg.into_pyobject(py)
-    }
-
-    fn __eq__(&self, other: &Self) -> bool {
-        self.cfg == other.cfg
-    }
-
-    fn __ne__(&self, other: &Self) -> bool {
-        self.cfg != other.cfg
     }
 
     #[pyo3(signature = (url, **kwargs))]
@@ -281,14 +285,6 @@ impl RyBlockingClient {
 
     fn config<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
         self.cfg.into_pyobject(py)
-    }
-
-    fn __eq__(&self, other: &Self) -> bool {
-        self.cfg == other.cfg
-    }
-
-    fn __ne__(&self, other: &Self) -> bool {
-        self.cfg != other.cfg
     }
 
     #[pyo3(signature = (url, **kwargs))]

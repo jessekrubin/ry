@@ -14,10 +14,26 @@ fn py_file_type_cached(py: Python<'_>, file_type: FileTypeKind) -> PyResult<Py<P
         .map(|obj| obj.clone_ref(py))
 }
 
-#[pyclass(name = "FileType", frozen, immutable_type)]
+#[pyclass(name = "FileType", frozen, immutable_type, eq)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
-#[derive(Copy, Clone, Hash)]
+#[derive(Copy, Clone)]
 pub struct PyFileType(FileTypeInner);
+
+// eq/hash by kind (`Std` and `Faux` of the same kind are equal)
+// TODO: verify that this is actually sane/correct
+impl PartialEq for PyFileType {
+    fn eq(&self, other: &Self) -> bool {
+        self.0.kind() == other.0.kind()
+    }
+}
+
+impl Eq for PyFileType {}
+
+impl std::hash::Hash for PyFileType {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.0.kind().hash(state);
+    }
+}
 
 #[derive(Copy, Clone, Hash)]
 enum FileTypeInner {
@@ -200,10 +216,6 @@ impl PyFileType {
             FileTypeKind::SymlinkFile => pyo3::intern!(py, "FileType(\"symlink-file\")"),
             FileTypeKind::Unknown => pyo3::intern!(py, "FileType(\"unknown\")"),
         }
-    }
-
-    fn __eq__(&self, other: &Self) -> bool {
-        self.0.kind() == other.0.kind()
     }
 
     #[getter]

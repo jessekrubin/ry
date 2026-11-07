@@ -333,7 +333,7 @@ impl From<RyCertificateRevocationList> for CertificateRevocationList {
 // ==== IDENTITY ====
 
 #[derive(Debug, Clone)]
-#[pyclass(name = "Identity", frozen, immutable_type)]
+#[pyclass(name = "Identity", frozen, immutable_type, eq)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyIdentity {
     pub(crate) bin: bytes::Bytes,
@@ -378,14 +378,6 @@ impl RyIdentity {
         let mut hasher = std::hash::DefaultHasher::new();
         self.hash(&mut hasher);
         hasher.finish()
-    }
-
-    fn __eq__(&self, other: &Self) -> bool {
-        self.bin == other.bin
-    }
-
-    fn __ne__(&self, other: &Self) -> bool {
-        self.bin != other.bin
     }
 
     #[expect(clippy::needless_pass_by_value)]

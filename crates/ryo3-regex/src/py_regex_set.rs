@@ -3,12 +3,18 @@ use pyo3::{IntoPyObjectExt, prelude::*, pybacked::PyBackedStr};
 use regex::{Regex, RegexBuilder, RegexSet, RegexSetBuilder};
 use std::borrow::{Borrow, Cow};
 
-#[pyclass(name = "RegexSet", frozen, immutable_type)]
+#[pyclass(name = "RegexSet", frozen, immutable_type, eq)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Clone, Debug)]
 pub struct PyRegexSet {
     pub re: RegexSet,
     pub options: Option<PyRegexOptions>,
+}
+
+impl PartialEq for PyRegexSet {
+    fn eq(&self, other: &Self) -> bool {
+        self.re.patterns() == other.re.patterns() && self.options == other.options
+    }
 }
 
 impl From<RegexSet> for PyRegexSet {
@@ -111,14 +117,6 @@ impl PyRegexSet {
 
     fn __repr__(&self) -> String {
         format!("{self}")
-    }
-
-    fn __eq__(&self, other: &Self) -> bool {
-        self.re.patterns() == other.re.patterns() && self.options == other.options
-    }
-
-    fn __ne__(&self, other: &Self) -> bool {
-        !self.__eq__(other)
     }
 
     /// Returns true if and only if there is a match for the regex anywhere in the haystack given.

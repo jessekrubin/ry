@@ -138,11 +138,17 @@ pub(crate) struct PyFileReadStreamOptions {
     pub(crate) buffered: bool,
 }
 
-#[pyclass(name = "FileReadStream", frozen, immutable_type)]
+#[pyclass(name = "FileReadStream", frozen, immutable_type, eq)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct PyFileReadStream {
     pub(crate) options: PyFileReadStreamOptions,
     pub(crate) file_read_stream: RyMutex<FileReadStreamWrapper>,
+}
+
+impl PartialEq for PyFileReadStream {
+    fn eq(&self, other: &Self) -> bool {
+        self.options == other.options
+    }
 }
 
 impl PyFileReadStream {
@@ -182,10 +188,6 @@ impl PyFileReadStream {
 
     fn __repr__(&self) -> String {
         format!("{self}")
-    }
-
-    fn __eq__(&self, other: &Self) -> bool {
-        self.options == other.options
     }
 
     fn __iter__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {

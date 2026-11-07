@@ -7,7 +7,6 @@ use std::hash::{Hash, Hasher};
 use std::path::{Path, PathBuf};
 
 use pyo3::BoundObject;
-use pyo3::basic::CompareOp;
 use pyo3::exceptions::{PyFileExistsError, PyFileNotFoundError, PyNotADirectoryError};
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyTuple};
@@ -20,7 +19,7 @@ use ryo3_macro_rules::{py_type_err, py_value_error, pytodo};
 // separator
 const MAIN_SEPARATOR: char = std::path::MAIN_SEPARATOR;
 
-#[pyclass(name = "FsPath", frozen, immutable_type)]
+#[pyclass(name = "FsPath", frozen, immutable_type, eq, ord)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct PyFsPath(PathBuf);
@@ -128,17 +127,6 @@ impl PyFsPath {
                 let other = other.as_ref();
                 self.path() == other || self.py_to_string() == path2str(other)
             }
-        }
-    }
-
-    fn __richcmp__(&self, other: &Self, op: CompareOp) -> bool {
-        match op {
-            CompareOp::Eq => self == other,
-            CompareOp::Ne => self != other,
-            CompareOp::Lt => self < other,
-            CompareOp::Le => self <= other,
-            CompareOp::Gt => self > other,
-            CompareOp::Ge => self >= other,
         }
     }
 
