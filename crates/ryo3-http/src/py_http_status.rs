@@ -2,12 +2,14 @@
 //!
 //! Caches instances to avoid duplicating them when you are say scraping the
 //! web and getting a ton of 200s or 404s or whatever...
+use std::cmp::Ordering;
+
 use pyo3::prelude::*;
 use pyo3::pyclass::CompareOp;
 use pyo3::sync::PyOnceLock;
-use pyo3::types::{PyString, PyTuple};
+use pyo3::types::{PyInt, PyString, PyTuple};
 use ryo3_core::macros::{py_type_err, py_value_error};
-use ryo3_core::{PyAsciiStr, PyAsciiString};
+use ryo3_core::{PyAsciiStr, PyAsciiString, PyCastExactOpt, PyRichCmp};
 
 // typos:off
 // is the plural of status "stati" or "statuses"? who knows. literally nothing
@@ -152,33 +154,25 @@ impl PyHttpStatus {
         self.0.is_success()
     }
 
-    fn __richcmp__(&self, other: &Bound<'_, PyAny>, op: CompareOp) -> PyResult<bool> {
-        if let Ok(status_downcast_gucci) = other.cast_exact::<Self>() {
-            let status = status_downcast_gucci.get();
-            match op {
-                CompareOp::Eq => Ok(self.0 == status.0),
-                CompareOp::Ne => Ok(self.0 != status.0),
-                CompareOp::Lt => Ok(self.0 < status.0),
-                CompareOp::Le => Ok(self.0 <= status.0),
-                CompareOp::Gt => Ok(self.0 > status.0),
-                CompareOp::Ge => Ok(self.0 >= status.0),
+    fn __richcmp__(&self, other: &Bound<'_, PyAny>, op: CompareOp) -> PyResult<PyRichCmp> {
+        let code = self.0.as_u16();
+        let ord = if let Some(status) = other.cast_exact_opt::<Self>() {
+            code.cmp(&status.get().0.as_u16())
+        } else if other.is_instance_of::<PyInt>() {
+            match other.extract::<u16>() {
+                Ok(other_code) => code.cmp(&other_code),
+                // int that dont fit u16 is either negative (we're bigger)
+                // or > u16::MAX (we're smaller) ~ never equal
+                Err(_) if other.lt(0)? => Ordering::Greater,
+                Err(_) => Ordering::Less,
             }
-        } else if let Ok(status) = other.extract::<u16>() {
-            match op {
-                CompareOp::Eq => Ok(self.0.as_u16() == status),
-                CompareOp::Ne => Ok(self.0.as_u16() != status),
-                CompareOp::Lt => Ok(self.0.as_u16() < status),
-                CompareOp::Le => Ok(self.0.as_u16() <= status),
-                CompareOp::Gt => Ok(self.0.as_u16() > status),
-                CompareOp::Ge => Ok(self.0.as_u16() >= status),
-            }
+        } else if matches!(op, CompareOp::Eq | CompareOp::Ne) {
+            // not a status/int
+            return Ok(PyRichCmp::NotImplemented);
         } else {
-            match op {
-                CompareOp::Eq => Ok(false),
-                CompareOp::Ne => Ok(true),
-                _ => py_type_err!("http-status-code-invalid-comparison"),
-            }
-        }
+            return py_type_err!("http-status-code-invalid-comparison");
+        };
+        Ok(op.matches(ord).into())
     }
 
     #[cfg(feature = "pydantic")]
