@@ -5,7 +5,7 @@ use bytes::Bytes;
 use pyo3::IntoPyObjectExt;
 use pyo3::prelude::*;
 use pyo3::pybacked::PyBackedStr;
-use pyo3::types::{PyDict, PyTuple};
+use pyo3::types::{PyDict, PyString, PyTuple};
 use ryo3_bytes::{ReadableBuffer, RyBytes};
 use ryo3_core::PyTryFrom;
 use ryo3_core::macros::{py_type_err, py_value_err, py_value_error};
@@ -145,7 +145,7 @@ impl PyWsMessage {
     }
 
     fn __len__(&self) -> usize {
-        self.payload_bytes().len()
+        self.0.as_payload().len()
     }
 
     fn __getnewargs_ex__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
@@ -342,20 +342,21 @@ impl<'py> IntoPyObject<'py> for PyPayLoadData<'py> {
 pub(crate) enum PyMessageLike {
     Message(PyWsMessage),
     Text(PyBackedStr),
-    Bytes(RyBytes),
+    Bytes(Bytes),
 }
 
 impl<'py> FromPyObject<'_, 'py> for PyMessageLike {
     type Error = PyErr;
 
     fn extract(obj: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
-        // TODO: remove clones and stuff here
-        if let Ok(msg) = obj.cast_exact::<PyWsMessage>() {
+        use ryo3_core::{PyCastExactOpt};
+        if let Some(msg) = obj.cast_exact_opt::<PyWsMessage>() {
             Ok(Self::Message(msg.get().clone()))
-        } else if let Ok(text) = obj.extract::<PyBackedStr>() {
-            Ok(Self::Text(text))
+        } else if obj.is_instance_of::<PyString>() {
+            // propagate (e.g. lone surrogates can't be utf-8 encoded)
+            Ok(Self::Text(obj.extract::<PyBackedStr>()?))
         } else if let Ok(bytes) = obj.extract::<ReadableBuffer>() {
-            Ok(Self::Bytes(bytes.into_rybytes()))
+            Ok(Self::Bytes(bytes.into_bytes()))
         } else {
             py_type_err!("expected Message, str, or bytes-like object")
         }

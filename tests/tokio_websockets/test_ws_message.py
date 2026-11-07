@@ -166,3 +166,11 @@ class TestWsMessagePingPong:
             ValueError, match="pong-payload exceeds the websocket limit of 125 byte"
         ):
             ry.WsMessage.pong(b"pong-too-long: " + b"x" * 125)
+
+
+def test_ws_message_len() -> None:
+    assert len(ry.WsMessage.text("héllo")) == len("héllo".encode())
+    assert len(ry.WsMessage.binary(b"\x00\x01\x02")) == 3
+    assert len(ry.WsMessage.ping(b"pi")) == 2
+    assert len(ry.WsMessage.pong()) == 0
+    assert len(ry.WsMessage.close(1000, "bye")) == 2 + len(b"bye")
