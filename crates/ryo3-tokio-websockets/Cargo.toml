@@ -34,5 +34,8 @@ ryo3-url.workspace = true
 tokio = { workspace = true, features = ["net", "time"] }
 tokio-websockets = { workspace = true, features = ["client", "rand", "aws_lc_rs"] }
 
+[build-dependencies]
+pyo3-build-config = { workspace = true }
+
 [lints]
 workspace = true

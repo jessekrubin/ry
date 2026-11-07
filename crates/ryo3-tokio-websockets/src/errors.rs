@@ -4,7 +4,8 @@ use tokio_websockets::Error as WsError;
 
 // TODO - CUSTOM WS ERROR
 // #[derive(Debug)]
-// #[pyclass(extends=PyException, module="ry.ryo3", name="WebSocketError", frozen, immutable_type)]
+// #[pyclass(extends=PyException, module="ry.ryo3", name="WebSocketError", frozen)]
+// #[cfg_attr(any(not(Py_LIMITED_API), Py_3_14), pyo3(immutable_type))]
 // pub struct RyWebSocketError {
 //     pub(crate) inner: WsError,
 // }
