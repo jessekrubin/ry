@@ -22,6 +22,7 @@ members = [
   # external wrappers
   "crates/ryo3-aws-lc",
   "crates/ryo3-brotli",
+  "crates/ryo3-burli",
   "crates/ryo3-bytes",
   "crates/ryo3-bzip2",
   "crates/ryo3-cookie",
@@ -88,6 +89,7 @@ ryo3 = { path = "./crates/ryo3", features = [] }
 # wrappers
 ryo3-aws-lc = { path = "./crates/ryo3-aws-lc" }
 ryo3-brotli = { path = "./crates/ryo3-brotli" }
+ryo3-burli = { path = "./crates/ryo3-burli" }
 ryo3-bytes = { path = "./crates/ryo3-bytes" }
 ryo3-bzip2 = { path = "./crates/ryo3-bzip2" }
 ryo3-cookie = { path = "./crates/ryo3-cookie" }
@@ -145,6 +147,7 @@ mimalloc = { version = "0.1.52", default-features = false, features = [] }
 # external
 aws-lc-rs = { version = "1.18.2", default-features = true }
 brotli = { version = "9", default-features = false }
+burli-encode = { version = "0.3.6", default-features = false }
 bytes = { version = "1.11.0", default-features = false }
 bzip2 = { version = "0.6.1", default-features = false, features = ["default"] }
 cookie = { version = "0.18.1", default-features = false, features = [

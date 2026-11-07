@@ -1,6 +1,7 @@
 # `ryo3-brotli`
 
-ryo3-wrapper for `brotli` crate
+ryo3-wrapper for `brotli` crate (Brotli decompression; compression lives in
+`ryo3-burli`)
 
 [//]: # "<GENERATED>"
 

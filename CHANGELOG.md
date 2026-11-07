@@ -18,6 +18,14 @@
   - removed deprecated `Duration.__int__` ~ use `Duration.as_nanos()` instead
   - removed deprecated `SignedDuration.__int__` ~ use
     `SignedDuration.as_nanos()` instead
+- `ryo3-burli`
+  - `brotli_compress` now uses `burli` for compression instead (see
+    (#947)[https://github.com/jessekrubin/ry/issues/947])
+  - **BREAKING:**
+    - `brotli_compress` accepts levels `0` through `5` (burli compression
+      levels), defaults to `5` instead of `11`, and
+    - `brotli_compress` (and deprecated aliases) no longer take a `magic_number`
+      kwarg
 - misc
   - fix: `cc` capture on windows for `cl` when running `python -m ry`
     [945](https://github.com/jessekrubin/ry/issues/945)

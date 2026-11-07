@@ -125,6 +125,7 @@ _(aka: questions that I have been asking myself)_
 | `which`            | [`ryo3-which`](https://github.com/jessekrubin/ry/tree/main/crates/ryo3-which)                       |
 | **Compression**    | **~**                                                                                               |
 | `brotli`           | [`ryo3-brotli`](https://github.com/jessekrubin/ry/tree/main/crates/ryo3-brotli)                     |
+| `burli-encode`     | [`ryo3-burli`](https://github.com/jessekrubin/ry/tree/main/crates/ryo3-burli)                       |
 | `flate2`           | [`ryo3-flate2`](https://github.com/jessekrubin/ry/tree/main/crates/ryo3-flate2)                     |
 | `lz4rip`           | [`ryo3-lz4rip`](https://github.com/jessekrubin/ry/tree/main/crates/ryo3-lz4rip)                     |
 | `zstd`             | [`ryo3-zstd`](https://github.com/jessekrubin/ry/tree/main/crates/ryo3-zstd)                         |

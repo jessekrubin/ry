@@ -191,6 +191,7 @@ jobs:
             -p ryo3
             -p ryo3-aws-lc
             -p ryo3-brotli
+            -p ryo3-burli
             -p ryo3-bytes
             -p ryo3-bzip2
             -p ryo3-cookie
