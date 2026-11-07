@@ -12,18 +12,23 @@
 //! }
 //! ```
 use std::convert::Infallible;
+use std::time::Duration;
 
+use pyo3::PyTypeInfo;
 use pyo3::prelude::*;
+use pyo3::types::{PyDelta, PyFloat};
 
-use crate::PyNotImplementedOr;
+use crate::{PyNotImplementedOr, pynumber_check};
 
 /// A type a binary op accepts as its other operand.
-pub trait FromPyOperand: Sized {
+///
+/// Need them lifetimes (`'a` & `'py`) for `Borrowed<'a, 'py, T>`
+pub trait FromPyOperand<'a, 'py>: Sized {
     /// `None` if `ob` is not a supported operand (the op returns `NotImplemented`).
     ///
     /// Rejecting unsupported types should be cheap: check types before
     /// extracting and do not build errors.
-    fn from_py_operand(ob: Borrowed<'_, '_, PyAny>) -> Option<Self>;
+    fn from_py_operand(ob: Borrowed<'a, 'py, PyAny>) -> Option<Self>;
 }
 
 /// Binary-op argument that never fails to extract (scroll up).
@@ -57,14 +62,151 @@ impl<T> PyOperandArg<T> {
     }
 }
 
-impl<'py, T> FromPyObject<'_, 'py> for PyOperandArg<T>
+impl<'a, 'py, T> FromPyObject<'a, 'py> for PyOperandArg<T>
 where
-    T: FromPyOperand,
+    T: FromPyOperand<'a, 'py>,
 {
     type Error = Infallible;
 
     #[inline]
-    fn extract(ob: Borrowed<'_, 'py, PyAny>) -> Result<Self, Self::Error> {
+    fn extract(ob: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
         Ok(Self(T::from_py_operand(ob)))
+    }
+}
+
+/// An instance of exactly `T` (no subclasses).
+impl<'a, 'py, T> FromPyOperand<'a, 'py> for Borrowed<'a, 'py, T>
+where
+    T: PyTypeInfo + 'a,
+{
+    #[inline]
+    fn from_py_operand(ob: Borrowed<'a, 'py, PyAny>) -> Option<Self> {
+        use crate::PyCastExactOpt;
+        ob.cast_exact_opt::<T>()
+    }
+}
+
+/// Implements `FromPyOperand` for py-int-like objects
+macro_rules! impl_int_operand {
+    ($($ty:ty),*) => {$(
+        impl FromPyOperand<'_, '_> for $ty {
+            #[inline]
+            fn from_py_operand(ob: Borrowed<'_, '_, PyAny>) -> Option<Self> {
+                if pynumber_check(ob) {
+                    ob.extract().ok()
+                } else {
+                    None
+                }
+            }
+        }
+    )*};
+}
+
+// only need i64 and u32 for now (2026-11-07)
+impl_int_operand!(i64, u32);
+
+/// Exact `float` (ints != floats)
+///
+/// NOTE: might have to chain an `int` operand first
+impl FromPyOperand<'_, '_> for f64 {
+    #[inline]
+    fn from_py_operand(ob: Borrowed<'_, '_, PyAny>) -> Option<Self> {
+        use crate::PyCastExactOpt;
+        ob.cast_exact_opt::<PyFloat>().map(|f| f.value())
+    }
+}
+
+/// A `datetime.timedelta` (subclasses fine i think)
+impl FromPyOperand<'_, '_> for Duration {
+    #[inline]
+    fn from_py_operand(ob: Borrowed<'_, '_, PyAny>) -> Option<Self> {
+        use crate::PyCastOpt;
+        ob.cast_opt::<PyDelta>()?.extract().ok()
+    }
+}
+
+/// Chain-able operand extract ~ very sexy fugue-state-jesse work from 2am
+///
+/// Each variant/fn's arg type is the operand type tried, in order, first wins;
+/// this example is taken from the duration impl for multiplication:
+///
+/// ```ignore
+/// use pyo3::prelude::*;
+/// use ryo3_core::{FromPyOperand, PyNotImplementedOr, PyOperandArg, PyOperandExt};
+///
+/// enum MulInput {
+///     Int(u32),   // `int`
+///     Float(f64), // `float`
+/// }
+///
+/// impl FromPyOperand<'_, '_> for MulInput {
+///     fn from_py_operand(obj: Borrowed<'_, '_, PyAny>) -> Option<Self> {
+///         // order matters; int first so `2` stays an int
+///         obj.operand(Self::Int)
+///             .or(Self::Float)
+///             .ok() // finalize ~ Option<Self>
+///     }
+/// }
+///
+/// // and in pymethods can be used like this
+/// fn __mul__(&self, other: PyOperandArg<MulInput>) -> PyResult<PyNotImplementedOr<Self>> {
+///     other.try_map(|rhs| self.try_mul(rhs)) // unsupported -> NotImplemented
+/// }
+/// ```
+///
+/// Or start empty w/ `operand_match()` so every variant is an `.or(...)` line
+/// (easier to shuffle around):
+///
+/// ```ignore
+/// obj.operand_match()
+///     .or(Self::Int)
+///     .or(Self::Float)
+///     .ok()
+/// ```
+pub trait PyOperandExt<'a, 'py>: Sized {
+    /// Empty match ~ nothing tried yet.
+    fn operand_match<O>(self) -> PyOperandMatch<'a, 'py, O>;
+
+    /// Match starting with `T` (same as `operand_match().or(f)`).
+    #[inline]
+    fn operand<T, O>(self, f: impl FnOnce(T) -> O) -> PyOperandMatch<'a, 'py, O>
+    where
+        T: FromPyOperand<'a, 'py>,
+    {
+        self.operand_match().or(f)
+    }
+}
+
+impl<'a, 'py> PyOperandExt<'a, 'py> for Borrowed<'a, 'py, PyAny> {
+    #[inline]
+    fn operand_match<O>(self) -> PyOperandMatch<'a, 'py, O> {
+        PyOperandMatch {
+            ob: self,
+            out: None,
+        }
+    }
+}
+
+/// Builder from [`PyOperandExt::operand`] / [`PyOperandExt::operand_match`].
+#[must_use]
+pub struct PyOperandMatch<'a, 'py, O> {
+    ob: Borrowed<'a, 'py, PyAny>,
+    out: Option<O>,
+}
+
+impl<'a, 'py, O> PyOperandMatch<'a, 'py, O> {
+    /// Try `T` next (skipped once something matched).
+    #[inline]
+    pub fn or<T: FromPyOperand<'a, 'py>>(mut self, f: impl FnOnce(T) -> O) -> Self {
+        if self.out.is_none() {
+            self.out = T::from_py_operand(self.ob).map(f);
+        }
+        self
+    }
+
+    /// Finalize the match (if any)
+    #[inline]
+    pub fn ok(self) -> Option<O> {
+        self.out
     }
 }

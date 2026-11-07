@@ -8,7 +8,10 @@ use pyo3::{BoundObject, IntoPyObjectExt};
 use ryo3_core::macros::{
     any_repr, py_key_err, py_overflow_error, py_type_err, py_value_err, py_value_error,
 };
-use ryo3_core::{PyAsciiString, PyCastExactOpt, map_py_overflow_err, map_py_value_err};
+use ryo3_core::{
+    FromPyOperand, PyAsciiString, PyCastExactOpt, PyNotImplementedOr, PyOperandArg,
+    map_py_overflow_err, map_py_value_err,
+};
 use ryo3_jiff_core::{JiffFriendlyDesignator, JiffRoundMode, JiffSpan, JiffUnit};
 
 use crate::py_temporal_like::PyTemporalArg;
@@ -63,6 +66,23 @@ impl PartialEq for RySpan {
         let self_fieldwise = self.0.fieldwise();
         let other_fieldwise = other.0.fieldwise();
         self_fieldwise == other_fieldwise
+    }
+}
+
+impl RySpan {
+    fn try_mul(&self, other: i64) -> PyResult<Self> {
+        self.0
+            .checked_mul(other)
+            .map(Self::from)
+            .map_err(map_py_overflow_err)
+    }
+
+    fn try_sub(&self, other: &RySpanArithmetic<'_, '_>) -> PyResult<Self> {
+        let span_arithmetic: SpanArithmetic = other.into();
+        self.0
+            .checked_sub(span_arithmetic)
+            .map(Self::from)
+            .map_err(map_py_overflow_err)
     }
 }
 
@@ -492,9 +512,9 @@ impl RySpan {
     fn __add__<'py>(
         &self,
         py: Python<'py>,
-        other: SpanAddTarget<'_, 'py>,
-    ) -> PyResult<Bound<'py, PyAny>> {
-        other.add_span(py, self)
+        other: PyOperandArg<SpanAddTarget<'_, 'py>>,
+    ) -> PyResult<PyNotImplementedOr<Bound<'py, PyAny>>> {
+        other.try_map(|rhs| rhs.add_span(py, self))
     }
 
     #[expect(clippy::too_many_arguments, reason = "python kwargs")]
@@ -561,13 +581,11 @@ impl RySpan {
         }
     }
 
-    #[expect(clippy::needless_pass_by_value)]
-    fn __sub__(&self, other: RySpanArithmetic) -> PyResult<Self> {
-        let span_arithmetic: SpanArithmetic = (&other).into();
-        self.0
-            .checked_sub(span_arithmetic)
-            .map(Self::from)
-            .map_err(map_py_overflow_err)
+    fn __sub__(
+        &self,
+        other: PyOperandArg<RySpanArithmetic<'_, '_>>,
+    ) -> PyResult<PyNotImplementedOr<Self>> {
+        other.try_map(|rhs| self.try_sub(&rhs))
     }
 
     #[expect(clippy::too_many_arguments, reason = "python kwargs")]
@@ -614,7 +632,7 @@ impl RySpan {
             .microseconds_opt(microseconds)
             .nanoseconds_opt(nanoseconds);
         match (other, kwargs.is_empty()) {
-            (Some(other), true) => self.__sub__(other),
+            (Some(other), true) => self.try_sub(&other),
             (None, false) => {
                 let span = kwargs.build_span()?;
                 let span_arithmetic = SpanArithmetic::from(span).days_are_24_hours();
@@ -632,15 +650,12 @@ impl RySpan {
         }
     }
 
-    fn __mul__(&self, other: i64) -> PyResult<Self> {
-        self.0
-            .checked_mul(other)
-            .map(Self::from)
-            .map_err(map_py_overflow_err)
+    fn __mul__(&self, other: PyOperandArg<i64>) -> PyResult<PyNotImplementedOr<Self>> {
+        other.try_map(|rhs| self.try_mul(rhs))
     }
 
     fn mul(&self, other: i64) -> PyResult<Self> {
-        self.__mul__(other)
+        self.try_mul(other)
     }
 
     #[pyo3(signature = (other, relative = None, *, days_are_24_hours = false))]
@@ -1111,6 +1126,28 @@ impl<'a, 'py> FromPyObject<'a, 'py> for RySpanArithmetic<'a, 'py> {
     }
 }
 
+impl<'a, 'py> FromPyOperand<'a, 'py> for RySpanArithmetic<'a, 'py> {
+    fn from_py_operand(obj: Borrowed<'a, 'py, PyAny>) -> Option<Self> {
+        if let Some(tup) = obj.cast_exact_opt::<PyTuple>() {
+            if tup.len() != 2 {
+                return None;
+            }
+            let (spanish, relative_to) = tup
+                .extract::<(Spanish<'a, 'py>, RySpanRelativeTo<'a, 'py>)>()
+                .ok()?;
+            Some(RySpanArithmetic {
+                spanish,
+                relative_to: Some(relative_to),
+            })
+        } else {
+            Spanish::from_py_operand(obj).map(|spanish| RySpanArithmetic {
+                spanish,
+                relative_to: None,
+            })
+        }
+    }
+}
+
 impl<'a, 'py> From<&'a RySpanArithmetic<'a, 'py>> for SpanArithmetic<'a> {
     fn from(value: &'a RySpanArithmetic<'a, 'py>) -> Self {
         if let Some(ref relative_to) = value.relative_to {
@@ -1155,6 +1192,20 @@ impl<'a, 'py> FromPyObject<'a, 'py> for SpanAddTarget<'a, 'py> {
             py_type_err!(
                 "Expected TimeSpan, SignedDuration, datetime.timedelta, a tuple of length 2 for Span arithmetic with relative, or a date/time type",
             )
+        }
+    }
+}
+
+// span-likes first: they're disjoint from the temporal types and much cheaper
+// to check than `PyTemporalArg`
+impl<'a, 'py> FromPyOperand<'a, 'py> for SpanAddTarget<'a, 'py> {
+    fn from_py_operand(obj: Borrowed<'a, 'py, PyAny>) -> Option<Self> {
+        if let Some(span_arith) = RySpanArithmetic::from_py_operand(obj) {
+            Some(Self::Span(span_arith))
+        } else {
+            obj.extract::<PyTemporalArg<'a, 'py>>()
+                .ok()
+                .map(Self::TemporalType)
         }
     }
 }

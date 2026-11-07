@@ -7,7 +7,9 @@ use jiff::civil::{Date, DateArithmetic, Weekday};
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyTuple};
 use pyo3::{BoundObject, IntoPyObject};
-use ryo3_core::{PyAsciiString, map_py_overflow_err, map_py_value_err};
+use ryo3_core::{
+    PyAsciiString, PyNotImplementedOr, PyOperandArg, map_py_overflow_err, map_py_value_err,
+};
 use ryo3_jiff_core::{JiffDate, JiffEra, JiffEraYear, JiffRoundMode, JiffUnit, JiffWeekday};
 use ryo3_macro_rules::{any_repr, py_type_err, py_value_error};
 
@@ -34,6 +36,23 @@ pub struct RyDate(pub(crate) Date);
 impl RyDate {
     fn checked_sub<T: Into<DateArithmetic>>(self, other: T) -> Result<Self, jiff::Error> {
         self.0.checked_sub(other).map(Self)
+    }
+}
+
+#[expect(clippy::trivially_copy_pass_by_ref, reason = "idk TODO FIGURE OUT")]
+impl RyDate {
+    fn try_add(&self, other: Spanish<'_, '_>) -> PyResult<Self> {
+        self.0
+            .checked_add(other)
+            .map(Self::from)
+            .map_err(map_py_overflow_err)
+    }
+
+    fn try_sub_temporal(&self, other: TemporalSubInput<'_, '_, Self>) -> TemporalSubOutput<Self> {
+        match other {
+            TemporalSubInput::Temporal(ob) => self.0.sub(ob.get().0).into(),
+            TemporalSubInput::Spanish(spanish) => self.checked_sub(spanish).into(),
+        }
     }
 }
 
@@ -143,15 +162,15 @@ impl RyDate {
         )
     }
 
-    fn __add__(&self, other: Spanish) -> PyResult<Self> {
-        self.0
-            .checked_add(other)
-            .map(Self::from)
-            .map_err(map_py_overflow_err)
+    fn __add__(&self, other: PyOperandArg<Spanish<'_, '_>>) -> PyResult<PyNotImplementedOr<Self>> {
+        other.try_map(|rhs| self.try_add(rhs))
     }
 
-    fn __radd__(&self, other: DurationLike) -> PyResult<Self> {
-        self.__add__(other.into())
+    fn __radd__(
+        &self,
+        other: PyOperandArg<DurationLike<'_, '_>>,
+    ) -> PyResult<PyNotImplementedOr<Self>> {
+        other.try_map(|lhs| self.try_add(lhs.into()))
     }
 
     #[expect(clippy::too_many_arguments, reason = "python kwargs")]
@@ -198,7 +217,7 @@ impl RyDate {
             .nanoseconds(nanoseconds);
 
         match (other, !spkw.is_zero()) {
-            (Some(o), false) => self.__add__(o),
+            (Some(o), false) => self.try_add(o),
             (None, true) => {
                 let span = spkw.build_span()?;
                 self.0
@@ -213,11 +232,11 @@ impl RyDate {
         }
     }
 
-    fn __sub__(&self, other: TemporalSubInput<Self>) -> TemporalSubOutput<Self> {
-        match other {
-            TemporalSubInput::Temporal(ob) => self.0.sub(ob.get().0).into(),
-            TemporalSubInput::Spanish(spanish) => self.checked_sub(spanish).into(),
-        }
+    fn __sub__(
+        &self,
+        other: PyOperandArg<TemporalSubInput<'_, '_, Self>>,
+    ) -> PyNotImplementedOr<TemporalSubOutput<Self>> {
+        other.map(|rhs| self.try_sub_temporal(rhs))
     }
 
     #[expect(clippy::too_many_arguments, reason = "python kwargs")]
@@ -264,7 +283,7 @@ impl RyDate {
             .nanoseconds(nanoseconds);
 
         match (other, !spkw.is_zero()) {
-            (Some(o), false) => Ok(self.__sub__(o)),
+            (Some(o), false) => Ok(self.try_sub_temporal(o)),
             (None, true) => {
                 let span = spkw.build_span()?;
                 Ok(self.checked_sub(span).into())

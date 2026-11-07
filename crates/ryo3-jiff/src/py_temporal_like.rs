@@ -1,6 +1,6 @@
 use pyo3::prelude::*;
 use pyo3::{IntoPyObjectExt, PyTypeInfo};
-use ryo3_core::PyCastExactOpt;
+use ryo3_core::{FromPyOperand, PyCastExactOpt};
 use ryo3_macro_rules::{py_overflow_err, py_type_err, py_value_err};
 
 use crate::spanish::Spanish;
@@ -56,6 +56,16 @@ impl<'a, 'py> FromPyObject<'a, 'py> for PyTemporalArg<'a, 'py> {
 pub(crate) enum TemporalSubInput<'a, 'py, T> {
     Temporal(Borrowed<'a, 'py, T>),
     Spanish(Spanish<'a, 'py>),
+}
+
+impl<'a, 'py, T> FromPyOperand<'a, 'py> for TemporalSubInput<'a, 'py, T>
+where
+    T: PyTypeInfo,
+{
+    fn from_py_operand(ob: Borrowed<'a, 'py, PyAny>) -> Option<Self> {
+        use ryo3_core::PyOperandExt;
+        ob.operand(Self::Temporal).or(Self::Spanish).ok()
+    }
 }
 
 impl<'a, 'py, T> FromPyObject<'a, 'py> for TemporalSubInput<'a, 'py, T>

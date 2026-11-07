@@ -5,7 +5,7 @@ use jiff::tz::OffsetArithmetic;
 use jiff::{SignedDuration, TimestampArithmetic, ZonedArithmetic};
 use pyo3::prelude::*;
 use pyo3::types::PyDelta;
-use ryo3_core::PyCastExactOpt;
+use ryo3_core::{FromPyOperand, PyCastExactOpt};
 use ryo3_jiff_core::JiffSignedDuration;
 use ryo3_macro_rules::py_type_err;
 use ryo3_std::time::PyDuration;
@@ -65,6 +65,30 @@ impl<'a, 'py> FromPyObject<'a, 'py> for Spanish<'a, 'py> {
                 "Expected a Timespan, Duration, SignedDuration, or datetime.timedelta object"
             )
         }
+    }
+}
+
+impl<'a, 'py> FromPyOperand<'a, 'py> for DurationLike<'a, 'py> {
+    fn from_py_operand(ob: Borrowed<'a, 'py, PyAny>) -> Option<Self> {
+        if let Some(duration) = ob.cast_exact_opt::<PyDuration>() {
+            Some(Self::Duration(duration))
+        } else {
+            let sd = ob
+                .cast_exact_opt::<PyDelta>()?
+                .extract::<JiffSignedDuration>()
+                .ok()?;
+            Some(Self::PyTimeDelta(sd.into_inner()))
+        }
+    }
+}
+
+impl<'a, 'py> FromPyOperand<'a, 'py> for Spanish<'a, 'py> {
+    fn from_py_operand(ob: Borrowed<'a, 'py, PyAny>) -> Option<Self> {
+        use ryo3_core::PyOperandExt;
+        ob.operand(Self::Span)
+            .or(Self::SignedDuration)
+            .or(Self::DurationLike)
+            .ok()
     }
 }
 

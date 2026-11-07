@@ -5,7 +5,9 @@ use std::time::Duration;
 use pyo3::prelude::*;
 use pyo3::types::{PyAnyMethods, PyDict, PyDictMethods, PyFloat, PyInt, PyTuple};
 use pyo3::{BoundObject, IntoPyObjectExt};
-use ryo3_core::{PyAsciiString, PyCastExactOpt, PyCastOpt, PyFromStr};
+use ryo3_core::{
+    PyAsciiString, PyCastExactOpt, PyCastOpt, PyFromStr, PyNotImplementedOr, PyOperandArg,
+};
 #[cfg(feature = "jiff")]
 use ryo3_jiff_core::JiffFriendlyDesignator;
 #[cfg(feature = "jiff")]
@@ -94,8 +96,59 @@ impl PyDuration {
     }
 }
 
+impl PyDuration {
+    fn try_add(&self, rhs: Duration) -> PyResult<Self> {
+        self.0
+            .checked_add(rhs)
+            .map(Self::from)
+            .ok_or_else(|| py_overflow_error!("overflow in Duration addition"))
+    }
+
+    fn try_truediv(
+        &self,
+        other: arithmetic::DurationTrueDivInput,
+    ) -> PyResult<arithmetic::DurationTrueDivOutput> {
+        match other {
+            arithmetic::DurationTrueDivInput::Int(i) => {
+                if i == 0 {
+                    py_zero_division_err!("division by zero")
+                } else {
+                    self.checked_div(i)
+                        .ok_or_else(|| py_overflow_error!("overflow in Duration division"))
+                        .map(Into::into)
+                }
+            }
+            arithmetic::DurationTrueDivInput::Float(f) => self.div_f64(f).map(Into::into),
+            arithmetic::DurationTrueDivInput::Duration(d) => {
+                self.div_duration_f64(d.get()).map(Into::into)
+            }
+            arithmetic::DurationTrueDivInput::PyDelta(d) => {
+                if d.is_zero() {
+                    py_zero_division_err!()
+                } else {
+                    Ok(self.0.div_duration_f64(d).into())
+                }
+            }
+        }
+    }
+
+    fn try_mul(&self, other: arithmetic::DurationMulInput) -> PyResult<Self> {
+        match other {
+            arithmetic::DurationMulInput::Int(i) => self
+                .checked_mul(i)
+                .ok_or_else(|| py_overflow_error!("overflow in Duration multiplication")),
+            arithmetic::DurationMulInput::Float(f) => self.mul_f64(f),
+        }
+    }
+}
+
+fn try_sub(lhs: Duration, rhs: Duration) -> PyResult<PyDuration> {
+    lhs.checked_sub(rhs)
+        .map(PyDuration::from)
+        .ok_or_else(|| py_overflow_error!("overflow in Duration subtraction"))
+}
+
 #[pymethods]
-#[expect(clippy::needless_pass_by_value)]
 impl PyDuration {
     #[new]
     #[pyo3(signature = (secs = 0, nanos = 0))]
@@ -193,71 +246,42 @@ impl PyDuration {
     // ========================================================================
     // MATHS/OPERATORS
     // ========================================================================
-    fn __add__(&self, other: DurationLike) -> PyResult<Self> {
-        self.0
-            .checked_add(other.into())
-            .map(Self::from)
-            .ok_or_else(|| py_overflow_error!("overflow in Duration addition"))
+
+    fn __add__(&self, other: PyOperandArg<DurationLike>) -> PyResult<PyNotImplementedOr<Self>> {
+        other.try_map(|rhs| self.try_add(rhs.into()))
     }
 
-    fn __radd__(&self, other: DurationLike) -> PyResult<Self> {
-        self.__add__(other)
+    fn __radd__(&self, other: PyOperandArg<DurationLike>) -> PyResult<PyNotImplementedOr<Self>> {
+        other.try_map(|lhs| self.try_add(lhs.into()))
     }
 
-    fn __sub__(&self, other: DurationLike) -> PyResult<Self> {
-        self.0
-            .checked_sub(other.into())
-            .map(Self::from)
-            .ok_or_else(|| py_overflow_error!("overflow in Duration subtraction"))
+    fn __sub__(&self, other: PyOperandArg<DurationLike>) -> PyResult<PyNotImplementedOr<Self>> {
+        other.try_map(|rhs| try_sub(self.0, rhs.into()))
     }
 
-    fn __rsub__(&self, other: DurationLike) -> PyResult<Self> {
-        let other: Duration = other.into();
-        other
-            .checked_sub(self.0)
-            .map(Self::from)
-            .ok_or_else(|| py_overflow_error!("overflow in Duration subtraction"))
+    fn __rsub__(&self, other: PyOperandArg<DurationLike>) -> PyResult<PyNotImplementedOr<Self>> {
+        other.try_map(|lhs| try_sub(lhs.into(), self.0))
     }
 
     fn __truediv__(
         &self,
-        other: arithmetic::DurationTrueDivInput,
-    ) -> PyResult<arithmetic::DurationTrueDivOutput> {
-        match other {
-            arithmetic::DurationTrueDivInput::Int(i) => {
-                if i == 0 {
-                    py_zero_division_err!("division by zero")
-                } else {
-                    self.checked_div(i)
-                        .ok_or_else(|| py_overflow_error!("overflow in Duration division"))
-                        .map(Into::into)
-                }
-            }
-            arithmetic::DurationTrueDivInput::Float(f) => self.div_f64(f).map(Into::into),
-            arithmetic::DurationTrueDivInput::Duration(d) => {
-                self.div_duration_f64(d.get()).map(Into::into)
-            }
-            arithmetic::DurationTrueDivInput::PyDelta(d) => {
-                if d.is_zero() {
-                    py_zero_division_err!()
-                } else {
-                    Ok(self.0.div_duration_f64(d).into())
-                }
-            }
-        }
+        other: PyOperandArg<arithmetic::DurationTrueDivInput>,
+    ) -> PyResult<PyNotImplementedOr<arithmetic::DurationTrueDivOutput>> {
+        other.try_map(|rhs| self.try_truediv(rhs))
     }
 
-    fn __mul__(&self, other: arithmetic::DurationMulInput) -> PyResult<Self> {
-        match other {
-            arithmetic::DurationMulInput::Int(i) => self
-                .checked_mul(i)
-                .ok_or_else(|| py_overflow_error!("overflow in Duration multiplication")),
-            arithmetic::DurationMulInput::Float(f) => self.mul_f64(f),
-        }
+    fn __mul__(
+        &self,
+        other: PyOperandArg<arithmetic::DurationMulInput>,
+    ) -> PyResult<PyNotImplementedOr<Self>> {
+        other.try_map(|rhs| self.try_mul(rhs))
     }
 
-    fn __rmul__(&self, other: arithmetic::DurationMulInput) -> PyResult<Self> {
-        self.__mul__(other)
+    fn __rmul__(
+        &self,
+        other: PyOperandArg<arithmetic::DurationMulInput>,
+    ) -> PyResult<PyNotImplementedOr<Self>> {
+        other.try_map(|lhs| self.try_mul(lhs))
     }
 
     // ========================================================================
@@ -884,7 +908,7 @@ mod arithmetic {
 
     use pyo3::IntoPyObjectExt;
     use pyo3::prelude::*;
-    use ryo3_core::PyCastExactOpt;
+    use ryo3_core::{FromPyOperand, PyCastExactOpt};
     use ryo3_macro_rules::py_type_err;
 
     use crate::time::PyDuration;
@@ -894,6 +918,15 @@ mod arithmetic {
     impl From<DurationLike> for Duration {
         fn from(d: DurationLike) -> Self {
             d.0
+        }
+    }
+
+    impl FromPyOperand<'_, '_> for DurationLike {
+        fn from_py_operand(obj: Borrowed<'_, '_, PyAny>) -> Option<Self> {
+            use ryo3_core::PyOperandExt;
+            obj.operand(|d: Borrowed<'_, '_, PyDuration>| Self(d.get().0))
+                .or(Self)
+                .ok()
         }
     }
 
@@ -912,6 +945,7 @@ mod arithmetic {
         }
     }
 
+    #[derive(Clone, Copy)]
     pub(super) enum DurationTrueDivInput<'a, 'py> {
         Int(u32),
         Float(f64),
@@ -936,31 +970,15 @@ mod arithmetic {
         }
     }
 
-    impl<'a, 'py> FromPyObject<'a, 'py> for DurationTrueDivInput<'a, 'py> {
-        type Error = PyErr;
-        fn extract(obj: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
-            if let Ok(pi) = obj.cast_exact::<pyo3::types::PyInt>() {
-                let i = pi.extract::<u32>()?;
-                return Ok(Self::Int(i));
-            }
-
-            if let Ok(pf) = obj.cast_exact::<pyo3::types::PyFloat>() {
-                let f = pf.extract::<f64>()?;
-                return Ok(Self::Float(f));
-            }
-
-            if let Ok(inst) = obj.cast_exact::<PyDuration>() {
-                return Ok(Self::Duration(inst));
-            }
-
-            if let Ok(inst) = obj.cast::<pyo3::types::PyDelta>() {
-                let dur: Duration = inst.extract()?;
-                return Ok(Self::PyDelta(dur));
-            }
-
-            py_type_err!(
-                "unsupported operand type(s); must be int | float | Duration | datetime.timedelta"
-            )
+    impl<'a, 'py> FromPyOperand<'a, 'py> for DurationTrueDivInput<'a, 'py> {
+        fn from_py_operand(obj: Borrowed<'a, 'py, PyAny>) -> Option<Self> {
+            use ryo3_core::PyOperandExt;
+            // slow to fast
+            obj.operand(Self::Int)
+                .or(Self::Float)
+                .or(Self::Duration)
+                .or(Self::PyDelta)
+                .ok()
         }
     }
 
@@ -979,21 +997,16 @@ mod arithmetic {
         }
     }
 
+    #[derive(Clone, Copy)]
     pub(super) enum DurationMulInput {
         Int(u32),
         Float(f64),
     }
 
-    impl<'a, 'py> FromPyObject<'a, 'py> for DurationMulInput {
-        type Error = PyErr;
-        fn extract(obj: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
-            if let Some(pi) = obj.cast_exact_opt::<pyo3::types::PyInt>() {
-                pi.extract::<u32>().map(Self::Int)
-            } else if let Some(pf) = obj.cast_exact_opt::<pyo3::types::PyFloat>() {
-                pf.extract::<f64>().map(Self::Float)
-            } else {
-                py_type_err!("unsupported operand type(s); must be int | float")
-            }
+    impl FromPyOperand<'_, '_> for DurationMulInput {
+        fn from_py_operand(obj: Borrowed<'_, '_, PyAny>) -> Option<Self> {
+            use ryo3_core::PyOperandExt;
+            obj.operand(Self::Int).or(Self::Float).ok()
         }
     }
 }

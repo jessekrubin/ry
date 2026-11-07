@@ -1,6 +1,8 @@
 use http::HeaderMap;
 use pyo3::prelude::*;
+use pyo3::types::PyDict;
 use ryo3_core::macros::py_type_err;
+use ryo3_core::{FromPyOperand, PyCastExactOpt};
 
 use crate::{PyHeaders, PyHttpHeaderMap};
 #[derive(Debug, Clone)]
@@ -24,6 +26,18 @@ impl From<PyHeadersLike> for PyHeaders {
         match h {
             PyHeadersLike::Headers(h) => h,
             PyHeadersLike::Map(d) => Self::from(d),
+        }
+    }
+}
+
+impl FromPyOperand<'_, '_> for PyHeadersLike {
+    fn from_py_operand(obj: Borrowed<'_, '_, PyAny>) -> Option<Self> {
+        if let Some(h) = obj.cast_exact_opt::<PyHeaders>() {
+            Some(Self::Headers(h.get().clone()))
+        } else if obj.is_exact_instance_of::<PyDict>() {
+            obj.extract::<PyHttpHeaderMap>().ok().map(Self::Map)
+        } else {
+            None
         }
     }
 }

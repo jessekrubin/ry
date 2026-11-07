@@ -658,7 +658,7 @@ enum PySizeOperand {
 }
 type PySizeOperandArg = PyOperandArg<PySizeOperand>;
 
-impl FromPyOperand for PySizeOperand {
+impl FromPyOperand<'_, '_> for PySizeOperand {
     fn from_py_operand(ob: Borrowed<'_, '_, PyAny>) -> Option<Self> {
         use ryo3_core::PyCastExactOpt;
         if let Some(s) = ob.cast_exact_opt::<RySize>() {

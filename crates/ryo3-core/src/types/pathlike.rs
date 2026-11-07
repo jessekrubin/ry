@@ -3,7 +3,7 @@ use std::path::{Path, PathBuf};
 use pyo3::pybacked::PyBackedStr;
 use pyo3::{Bound, FromPyObject, IntoPyObject, IntoPyObjectExt, PyErr, Python};
 
-use crate::PyCastExactOpt;
+use crate::{FromPyOperand, PyCastExactOpt};
 
 mod pathlib {
 
@@ -67,6 +67,23 @@ impl<'a, 'py> FromPyObject<'a, 'py> for PathLike {
         // finally fall back to the `__fspath__` protocol
         let p: PathBuf = obj.extract()?;
         Ok(Self::PathBuf(p))
+    }
+}
+
+// only `str`/`bytes`/`__fspath__` objs extract (like `os.fspath`)
+impl<'a, 'py> FromPyOperand<'a, 'py> for PathLike {
+    fn from_py_operand(obj: pyo3::Borrowed<'a, 'py, pyo3::PyAny>) -> Option<Self> {
+        use pyo3::prelude::*;
+        let fspath_like = obj.is_instance_of::<pyo3::types::PyString>()
+            || obj.is_instance_of::<pyo3::types::PyBytes>()
+            || obj
+                .hasattr(pyo3::intern!(obj.py(), "__fspath__"))
+                .unwrap_or(false);
+        if fspath_like {
+            obj.extract().ok()
+        } else {
+            None
+        }
     }
 }
 
