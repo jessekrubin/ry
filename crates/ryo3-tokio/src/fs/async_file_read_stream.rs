@@ -113,11 +113,17 @@ impl AsyncFileReadStreamWrapper {
 
 impl AsyncFileReadStreamWrapper {}
 
-#[pyclass(name = "AsyncFileReadStream", frozen, immutable_type)]
+#[pyclass(name = "AsyncFileReadStream", frozen, immutable_type, eq)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct PyAsyncFileReadStream {
     options: Arc<PyFileReadStreamOptions>,
     inner: Arc<Mutex<AsyncFileReadStreamWrapper>>,
+}
+
+impl PartialEq for PyAsyncFileReadStream {
+    fn eq(&self, other: &Self) -> bool {
+        self.options == other.options
+    }
 }
 
 fn map_open_error(e: &std::io::Error) -> PyErr {
@@ -201,10 +207,6 @@ impl PyAsyncFileReadStream {
 
     fn __await__(slf: Py<Self>, py: Python<'_>) -> PyResult<Bound<'_, RyCoroutine>> {
         Self::ensure_open_coro(slf, py, "AsyncFileReadStream.__await__")
-    }
-
-    fn __eq__(&self, other: &Self) -> bool {
-        self.options == other.options
     }
 
     fn __aenter__(slf: Py<Self>, py: Python<'_>) -> PyResult<Bound<'_, RyCoroutine>> {

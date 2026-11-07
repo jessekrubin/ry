@@ -1,14 +1,26 @@
 //! python wrapper for `walkdir::DirEntry`
 use std::ffi::OsStr;
 
-use pyo3::basic::CompareOp;
 use pyo3::prelude::*;
 use ryo3_core::macros::{py_permission_error, py_type_err};
 
-#[pyclass(name = "WalkDirEntry", frozen, immutable_type)]
+#[pyclass(name = "WalkDirEntry", frozen, immutable_type, eq, ord)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Clone, Debug)]
 pub struct PyWalkDirEntry(walkdir::DirEntry);
+
+// compares by path
+impl PartialEq for PyWalkDirEntry {
+    fn eq(&self, other: &Self) -> bool {
+        self.0.path() == other.0.path()
+    }
+}
+
+impl PartialOrd for PyWalkDirEntry {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        self.0.path().partial_cmp(other.0.path())
+    }
+}
 
 #[pymethods]
 impl PyWalkDirEntry {
@@ -59,17 +71,6 @@ impl PyWalkDirEntry {
 
     fn __repr__(&self) -> String {
         format!("{self}")
-    }
-
-    fn __richcmp__(&self, other: &Self, op: CompareOp) -> bool {
-        match op {
-            CompareOp::Eq => self.0.path() == other.0.path(),
-            CompareOp::Ne => self.0.path() != other.0.path(),
-            CompareOp::Lt => self.0.path() < other.0.path(),
-            CompareOp::Le => self.0.path() <= other.0.path(),
-            CompareOp::Gt => self.0.path() > other.0.path(),
-            CompareOp::Ge => self.0.path() >= other.0.path(),
-        }
     }
 
     #[getter]

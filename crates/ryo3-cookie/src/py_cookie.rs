@@ -8,7 +8,7 @@ use ryo3_std::time::PyDuration;
 use crate::PyCookieSameSite;
 use crate::types::PyCookieExpiration;
 
-#[pyclass(name = "Cookie", frozen, immutable_type)]
+#[pyclass(name = "Cookie", frozen, immutable_type, eq)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct PyCookie(pub(crate) ::cookie::Cookie<'static>);
 
@@ -18,6 +18,12 @@ impl PyCookie {
         S: Into<Cow<'c, str>>,
     {
         ::cookie::Cookie::parse(s).map(|c| Self(c.into_owned()))
+    }
+}
+
+impl PartialEq for PyCookie {
+    fn eq(&self, other: &Self) -> bool {
+        self.0 == other.0
     }
 }
 
@@ -175,14 +181,6 @@ impl PyCookie {
 
     fn stripped_encoded(&self) -> String {
         self.0.stripped().encoded().to_string()
-    }
-
-    fn __eq__(&self, other: &Self) -> bool {
-        self.0 == other.0
-    }
-
-    fn __ne__(&self, other: &Self) -> bool {
-        self.0 != other.0
     }
 
     fn __hash__(&self) -> u64 {

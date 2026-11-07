@@ -10,8 +10,8 @@
 ## v0.0.108 [unreleased]
 
 - `ryo3-size`
-  - **INTERNAL:** renamed rust pyclasses `PySize` -> `RySize`,
-    `PySizeFormatter` -> `RySizeFormatter`
+  - **INTERNAL:** renamed rust pyclasses `PySize` -> `RySize`, `PySizeFormatter`
+    -> `RySizeFormatter`
   - fix: `Size` compares like the `int` it wraps
   - perf: `Size`/`SizeFormatter` comparisons/arithmetic
 - **BREAKING**

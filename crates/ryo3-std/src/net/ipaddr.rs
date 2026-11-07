@@ -12,19 +12,19 @@ use crate::net::ipaddr_props::IpAddrProps;
 use crate::net::{PySocketAddrV4, PySocketAddrV6};
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize), serde(transparent))]
-#[pyclass(name = "Ipv4Addr", frozen, immutable_type)]
+#[pyclass(name = "Ipv4Addr", frozen, immutable_type, eq, ord)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, PartialOrd, Ord)]
 pub struct PyIpv4Addr(pub(crate) Ipv4Addr);
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize), serde(transparent))]
-#[pyclass(name = "Ipv6Addr", frozen, immutable_type)]
+#[pyclass(name = "Ipv6Addr", frozen, immutable_type, eq, ord)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, PartialOrd, Ord)]
 pub struct PyIpv6Addr(pub(crate) Ipv6Addr);
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize), serde(transparent))]
-#[pyclass(name = "IpAddr", frozen, immutable_type)]
+#[pyclass(name = "IpAddr", frozen, immutable_type, eq, ord)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, PartialOrd, Ord)]
 pub struct PyIpAddr(pub(crate) IpAddr);
@@ -67,30 +67,6 @@ impl PyIpv4Addr {
     // ========================================================================
     // CMP
     // ========================================================================
-
-    fn __eq__(&self, other: &Self) -> bool {
-        self.0 == other.0
-    }
-
-    fn __ne__(&self, other: &Self) -> bool {
-        self.0 != other.0
-    }
-
-    fn __lt__(&self, other: &Self) -> bool {
-        self.0 < other.0
-    }
-
-    fn __le__(&self, other: &Self) -> bool {
-        self.0 <= other.0
-    }
-
-    fn __gt__(&self, other: &Self) -> bool {
-        self.0 > other.0
-    }
-
-    fn __ge__(&self, other: &Self) -> bool {
-        self.0 >= other.0
-    }
 
     // ========================================================================
     // CONSTANTS
@@ -366,16 +342,6 @@ impl PyIpv6Addr {
     // ========================================================================
     // CMP
     // ========================================================================
-    fn __richcmp__(&self, other: &Self, op: pyo3::basic::CompareOp) -> bool {
-        match op {
-            pyo3::basic::CompareOp::Eq => self.0 == other.0,
-            pyo3::basic::CompareOp::Ne => self.0 != other.0,
-            pyo3::basic::CompareOp::Lt => self.0 < other.0,
-            pyo3::basic::CompareOp::Le => self.0 <= other.0,
-            pyo3::basic::CompareOp::Gt => self.0 > other.0,
-            pyo3::basic::CompareOp::Ge => self.0 >= other.0,
-        }
-    }
 
     // ========================================================================
     // CONSTANTS
@@ -621,16 +587,6 @@ impl PyIpAddr {
     // ========================================================================
     // CMP
     // ========================================================================
-    fn __richcmp__(&self, other: &Self, op: pyo3::basic::CompareOp) -> bool {
-        match op {
-            pyo3::basic::CompareOp::Eq => self.0 == other.0,
-            pyo3::basic::CompareOp::Ne => self.0 != other.0,
-            pyo3::basic::CompareOp::Lt => self.0 < other.0,
-            pyo3::basic::CompareOp::Le => self.0 <= other.0,
-            pyo3::basic::CompareOp::Gt => self.0 > other.0,
-            pyo3::basic::CompareOp::Ge => self.0 >= other.0,
-        }
-    }
 
     // ========================================================================
     // CONSTANTS

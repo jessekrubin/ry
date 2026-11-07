@@ -3,12 +3,11 @@ use std::sync::LazyLock;
 use std::time::Instant;
 
 use pyo3::prelude::*;
-use pyo3::pyclass::CompareOp;
 use ryo3_macro_rules::py_overflow_error;
 
 use crate::time::PyDuration;
 
-#[pyclass(name = "Instant", frozen, immutable_type)]
+#[pyclass(name = "Instant", frozen, immutable_type, eq, ord)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct PyInstant(Instant);
@@ -59,18 +58,6 @@ impl PyInstant {
         let mut hasher = DefaultHasher::new();
         self.0.hash(&mut hasher);
         hasher.finish()
-    }
-
-    #[must_use]
-    fn __richcmp__(&self, other: &Self, op: CompareOp) -> bool {
-        match op {
-            CompareOp::Eq => self.0 == other.0,
-            CompareOp::Ne => self.0 != other.0,
-            CompareOp::Lt => self.0 < other.0,
-            CompareOp::Le => self.0 <= other.0,
-            CompareOp::Gt => self.0 > other.0,
-            CompareOp::Ge => self.0 >= other.0,
-        }
     }
 
     fn __add__(&self, other: &PyDuration) -> PyResult<Self> {

@@ -11,7 +11,7 @@ use crate::options::{DEFAULT_BACKSLASH_ESCAPE, GlobOptions};
 use crate::py_globster::GlobSource;
 use crate::{PyGlobSet, PyGlobster};
 
-#[pyclass(name = "Glob", frozen, immutable_type)]
+#[pyclass(name = "Glob", frozen, immutable_type, eq)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Clone, Debug)]
 pub struct PyGlob {
@@ -19,6 +19,12 @@ pub struct PyGlob {
     pub(crate) glob: Glob,
     pub(crate) matcher: globset::GlobMatcher,
     pub(crate) options: GlobOptions,
+}
+
+impl PartialEq for PyGlob {
+    fn eq(&self, other: &Self) -> bool {
+        self.glob.regex() == other.glob.regex() && self.options == other.options
+    }
 }
 
 #[pymethods]
@@ -104,14 +110,6 @@ impl PyGlob {
             Globster::from_positive_glob(self.pattern.clone(), &self.glob),
             vec![GlobSource::Glob(self.clone())],
         )
-    }
-
-    pub(crate) fn __eq__(&self, other: &Self) -> bool {
-        self.glob.regex() == other.glob.regex() && self.options == other.options
-    }
-
-    pub(crate) fn __ne__(&self, other: &Self) -> bool {
-        !self.__eq__(other)
     }
 }
 

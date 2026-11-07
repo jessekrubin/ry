@@ -9,7 +9,7 @@ use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyInt, PyString, PyTuple};
 use sqlformat::{self, QueryParams};
 
-#[pyclass(name = "SqlfmtQueryParams", frozen, immutable_type)]
+#[pyclass(name = "SqlfmtQueryParams", frozen, immutable_type, eq)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Debug, Clone)]
 pub struct PySqlfmtQueryParams(QueryParams);
@@ -53,14 +53,6 @@ impl PySqlfmtQueryParams {
             QueryParams::None => py.None().into_bound_py_any(py)?,
         };
         pyo3::types::PyTuple::new(py, &[params])
-    }
-
-    fn __eq__(&self, other: &Self) -> bool {
-        self == other
-    }
-
-    fn __ne__(&self, other: &Self) -> bool {
-        !self.__eq__(other)
     }
 
     fn __hash__(&self) -> u64 {
@@ -507,8 +499,8 @@ struct PySqlFormatterOptions {
     dialect: PyDialect,
 }
 
-#[derive(Clone)]
-#[pyclass(name = "SqlFormatter", frozen, immutable_type)]
+#[derive(Clone, PartialEq)]
+#[pyclass(name = "SqlFormatter", frozen, immutable_type, eq)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct PySqlFormatter(PySqlFormatterOptions);
 
@@ -569,14 +561,6 @@ impl PySqlFormatter {
 
     fn __repr__(&self) -> String {
         format!("{self:?}")
-    }
-
-    fn __eq__(&self, other: &Self) -> bool {
-        self.0 == other.0
-    }
-
-    fn __ne__(&self, other: &Self) -> bool {
-        !self.__eq__(other)
     }
 
     fn __getnewargs_ex__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {

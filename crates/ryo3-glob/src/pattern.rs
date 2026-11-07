@@ -6,14 +6,13 @@ use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyString, PyTuple};
 use ryo3_core::macros::{py_type_err, py_value_error};
 
-#[pyclass(name = "GlobPattern", frozen, immutable_type)]
+#[pyclass(name = "GlobPattern", frozen, immutable_type, eq)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Clone)]
 pub struct PyGlobPattern {
     pattern: glob::Pattern,
     options: MatchOptions,
 }
-
 impl PyGlobPattern {
     fn build_options_with_overrides(
         &self,
@@ -41,6 +40,12 @@ impl From<glob::Pattern> for PyGlobPattern {
                 require_literal_leading_dot: false,
             },
         }
+    }
+}
+
+impl PartialEq for PyGlobPattern {
+    fn eq(&self, other: &Self) -> bool {
+        self.pattern == other.pattern && self.options == other.options
     }
 }
 
@@ -199,14 +204,6 @@ impl PyGlobPattern {
             self.options.require_literal_leading_dot,
         )?;
         PyTuple::new(py, [args, kwargs.into_bound_py_any(py)?])
-    }
-
-    fn __eq__(&self, other: &Self) -> bool {
-        self.pattern == other.pattern && self.options == other.options
-    }
-
-    fn __ne__(&self, other: &Self) -> bool {
-        !self.__eq__(other)
     }
 
     fn __hash__(&self) -> u64 {

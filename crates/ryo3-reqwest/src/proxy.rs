@@ -5,7 +5,7 @@ use ryo3_http::PyHeaders;
 use ryo3_macro_rules::{py_type_err, py_value_err, py_value_error};
 use ryo3_url::UrlLike;
 
-#[pyclass(name = "Proxy", frozen, immutable_type)]
+#[pyclass(name = "Proxy", frozen, immutable_type, eq)]
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyProxy {
@@ -216,10 +216,6 @@ impl RyProxy {
 
     fn __repr__(&self) -> String {
         self.to_string()
-    }
-
-    fn __eq__(&self, other: &Self) -> bool {
-        self.inner == other.inner
     }
 
     fn __hash__(&self) -> u64 {

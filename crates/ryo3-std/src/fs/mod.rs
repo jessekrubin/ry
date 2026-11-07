@@ -144,7 +144,7 @@ impl PyMetadata {
     }
 }
 
-#[pyclass(name = "Permissions", frozen, immutable_type)]
+#[pyclass(name = "Permissions", frozen, immutable_type, eq)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub struct PyPermissions(std::fs::Permissions);
@@ -186,14 +186,6 @@ impl PyPermissions {
         } else {
             "Permissions<readonly=False>"
         }
-    }
-
-    fn __eq__(&self, other: &Self) -> bool {
-        self.0 == other.0
-    }
-
-    fn __ne__(&self, other: &Self) -> bool {
-        self.0 != other.0
     }
 }
 
