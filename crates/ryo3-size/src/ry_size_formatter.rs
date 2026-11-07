@@ -5,7 +5,7 @@ use ryo3_core::PyAsciiString;
 
 use crate::types::{PyBase, PyStyle};
 
-#[pyclass(name = "SizeFormatter", frozen)]
+#[pyclass(name = "SizeFormatter", frozen, eq)]
 #[cfg_attr(any(not(Py_LIMITED_API), Py_3_14), pyo3(immutable_type))]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RySizeFormatter {
@@ -30,6 +30,12 @@ impl RySizeFormatter {
     }
 }
 
+impl PartialEq for RySizeFormatter {
+    fn eq(&self, other: &Self) -> bool {
+        self.base == other.base && self.style == other.style && self.scale == other.scale
+    }
+}
+
 #[pymethods]
 impl RySizeFormatter {
     #[new]
@@ -39,10 +45,6 @@ impl RySizeFormatter {
     )]
     fn py_new(base: PyBase, style: PyStyle, scale: Option<u8>) -> Self {
         Self::new(base, style, scale)
-    }
-
-    fn __eq__(&self, other: &Self) -> bool {
-        self.base == other.base && self.style == other.style && self.scale == other.scale
     }
 
     fn __getnewargs__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {

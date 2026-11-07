@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 import pytest
 
 import ry
-from ry import Size
+from ry import Size, SizeFormatter
 
 if TYPE_CHECKING:
     from ry.ryo3._size import _TFormatSizeBase, _TFormatSizeStyle
@@ -293,3 +293,80 @@ def test_size_reflected_number_unsupported(other: float) -> None:
         _sub = other - size  # type: ignore[operator]  # ty: ignore[unsupported-operator]
     with pytest.raises(TypeError):
         _ = other + size  # type: ignore[operator]  # ty: ignore[unsupported-operator]
+
+
+@pytest.mark.parametrize(
+    "other",
+    [1, 1.0, 1.9, 0.5, True, 2**62, 2**70, -(2**70), float("inf"), float("nan")],
+)
+def test_size_richcmp_numeric_matches_int(other: float) -> None:
+    """Size compares like the python int it wraps (floats are NOT truncated)"""
+    for n in (0, 1, 2**62):
+        s = Size(n)
+        assert (s == other) == (n == other)
+        assert (s != other) == (n != other)
+        assert (s < other) == (n < other)
+        assert (s <= other) == (n <= other)
+        assert (s > other) == (n > other)
+        assert (s >= other) == (n >= other)
+        # reflected
+        assert (other == s) == (other == n)
+        assert (other < s) == (other < n)
+
+
+@pytest.mark.parametrize("other", [None, "1 KiB", b"1", object(), [1]])
+def test_size_richcmp_unknown_types(other: object) -> None:
+    s = Size(1)
+    assert s.__eq__(other) is NotImplemented  # noqa: PLC2801
+    assert s != other
+    assert not (s == other)
+    with pytest.raises(TypeError):
+        _ = s < other  # type: ignore[operator]
+
+
+def test_size_formatter_eq() -> None:
+    assert SizeFormatter() == SizeFormatter()
+    assert SizeFormatter(base=10) != SizeFormatter(base=2)
+    assert SizeFormatter().__eq__(None) is NotImplemented  # noqa: PLC2801
+    assert SizeFormatter() != None  # noqa: E711
+
+
+@pytest.mark.parametrize("other", [None, "1 KiB", b"1", object(), [1]])
+def test_size_arithmetic_unknown_types(other: object) -> None:
+    s = Size(10)
+    assert s.__add__(other) is NotImplemented  # noqa: PLC2801
+    assert s.__sub__(other) is NotImplemented  # noqa: PLC2801
+    assert s.__mul__(other) is NotImplemented  # noqa: PLC2801
+    assert s.__rmul__(other) is NotImplemented  # noqa: PLC2801
+    for f in (
+        lambda: s + other,  # type: ignore[operator]
+        lambda: s - other,  # type: ignore[operator]
+        lambda: s * other,  # type: ignore[operator]
+        lambda: other * s,  # type: ignore[operator]
+    ):
+        with pytest.raises(TypeError):
+            f()
+
+
+def test_size_arithmetic_number_protocols() -> None:
+    """non-int/float numbers still go through `__index__`/`__float__`"""
+    from decimal import Decimal  # noqa: PLC0415
+    from fractions import Fraction  # noqa: PLC0415
+
+    class Idx:
+        def __index__(self) -> int:
+            return 7
+
+    class Flt:
+        def __float__(self) -> float:
+            return 1.5
+
+    s = Size(10)
+    assert s + Idx() == Size(17)  # type: ignore[operator]
+    assert s * Idx() == Size(70)  # type: ignore[operator]
+    assert s * Flt() == Size(15)  # type: ignore[operator]
+    assert s * Fraction(5, 2) == Size(25)  # type: ignore[operator]
+    assert s * Decimal("2.5") == Size(25)  # type: ignore[operator]
+    assert 3 * s == Size(30)
+    with pytest.raises(OverflowError):
+        _ = s * 2**63
