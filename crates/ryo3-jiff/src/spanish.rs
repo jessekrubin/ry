@@ -30,22 +30,6 @@ pub(crate) enum Spanish<'a, 'py> {
     DurationLike(DurationLike<'a, 'py>),
 }
 
-impl<'a, 'py> FromPyObject<'a, 'py> for DurationLike<'a, 'py> {
-    type Error = PyErr;
-
-    fn extract(ob: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
-        if let Some(duration) = ob.cast_exact_opt::<PyDuration>() {
-            Ok(Self::Duration(duration))
-        } else if let Some(py_delta) = ob.cast_exact_opt::<PyDelta>() {
-            py_delta
-                .extract::<JiffSignedDuration>()
-                .map(|sd| Self::PyTimeDelta(sd.into_inner()))
-        } else {
-            py_type_err!("Expected a Duration or datetime.timedelta object")
-        }
-    }
-}
-
 impl<'a, 'py> FromPyObject<'a, 'py> for Spanish<'a, 'py> {
     type Error = PyErr;
 

@@ -1200,13 +1200,11 @@ impl<'a, 'py> FromPyObject<'a, 'py> for SpanAddTarget<'a, 'py> {
 // to check than `PyTemporalArg`
 impl<'a, 'py> FromPyOperand<'a, 'py> for SpanAddTarget<'a, 'py> {
     fn from_py_operand(obj: Borrowed<'a, 'py, PyAny>) -> Option<Self> {
-        if let Some(span_arith) = RySpanArithmetic::from_py_operand(obj) {
-            Some(Self::Span(span_arith))
-        } else {
-            obj.extract::<PyTemporalArg<'a, 'py>>()
-                .ok()
-                .map(Self::TemporalType)
-        }
+        use ryo3_core::PyOperandExt;
+        obj.operand_match()
+            .or(Self::Span)
+            .or(Self::TemporalType)
+            .ok()
     }
 }
 

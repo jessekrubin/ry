@@ -74,6 +74,12 @@ impl<'a, 'py> FromPyObject<'a, 'py> for PathLike {
 impl<'a, 'py> FromPyOperand<'a, 'py> for PathLike {
     fn from_py_operand(obj: pyo3::Borrowed<'a, 'py, pyo3::PyAny>) -> Option<Self> {
         use pyo3::prelude::*;
+        // fast path
+        if obj.is_exact_instance_of::<pyo3::types::PyString>()
+            || matches!(pathlib::is_exact_pathlib_path(obj), Ok(true))
+        {
+            return obj.extract().ok();
+        }
         let fspath_like = obj.is_instance_of::<pyo3::types::PyString>()
             || obj.is_instance_of::<pyo3::types::PyBytes>()
             || obj

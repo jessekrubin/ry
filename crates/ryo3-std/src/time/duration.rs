@@ -973,8 +973,9 @@ mod arithmetic {
     impl<'a, 'py> FromPyOperand<'a, 'py> for DurationTrueDivInput<'a, 'py> {
         fn from_py_operand(obj: Borrowed<'a, 'py, PyAny>) -> Option<Self> {
             use ryo3_core::PyOperandExt;
-            // slow to fast
-            obj.operand(Self::Int)
+            // ptr checks || `__index__` slot lookup sans extract-errors
+            obj.operand_match()
+                .or(Self::Int)
                 .or(Self::Float)
                 .or(Self::Duration)
                 .or(Self::PyDelta)

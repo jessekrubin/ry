@@ -18,7 +18,7 @@ use pyo3::PyTypeInfo;
 use pyo3::prelude::*;
 use pyo3::types::{PyDelta, PyFloat};
 
-use crate::{PyNotImplementedOr, pynumber_check};
+use crate::{PyNotImplementedOr, pyindex_check};
 
 /// A type a binary op accepts as its other operand.
 ///
@@ -86,13 +86,13 @@ where
     }
 }
 
-/// Implements `FromPyOperand` for py-int-like objects
+/// Implements `FromPyOperand` for py-int-like objects (`int` or has `__index__`)
 macro_rules! impl_int_operand {
     ($($ty:ty),*) => {$(
         impl FromPyOperand<'_, '_> for $ty {
             #[inline]
             fn from_py_operand(ob: Borrowed<'_, '_, PyAny>) -> Option<Self> {
-                if pynumber_check(ob) {
+                if pyindex_check(ob) {
                     ob.extract().ok()
                 } else {
                     None
@@ -102,8 +102,8 @@ macro_rules! impl_int_operand {
     )*};
 }
 
-// only need i64 and u32 for now (2026-11-07)
-impl_int_operand!(i64, u32);
+// just need i32, u32 and i64(2026-11-07)
+impl_int_operand!(i32, i64, u32);
 
 /// Exact `float` (ints != floats)
 ///
@@ -116,12 +116,12 @@ impl FromPyOperand<'_, '_> for f64 {
     }
 }
 
-/// A `datetime.timedelta` (subclasses fine i think)
+/// Exact `datetime.timedelta` (no subclasses ~ they're dumb)
 impl FromPyOperand<'_, '_> for Duration {
     #[inline]
     fn from_py_operand(ob: Borrowed<'_, '_, PyAny>) -> Option<Self> {
-        use crate::PyCastOpt;
-        ob.cast_opt::<PyDelta>()?.extract().ok()
+        use crate::PyCastExactOpt;
+        ob.cast_exact_opt::<PyDelta>()?.extract().ok()
     }
 }
 

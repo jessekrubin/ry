@@ -15,6 +15,19 @@ pub(crate) enum PyTemporalArg<'a, 'py> {
     Timestamp(Borrowed<'a, 'py, RyTimestamp>),
 }
 
+impl<'a, 'py> FromPyOperand<'a, 'py> for PyTemporalArg<'a, 'py> {
+    fn from_py_operand(obj: Borrowed<'a, 'py, PyAny>) -> Option<Self> {
+        use ryo3_core::PyOperandExt;
+        obj.operand_match()
+            .or(Self::Zoned)
+            .or(Self::Timestamp)
+            .or(Self::DateTime)
+            .or(Self::Date)
+            .or(Self::Time)
+            .ok()
+    }
+}
+
 trait PyTemporalTypeName {
     const PY_NAME: &'static str;
 }
