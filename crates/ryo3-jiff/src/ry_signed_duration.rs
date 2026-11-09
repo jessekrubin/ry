@@ -1087,7 +1087,8 @@ mod maths {
     impl<'a, 'py> FromPyOperand<'a, 'py> for SignedDurationAddTarget<'a, 'py> {
         fn from_py_operand(obj: Borrowed<'a, 'py, PyAny>) -> Option<Self> {
             use ryo3_core::PyOperandExt;
-            obj.operand(Self::SignedDuration)
+            obj.operand_match()
+                .or(Self::SignedDuration)
                 .or(|SignedDurationLike(d)| Self::Delta(d))
                 .or(Self::TemporalType)
                 .ok()
@@ -1237,7 +1238,8 @@ mod maths {
     impl<'a, 'py> FromPyOperand<'a, 'py> for SignedDurationSubTarget<'a, 'py> {
         fn from_py_operand(obj: Borrowed<'a, 'py, PyAny>) -> Option<Self> {
             use ryo3_core::PyOperandExt;
-            obj.operand(Self::SignedDuration)
+            obj.operand_match()
+                .or(Self::SignedDuration)
                 .or(|SignedDurationLike(d)| Self::Delta(d))
                 .ok()
         }
@@ -1370,7 +1372,8 @@ mod maths {
     impl<'a, 'py> FromPyOperand<'a, 'py> for PySignedDurationTrueDivInput<'a, 'py> {
         fn from_py_operand(obj: Borrowed<'a, 'py, PyAny>) -> Option<Self> {
             use ryo3_core::PyOperandExt;
-            obj.operand(Self::PySignedDuration)
+            obj.operand_match()
+                .or(Self::PySignedDuration)
                 .or(|SignedDurationLike(d)| Self::SignedDuration(d))
                 .or(Self::Float)
                 .or(Self::Int)

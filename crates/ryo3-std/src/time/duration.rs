@@ -924,7 +924,8 @@ mod arithmetic {
     impl FromPyOperand<'_, '_> for DurationLike {
         fn from_py_operand(obj: Borrowed<'_, '_, PyAny>) -> Option<Self> {
             use ryo3_core::PyOperandExt;
-            obj.operand(|d: Borrowed<'_, '_, PyDuration>| Self(d.get().0))
+            obj.operand_match()
+                .or(|d: Borrowed<'_, '_, PyDuration>| Self(d.get().0))
                 .or(Self)
                 .ok()
         }
@@ -1007,7 +1008,7 @@ mod arithmetic {
     impl FromPyOperand<'_, '_> for DurationMulInput {
         fn from_py_operand(obj: Borrowed<'_, '_, PyAny>) -> Option<Self> {
             use ryo3_core::PyOperandExt;
-            obj.operand(Self::Int).or(Self::Float).ok()
+            obj.operand_match().or(Self::Int).or(Self::Float).ok()
         }
     }
 }

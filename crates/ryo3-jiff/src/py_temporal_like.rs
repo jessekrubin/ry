@@ -66,7 +66,7 @@ where
 {
     fn from_py_operand(ob: Borrowed<'a, 'py, PyAny>) -> Option<Self> {
         use ryo3_core::PyOperandExt;
-        ob.operand(Self::Temporal).or(Self::Spanish).ok()
+        ob.operand_match().or(Self::Temporal).or(Self::Spanish).ok()
     }
 }
 

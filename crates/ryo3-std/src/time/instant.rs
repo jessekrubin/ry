@@ -146,7 +146,10 @@ mod arithmetic {
     impl<'a, 'py> FromPyOperand<'a, 'py> for PyInstantSubtractInput<'a, 'py> {
         fn from_py_operand(obj: Borrowed<'a, 'py, PyAny>) -> Option<Self> {
             use ryo3_core::PyOperandExt;
-            obj.operand(Self::Instant).or(Self::Duration).ok()
+            obj.operand_match()
+                .or(Self::Instant)
+                .or(Self::Duration)
+                .ok()
         }
     }
 

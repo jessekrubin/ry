@@ -59,7 +59,8 @@ impl<'a, 'py> FromPyOperand<'a, 'py> for DurationLike<'a, 'py> {
 impl<'a, 'py> FromPyOperand<'a, 'py> for Spanish<'a, 'py> {
     fn from_py_operand(ob: Borrowed<'a, 'py, PyAny>) -> Option<Self> {
         use ryo3_core::PyOperandExt;
-        ob.operand(Self::Span)
+        ob.operand_match()
+            .or(Self::Span)
             .or(Self::SignedDuration)
             .or(Self::DurationLike)
             .ok()
