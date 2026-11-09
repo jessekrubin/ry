@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import copy
+import pickle
 import typing as t
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -62,6 +63,29 @@ class TestFormPart:
     def test_eq(self) -> None:
         assert ry.FormPart("x") == ry.FormPart("x")
         assert ry.FormPart("x") != ry.FormPart("x", filename="f")
+        assert ry.FormPart("x") != "x"
+        assert ry.FormPart("x") != None  # noqa: E711
+
+    def test_hash(self) -> None:
+        a = ry.FormPart("x", headers={"x-a": "1", "x-b": "2"})
+        b = ry.FormPart("x", headers={"x-b": "2", "x-a": "1"})
+        assert a == b
+        assert hash(a) == hash(b)
+        assert len({ry.FormPart("x"), ry.FormPart("x"), ry.FormPart("y")}) == 2
+
+    @pytest.mark.parametrize("protocol", range(pickle.HIGHEST_PROTOCOL + 1))
+    def test_pickle(self, protocol: int, tmp_path: Path) -> None:
+        parts = [
+            ry.FormPart("x"),
+            ry.FormPart(b"data", filename="x.bin", mime="application/x-thing"),
+            ry.FormPart(tmp_path / "a.txt"),
+            ry.FormPart(tmp_path / "a.txt", filename="b.csv", mime="text/csv"),
+        ]
+        # TODO: `ry.Headers` only pickles w/ protocol 2+ (`__getnewargs__`)
+        if protocol >= 2:
+            parts.append(ry.FormPart("x", headers={"x-a": "1"}))
+        for p in parts:
+            assert pickle.loads(pickle.dumps(p, protocol=protocol)) == p
 
     def test_repr(self) -> None:
         p = ry.FormPart(b"data", filename="x.csv", mime="text/csv")
@@ -129,6 +153,8 @@ class TestFormData:
         assert fd.get("missing", 42) == 42
         assert "a" in fd
         assert "missing" not in fd
+        assert 1 not in fd
+        assert None not in fd
 
     def test_get_returns_part_for_non_plain(self) -> None:
         fd = ry.FormData()
@@ -175,6 +201,26 @@ class TestFormData:
             assert c is not fd
             c.append("b", "2")
             assert "b" not in fd
+
+    def test_eq_other_types(self) -> None:
+        assert ry.FormData() != {}
+        assert ry.FormData() != None  # noqa: E711
+
+    def test_unhashable(self) -> None:
+        with pytest.raises(TypeError, match="unhashable"):
+            hash(ry.FormData())
+
+    @pytest.mark.parametrize("protocol", range(pickle.HIGHEST_PROTOCOL + 1))
+    def test_pickle(self, protocol: int, tmp_path: Path) -> None:
+        fd = ry.FormData(
+            [("a", "1"), ("a", "2"), ("b", b"x"), ("f", tmp_path / "a.txt")],
+            percent_encode="noop",
+        )
+        fd.append("t", "text", filename="t.txt")
+        rt = pickle.loads(pickle.dumps(fd, protocol=protocol))
+        assert rt == fd
+        assert rt.percent_encode == "noop"
+        assert ry.FormData() == pickle.loads(pickle.dumps(ry.FormData(), protocol))
 
     def test_percent_encode(self) -> None:
         assert ry.FormData().percent_encode is None
@@ -306,10 +352,22 @@ class TestFormDataBlocking:
         assert [p["value"] for p in res.json()["parts"]] == ["1", "2"]
 
     def test_missing_file(self, server: ReqtestServer, tmp_path: Path) -> None:
-        with pytest.raises(FileNotFoundError, match=r"nope\.txt"):
-            ry.BlockingClient().post(
-                server.url / "upload", multipart={"f": tmp_path / "nope.txt"}
-            )
+        missing = tmp_path / "nope.txt"
+        with pytest.raises(FileNotFoundError, match=r"nope\.txt") as e:
+            ry.BlockingClient().post(server.url / "upload", multipart={"f": missing})
+        # same as python's own `open()` error (str filename, no rust suffix)
+        assert e.value.filename == str(missing)
+        assert "os error" not in str(e.value)
+
+    def test_caller_content_type_dropped(self, server: ReqtestServer) -> None:
+        res = ry.BlockingClient().post(
+            server.url / "upload",
+            multipart={"a": "1"},
+            headers={"Content-Type": "application/json"},
+        )
+        cts = res.json()["content_types"]
+        assert len(cts) == 1
+        assert cts[0].startswith("multipart/form-data; boundary=")
 
     def test_bad_value(self, server: ReqtestServer) -> None:
         with pytest.raises(TypeError, match="invalid form-data value type"):

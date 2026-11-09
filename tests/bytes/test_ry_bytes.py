@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import dataclasses
 import gc
+import pickle
 import sys
 import typing as t
 
@@ -103,12 +104,12 @@ def test_bytes_hash_matches_python_bytes(py_bytes: bytes) -> None:
     assert ry_bytes_dict[py_bytes] == "found"
 
 
-def test_bytes_pickling() -> None:
-    b = ry.Bytes(b"asdf")
-    import pickle
-
-    pickled = pickle.dumps(b)
-    loaded = pickle.loads(pickled)
+@pytest.mark.parametrize("protocol", range(pickle.HIGHEST_PROTOCOL + 1))
+@pytest.mark.parametrize("data", [b"", b"asdf", bytes(range(256))])
+def test_bytes_pickling(protocol: int, data: bytes) -> None:
+    b = ry.Bytes(data)
+    loaded = pickle.loads(pickle.dumps(b, protocol=protocol))
+    assert isinstance(loaded, ry.Bytes)
     assert loaded == b
 
 

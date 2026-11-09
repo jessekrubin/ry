@@ -75,7 +75,13 @@ impl<const BLOCKING: bool> ReqwestKwargs<BLOCKING> {
                 headers.entry(reqwest::header::CONTENT_TYPE).or_insert(ct);
                 req = req.headers(headers);
             }
-            (Some(headers), None) => req = req.headers(headers),
+            (Some(mut headers), None) => {
+                // multipart sets its own `content-type` (w/ the boundary)
+                if matches!(self.body, PyReqwestBody::Multipart(_)) {
+                    headers.remove(reqwest::header::CONTENT_TYPE);
+                }
+                req = req.headers(headers);
+            }
             (None, Some(ct)) => req = req.header(reqwest::header::CONTENT_TYPE, ct),
             (None, None) => {}
         }

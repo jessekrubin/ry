@@ -15,17 +15,19 @@
 //!
 //! REF: <https://developer.mozilla.org/en-US/docs/Web/API/FormData>
 use std::fmt::Write;
-use std::path::{Path, PathBuf};
+use std::hash::{Hash, Hasher};
+use std::path::PathBuf;
 use std::sync::Arc;
 
 use bytes::Bytes;
 use pyo3::IntoPyObjectExt;
-use pyo3::exceptions::PyOSError;
 use pyo3::prelude::*;
-use pyo3::types::{PyBool, PyDict, PyFloat, PyInt, PyIterator, PyList, PyString};
+use pyo3::sync::PyOnceLock;
+use pyo3::types::{PyBool, PyDict, PyFloat, PyInt, PyIterator, PyList, PyString, PyType};
 use reqwest::header::HeaderMap;
 use reqwest::multipart::Form;
 use ryo3_bytes::{ReadableBuffer, RyBytes};
+use ryo3_core::map_py_io_err_with_path;
 use ryo3_core::py_dict::KwargsIter;
 use ryo3_core::sync::RyRwLock;
 use ryo3_http::{PyHeaders, PyHeadersLike};
@@ -39,8 +41,7 @@ use crate::utf8_bytes::Utf8Bytes;
 // ============================================================================
 
 /// python wrapper for single multipart/form-data part/entry
-
-#[pyclass(name = "FormPart", frozen, immutable_type)]
+#[pyclass(name = "FormPart", frozen, immutable_type, eq)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct RyFormPart(Arc<PartInner>);
@@ -53,7 +54,18 @@ struct PartInner {
     headers: Option<HeaderMap>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+// headers by len only bc `HeaderMap` eq ignores key order
+impl Hash for RyFormPart {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        let inner = &*self.0;
+        inner.value.hash(state);
+        inner.filename.hash(state);
+        inner.mime.hash(state);
+        inner.headers.as_ref().map(HeaderMap::len).hash(state);
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 enum PartValue {
     Text(Utf8Bytes),
     Bytes(Bytes),
@@ -100,7 +112,7 @@ impl PartInner {
                 reqwest::multipart::Part::stream_with_length(b.clone(), b.len() as u64)
             }
             PartValue::File(p) => {
-                let file = std::fs::File::open(p).map_err(|e| io_err_with_path(e, p))?;
+                let file = std::fs::File::open(p).map_err(|e| map_py_io_err_with_path(e, p))?;
                 let len = file.metadata().map(|m| m.len());
                 let file = tokio::fs::File::from_std(file);
                 match len {
@@ -193,7 +205,6 @@ impl FromPyObject<'_, '_> for FormPartKwargs {
 /// which i (jesse) am not particularly stoked about.
 fn guess_mime(py: Python<'_>, filename: Option<&str>) -> PyResult<mime::Mime> {
     use pyo3::pybacked::PyBackedStr;
-    use pyo3::sync::PyOnceLock;
     static GUESS_TYPE: PyOnceLock<Py<PyAny>> = PyOnceLock::new();
     let Some(filename) = filename else {
         return Ok(mime::APPLICATION_OCTET_STREAM);
@@ -207,14 +218,17 @@ fn guess_mime(py: Python<'_>, filename: Option<&str>) -> PyResult<mime::Mime> {
         .unwrap_or(mime::APPLICATION_OCTET_STREAM))
 }
 
-// TODO: Move this to `ryo3-core`?
-/// Copy pasta io error handling for Python w/ a fielpath
-fn io_err_with_path(e: std::io::Error, path: &Path) -> PyErr {
-    match e.raw_os_error() {
-        Some(errno) => PyOSError::new_err((errno, e.to_string(), path.to_path_buf())),
-        None => e.into(),
-    }
+/// `copyreg.__newobj_ex__` pickling w/ kwargs
+fn newobj_ex(py: Python<'_>) -> PyResult<&Bound<'_, PyAny>> {
+    static NEWOBJ_EX: PyOnceLock<Py<PyAny>> = PyOnceLock::new();
+    NEWOBJ_EX.import(py, "copyreg", "__newobj_ex__")
 }
+
+/// `(copyreg.__newobj_ex__, (cls, args, kwargs))`
+type ReduceNewObjEx<'py, A> = (
+    Bound<'py, PyAny>,
+    (Bound<'py, PyType>, A, Bound<'py, PyDict>),
+);
 
 impl FromPyObject<'_, '_> for PartValue {
     type Error = PyErr;
@@ -307,8 +321,30 @@ impl RyFormPart {
         format!("{self}")
     }
 
-    fn __eq__(&self, other: &Self) -> bool {
-        self == other
+    fn __hash__(&self) -> u64 {
+        let mut hasher = std::collections::hash_map::DefaultHasher::new();
+        self.hash(&mut hasher);
+        hasher.finish()
+    }
+
+    fn __reduce__<'py>(
+        &self,
+        py: Python<'py>,
+    ) -> PyResult<ReduceNewObjEx<'py, (Bound<'py, PyAny>,)>> {
+        let kwargs = PyDict::new(py);
+        if let Some(filename) = self.filename() {
+            kwargs.set_item("filename", filename)?;
+        }
+        if let Some(mime) = self.mime() {
+            kwargs.set_item("mime", mime)?;
+        }
+        if let Some(headers) = self.headers() {
+            kwargs.set_item("headers", headers)?;
+        }
+        Ok((
+            newobj_ex(py)?.clone(),
+            (py.get_type::<Self>(), (self.value(py)?,), kwargs),
+        ))
     }
 
     /// `str` | `Bytes` | `pathlib.Path`
@@ -341,15 +377,26 @@ impl RyFormPart {
 // FormData
 // ============================================================================
 
-type FormEntry = (String, RyFormPart);
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct FormEntry {
+    name: String,
+    part: RyFormPart,
+}
+
 type FormEntries = Arc<Vec<FormEntry>>;
 
-#[pyclass(name = "FormData", frozen, immutable_type, mapping)]
+#[pyclass(name = "FormData", frozen, immutable_type, eq, mapping)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Debug)]
 pub struct RyFormData {
     entries: RyRwLock<FormEntries, false>,
     percent_encode: Option<FormPercentEncode>,
+}
+
+impl PartialEq for RyFormData {
+    fn eq(&self, other: &Self) -> bool {
+        self.percent_encode == other.percent_encode && self.entries() == other.entries()
+    }
 }
 
 impl RyFormData {
@@ -374,7 +421,7 @@ impl RyFormData {
     fn remove(&self, name: &str) -> usize {
         self.mutate(|entries| {
             let len = entries.len();
-            entries.retain(|(n, _)| n != name);
+            entries.retain(|e| e.name != name);
             len - entries.len()
         })
     }
@@ -395,8 +442,8 @@ impl FormDataLike {
             Some(pe) => pe.apply(Form::new()),
             None => Form::new(),
         };
-        self.entries.iter().try_fold(form, |form, (name, part)| {
-            Ok(form.part(name.clone(), part.0.to_part()?))
+        self.entries.iter().try_fold(form, |form, e| {
+            Ok(form.part(e.name.clone(), e.part.0.to_part()?))
         })
     }
 }
@@ -419,10 +466,16 @@ fn push_entry(
     if let Ok(list) = value.cast::<PyList>() {
         entries.reserve(list.len());
         for item in list {
-            entries.push((name.clone(), item.extract()?));
+            entries.push(FormEntry {
+                name: name.clone(),
+                part: item.extract()?,
+            });
         }
     } else {
-        entries.push((name, value.extract()?));
+        entries.push(FormEntry {
+            name,
+            part: value.extract()?,
+        });
     }
     Ok(())
 }
@@ -463,7 +516,7 @@ impl FromPyObject<'_, '_> for FormDataLike {
 impl std::fmt::Display for RyFormData {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str("FormData([")?;
-        for (i, (name, part)) in self.entries().iter().enumerate() {
+        for (i, FormEntry { name, part }) in self.entries().iter().enumerate() {
             if i > 0 {
                 f.write_str(", ")?;
             }
@@ -497,12 +550,32 @@ impl RyFormData {
         self.entries.py_read().len()
     }
 
-    fn __contains__(&self, name: &str) -> bool {
-        self.entries.py_read().iter().any(|(n, _)| n == name)
+    fn __contains__(&self, name: &Bound<'_, PyAny>) -> PyResult<bool> {
+        let Ok(name) = name.cast::<PyString>() else {
+            return Ok(false);
+        };
+        let name = name.to_str()?;
+        Ok(self.entries.py_read().iter().any(|e| e.name == name))
     }
 
-    fn __eq__(&self, other: &Self) -> bool {
-        self.percent_encode == other.percent_encode && self.entries() == other.entries()
+    fn __reduce__<'py>(
+        &self,
+        py: Python<'py>,
+    ) -> PyResult<ReduceNewObjEx<'py, (Bound<'py, PyList>,)>> {
+        let entries = PyList::new(
+            py,
+            self.entries()
+                .iter()
+                .map(|e| (e.name.as_str(), e.part.clone())),
+        )?;
+        let kwargs = PyDict::new(py);
+        if let Some(pe) = self.percent_encode {
+            kwargs.set_item("percent_encode", pe.as_str())?;
+        }
+        Ok((
+            newobj_ex(py)?.clone(),
+            (py.get_type::<Self>(), (entries,), kwargs),
+        ))
     }
 
     fn __getitem__<'py>(&self, py: Python<'py>, name: &str) -> PyResult<Bound<'py, PyAny>> {
@@ -551,7 +624,7 @@ impl RyFormData {
     )]
     fn append(&self, name: String, value: RyFormPart, kwargs: Option<FormPartKwargs>) {
         let part = value.with_kwargs(kwargs);
-        self.mutate(|entries| entries.push((name, part)));
+        self.mutate(|entries| entries.push(FormEntry { name, part }));
     }
 
     /// replace the first value under `name` and drop the rest (or append)
@@ -562,9 +635,9 @@ impl RyFormData {
     fn set(&self, name: String, value: RyFormPart, kwargs: Option<FormPartKwargs>) {
         let mut part = Some(value.with_kwargs(kwargs));
         self.mutate(|entries| {
-            entries.retain_mut(|(n, p)| *n != name || part.take().map(|v| *p = v).is_some());
+            entries.retain_mut(|e| e.name != name || part.take().map(|v| e.part = v).is_some());
             if let Some(part) = part {
-                entries.push((name, part));
+                entries.push(FormEntry { name, part });
             }
         });
     }
@@ -581,8 +654,8 @@ impl RyFormData {
         name: &str,
         default: Option<Bound<'py, PyAny>>,
     ) -> PyResult<Option<Bound<'py, PyAny>>> {
-        match self.entries().iter().find(|(n, _)| n == name) {
-            Some((_, part)) => FormValue(part).into_bound_py_any(py).map(Some),
+        match self.entries().iter().find(|e| e.name == name) {
+            Some(e) => FormValue(&e.part).into_bound_py_any(py).map(Some),
             None => Ok(default),
         }
     }
@@ -593,21 +666,26 @@ impl RyFormData {
             py,
             entries
                 .iter()
-                .filter(|(n, _)| n == name)
-                .map(|(_, p)| FormValue(p)),
+                .filter(|e| e.name == name)
+                .map(|e| FormValue(&e.part)),
         )
     }
 
     fn keys<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyList>> {
-        PyList::new(py, self.entries().iter().map(|(n, _)| n))
+        PyList::new(py, self.entries().iter().map(|e| e.name.as_str()))
     }
 
     fn values<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyList>> {
-        PyList::new(py, self.entries().iter().map(|(_, p)| FormValue(p)))
+        PyList::new(py, self.entries().iter().map(|e| FormValue(&e.part)))
     }
 
     fn items<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyList>> {
-        PyList::new(py, self.entries().iter().map(|(n, p)| (n, FormValue(p))))
+        PyList::new(
+            py,
+            self.entries()
+                .iter()
+                .map(|e| (e.name.as_str(), FormValue(&e.part))),
+        )
     }
 }
 

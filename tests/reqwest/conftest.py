@@ -249,6 +249,11 @@ async def upload_file(
     response_json = json.dumps({
         "received_bytes": len(body),
         "content_type": content_type,
+        "content_types": [
+            v.decode()
+            for k, v in scope.get("headers", [])
+            if k.decode().lower() == "content-type"
+        ],
         "content_length": headers.get("content-length"),
         "parts": parse_multipart(content_type, body),
     }).encode()

@@ -13,7 +13,7 @@ use pyo3::exceptions::{PyBufferError, PyIndexError, PyTypeError, PyValueError};
 use pyo3::prelude::*;
 use pyo3::pybacked::PyBackedBytes;
 use pyo3::types::slice::PySliceIndices;
-use pyo3::types::{PyDict, PyInt, PySlice, PyString, PyTuple};
+use pyo3::types::{PyBytes, PyInt, PySlice, PyString, PyTuple, PyType};
 use pyo3::{IntoPyObjectExt, ffi};
 
 use crate::alloc::{AllocError, try_with_capacity};
@@ -250,11 +250,9 @@ impl RyBytes {
         Self::from(self.0.clone())
     }
 
-    fn __getnewargs_ex__<'py>(&'py self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
-        let py_bytes = self.to_bytes(py);
-        let args = PyTuple::new(py, vec![py_bytes])?.into_bound_py_any(py)?;
-        let kwargs = PyDict::new(py).into_bound_py_any(py)?;
-        PyTuple::new(py, [args, kwargs])
+    // TODO: something funky here prolly w/ subclass feat on
+    fn __reduce__<'py>(&'py self, py: Python<'py>) -> (Bound<'py, PyType>, (Bound<'py, PyBytes>,)) {
+        (py.get_type::<Self>(), (self.to_bytes(py),))
     }
 
     /// The number of bytes in this Bytes
