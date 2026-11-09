@@ -231,25 +231,26 @@ mod dangerzone {
     use super::pyunicode_to_str_via_ffi;
 
     #[inline(always)]
-    #[allow(clippy::cast_sign_loss)]
-    pub(crate) fn isize_to_usize(val: isize) -> usize {
-        debug_assert!(val >= 0);
-        val as usize
-    }
-
-    #[inline(always)]
-    #[expect(unsafe_code)]
-    unsafe fn str_from_slice_fn(ptr: *const u8, size: usize) -> &'static str {
-        unsafe { core::str::from_utf8_unchecked(core::slice::from_raw_parts(ptr, size)) }
-    }
-
-    #[inline(always)]
     #[expect(unsafe_code)]
     pub(crate) unsafe fn fast_pystr_read<'a>(op: *mut PyObject) -> Option<&'a str> {
         cfg_select! {
             target_endian = "little" => {
                 // local use for little-endian only ~ good no more warning
                 use pyo3::ffi::{PyASCIIObject, PyCompactUnicodeObject};
+
+                #[inline(always)]
+                #[allow(clippy::cast_sign_loss)]
+                fn isize_to_usize(val: isize) -> usize {
+                    debug_assert!(val >= 0);
+                    val as usize
+                }
+
+                #[inline(always)]
+                #[expect(unsafe_code)]
+                unsafe fn str_from_slice_fn<'s>(ptr: *const u8, size: usize) -> &'s str {
+                    unsafe { core::str::from_utf8_unchecked(core::slice::from_raw_parts(ptr, size)) }
+                }
+
                 const STATE_KIND_SHIFT: usize = cfg_select! {
                     all(Py_3_14, Py_GIL_DISABLED) => 8,
                     _ => 2,

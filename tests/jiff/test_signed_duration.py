@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 import datetime as pydt
-from math import isnan
+from math import isclose, isnan
 
 import pytest
-from hypothesis import given
+from hypothesis import example, given
 from hypothesis import strategies as st
 
 import ry
@@ -34,31 +34,21 @@ def test_signed_duration_min_max() -> None:
 
 
 @given(st_i64, st_i32)
+@example(9_007_199_254_740_993, -500_000_001)  # ~2**53 float rounding
 def test_signed_duration_new(secs: int, nanos: int) -> None:
-    # WTF this is some fugue-state-jesse oneliner unreadable bullshit shit from
-    # the other day
-    will_overflow = (abs(nanos) >= _NANOS_PER_SEC) and not (
-        ry.I64_MIN
-        <= (
-            secs
-            + ((nanos // _NANOS_PER_SEC) if nanos > 0 else -(-nanos // _NANOS_PER_SEC))
-        )
-        <= ry.I64_MAX
-    )
+    # whole secs in `nanos` carry into `secs` (truncating toward zero)
+    carry = nanos // _NANOS_PER_SEC if nanos >= 0 else -(-nanos // _NANOS_PER_SEC)
+    will_overflow = not (ry.I64_MIN <= secs + carry <= ry.I64_MAX)
     if will_overflow:
         with pytest.raises(OverflowError):
             _ = ry.SignedDuration(secs, nanos)
     else:
         dur = ry.SignedDuration(secs, nanos)
         assert isinstance(dur, ry.SignedDuration)
+        # floats lose precision as they grow (1s per step near 2**53)...
+        # SO compare relatively instead of w/ a fixed 1e-9
         expected_float = secs + (nanos / _NANOS_PER_SEC)
-        if abs(expected_float) < 2**53:
-            # check close enough if stupid fucking floating point numbers
-            # aren't being a totally pain in the ass (as they almost
-            # always are....). Idk what is going on here... this was
-            # fugue state jesse yesterday (2025-12-13) and I just want my PR
-            # to go
-            assert abs(float(dur) - expected_float) < 1e-9
+        assert isclose(float(dur), expected_float, rel_tol=1e-15, abs_tol=1e-9)
 
 
 def test_signed_duration_cmp() -> None:
