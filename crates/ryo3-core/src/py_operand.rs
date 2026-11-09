@@ -22,6 +22,10 @@ use crate::{PyNotImplementedOr, pyindex_check};
 
 /// A type a binary op accepts as its other operand.
 ///
+/// NOTE: this is used really as a cheap `Option` extractor, so it can be used
+/// as the backend for `FromPyObject` impls that just add an error message;
+/// `Self::from_py_operand(ob).ok_or_else(..)`
+///
 /// Need them lifetimes (`'a` & `'py`) for `Borrowed<'a, 'py, T>`
 pub trait FromPyOperand<'a, 'py>: Sized {
     /// `None` if `ob` is not a supported operand (the op returns `NotImplemented`).
