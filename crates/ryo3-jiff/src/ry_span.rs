@@ -6,7 +6,8 @@ use pyo3::prelude::*;
 use pyo3::types::{PyDelta, PyDict, PyFloat, PyInt, PyIterator, PyTuple};
 use pyo3::{BoundObject, IntoPyObjectExt};
 use ryo3_core::macros::{
-    any_repr, py_key_err, py_overflow_error, py_type_err, py_value_err, py_value_error,
+    any_repr, py_key_err, py_overflow_error, py_type_err, py_type_error, py_value_err,
+    py_value_error,
 };
 use ryo3_core::{
     FromPyOperand, PyAsciiString, PyCastExactOpt, PyNotImplementedOr, PyOperandArg,
@@ -78,6 +79,7 @@ impl RySpan {
     }
 
     fn try_sub(&self, other: &RySpanArithmetic<'_, '_>) -> PyResult<Self> {
+        other.check_duration_range()?;
         let span_arithmetic: SpanArithmetic = other.into();
         self.0
             .checked_sub(span_arithmetic)
@@ -1148,6 +1150,27 @@ impl<'a, 'py> FromPyOperand<'a, 'py> for RySpanArithmetic<'a, 'py> {
     }
 }
 
+impl RySpanArithmetic<'_, '_> {
+    /// jiff (0.2.39) `Span::checked_add` due to a an `+`
+    /// TODO: revisit and check if fixed
+    fn check_duration_range(&self) -> PyResult<()> {
+        const MAX_SECS: u64 = 1_000_000_000_000_000;
+        let secs = match &self.spanish {
+            Spanish::Span(_) => return Ok(()),
+            Spanish::SignedDuration(sd) => sd.get().0.as_secs().unsigned_abs(),
+            Spanish::DurationLike(DurationLike::Duration(d)) => d.get().inner().as_secs(),
+            Spanish::DurationLike(DurationLike::PyTimeDelta(sd)) => sd.as_secs().unsigned_abs(),
+        };
+        if secs > MAX_SECS {
+            Err(py_overflow_error!(
+                "duration out of range for span arithmetic"
+            ))
+        } else {
+            Ok(())
+        }
+    }
+}
+
 impl<'a, 'py> From<&'a RySpanArithmetic<'a, 'py>> for SpanArithmetic<'a> {
     fn from(value: &'a RySpanArithmetic<'a, 'py>) -> Self {
         if let Some(ref relative_to) = value.relative_to {
@@ -1184,20 +1207,10 @@ impl<'a, 'py> FromPyObject<'a, 'py> for SpanAddTarget<'a, 'py> {
     type Error = PyErr;
 
     fn extract(obj: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
-        if let Ok(temporal_ish) = obj.extract::<PyTemporalArg<'a, 'py>>() {
-            Ok(Self::TemporalType(temporal_ish))
-        } else if let Ok(span_arith) = obj.extract::<RySpanArithmetic<'a, 'py>>() {
-            Ok(Self::Span(span_arith))
-        } else {
-            py_type_err!(
-                "Expected TimeSpan, SignedDuration, datetime.timedelta, a tuple of length 2 for Span arithmetic with relative, or a date/time type",
-            )
-        }
+        Self::from_py_operand(obj).ok_or_else(|| py_type_error!("Expected TimeSpan, SignedDuration, datetime.timedelta, a tuple of length 2 for Span arithmetic with relative, or a date/time type"))
     }
 }
 
-// span-likes first: they're disjoint from the temporal types and much cheaper
-// to check than `PyTemporalArg`
 impl<'a, 'py> FromPyOperand<'a, 'py> for SpanAddTarget<'a, 'py> {
     fn from_py_operand(obj: Borrowed<'a, 'py, PyAny>) -> Option<Self> {
         use ryo3_core::PyOperandExt;
@@ -1255,6 +1268,7 @@ impl<'a, 'py> SpanAdd<'a, 'py> for RySpanArithmetic<'a, 'py> {
     type Target = RySpan;
     type Output = Bound<'py, Self::Target>;
     fn add_span(self, py: Python<'py>, span: &RySpan) -> PyResult<Self::Output> {
+        self.check_duration_range()?;
         let span_arithmetic: SpanArithmetic = (&self).into();
         span.0
             .checked_add(span_arithmetic)
@@ -1271,6 +1285,7 @@ impl<'a, 'py> SpanAdd<'a, 'py> for SpanAddTarget<'a, 'py> {
     fn add_span(self, py: Python<'py>, span: &RySpan) -> PyResult<Self::Output> {
         match self {
             Self::Span(span_arithmetic) => {
+                span_arithmetic.check_duration_range()?;
                 let span_arithmetic: SpanArithmetic = (&span_arithmetic).into();
                 span.0
                     .checked_add(span_arithmetic)

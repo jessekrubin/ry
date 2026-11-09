@@ -1,7 +1,7 @@
 use pyo3::prelude::*;
 use pyo3::{IntoPyObjectExt, PyTypeInfo};
-use ryo3_core::{FromPyOperand, PyCastExactOpt};
-use ryo3_macro_rules::{py_overflow_err, py_type_err, py_value_err};
+use ryo3_core::FromPyOperand;
+use ryo3_macro_rules::{py_overflow_err, py_type_error, py_value_err};
 
 use crate::spanish::Spanish;
 use crate::{RyDate, RyDateTime, RySpan, RyTime, RyTimestamp, RyZoned};
@@ -48,20 +48,9 @@ impl<'a, 'py> FromPyObject<'a, 'py> for PyTemporalArg<'a, 'py> {
     type Error = PyErr;
 
     fn extract(obj: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
-        macro_rules! try_extract_type {
-            ($ty:ty, $variant:ident) => {
-                if let Some(val) = obj.cast_exact_opt::<$ty>() {
-                    return Ok(Self::$variant(val));
-                }
-            };
-        }
-
-        try_extract_type!(RyZoned, Zoned);
-        try_extract_type!(RyTimestamp, Timestamp);
-        try_extract_type!(RyDateTime, DateTime);
-        try_extract_type!(RyDate, Date);
-        try_extract_type!(RyTime, Time);
-        py_type_err!("Expected a Date, DateTime, Time, Timestamp, or ZonedDateTime type")
+        Self::from_py_operand(obj).ok_or_else(|| {
+            py_type_error!("Expected a Date, DateTime, Time, Timestamp, or ZonedDateTime type")
+        })
     }
 }
 
@@ -88,13 +77,8 @@ where
     type Error = PyErr;
 
     fn extract(ob: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
-        if let Some(ts) = ob.cast_exact_opt::<T>() {
-            Ok(Self::Temporal(ts))
-        } else if let Ok(spanish) = ob.extract::<Spanish>() {
-            Ok(Self::Spanish(spanish))
-        } else {
-            py_type_err!("Expected a {} or span-like object", T::PY_NAME)
-        }
+        Self::from_py_operand(ob)
+            .ok_or_else(|| py_type_error!("Expected a {} or span-like object", T::PY_NAME))
     }
 }
 

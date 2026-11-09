@@ -18,7 +18,7 @@ pub fn pynumber_check(ob: Borrowed<'_, '_, PyAny>) -> bool {
 
 /// `PyIndex_Check`: is an int or has `__index__`
 ///
-/// NOTE: this is stricter than [`pynumber_check`] ()
+/// NOTE: this is stricter than [`pynumber_check`]
 #[inline]
 #[must_use]
 pub fn pyindex_check(ob: Borrowed<'_, '_, PyAny>) -> bool {

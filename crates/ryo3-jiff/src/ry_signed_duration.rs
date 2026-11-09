@@ -681,25 +681,25 @@ impl RySignedDuration {
     }
 
     // i32 fast path (jiff only does i32)
-    fn checked_mul_i64(&self, other: i64) -> Option<Self> {
+    fn checked_mul_i128(&self, other: i128) -> Option<Self> {
         if let Ok(n) = i32::try_from(other) {
             return self.checked_mul(n);
         }
         self.0
             .as_nanos()
-            .checked_mul(i128::from(other))
+            .checked_mul(other)
             .and_then(SignedDuration::try_from_nanos_i128)
             .map(Self::from)
     }
 
     // i32 fast path or otherwise i128-nanos, which truncates like jiff's `checked_div`
-    fn checked_div_i64(&self, other: i64) -> Option<Self> {
+    fn checked_div_i128(&self, other: i128) -> Option<Self> {
         if let Ok(n) = i32::try_from(other) {
             return self.checked_div(n);
         }
         self.0
             .as_nanos()
-            .checked_div(i128::from(other))
+            .checked_div(other)
             .and_then(SignedDuration::try_from_nanos_i128)
             .map(Self::from)
     }
@@ -922,7 +922,7 @@ mod maths {
     use jiff::SignedDuration;
     use pyo3::IntoPyObjectExt;
     use pyo3::prelude::*;
-    use ryo3_core::{FromPyOperand, PyCastExactOpt, PyCastOpt, map_py_overflow_err};
+    use ryo3_core::{FromPyOperand, map_py_overflow_err};
     use ryo3_jiff_core::JiffSignedDuration;
     use ryo3_macro_rules::{py_overflow_error, py_type_err, py_zero_division_err};
 
@@ -1069,13 +1069,14 @@ mod maths {
 
     impl FromPyOperand<'_, '_> for SignedDurationLike {
         fn from_py_operand(obj: Borrowed<'_, '_, PyAny>) -> Option<Self> {
+            use ryo3_core::PyCastExactOpt;
             if let Some(dur) = obj.cast_exact_opt::<ryo3_std::time::PyDuration>() {
                 RySignedDuration::try_from(dur.get())
                     .ok()
                     .map(|sd| Self(sd.into()))
             } else {
                 let d = obj
-                    .cast_opt::<pyo3::types::PyDelta>()?
+                    .cast_exact_opt::<pyo3::types::PyDelta>()?
                     .extract::<JiffSignedDuration>()
                     .ok()?;
                 Some(Self(d.into_inner()))
@@ -1288,7 +1289,7 @@ mod maths {
     // ========================================================================
 
     pub(super) enum PySignedDurationMulInput {
-        Int(i64),
+        Int(i128),
         Float(f64),
     }
 
@@ -1298,7 +1299,7 @@ mod maths {
             sd: &RySignedDuration,
         ) -> PyResult<RySignedDuration> {
             match self {
-                Self::Int(n) => sd.checked_mul_i64(n).ok_or_else(|| py_overflow_error!()),
+                Self::Int(n) => sd.checked_mul_i128(n).ok_or_else(|| py_overflow_error!()),
                 Self::Float(f) => sd.mul_f64(f),
             }
         }
@@ -1307,8 +1308,7 @@ mod maths {
     impl FromPyOperand<'_, '_> for PySignedDurationMulInput {
         fn from_py_operand(obj: Borrowed<'_, '_, PyAny>) -> Option<Self> {
             use ryo3_core::PyOperandExt;
-            // exact float, then int
-            obj.operand(Self::Float).or(Self::Int).ok()
+            obj.operand_match().or(Self::Float).or(Self::Int).ok()
         }
     }
 
@@ -1318,7 +1318,7 @@ mod maths {
     pub(super) enum PySignedDurationTrueDivInput<'a, 'py> {
         PySignedDuration(Borrowed<'a, 'py, RySignedDuration>),
         SignedDuration(SignedDuration),
-        Int(i64),
+        Int(i128),
         Float(f64),
     }
 
@@ -1345,7 +1345,7 @@ mod maths {
                     if n == 0 {
                         py_zero_division_err!("Cannot divide SignedDuration by zero")
                     } else {
-                        sd.checked_div_i64(n)
+                        sd.checked_div_i128(n)
                             .ok_or_else(|| py_overflow_error!())
                             .map(Into::into)
                     }

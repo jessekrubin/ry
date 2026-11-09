@@ -102,8 +102,8 @@ macro_rules! impl_int_operand {
     )*};
 }
 
-// just need i32, u32 and i64(2026-11-07)
-impl_int_operand!(i32, i64, u32);
+// just need i32, u32, i64 and i128 (2026-11-07)
+impl_int_operand!(i32, i64, i128, u32);
 
 /// Exact `float` (ints != floats)
 ///

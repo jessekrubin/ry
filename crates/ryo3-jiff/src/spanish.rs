@@ -7,7 +7,7 @@ use pyo3::prelude::*;
 use pyo3::types::PyDelta;
 use ryo3_core::{FromPyOperand, PyCastExactOpt};
 use ryo3_jiff_core::JiffSignedDuration;
-use ryo3_macro_rules::py_type_err;
+use ryo3_macro_rules::py_type_error;
 use ryo3_std::time::PyDuration;
 
 use crate::{RySignedDuration, RySpan};
@@ -34,21 +34,11 @@ impl<'a, 'py> FromPyObject<'a, 'py> for Spanish<'a, 'py> {
     type Error = PyErr;
 
     fn extract(ob: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
-        if let Some(span) = ob.cast_exact_opt::<RySpan>() {
-            Ok(Self::Span(span))
-        } else if let Some(duration) = ob.cast_exact_opt::<PyDuration>() {
-            Ok(Self::DurationLike(DurationLike::Duration(duration)))
-        } else if let Some(signed_duration) = ob.cast_exact_opt::<RySignedDuration>() {
-            Ok(Self::SignedDuration(signed_duration))
-        } else if let Some(py_delta) = ob.cast_exact_opt::<PyDelta>() {
-            py_delta
-                .extract::<JiffSignedDuration>()
-                .map(|sd| Self::from(DurationLike::PyTimeDelta(sd.into_inner())))
-        } else {
-            py_type_err!(
+        Self::from_py_operand(ob).ok_or_else(|| {
+            py_type_error!(
                 "Expected a Timespan, Duration, SignedDuration, or datetime.timedelta object"
             )
-        }
+        })
     }
 }
 
