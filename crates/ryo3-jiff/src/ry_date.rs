@@ -39,7 +39,10 @@ impl RyDate {
     }
 }
 
-#[expect(clippy::trivially_copy_pass_by_ref, reason = "idk TODO FIGURE OUT")]
+#[expect(
+    clippy::trivially_copy_pass_by_ref,
+    reason = "mirror `&self` pymethods"
+)]
 impl RyDate {
     fn try_add(&self, other: Spanish<'_, '_>) -> PyResult<Self> {
         self.0
