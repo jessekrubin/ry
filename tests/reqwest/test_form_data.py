@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import collections
 import copy
 import pickle
+import types
 import typing as t
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -96,6 +98,12 @@ class TestFormPart:
         with pytest.raises(TypeError, match="invalid form-data value type"):
             ry.FormPart(value)
 
+    def test_tuple_hint(self) -> None:
+        with pytest.raises(TypeError, match=r"use FormPart\(content, filename="):
+            ry.FormPart(("x.csv", b"data", "text/csv"))  # type: ignore[arg-type]  # ty: ignore[invalid-argument-type]
+        with pytest.raises(TypeError, match=r"use FormPart\(content, filename="):
+            ry.FormData({"f": ("x.csv", b"data")})  # type: ignore[dict-item]  # ty: ignore[invalid-argument-type]
+
     def test_unknown_kwarg(self) -> None:
         with pytest.raises(TypeError, match="unexpected keyword argument: nope"):
             ry.FormPart("x", nope=1)  # type: ignore[call-arg]
@@ -125,7 +133,7 @@ class TestFormData:
     def test_from_pairs(self) -> None:
         fd = ry.FormData([("a", "1"), ("a", "2"), ("b", b"x")])
         assert fd.keys() == ["a", "a", "b"]
-        assert fd.getall("a") == ["1", "2"]
+        assert fd.get_all("a") == ["1", "2"]
 
     def test_from_form_data(self) -> None:
         fd = ry.FormData({"a": "x"})
@@ -133,6 +141,21 @@ class TestFormData:
         assert fd == fd2
         fd2.append("b", "y")
         assert fd != fd2
+
+    @pytest.mark.parametrize(
+        "mapping",
+        [
+            types.MappingProxyType({"a": "1", "b": ["2", "3"]}),
+            collections.ChainMap[str, t.Any]({"a": "1"}, {"b": ["2", "3"]}),
+            collections.OrderedDict(a="1", b=["2", "3"]),
+        ],
+    )
+    def test_from_mapping(self, mapping: t.Mapping[str, t.Any]) -> None:
+        assert sorted(ry.FormData(mapping).items()) == [
+            ("a", "1"),
+            ("b", "2"),
+            ("b", "3"),
+        ]
 
     def test_str_is_not_pairs(self) -> None:
         with pytest.raises(TypeError, match="got str"):
@@ -148,7 +171,7 @@ class TestFormData:
         fd.append("a", "2")
         assert fd.get("a") == "1"
         assert fd["a"] == "1"
-        assert fd.getall("a") == ["1", "2"]
+        assert fd.get_all("a") == ["1", "2"]
         assert fd.get("missing") is None
         assert fd.get("missing", 42) == 42
         assert "a" in fd
@@ -173,7 +196,7 @@ class TestFormData:
     def test_setitem(self) -> None:
         fd = ry.FormData([("a", "1"), ("a", "2")])
         fd["a"] = "3"
-        assert fd.getall("a") == ["3"]
+        assert fd.get_all("a") == ["3"]
 
     def test_delete(self) -> None:
         fd = ry.FormData([("a", "1"), ("b", "x"), ("a", "2")])
@@ -184,6 +207,28 @@ class TestFormData:
         assert len(fd) == 0
         with pytest.raises(KeyError):
             del fd["b"]
+
+    def test_extend(self) -> None:
+        fd = ry.FormData([("a", "1")])
+        other = ry.FormData([("a", "2")], percent_encode="noop")
+        fd.extend(other)
+        fd.extend({"b": ["x", "y"]})
+        fd.extend([("c", b"z")])
+        assert fd.keys() == ["a", "a", "b", "b", "c"]
+        assert fd.get_all("a") == ["1", "2"]
+        assert fd.percent_encode is None
+        assert other.keys() == ["a"]
+
+    def test_extend_self(self) -> None:
+        fd = ry.FormData([("a", "1")])
+        fd.extend(fd)
+        assert fd.items() == [("a", "1"), ("a", "1")]
+
+    def test_extend_bad(self) -> None:
+        fd = ry.FormData([("a", "1")])
+        with pytest.raises(TypeError, match="got str"):
+            fd.extend("nope")  # type: ignore[arg-type]  # ty: ignore[invalid-argument-type]
+        assert fd.keys() == ["a"]
 
     def test_getitem_missing(self) -> None:
         with pytest.raises(KeyError):

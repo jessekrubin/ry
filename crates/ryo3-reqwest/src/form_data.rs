@@ -23,7 +23,9 @@ use bytes::Bytes;
 use pyo3::IntoPyObjectExt;
 use pyo3::prelude::*;
 use pyo3::sync::PyOnceLock;
-use pyo3::types::{PyBool, PyDict, PyFloat, PyInt, PyIterator, PyList, PyString, PyType};
+use pyo3::types::{
+    PyBool, PyDict, PyFloat, PyInt, PyIterator, PyList, PyMapping, PyString, PyTuple, PyType,
+};
 use reqwest::header::HeaderMap;
 use reqwest::multipart::Form;
 use ryo3_bytes::{ReadableBuffer, RyBytes};
@@ -246,6 +248,10 @@ impl FromPyObject<'_, '_> for PartValue {
             Ok(Self::Bytes(buf.into_bytes()))
         } else if let Ok(p) = obj.extract::<PathBuf>() {
             Ok(Self::File(p))
+        } else if obj.is_instance_of::<PyTuple>() {
+            py_type_err!(
+                "invalid form-data value type 'tuple' (for requests/httpx-style (filename, content, mime) tuples use FormPart(content, filename=..., mime=...))"
+            )
         } else {
             let tname = obj.get_type().name()?;
             py_type_err!(
@@ -480,7 +486,8 @@ fn push_entry(
     Ok(())
 }
 
-const FORM_DATA_LIKE_EXPECTED: &str = "expected FormData, dict or iterable of (name, value) pairs";
+const FORM_DATA_LIKE_EXPECTED: &str =
+    "expected FormData, mapping or iterable of (name, value) pairs";
 
 impl FromPyObject<'_, '_> for FormDataLike {
     type Error = PyErr;
@@ -494,6 +501,11 @@ impl FromPyObject<'_, '_> for FormDataLike {
             entries.reserve(dict.len());
             for (k, v) in dict.iter() {
                 push_entry(&mut entries, k.extract()?, &v)?;
+            }
+        } else if let Ok(mapping) = obj.cast::<PyMapping>() {
+            for item in mapping.items()? {
+                let (k, v): (String, Bound<'_, PyAny>) = item.extract()?;
+                push_entry(&mut entries, k, &v)?;
             }
         } else if obj.is_instance_of::<PyString>() {
             // str is iterable but never what anyone means here
@@ -647,6 +659,12 @@ impl RyFormData {
         self.remove(name);
     }
 
+    #[pyo3(signature = (other, /))]
+    fn extend(&self, other: FormDataLike) {
+        let other = Arc::unwrap_or_clone(other.entries);
+        self.mutate(|entries| entries.extend(other));
+    }
+
     #[pyo3(signature = (name, default = None))]
     fn get<'py>(
         &self,
@@ -660,7 +678,7 @@ impl RyFormData {
         }
     }
 
-    fn getall<'py>(&self, py: Python<'py>, name: &str) -> PyResult<Bound<'py, PyList>> {
+    fn get_all<'py>(&self, py: Python<'py>, name: &str) -> PyResult<Bound<'py, PyList>> {
         let entries = self.entries();
         PyList::new(
             py,
