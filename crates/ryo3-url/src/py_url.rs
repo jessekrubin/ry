@@ -5,7 +5,8 @@ use std::path::PathBuf;
 use std::str::FromStr;
 
 use pyo3::prelude::*;
-use pyo3::types::{PyDict, PyTuple};
+use pyo3::types::{PyDict, PyString, PyTuple};
+use ryo3_core::{PyNotImplementedOr, PyOperandArg, pystr_read_fast};
 use ryo3_macro_rules::{py_type_err, py_value_error};
 
 use crate::UrlLike;
@@ -30,6 +31,17 @@ impl<'de> serde::Deserialize<'de> for PyUrl {
         D: serde::Deserializer<'de>,
     {
         url::Url::deserialize(deserializer).map(PyUrl)
+    }
+}
+
+type StrArg<'a, 'py> = PyOperandArg<Borrowed<'a, 'py, PyString>>;
+
+impl PyUrl {
+    fn try_join(&self, other: &str) -> PyResult<Self> {
+        self.0
+            .join(other)
+            .map(Self::from)
+            .map_err(|e| py_value_error!("{e} (relative={other})"))
     }
 }
 
@@ -132,18 +144,12 @@ impl PyUrl {
         self.0.make_relative(&other.0)
     }
 
-    fn __truediv__(&self, other: &str) -> PyResult<Self> {
-        self.0
-            .join(other)
-            .map(Self::from)
-            .map_err(|e| py_value_error!("{e} (relative={other})"))
+    fn __truediv__(&self, other: StrArg<'_, '_>) -> PyResult<PyNotImplementedOr<Self>> {
+        other.try_map(|s| self.try_join(pystr_read_fast(s)?))
     }
 
-    fn __rtruediv__(&self, other: &str) -> PyResult<Self> {
-        self.0
-            .join(other)
-            .map(Self::from)
-            .map_err(|e| py_value_error!("{e} (relative={other})"))
+    fn __rtruediv__(&self, other: StrArg<'_, '_>) -> PyResult<PyNotImplementedOr<Self>> {
+        other.try_map(|s| self.try_join(pystr_read_fast(s)?))
     }
 
     fn equiv(&self, other: &Bound<'_, PyAny>) -> bool {

@@ -6,7 +6,9 @@ use jiff::tz::{Offset, OffsetRound};
 use pyo3::BoundObject;
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyTuple};
-use ryo3_core::{PyAsciiString, map_py_overflow_err, map_py_value_err};
+use ryo3_core::{
+    PyAsciiString, PyNotImplementedOr, PyOperandArg, map_py_overflow_err, map_py_value_err,
+};
 use ryo3_jiff_core::{JiffOffset, JiffRoundMode, JiffSignedDuration, JiffUnit};
 use ryo3_macro_rules::{any_repr, py_type_err};
 
@@ -40,6 +42,23 @@ impl RyOffset {
         let minutes = (total_seconds % 3600) / 60;
         let seconds = total_seconds % 60;
         (hours as i8, minutes as i16, seconds)
+    }
+}
+
+#[expect(clippy::trivially_copy_pass_by_ref)]
+impl RyOffset {
+    fn try_add(&self, other: Spanish<'_, '_>) -> PyResult<Self> {
+        self.0
+            .checked_add(other)
+            .map(Self::from)
+            .map_err(map_py_overflow_err)
+    }
+
+    fn try_sub(&self, other: Spanish<'_, '_>) -> PyResult<Self> {
+        self.0
+            .checked_sub(other)
+            .map(Self::from)
+            .map_err(map_py_overflow_err)
     }
 }
 
@@ -255,18 +274,12 @@ impl RyOffset {
         hasher.finish()
     }
 
-    fn __add__(&self, other: Spanish) -> PyResult<Self> {
-        self.0
-            .checked_add(other)
-            .map(Self::from)
-            .map_err(map_py_overflow_err)
+    fn __add__(&self, other: PyOperandArg<Spanish<'_, '_>>) -> PyResult<PyNotImplementedOr<Self>> {
+        other.try_map(|rhs| self.try_add(rhs))
     }
 
-    fn __sub__(&self, other: Spanish) -> PyResult<Self> {
-        self.0
-            .checked_sub(other)
-            .map(Self::from)
-            .map_err(map_py_overflow_err)
+    fn __sub__(&self, other: PyOperandArg<Spanish<'_, '_>>) -> PyResult<PyNotImplementedOr<Self>> {
+        other.try_map(|rhs| self.try_sub(rhs))
     }
 
     #[expect(clippy::too_many_arguments, reason = "python kwargs")]
@@ -301,7 +314,7 @@ impl RyOffset {
             .nanoseconds(nanoseconds);
 
         match (other, !spkw.is_zero()) {
-            (Some(o), false) => self.__add__(o),
+            (Some(o), false) => self.try_add(o),
             (None, true) => {
                 let span = spkw.build_span()?;
                 self.0
@@ -348,7 +361,7 @@ impl RyOffset {
             .nanoseconds(nanoseconds);
 
         match (other, !spkw.is_zero()) {
-            (Some(o), false) => self.__sub__(o),
+            (Some(o), false) => self.try_sub(o),
             (None, true) => {
                 let span = spkw.build_span()?;
                 self.0

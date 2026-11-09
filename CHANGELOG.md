@@ -34,6 +34,8 @@
   - `WebSocket.send_json(data, *, kind="text", **stringify_kwargs)` added
   - **INTERNAL:** renamed `#[pyclass]` instances `PyWebSocket` -> `RyWebSocket`
     and `PyWsMessage` -> `RyWsMessage`
+- binary operators (`+`/`-`/`*`/`/`/`|`) return `NotImplemented` for unsupported
+  operands instead of building + throwing away a `TypeError` (which is slow)
 
 ---
 

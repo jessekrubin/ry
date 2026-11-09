@@ -6,7 +6,10 @@ use jiff::{SignedDuration, SignedDurationRound, Span};
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyFloat, PyInt, PyTuple};
 use pyo3::{BoundObject, IntoPyObjectExt};
-use ryo3_core::{PyAsciiString, PyCastExactOpt, map_py_overflow_err, map_py_value_err};
+use ryo3_core::{
+    PyAsciiString, PyCastExactOpt, PyNotImplementedOr, PyOperandArg, map_py_overflow_err,
+    map_py_value_err,
+};
 use ryo3_jiff_core::fmt::{FRIENDLY_SPAN_PRINTER, TEMPORAL_SPAN_PARSER};
 use ryo3_jiff_core::{
     JiffFriendlyDesignator, JiffRoundMode, JiffSignedDuration, JiffUnit, pydelta_to_signed_duration,
@@ -309,10 +312,10 @@ impl RySignedDuration {
 
     fn __add__(
         &self,
-        other: maths::SignedDurationAddTarget<'_, '_>,
-    ) -> PyResult<maths::PySignedDurationAddOutput> {
+        other: PyOperandArg<maths::SignedDurationAddTarget<'_, '_>>,
+    ) -> PyResult<PyNotImplementedOr<maths::PySignedDurationAddOutput>> {
         use maths::PySignedDurationAdd;
-        other.add_signed_duration(self)
+        other.try_map(|rhs| rhs.add_signed_duration(self))
     }
 
     #[expect(clippy::too_many_arguments, reason = "python kwargs")]
@@ -368,10 +371,10 @@ impl RySignedDuration {
 
     fn __radd__(
         &self,
-        other: maths::SignedDurationAddTarget<'_, '_>,
-    ) -> PyResult<maths::PySignedDurationAddOutput> {
+        other: PyOperandArg<maths::SignedDurationAddTarget<'_, '_>>,
+    ) -> PyResult<PyNotImplementedOr<maths::PySignedDurationAddOutput>> {
         use maths::PySignedDurationAdd;
-        other.add_signed_duration(self)
+        other.try_map(|lhs| lhs.add_signed_duration(self))
     }
 
     #[expect(clippy::too_many_arguments, reason = "python kwargs")]
@@ -427,29 +430,41 @@ impl RySignedDuration {
         }
     }
 
-    fn __sub__(&self, other: maths::SignedDurationSubTarget<'_, '_>) -> PyResult<Self> {
+    fn __sub__(
+        &self,
+        other: PyOperandArg<maths::SignedDurationSubTarget<'_, '_>>,
+    ) -> PyResult<PyNotImplementedOr<Self>> {
         use maths::PySignedDurationSub;
-        other.sub_signed_duration(self)
+        other.try_map(|rhs| rhs.sub_signed_duration(self))
     }
 
-    fn __rsub__(&self, other: maths::SignedDurationSubTarget<'_, '_>) -> PyResult<Self> {
+    fn __rsub__(
+        &self,
+        other: PyOperandArg<maths::SignedDurationSubTarget<'_, '_>>,
+    ) -> PyResult<PyNotImplementedOr<Self>> {
         use maths::PySignedDurationSub;
-        other.rsub_signed_duration(self)
+        other.try_map(|lhs| lhs.rsub_signed_duration(self))
     }
 
-    fn __mul__(&self, other: maths::PySignedDurationMulInput) -> PyResult<Self> {
-        other.multiply_signed_duration(self)
+    fn __mul__(
+        &self,
+        other: PyOperandArg<maths::PySignedDurationMulInput>,
+    ) -> PyResult<PyNotImplementedOr<Self>> {
+        other.try_map(|rhs| rhs.multiply_signed_duration(self))
     }
 
-    fn __rmul__(&self, other: maths::PySignedDurationMulInput) -> PyResult<Self> {
-        self.__mul__(other)
+    fn __rmul__(
+        &self,
+        other: PyOperandArg<maths::PySignedDurationMulInput>,
+    ) -> PyResult<PyNotImplementedOr<Self>> {
+        other.try_map(|lhs| lhs.multiply_signed_duration(self))
     }
 
     fn __truediv__(
         &self,
-        other: maths::PySignedDurationTrueDivInput<'_, '_>,
-    ) -> PyResult<maths::PySignedDurationTrueDivOutput> {
-        other.divide_signed_duration(self)
+        other: PyOperandArg<maths::PySignedDurationTrueDivInput<'_, '_>>,
+    ) -> PyResult<PyNotImplementedOr<maths::PySignedDurationTrueDivOutput>> {
+        other.try_map(|rhs| rhs.divide_signed_duration(self))
     }
 
     fn __neg__(&self) -> PyResult<Self> {
@@ -663,6 +678,30 @@ impl RySignedDuration {
 
     fn checked_mul(&self, other: i32) -> Option<Self> {
         self.0.checked_mul(other).map(Self::from)
+    }
+
+    // i32 fast path (jiff only does i32)
+    fn checked_mul_i128(&self, other: i128) -> Option<Self> {
+        if let Ok(n) = i32::try_from(other) {
+            return self.checked_mul(n);
+        }
+        self.0
+            .as_nanos()
+            .checked_mul(other)
+            .and_then(SignedDuration::try_from_nanos_i128)
+            .map(Self::from)
+    }
+
+    // i32 fast path or otherwise i128-nanos, which truncates like jiff's `checked_div`
+    fn checked_div_i128(&self, other: i128) -> Option<Self> {
+        if let Ok(n) = i32::try_from(other) {
+            return self.checked_div(n);
+        }
+        self.0
+            .as_nanos()
+            .checked_div(other)
+            .and_then(SignedDuration::try_from_nanos_i128)
+            .map(Self::from)
     }
 
     fn checked_neg(&self) -> Option<Self> {
@@ -883,7 +922,7 @@ mod maths {
     use jiff::SignedDuration;
     use pyo3::IntoPyObjectExt;
     use pyo3::prelude::*;
-    use ryo3_core::{PyCastExactOpt, map_py_overflow_err};
+    use ryo3_core::{FromPyOperand, map_py_overflow_err};
     use ryo3_jiff_core::JiffSignedDuration;
     use ryo3_macro_rules::{py_overflow_error, py_type_err, py_zero_division_err};
 
@@ -1024,12 +1063,44 @@ mod maths {
         }
     }
 
+    /// `RyDuration` || `datetime.timedelta` as a `jiff::SignedDuration`...
+    /// OR `None` if it dont fit
+    struct SignedDurationLike(SignedDuration);
+
+    impl FromPyOperand<'_, '_> for SignedDurationLike {
+        fn from_py_operand(obj: Borrowed<'_, '_, PyAny>) -> Option<Self> {
+            use ryo3_core::PyCastExactOpt;
+            if let Some(dur) = obj.cast_exact_opt::<ryo3_std::time::PyDuration>() {
+                RySignedDuration::try_from(dur.get())
+                    .ok()
+                    .map(|sd| Self(sd.into()))
+            } else {
+                let d = obj
+                    .cast_exact_opt::<pyo3::types::PyDelta>()?
+                    .extract::<JiffSignedDuration>()
+                    .ok()?;
+                Some(Self(d.into_inner()))
+            }
+        }
+    }
+
+    impl<'a, 'py> FromPyOperand<'a, 'py> for SignedDurationAddTarget<'a, 'py> {
+        fn from_py_operand(obj: Borrowed<'a, 'py, PyAny>) -> Option<Self> {
+            use ryo3_core::PyOperandExt;
+            obj.operand_match()
+                .or(Self::SignedDuration)
+                .or(|SignedDurationLike(d)| Self::Delta(d))
+                .or(Self::TemporalType)
+                .ok()
+        }
+    }
+
     pub(super) trait PySignedDurationAdd<'a, 'py> {
         type Output;
         fn add_signed_duration(self, sd: &RySignedDuration) -> PyResult<Self::Output>;
     }
 
-    // this is some fugue-state-jesse shit from last week -- idk wtf I was dgoing,
+    // this is some fugue-state-jesse shit from last week -- idk wtf I was doing,
     // but I was absolutely in that insane macro-flow state
     macro_rules! impl_signed_duration_add_for_borrowed_temporal {
         ($ty:ty) => {
@@ -1164,6 +1235,16 @@ mod maths {
         }
     }
 
+    impl<'a, 'py> FromPyOperand<'a, 'py> for SignedDurationSubTarget<'a, 'py> {
+        fn from_py_operand(obj: Borrowed<'a, 'py, PyAny>) -> Option<Self> {
+            use ryo3_core::PyOperandExt;
+            obj.operand_match()
+                .or(Self::SignedDuration)
+                .or(|SignedDurationLike(d)| Self::Delta(d))
+                .ok()
+        }
+    }
+
     impl<'a, 'py> PySignedDurationSub<'a, 'py> for SignedDurationSubTarget<'a, 'py> {
         type Output = RySignedDuration;
 
@@ -1210,7 +1291,7 @@ mod maths {
     // ========================================================================
 
     pub(super) enum PySignedDurationMulInput {
-        Int(i32),
+        Int(i128),
         Float(f64),
     }
 
@@ -1220,23 +1301,16 @@ mod maths {
             sd: &RySignedDuration,
         ) -> PyResult<RySignedDuration> {
             match self {
-                Self::Int(n) => sd.checked_mul(n).ok_or_else(|| py_overflow_error!()),
+                Self::Int(n) => sd.checked_mul_i128(n).ok_or_else(|| py_overflow_error!()),
                 Self::Float(f) => sd.mul_f64(f),
             }
         }
     }
 
-    impl<'a, 'py> FromPyObject<'a, 'py> for PySignedDurationMulInput {
-        type Error = PyErr;
-
-        fn extract(obj: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
-            if let Ok(i) = obj.extract::<i32>() {
-                Ok(Self::Int(i))
-            } else if let Ok(f) = obj.extract::<f64>() {
-                Ok(Self::Float(f))
-            } else {
-                py_type_err!("unsupported operand type(s); must be int or float")
-            }
+    impl FromPyOperand<'_, '_> for PySignedDurationMulInput {
+        fn from_py_operand(obj: Borrowed<'_, '_, PyAny>) -> Option<Self> {
+            use ryo3_core::PyOperandExt;
+            obj.operand_match().or(Self::Float).or(Self::Int).ok()
         }
     }
 
@@ -1246,7 +1320,7 @@ mod maths {
     pub(super) enum PySignedDurationTrueDivInput<'a, 'py> {
         PySignedDuration(Borrowed<'a, 'py, RySignedDuration>),
         SignedDuration(SignedDuration),
-        Int(i32),
+        Int(i128),
         Float(f64),
     }
 
@@ -1273,7 +1347,7 @@ mod maths {
                     if n == 0 {
                         py_zero_division_err!("Cannot divide SignedDuration by zero")
                     } else {
-                        sd.checked_div(n)
+                        sd.checked_div_i128(n)
                             .ok_or_else(|| py_overflow_error!())
                             .map(Into::into)
                     }
@@ -1295,26 +1369,15 @@ mod maths {
         }
     }
 
-    impl<'a, 'py> FromPyObject<'a, 'py> for PySignedDurationTrueDivInput<'a, 'py> {
-        type Error = PyErr;
-
-        fn extract(obj: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
-            if let Some(sd) = obj.cast_exact_opt::<RySignedDuration>() {
-                Ok(Self::PySignedDuration(sd))
-            } else if let Some(dur) = obj.cast_exact_opt::<ryo3_std::time::PyDuration>() {
-                RySignedDuration::try_from(dur.get()).map(|rysd| Self::SignedDuration(rysd.into()))
-            } else if let Ok(d) = obj.cast::<pyo3::types::PyDelta>() {
-                let rs_dur: JiffSignedDuration = d.extract()?;
-                Ok(Self::SignedDuration(rs_dur.into_inner()))
-            } else if let Ok(i) = obj.extract::<i32>() {
-                Ok(Self::Int(i))
-            } else if let Ok(f) = obj.extract::<f64>() {
-                Ok(Self::Float(f))
-            } else {
-                py_type_err!(
-                    "unsupported operand type(s); must be SignedDuration | Duration | datetime.timedelta | int | float"
-                )
-            }
+    impl<'a, 'py> FromPyOperand<'a, 'py> for PySignedDurationTrueDivInput<'a, 'py> {
+        fn from_py_operand(obj: Borrowed<'a, 'py, PyAny>) -> Option<Self> {
+            use ryo3_core::PyOperandExt;
+            obj.operand_match()
+                .or(Self::PySignedDuration)
+                .or(|SignedDurationLike(d)| Self::SignedDuration(d))
+                .or(Self::Float)
+                .or(Self::Int)
+                .ok()
         }
     }
 

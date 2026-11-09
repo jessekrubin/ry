@@ -7,6 +7,7 @@ use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyList, PyTuple};
 use ryo3_core::macros::{py_runtime_error, py_value_error};
 use ryo3_core::sync::RyRwLock;
+use ryo3_core::{PyNotImplementedOr, PyOperandArg};
 
 use crate::http_types::{
     PyHttpHeaderMapRef, PyHttpHeaderName, PyHttpHeaderNameRef, PyHttpHeaderValue,
@@ -117,6 +118,24 @@ impl From<PyHeaders> for HeaderMap {
 impl From<Arc<RyRwLock<HeaderMap, false>>> for PyHeaders {
     fn from(hm: Arc<RyRwLock<HeaderMap, false>>) -> Self {
         Self(hm)
+    }
+}
+
+impl PyHeaders {
+    fn try_or(&self, other: PyHeadersLike) -> PyResult<Self> {
+        let mut new_map = self.read().clone();
+        match other {
+            PyHeadersLike::Headers(other) => {
+                let other_inner = other.read();
+                update_headers_insert(&other_inner, &mut new_map)
+            }
+            PyHeadersLike::Map(other) => {
+                let hm = other.into();
+                update_headers_insert(&hm, &mut new_map)
+            }
+        }
+        .map_err(|e| map_max_size_reached_to_pyerr(&e))?;
+        Ok(Self::from(new_map))
     }
 }
 
@@ -326,20 +345,8 @@ impl PyHeaders {
         .map_err(|e| map_max_size_reached_to_pyerr(&e))
     }
 
-    fn __or__(&self, other: PyHeadersLike) -> PyResult<Self> {
-        let mut new_map = self.read().clone();
-        match other {
-            PyHeadersLike::Headers(other) => {
-                let other_inner = other.read();
-                update_headers_insert(&other_inner, &mut new_map)
-            }
-            PyHeadersLike::Map(other) => {
-                let hm = other.into();
-                update_headers_insert(&hm, &mut new_map)
-            }
-        }
-        .map_err(|e| map_max_size_reached_to_pyerr(&e))?;
-        Ok(Self::from(new_map))
+    fn __or__(&self, other: PyOperandArg<PyHeadersLike>) -> PyResult<PyNotImplementedOr<Self>> {
+        other.try_map(|other| self.try_or(other))
     }
 
     fn to_py<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
