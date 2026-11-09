@@ -36,5 +36,8 @@ ryo3-std = { workspace = true, features = [], optional = true }
 ryo3-tokio-rt = { workspace = true, features = [], optional = true }
 tokio = { workspace = true, features = [], optional = true }
 
+[build-dependencies]
+pyo3-build-config = { workspace = true }
+
 [lints]
 workspace = true

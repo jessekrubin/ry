@@ -22,5 +22,8 @@ crc32fast.workspace = true
 default = []
 ry = []
 
+[build-dependencies]
+pyo3-build-config = { workspace = true }
+
 [lints]
 workspace = true

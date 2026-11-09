@@ -16,7 +16,8 @@ use ryo3_macro_rules::py_type_err;
 
 use crate::fs::file_read_stream::PyFileReadStream;
 
-#[pyclass(name = "Metadata", frozen, immutable_type)]
+#[pyclass(name = "Metadata", frozen)]
+#[cfg_attr(any(not(Py_LIMITED_API), Py_3_14), pyo3(immutable_type))]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Clone)]
 pub struct PyMetadata(std::fs::Metadata);
@@ -144,7 +145,8 @@ impl PyMetadata {
     }
 }
 
-#[pyclass(name = "Permissions", frozen, immutable_type, eq)]
+#[pyclass(name = "Permissions", frozen, eq)]
+#[cfg_attr(any(not(Py_LIMITED_API), Py_3_14), pyo3(immutable_type))]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub struct PyPermissions(std::fs::Permissions);
@@ -189,7 +191,8 @@ impl PyPermissions {
     }
 }
 
-#[pyclass(name = "DirEntry", frozen, immutable_type)]
+#[pyclass(name = "DirEntry", frozen)]
+#[cfg_attr(any(not(Py_LIMITED_API), Py_3_14), pyo3(immutable_type))]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct PyDirEntry(std::fs::DirEntry);
 
@@ -497,7 +500,8 @@ pub fn read_dir(path: PathLike) -> PyResult<PyReadDir> {
     }
 }
 
-#[pyclass(name = "ReadDir", frozen, immutable_type)]
+#[pyclass(name = "ReadDir", frozen)]
+#[cfg_attr(any(not(Py_LIMITED_API), Py_3_14), pyo3(immutable_type))]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct PyReadDir {
     path: PathBuf,

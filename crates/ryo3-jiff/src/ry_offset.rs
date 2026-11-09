@@ -21,7 +21,8 @@ use crate::ry_timezone::RyTimeZone;
 use crate::spanish::Spanish;
 use crate::util::SpanKwargs;
 
-#[pyclass(name = "Offset", frozen, immutable_type, eq, ord)]
+#[pyclass(name = "Offset", frozen, eq, ord)]
+#[cfg_attr(any(not(Py_LIMITED_API), Py_3_14), pyo3(immutable_type))]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Clone, Copy, Eq, Hash, PartialEq, PartialOrd, Ord)]
 pub struct RyOffset(pub(crate) Offset);

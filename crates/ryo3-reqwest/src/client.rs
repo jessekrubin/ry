@@ -12,7 +12,8 @@ use crate::response::RyBlockingResponse;
 use crate::{ClientConfig, RyResponse};
 
 #[derive(Debug, Clone)]
-#[pyclass(name = "Client", frozen, immutable_type, eq)]
+#[pyclass(name = "Client", frozen, eq)]
+#[cfg_attr(any(not(Py_LIMITED_API), Py_3_14), pyo3(immutable_type))]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyClient {
     client: reqwest::Client,
@@ -26,7 +27,8 @@ impl PartialEq for RyClient {
 }
 
 #[derive(Debug, Clone)]
-#[pyclass(name = "BlockingClient", frozen, immutable_type, eq)]
+#[pyclass(name = "BlockingClient", frozen, eq)]
+#[cfg_attr(any(not(Py_LIMITED_API), Py_3_14), pyo3(immutable_type))]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyBlockingClient {
     client: reqwest::Client,

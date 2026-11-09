@@ -14,7 +14,8 @@ fn py_file_type_cached(py: Python<'_>, file_type: FileTypeKind) -> PyResult<Py<P
         .map(|obj| obj.clone_ref(py))
 }
 
-#[pyclass(name = "FileType", frozen, immutable_type, eq)]
+#[pyclass(name = "FileType", frozen, eq)]
+#[cfg_attr(any(not(Py_LIMITED_API), Py_3_14), pyo3(immutable_type))]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Copy, Clone)]
 pub struct PyFileType(FileTypeInner);

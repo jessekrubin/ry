@@ -346,7 +346,8 @@ fn join_bytes_chunks(chunks: &mut Vec<Bytes>, total_size: usize) -> Bytes {
     bytes_mut.freeze()
 }
 
-#[pyclass(name = "ResponseStream", frozen, immutable_type)]
+#[pyclass(name = "ResponseStream", frozen)]
+#[cfg_attr(any(not(Py_LIMITED_API), Py_3_14), pyo3(immutable_type))]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyResponseStream(ResponseStreamInner);
 
@@ -442,7 +443,8 @@ impl RyResponseStream {
     }
 }
 
-#[pyclass(name = "BlockingResponseStream", frozen, immutable_type)]
+#[pyclass(name = "BlockingResponseStream", frozen)]
+#[cfg_attr(any(not(Py_LIMITED_API), Py_3_14), pyo3(immutable_type))]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyBlockingResponseStream(ResponseStreamInner);
 

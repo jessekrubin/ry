@@ -8,7 +8,8 @@ use ryo3_std::time::PyDuration;
 use crate::PyCookieSameSite;
 use crate::types::PyCookieExpiration;
 
-#[pyclass(name = "Cookie", frozen, immutable_type, eq)]
+#[pyclass(name = "Cookie", frozen, eq)]
+#[cfg_attr(any(not(Py_LIMITED_API), Py_3_14), pyo3(immutable_type))]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct PyCookie(pub(crate) ::cookie::Cookie<'static>);
 

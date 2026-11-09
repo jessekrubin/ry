@@ -19,7 +19,8 @@ use ryo3_macro_rules::{py_type_err, py_value_error, pytodo};
 // separator
 const MAIN_SEPARATOR: char = std::path::MAIN_SEPARATOR;
 
-#[pyclass(name = "FsPath", frozen, immutable_type, eq, ord)]
+#[pyclass(name = "FsPath", frozen, eq, ord)]
+#[cfg_attr(any(not(Py_LIMITED_API), Py_3_14), pyo3(immutable_type))]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct PyFsPath(PathBuf);
@@ -866,7 +867,8 @@ where
     }
 }
 
-#[pyclass(name = "FsPathReadDir", frozen, immutable_type)]
+#[pyclass(name = "FsPathReadDir", frozen)]
+#[cfg_attr(any(not(Py_LIMITED_API), Py_3_14), pyo3(immutable_type))]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 struct PyFsPathReadDir(RyMutex<std::fs::ReadDir, false>);
 
@@ -919,7 +921,8 @@ impl From<std::fs::ReadDir> for PyFsPathReadDir {
     }
 }
 
-#[pyclass(name = "FsPathAncestors", frozen, immutable_type)]
+#[pyclass(name = "FsPathAncestors", frozen)]
+#[cfg_attr(any(not(Py_LIMITED_API), Py_3_14), pyo3(immutable_type))]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 struct PyFsPathAncestors {
     path: PathBuf,

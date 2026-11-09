@@ -25,5 +25,8 @@ ryo3-jiff.workspace = true
 ryo3-pydantic = { workspace = true, optional = true }
 ryo3-std = { workspace = true, features = ["time"] }
 
+[build-dependencies]
+pyo3-build-config = { workspace = true }
+
 [lints]
 workspace = true

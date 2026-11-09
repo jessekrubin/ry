@@ -20,5 +20,8 @@ pyo3 = { workspace = true, features = [] }
 regex.workspace = true
 ryo3-core.workspace = true
 
+[build-dependencies]
+pyo3-build-config = { workspace = true }
+
 [lints]
 workspace = true

@@ -29,7 +29,8 @@ mod decode;
 /// default max event size 512KiB (same as sse-core)
 pub(crate) const SSE_MAX_EVENT_SIZE: NonZeroUsize = NonZeroUsize::new(512 * 1024).expect("wenodis");
 
-#[pyclass(name = "ServerSentEvent", frozen, immutable_type, eq)]
+#[pyclass(name = "ServerSentEvent", frozen, eq)]
+#[cfg_attr(any(not(Py_LIMITED_API), Py_3_14), pyo3(immutable_type))]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct RyServerSentEvent(MessageEvent);
@@ -256,7 +257,8 @@ impl EventStreamInner {
     }
 }
 
-#[pyclass(name = "EventStream", frozen, immutable_type)]
+#[pyclass(name = "EventStream", frozen)]
+#[cfg_attr(any(not(Py_LIMITED_API), Py_3_14), pyo3(immutable_type))]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyEventStream(EventStreamInner);
 
@@ -357,7 +359,8 @@ impl RyEventStream {
     }
 }
 
-#[pyclass(name = "BlockingEventStream", frozen, immutable_type)]
+#[pyclass(name = "BlockingEventStream", frozen)]
+#[cfg_attr(any(not(Py_LIMITED_API), Py_3_14), pyo3(immutable_type))]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyBlockingEventStream(EventStreamInner);
 

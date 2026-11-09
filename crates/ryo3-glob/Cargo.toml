@@ -21,5 +21,8 @@ pyo3.workspace = true
 ryo3-core.workspace = true
 ryo3-fspath.workspace = true
 
+[build-dependencies]
+pyo3-build-config = { workspace = true }
+
 [lints]
 workspace = true

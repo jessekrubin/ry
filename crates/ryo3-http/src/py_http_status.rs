@@ -30,7 +30,8 @@ fn py_cached_http_status(py: Python<'_>, status: http::StatusCode) -> PyResult<P
     }
 }
 
-#[pyclass(name = "HttpStatus", frozen, immutable_type)]
+#[pyclass(name = "HttpStatus", frozen)]
+#[cfg_attr(any(not(Py_LIMITED_API), Py_3_14), pyo3(immutable_type))]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Clone, Copy)]
 pub struct PyHttpStatus(pub(crate) http::StatusCode);

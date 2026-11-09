@@ -6,7 +6,8 @@ use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyString, PyTuple};
 use ryo3_core::macros::{py_type_err, py_value_error};
 
-#[pyclass(name = "GlobPattern", frozen, immutable_type, eq)]
+#[pyclass(name = "GlobPattern", frozen, eq)]
+#[cfg_attr(any(not(Py_LIMITED_API), Py_3_14), pyo3(immutable_type))]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Clone)]
 pub struct PyGlobPattern {

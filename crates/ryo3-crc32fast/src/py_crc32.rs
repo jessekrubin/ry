@@ -22,7 +22,8 @@ const HASHLIB_GIL_MINSIZE: usize = 2048;
 
 type Crc32Hasher = crc32fast::Hasher;
 
-#[pyclass(name = "crc32", frozen, immutable_type)]
+#[pyclass(name = "crc32", frozen)]
+#[cfg_attr(any(not(Py_LIMITED_API), Py_3_14), pyo3(immutable_type))]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct PyCrc32Fast(RyMutex<Crc32Hasher>);
 

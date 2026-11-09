@@ -27,5 +27,8 @@ ryo3-std = { workspace = true, features = ["net"], optional = true }
 serde = { workspace = true, features = ["derive"], optional = true }
 url = { workspace = true }
 
+[build-dependencies]
+pyo3-build-config = { workspace = true }
+
 [lints]
 workspace = true

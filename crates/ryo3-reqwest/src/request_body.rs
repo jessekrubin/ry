@@ -296,7 +296,8 @@ fn send_to<'py>(
 ///
 /// it forwards the inner iterator's awaitables instead of making a new task
 /// for every chunk consumed
-#[pyclass(name = "RequestBodyPump", immutable_type)]
+#[pyclass(name = "RequestBodyPump")]
+#[cfg_attr(any(not(Py_LIMITED_API), Py_3_14), pyo3(immutable_type))]
 struct RyRequestBodyPump {
     src: Arc<AsyncBodySrc>,
     tx: Option<mpsc::Sender<BodyItem>>,

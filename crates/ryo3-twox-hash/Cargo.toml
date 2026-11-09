@@ -30,5 +30,8 @@ ryo3-bytes = { workspace = true, optional = true }
 ryo3-core = { workspace = true, optional = true }
 twox-hash = { workspace = true, features = ["alloc", "std"], optional = true }
 
+[build-dependencies]
+pyo3-build-config = { workspace = true }
+
 [lints]
 workspace = true

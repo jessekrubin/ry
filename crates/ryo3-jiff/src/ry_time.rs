@@ -22,7 +22,8 @@ use crate::{RyDate, RyDateTime, RySignedDuration, RySpan, RyTimeRound, RyTimesta
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize), serde(transparent))]
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, PartialOrd, Ord)]
-#[pyclass(name = "Time", frozen, immutable_type, eq, ord)]
+#[pyclass(name = "Time", frozen, eq, ord)]
+#[cfg_attr(any(not(Py_LIMITED_API), Py_3_14), pyo3(immutable_type))]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyTime(pub(crate) Time);
 

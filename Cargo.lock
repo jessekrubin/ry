@@ -2151,6 +2151,7 @@ version = "0.0.108"
 dependencies = [
  "aws-lc-rs",
  "pyo3",
+ "pyo3-build-config",
  "ryo3-bytes",
  "ryo3-core",
 ]
@@ -2198,6 +2199,7 @@ version = "0.0.108"
 dependencies = [
  "cookie",
  "pyo3",
+ "pyo3-build-config",
  "ryo3-core",
  "ryo3-jiff",
  "ryo3-pydantic",
@@ -2219,6 +2221,7 @@ version = "0.0.108"
 dependencies = [
  "crc32fast",
  "pyo3",
+ "pyo3-build-config",
  "ryo3-bytes",
  "ryo3-core",
 ]
@@ -2254,6 +2257,7 @@ name = "ryo3-fnv"
 version = "0.0.108"
 dependencies = [
  "pyo3",
+ "pyo3-build-config",
  "ryo3-bytes",
  "ryo3-core",
 ]
@@ -2263,6 +2267,7 @@ name = "ryo3-fspath"
 version = "0.0.108"
 dependencies = [
  "pyo3",
+ "pyo3-build-config",
  "ryo3-bytes",
  "ryo3-core",
  "ryo3-dirs",
@@ -2279,6 +2284,7 @@ version = "0.0.108"
 dependencies = [
  "glob",
  "pyo3",
+ "pyo3-build-config",
  "ryo3-core",
  "ryo3-fspath",
 ]
@@ -2289,6 +2295,7 @@ version = "0.0.108"
 dependencies = [
  "globset",
  "pyo3",
+ "pyo3-build-config",
  "ryo3-core",
 ]
 
@@ -2354,6 +2361,7 @@ version = "0.0.108"
 dependencies = [
  "jiter",
  "pyo3",
+ "pyo3-build-config",
  "ryo3-bytes",
  "ryo3-core",
 ]
@@ -2364,6 +2372,7 @@ version = "0.0.108"
 dependencies = [
  "jiter",
  "pyo3",
+ "pyo3-build-config",
  "ryo3-bytes",
  "ryo3-core",
  "ryo3-jiter",
@@ -2390,6 +2399,7 @@ version = "0.0.108"
 dependencies = [
  "lz4rip",
  "pyo3",
+ "pyo3-build-config",
  "ryo3-bytes",
  "ryo3-core",
 ]
@@ -2430,6 +2440,7 @@ name = "ryo3-regex"
 version = "0.0.108"
 dependencies = [
  "pyo3",
+ "pyo3-build-config",
  "regex",
  "ryo3-core",
 ]
@@ -2520,6 +2531,7 @@ name = "ryo3-sqlformat"
 version = "0.0.108"
 dependencies = [
  "pyo3",
+ "pyo3-build-config",
  "sqlformat",
 ]
 
@@ -2530,6 +2542,7 @@ dependencies = [
  "bytes",
  "jiff",
  "pyo3",
+ "pyo3-build-config",
  "ryo3-bytes",
  "ryo3-core",
  "ryo3-jiff-core",
@@ -2544,6 +2557,7 @@ version = "0.0.108"
 dependencies = [
  "bytes",
  "pyo3",
+ "pyo3-build-config",
  "ryo3-bytes",
  "ryo3-core",
  "ryo3-macro-rules",
@@ -2588,6 +2602,7 @@ name = "ryo3-twox-hash"
 version = "0.0.108"
 dependencies = [
  "pyo3",
+ "pyo3-build-config",
  "ryo3-bytes",
  "ryo3-core",
  "twox-hash",
@@ -2620,6 +2635,7 @@ name = "ryo3-url"
 version = "0.0.108"
 dependencies = [
  "pyo3",
+ "pyo3-build-config",
  "ryo3-core",
  "ryo3-macro-rules",
  "ryo3-pydantic",
@@ -2647,6 +2663,7 @@ name = "ryo3-walkdir"
 version = "0.0.108"
 dependencies = [
  "pyo3",
+ "pyo3-build-config",
  "ryo3-core",
  "ryo3-globset",
  "ryo3-std",

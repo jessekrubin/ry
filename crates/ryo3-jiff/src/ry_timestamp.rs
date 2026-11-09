@@ -26,7 +26,8 @@ use crate::{
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize), serde(transparent))]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd)]
-#[pyclass(name = "Timestamp", frozen, immutable_type, eq, ord)]
+#[pyclass(name = "Timestamp", frozen, eq, ord)]
+#[cfg_attr(any(not(Py_LIMITED_API), Py_3_14), pyo3(immutable_type))]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyTimestamp(pub(crate) Timestamp);
 

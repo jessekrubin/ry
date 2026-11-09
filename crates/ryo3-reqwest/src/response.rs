@@ -20,7 +20,8 @@ use crate::response_stream::{ResponseStreamInner, RyBlockingResponseStream};
 use crate::sse::{RyBlockingEventStream, RyEventStream, SSE_MAX_EVENT_SIZE};
 use crate::{RyResponseStream, pyerr_response_already_consumed};
 
-#[pyclass(name = "Response", frozen, immutable_type)]
+#[pyclass(name = "Response", frozen)]
+#[cfg_attr(any(not(Py_LIMITED_API), Py_3_14), pyo3(immutable_type))]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Debug)]
 pub struct RyResponse {
@@ -31,7 +32,8 @@ pub struct RyResponse {
     head: RyResponseHead,
 }
 
-#[pyclass(name = "BlockingResponse", frozen, immutable_type)]
+#[pyclass(name = "BlockingResponse", frozen)]
+#[cfg_attr(any(not(Py_LIMITED_API), Py_3_14), pyo3(immutable_type))]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Debug)]
 pub struct RyBlockingResponse {

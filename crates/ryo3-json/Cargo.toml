@@ -32,5 +32,8 @@ jiter = { workspace = true, features = ["serde"] }
 serde-transcode = { workspace = true }
 serde_core = { workspace = true }
 
+[build-dependencies]
+pyo3-build-config = { workspace = true }
+
 [lints]
 workspace = true

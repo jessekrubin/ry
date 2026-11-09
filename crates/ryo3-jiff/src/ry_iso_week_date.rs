@@ -13,7 +13,8 @@ use crate::{RyDate, RyDateTime, RyTimestamp, RyZoned};
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, PartialOrd)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize), serde(transparent))]
-#[pyclass(name = "ISOWeekDate", frozen, immutable_type, eq, ord)]
+#[pyclass(name = "ISOWeekDate", frozen, eq, ord)]
+#[cfg_attr(any(not(Py_LIMITED_API), Py_3_14), pyo3(immutable_type))]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyISOWeekDate(pub(crate) ISOWeekDate);
 
