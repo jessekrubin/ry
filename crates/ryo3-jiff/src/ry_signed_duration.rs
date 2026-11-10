@@ -54,6 +54,30 @@ impl RySignedDuration {
                 .map_err(|e| py_overflow_error!("{e}"))
         }
     }
+
+    // i32 fast path (jiff only does i32)
+    fn checked_mul_i128(&self, other: i128) -> Option<Self> {
+        if let Ok(n) = i32::try_from(other) {
+            return self.checked_mul(n);
+        }
+        self.0
+            .as_nanos()
+            .checked_mul(other)
+            .and_then(SignedDuration::try_from_nanos_i128)
+            .map(Self::from)
+    }
+
+    // i32 fast path or otherwise i128-nanos, which truncates like jiff's `checked_div`
+    fn checked_div_i128(&self, other: i128) -> Option<Self> {
+        if let Ok(n) = i32::try_from(other) {
+            return self.checked_div(n);
+        }
+        self.0
+            .as_nanos()
+            .checked_div(other)
+            .and_then(SignedDuration::try_from_nanos_i128)
+            .map(Self::from)
+    }
 }
 
 #[pymethods]
@@ -673,30 +697,6 @@ impl RySignedDuration {
 
     fn checked_mul(&self, other: i32) -> Option<Self> {
         self.0.checked_mul(other).map(Self::from)
-    }
-
-    // i32 fast path (jiff only does i32)
-    fn checked_mul_i128(&self, other: i128) -> Option<Self> {
-        if let Ok(n) = i32::try_from(other) {
-            return self.checked_mul(n);
-        }
-        self.0
-            .as_nanos()
-            .checked_mul(other)
-            .and_then(SignedDuration::try_from_nanos_i128)
-            .map(Self::from)
-    }
-
-    // i32 fast path or otherwise i128-nanos, which truncates like jiff's `checked_div`
-    fn checked_div_i128(&self, other: i128) -> Option<Self> {
-        if let Ok(n) = i32::try_from(other) {
-            return self.checked_div(n);
-        }
-        self.0
-            .as_nanos()
-            .checked_div(other)
-            .and_then(SignedDuration::try_from_nanos_i128)
-            .map(Self::from)
     }
 
     fn checked_neg(&self) -> Option<Self> {

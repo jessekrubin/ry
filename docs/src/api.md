@@ -3546,7 +3546,11 @@ _TimeSpanArithmetic: t.TypeAlias = (
     TimeSpan
     | Duration
     | SignedDuration
-    | tuple[TimeSpan | Duration | SignedDuration, ZonedDateTime | Date | DateTime]
+    | pydt.timedelta
+    | tuple[
+        TimeSpan | Duration | SignedDuration | pydt.timedelta,
+        ZonedDateTime | Date | DateTime,
+    ]
 )
 
 _TimeSpanKey: t.TypeAlias = t.Literal[
@@ -4466,6 +4470,15 @@ class ISOWeekDate(
     # INSTANCE METHODS
     # =========================================================================
     def date(self) -> Date: ...
+    def days_in_year(self) -> int: ...
+    def weeks_in_year(self) -> int: ...
+    def in_long_year(self) -> bool: ...
+    def first_of_week(self) -> t.Self: ...
+    def last_of_week(self) -> t.Self: ...
+    def first_of_year(self) -> t.Self: ...
+    def last_of_year(self) -> t.Self: ...
+    def tomorrow(self) -> t.Self: ...
+    def yesterday(self) -> t.Self: ...
     def isoformat(self) -> str: ...
     def to_py(self) -> pydt.date: ...
     def to_pydate(self) -> pydt.date: ...
@@ -7478,9 +7491,9 @@ class Size(FromStr, _Parse):
     # DUNDERS
     # =========================================================================
     def __add__(self, other: Size | float, /) -> Size: ...
-    def __radd__(self, other: Size, /) -> Size: ...
+    def __radd__(self, other: Size | float, /) -> Size: ...
     def __sub__(self, other: Size | float, /) -> Size: ...
-    def __rsub__(self, other: Size, /) -> Size: ...
+    def __rsub__(self, other: Size | float, /) -> Size: ...
     def __mul__(self, other: Size | float, /) -> Size: ...
     def __rmul__(self, other: Size | float, /) -> Size: ...
     def __neg__(self) -> Size: ...
@@ -9108,6 +9121,45 @@ class WebSocket:
 
     async def send(self, message: WsMessage | str | Buffer) -> None:
         """Send a message over the WebSocket connection"""
+
+    async def send_json(
+        self,
+        data: t.Any,
+        *,
+        kind: t.Literal["text", "binary", "ping", "pong"] = "text",
+        default: t.Callable[[t.Any], t.Any] | None = None,
+        fmt: bool = False,
+        sort_keys: bool = False,
+        append_newline: bool = False,
+    ) -> None:
+        """Serialize `data` to JSON and send it over the WebSocket connection
+
+        Parameters
+        ----------
+        data : Any
+            JSON-serializable object
+        kind : Literal["text", "binary", "ping", "pong"], optional
+            websocket message kind to send the JSON as, by default "text";
+            ping/pong payloads are limited to 125 bytes
+        default : Callable[[Any], Any] | None, optional
+            fallback serializer for otherwise unsupported types, by default None
+        fmt : bool, optional
+            pretty-print (2-space indent), by default False
+        sort_keys : bool, optional
+            sort object keys, by default False
+        append_newline : bool, optional
+            append a trailing newline, by default False
+
+        Serialization options are the same as `ry.stringify` (minus `dtype`)
+
+        Raises
+        ------
+        ValueError
+            if `kind` is "close" (use `WebSocket.close`) or a ping/pong
+            payload exceeds 125 bytes
+        TypeError
+            if `data` is not JSON-serializable
+        """
 
     async def close(
         self, code: int = 1_000, reason: str | Buffer | None = None
