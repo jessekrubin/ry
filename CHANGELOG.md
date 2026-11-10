@@ -10,6 +10,17 @@
 ## v0.0.109 [unreleased]
 
 - **DEPRECATION REMOVALS**
+  - removed `ryo3-bzip2` (`bzip2_encode`/`bzip2`/`bzip2_decode`) ~ use the
+    stdlib `bz2`
+  - removed the `ry.zstd` submodule ~ use `ry.zstd_compress`/
+    `ry.zstd_decompress`/`ry.is_zstd`/`ry.ZSTD_VERSION`/`ry.ZSTD_VERSION_INFO`
+  - removed `zstd_encode`/`zstd_decode` ~ use `zstd_compress`/`zstd_decompress`
+  - removed `brotli_encode`/`brotli`/`brotli_decode` ~ use
+    `brotli_compress`/`brotli_decompress`
+  - removed `gzip_encode`/`gzip`/`gzip_decode`/`gunzip`/`is_gzipped` ~ use
+    `gzip_compress`/`gzip_decompress`/`is_gzip`
+  - removed `pybytes=` from `stringify`/`JSON.stringify`/`JSON.dumps` ~ use
+    `dtype=bytes`
 
 ---
 
