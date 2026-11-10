@@ -1,7 +1,7 @@
 """ry = rust + python"""
 
 from ry import ryo3
-from ry.ryo3 import (  # type: ignore[deprecated]
+from ry.ryo3 import (
     I8_BITS,
     I8_MAX,
     I8_MIN,
@@ -164,19 +164,14 @@ from ry.ryo3 import (  # type: ignore[deprecated]
     font_dir,
     glob,
     globster,
-    gunzip,  # pyrefly: ignore[deprecated]  # ty: ignore[deprecated]
-    gzip,  # pyrefly: ignore[deprecated]  # ty: ignore[deprecated]
     gzip_compress,
-    gzip_decode,  # pyrefly: ignore[deprecated]  # ty: ignore[deprecated]
     gzip_decompress,
-    gzip_encode,  # pyrefly: ignore[deprecated]  # ty: ignore[deprecated]
     hard_link,
     hard_link_async,
     home,
     home_dir,
     instant,
     is_gzip,
-    is_gzipped,  # pyrefly: ignore[deprecated]  # ty: ignore[deprecated]
     is_same_file,
     is_zstd,
     json_cache_clear,
@@ -456,19 +451,14 @@ __all__ = (
     "font_dir",
     "glob",
     "globster",
-    "gunzip",
-    "gzip",
     "gzip_compress",
-    "gzip_decode",
     "gzip_decompress",
-    "gzip_encode",
     "hard_link",
     "hard_link_async",
     "home",
     "home_dir",
     "instant",
     "is_gzip",
-    "is_gzipped",
     "is_same_file",
     "is_zstd",
     "json_cache_clear",
