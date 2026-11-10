@@ -9,6 +9,16 @@
 
 ## v0.0.108 [unreleased]
 
+- `ryo3-jiff`
+  - bump to `v0.2.42`
+  - fix: no more panics from `TimeSpan` + HUGE durations
+    ([jiff#683](https://github.com/BurntSushi/jiff/issues/683))
+    - **INTERNAL:** removed the workaround (`check_duration_range`)
+  - fix: no more panics from `TimeSpan.total`/`.round` relative to a
+    `ZonedDateTime` across DST
+    ([jiff#685](https://github.com/BurntSushi/jiff/issues/685))
+  - fix: `Date.at`, `Time.on`, `zoned(...)` and `ZonedDateTime(...)` raise
+    `ValueError` on an invalid date/time instead of panicking
 - `ryo3-size`
   - **INTERNAL:** renamed rust pyclasses `PySize` -> `RySize`, `PySizeFormatter`
     -> `RySizeFormatter`

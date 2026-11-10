@@ -1102,7 +1102,11 @@ _TimeSpanArithmetic: t.TypeAlias = (
     TimeSpan
     | Duration
     | SignedDuration
-    | tuple[TimeSpan | Duration | SignedDuration, ZonedDateTime | Date | DateTime]
+    | pydt.timedelta
+    | tuple[
+        TimeSpan | Duration | SignedDuration | pydt.timedelta,
+        ZonedDateTime | Date | DateTime,
+    ]
 )
 
 _TimeSpanKey: t.TypeAlias = t.Literal[

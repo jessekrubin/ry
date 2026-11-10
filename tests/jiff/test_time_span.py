@@ -441,6 +441,33 @@ class TestSpanAdd:
         with pytest.raises(OverflowError):
             ry.timespan(years=19_998).add(ry.timespan(years=1))
 
+    @pytest.mark.parametrize(
+        "dur",
+        [
+            ry.SignedDuration.MAX,
+            ry.SignedDuration.MIN,
+            ry.Duration.MAX,
+            pydt.timedelta.max,
+            pydt.timedelta.min,
+        ],
+    )
+    def test_huge_duration_overflow(
+        self, dur: ry.SignedDuration | ry.Duration | pydt.timedelta
+    ) -> None:
+        """jiff#683 ~ used to panic (fixed in jiff 0.2.42)
+
+        REF: https://github.com/BurntSushi/jiff/issues/683
+        """
+        span = ry.timespan(seconds=1)
+        with pytest.raises(OverflowError):
+            span.add(dur)
+        with pytest.raises(OverflowError):
+            span.sub(dur)
+        with pytest.raises(OverflowError):
+            span + dur
+        with pytest.raises(OverflowError):
+            span - dur
+
 
 class TestSpanCompare:
     def test_example(self) -> None:
@@ -574,6 +601,19 @@ class TestSpanTotal:
         span = ry.timespan(hours=744)
         relative = ry.Date(2024, 3, 1).in_tz("America/New_York")
         assert span.total("month", relative) == 1.0013888888888889
+
+    def test_total_across_dst_fold(self) -> None:
+        """jiff#685 ~ used to panic (fixed in jiff 0.2.42)
+
+        REF: https://github.com/BurntSushi/jiff/issues/685
+        """
+        z = ry.date(2024, 11, 3).at(1, 50, 0, 0).in_tz("America/New_York")
+        # fall-back day is 25 hours (stupid DST)
+        assert ry.timespan(minutes=10).total("day", relative=z) == 10 / (25 * 60)
+        assert ry.timespan(minutes=10).round("day", relative=z) == ry.timespan()
+        z2 = z.add(minutes=10)
+        assert z.until(z2, largest="day") == ry.timespan(minutes=10)
+        assert z2.until(z, largest="day") == ry.timespan(minutes=-10)
 
     def test_cannot_provide_relative_and_days_are_24_hours(self) -> None:  # noqa: N802
         span = ry.timespan(hours=744)
