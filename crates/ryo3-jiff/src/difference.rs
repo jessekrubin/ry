@@ -81,11 +81,7 @@ impl DifferenceOptions {
     ) -> PyResult<()> {
         use crate::interns;
         pydict.set_item(interns::smallest(py), self.smallest)?;
-        if let Some(largest) = self.largest {
-            pydict.set_item(interns::largest(py), largest)?;
-        } else {
-            pydict.set_item(interns::largest(py), py.None())?;
-        }
+        pydict.set_item(interns::largest(py), self.largest)?;
         pydict.set_item(interns::mode(py), self.mode)?;
         pydict.set_item(interns::increment(py), self.increment)?;
         Ok(())
@@ -190,62 +186,46 @@ impl RyDateDifference {
     }
 
     fn _smallest(&self, unit: JiffUnit) -> Self {
-        let options = DifferenceOptions {
-            smallest: unit,
-            largest: self.options.largest,
-            mode: self.options.mode,
-            increment: self.options.increment,
-        };
-        let diff = self.diff.smallest(unit.into());
         Self {
-            date: self.date,
-            options,
-            diff,
+            options: DifferenceOptions {
+                smallest: unit,
+                ..self.options
+            },
+            diff: self.diff.smallest(unit.into()),
+            ..*self
         }
     }
 
     fn _largest(&self, unit: JiffUnit) -> Self {
-        let options = DifferenceOptions {
-            smallest: self.options.smallest,
-            largest: Some(unit),
-            mode: self.options.mode,
-            increment: self.options.increment,
-        };
-        let diff = self.diff.largest(unit.into());
         Self {
-            date: self.date,
-            options,
-            diff,
+            options: DifferenceOptions {
+                largest: Some(unit),
+                ..self.options
+            },
+            diff: self.diff.largest(unit.into()),
+            ..*self
         }
     }
 
     fn _mode(&self, mode: JiffRoundMode) -> Self {
-        let options = DifferenceOptions {
-            smallest: self.options.smallest,
-            largest: self.options.largest,
-            mode,
-            increment: self.options.increment,
-        };
-        let diff = self.diff.mode(mode.into());
         Self {
-            date: self.date,
-            options,
-            diff,
+            options: DifferenceOptions {
+                mode,
+                ..self.options
+            },
+            diff: self.diff.mode(mode.into()),
+            ..*self
         }
     }
 
     fn _increment(&self, increment: i64) -> Self {
-        let options = DifferenceOptions {
-            smallest: self.options.smallest,
-            largest: self.options.largest,
-            mode: self.options.mode,
-            increment,
-        };
-        let diff = self.diff.increment(increment);
         Self {
-            date: self.date,
-            options,
-            diff,
+            options: DifferenceOptions {
+                increment,
+                ..self.options
+            },
+            diff: self.diff.increment(increment),
+            ..*self
         }
     }
 
@@ -425,62 +405,46 @@ impl RyDateTimeDifference {
     }
 
     fn _smallest(&self, unit: JiffUnit) -> Self {
-        let options = DifferenceOptions {
-            smallest: unit,
-            largest: self.options.largest,
-            mode: self.options.mode,
-            increment: self.options.increment,
-        };
-        let diff = self.diff.smallest(unit.into());
         Self {
-            datetime: self.datetime,
-            options,
-            diff,
+            options: DifferenceOptions {
+                smallest: unit,
+                ..self.options
+            },
+            diff: self.diff.smallest(unit.into()),
+            ..*self
         }
     }
 
     fn _largest(&self, unit: JiffUnit) -> Self {
-        let options = DifferenceOptions {
-            smallest: self.options.smallest,
-            largest: Some(unit),
-            mode: self.options.mode,
-            increment: self.options.increment,
-        };
-        let diff = self.diff.largest(unit.into());
         Self {
-            datetime: self.datetime,
-            options,
-            diff,
+            options: DifferenceOptions {
+                largest: Some(unit),
+                ..self.options
+            },
+            diff: self.diff.largest(unit.into()),
+            ..*self
         }
     }
 
     fn _mode(&self, mode: JiffRoundMode) -> Self {
-        let options = DifferenceOptions {
-            smallest: self.options.smallest,
-            largest: self.options.largest,
-            mode,
-            increment: self.options.increment,
-        };
-        let diff = self.diff.mode(mode.into());
         Self {
-            datetime: self.datetime,
-            options,
-            diff,
+            options: DifferenceOptions {
+                mode,
+                ..self.options
+            },
+            diff: self.diff.mode(mode.into()),
+            ..*self
         }
     }
 
     fn _increment(&self, increment: i64) -> Self {
-        let options = DifferenceOptions {
-            smallest: self.options.smallest,
-            largest: self.options.largest,
-            mode: self.options.mode,
-            increment,
-        };
-        let diff = self.diff.increment(increment);
         Self {
-            datetime: self.datetime,
-            options,
-            diff,
+            options: DifferenceOptions {
+                increment,
+                ..self.options
+            },
+            diff: self.diff.increment(increment),
+            ..*self
         }
     }
 
@@ -660,64 +624,46 @@ impl RyTimeDifference {
     }
 
     fn _smallest(&self, unit: JiffUnit) -> Self {
-        let time = self.time;
-        let options = DifferenceOptions {
-            smallest: unit,
-            largest: self.options.largest,
-            mode: self.options.mode,
-            increment: self.options.increment,
-        };
-        let diff = self.diff.smallest(unit.into());
         Self {
-            time,
-            options,
-            diff,
+            options: DifferenceOptions {
+                smallest: unit,
+                ..self.options
+            },
+            diff: self.diff.smallest(unit.into()),
+            ..*self
         }
     }
 
     fn _largest(&self, unit: JiffUnit) -> Self {
-        let time = self.time;
-        let options = DifferenceOptions {
-            smallest: self.options.smallest,
-            largest: Some(unit),
-            mode: self.options.mode,
-            increment: self.options.increment,
-        };
-        let diff = self.diff.largest(unit.into());
         Self {
-            time,
-            options,
-            diff,
+            options: DifferenceOptions {
+                largest: Some(unit),
+                ..self.options
+            },
+            diff: self.diff.largest(unit.into()),
+            ..*self
         }
     }
 
     fn _mode(&self, mode: JiffRoundMode) -> Self {
-        let options = DifferenceOptions {
-            smallest: self.options.smallest,
-            largest: self.options.largest,
-            mode,
-            increment: self.options.increment,
-        };
-        let diff = self.diff.mode(mode.into());
         Self {
-            time: self.time,
-            options,
-            diff,
+            options: DifferenceOptions {
+                mode,
+                ..self.options
+            },
+            diff: self.diff.mode(mode.into()),
+            ..*self
         }
     }
 
     fn _increment(&self, increment: i64) -> Self {
-        let options = DifferenceOptions {
-            smallest: self.options.smallest,
-            largest: self.options.largest,
-            mode: self.options.mode,
-            increment,
-        };
-        let diff = self.diff.increment(increment);
         Self {
-            time: self.time,
-            options,
-            diff,
+            options: DifferenceOptions {
+                increment,
+                ..self.options
+            },
+            diff: self.diff.increment(increment),
+            ..*self
         }
     }
 
@@ -900,62 +846,46 @@ impl RyTimestampDifference {
     }
 
     fn _smallest(&self, unit: JiffUnit) -> Self {
-        let options = DifferenceOptions {
-            smallest: unit,
-            largest: self.options.largest,
-            mode: self.options.mode,
-            increment: self.options.increment,
-        };
-        let diff = self.diff.smallest(unit.into());
         Self {
-            timestamp: self.timestamp,
-            options,
-            diff,
+            options: DifferenceOptions {
+                smallest: unit,
+                ..self.options
+            },
+            diff: self.diff.smallest(unit.into()),
+            ..*self
         }
     }
 
     fn _largest(&self, unit: JiffUnit) -> Self {
-        let options = DifferenceOptions {
-            smallest: self.options.smallest,
-            largest: Some(unit),
-            mode: self.options.mode,
-            increment: self.options.increment,
-        };
-        let diff = self.diff.largest(unit.into());
         Self {
-            timestamp: self.timestamp,
-            options,
-            diff,
+            options: DifferenceOptions {
+                largest: Some(unit),
+                ..self.options
+            },
+            diff: self.diff.largest(unit.into()),
+            ..*self
         }
     }
 
     fn _mode(&self, mode: JiffRoundMode) -> Self {
-        let options = DifferenceOptions {
-            smallest: self.options.smallest,
-            largest: self.options.largest,
-            mode,
-            increment: self.options.increment,
-        };
-        let diff = self.diff.mode(mode.into());
         Self {
-            timestamp: self.timestamp,
-            options,
-            diff,
+            options: DifferenceOptions {
+                mode,
+                ..self.options
+            },
+            diff: self.diff.mode(mode.into()),
+            ..*self
         }
     }
 
     fn _increment(&self, increment: i64) -> Self {
-        let options = DifferenceOptions {
-            smallest: self.options.smallest,
-            largest: self.options.largest,
-            mode: self.options.mode,
-            increment,
-        };
-        let diff = self.diff.increment(increment);
         Self {
-            timestamp: self.timestamp,
-            options,
-            diff,
+            options: DifferenceOptions {
+                increment,
+                ..self.options
+            },
+            diff: self.diff.increment(increment),
+            ..*self
         }
     }
 
@@ -1124,54 +1054,42 @@ impl RyZonedDifference {
     }
 
     fn _smallest(&self, unit: JiffUnit) -> Self {
-        let options = DifferenceOptions {
-            smallest: unit,
-            largest: self.options.largest,
-            mode: self.options.mode,
-            increment: self.options.increment,
-        };
         Self {
+            options: DifferenceOptions {
+                smallest: unit,
+                ..self.options
+            },
             zoned: self.zoned.clone(),
-            options,
         }
     }
 
     fn _largest(&self, unit: JiffUnit) -> Self {
-        let options = DifferenceOptions {
-            smallest: self.options.smallest,
-            largest: Some(unit),
-            mode: self.options.mode,
-            increment: self.options.increment,
-        };
         Self {
+            options: DifferenceOptions {
+                largest: Some(unit),
+                ..self.options
+            },
             zoned: self.zoned.clone(),
-            options,
         }
     }
 
     fn _mode(&self, mode: JiffRoundMode) -> Self {
-        let options = DifferenceOptions {
-            smallest: self.options.smallest,
-            largest: self.options.largest,
-            mode,
-            increment: self.options.increment,
-        };
         Self {
+            options: DifferenceOptions {
+                mode,
+                ..self.options
+            },
             zoned: self.zoned.clone(),
-            options,
         }
     }
 
     fn _increment(&self, increment: i64) -> Self {
-        let options = DifferenceOptions {
-            smallest: self.options.smallest,
-            largest: self.options.largest,
-            mode: self.options.mode,
-            increment,
-        };
         Self {
+            options: DifferenceOptions {
+                increment,
+                ..self.options
+            },
             zoned: self.zoned.clone(),
-            options,
         }
     }
 

@@ -374,44 +374,21 @@ impl<'py> IntoPyObject<'py> for PyTimeZoneTransitionsVec<'_> {
     type Error = PyErr;
 
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
-        use crate::interns;
-        let mut abbrev_set = {
-            // this is in a block bc I find the lint that clippy flips out
-            // over ('clippy::redundant_closure_for_method_calls') annoying as
-            // fuck I do think in some casese it makes more sense but wtf...
-            // it wants me to replace the following:
-            //    `|t| t.abbreviation()`
-            // with this:
-            //    `jiff::tz::TimeZoneTransition::abbreviation`
-            #[expect(clippy::redundant_closure_for_method_calls)]
-            self.0
-                .iter()
-                .map(|t| t.abbreviation())
-                .collect::<std::collections::HashSet<_>>()
-        };
-        let mut abbrev_pystrings: Vec<(&str, Bound<PyAny>)> = Vec::with_capacity(8);
-        for abbrev in abbrev_set.drain() {
-            let py_abbrev = PyString::new(py, abbrev);
-            abbrev_pystrings.push((abbrev, py_abbrev.into_bound_py_any(py)?));
-        }
+        use std::collections::HashMap;
 
-        let mut objects = vec![];
+        use crate::interns;
+        // cache for same py-str abbreviations over and over
+        let mut abbrevs: HashMap<&str, Bound<'py, PyString>> = HashMap::new();
+        let mut objects = Vec::with_capacity(self.0.len());
         for t in &self.0 {
             let d = PyDict::new(py);
             d.set_item(interns::timestamp(py), RyTimestamp::from(t.timestamp()))?;
             d.set_item(interns::offset(py), RyOffset::from(t.offset()))?;
             d.set_item(interns::dst(py), t.dst().is_dst())?;
-            let py_abrev_str = abbrev_pystrings
-                .iter()
-                .find_map(|(abbrev, pystr)| {
-                    if *abbrev == t.abbreviation() {
-                        Some(pystr.clone())
-                    } else {
-                        None
-                    }
-                })
-                .expect("no-way-jose");
-            d.set_item(interns::abbreviation(py), py_abrev_str)?;
+            let abbrev = abbrevs
+                .entry(t.abbreviation())
+                .or_insert_with_key(|abbrev| PyString::new(py, abbrev));
+            d.set_item(interns::abbreviation(py), &*abbrev)?;
             objects.push(d);
         }
         PyList::new(py, objects)

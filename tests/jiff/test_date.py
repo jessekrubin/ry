@@ -22,6 +22,25 @@ class TestDate:
         assert dt.minute == 2
         assert dt.second == 3
 
+    def test_at(self) -> None:
+        dt = ry.date(2023, 3, 14).at(1, 2, 3, 4)
+        assert dt == ry.datetime(2023, 3, 14, 1, 2, 3, 4)
+
+    @pytest.mark.parametrize(
+        "hms",
+        [
+            (24, 0, 0, 0),
+            (0, 60, 0, 0),
+            (0, 0, 60, 0),
+            (0, 0, 0, 1_000_000_000),
+            (-1, 0, 0, 0),
+        ],
+    )
+    def test_at_invalid_time(self, hms: tuple[int, int, int, int]) -> None:
+        # DID panic
+        with pytest.raises(ValueError, match="parameter"):
+            ry.date(2024, 1, 1).at(*hms)
+
     def test_to_zoned(self) -> None:
         d = ry.date(2023, 3, 14)
         zdt = d.to_zoned(ry.TimeZone("America/New_York"))

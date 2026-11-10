@@ -334,8 +334,11 @@ impl RyTime {
     // INSTANCE METHODS
     // =====================================================================
 
-    fn on(&self, year: i16, month: i8, day: i8) -> RyDateTime {
-        RyDateTime::from(self.0.on(year, month, day))
+    fn on(&self, year: i16, month: i8, day: i8) -> PyResult<RyDateTime> {
+        // `Time::on` can panic on invalid date
+        jiff::civil::Date::new(year, month, day)
+            .map(|d| RyDateTime::from(self.0.to_datetime(d)))
+            .map_err(map_py_value_err)
     }
 
     #[pyo3(

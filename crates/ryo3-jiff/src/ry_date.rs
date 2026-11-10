@@ -103,8 +103,17 @@ impl RyDate {
     }
 
     #[pyo3(signature = (hour, minute, second, nanosecond = 0))]
-    pub(crate) fn at(&self, hour: i8, minute: i8, second: i8, nanosecond: i32) -> RyDateTime {
-        RyDateTime::from(self.0.at(hour, minute, second, nanosecond))
+    pub(crate) fn at(
+        &self,
+        hour: i8,
+        minute: i8,
+        second: i8,
+        nanosecond: i32,
+    ) -> PyResult<RyDateTime> {
+        // `Date::at` can panic on an invalid time
+        jiff::civil::Time::new(hour, minute, second, nanosecond)
+            .map(|t| RyDateTime::from(self.0.to_datetime(t)))
+            .map_err(map_py_value_err)
     }
 
     #[getter]

@@ -6,8 +6,8 @@ use pyo3::prelude::*;
 use pyo3::types::{PyDelta, PyDict, PyFloat, PyInt, PyIterator, PyTuple};
 use pyo3::{BoundObject, IntoPyObjectExt};
 use ryo3_core::macros::{
-    any_repr, py_key_err, py_overflow_err, py_overflow_error, py_type_err, py_type_error,
-    py_value_err, py_value_error,
+    any_repr, py_key_err, py_overflow_error, py_type_err, py_type_error, py_value_err,
+    py_value_error,
 };
 use ryo3_core::{
     FromPyOperand, PyAsciiString, PyCastExactOpt, PyNotImplementedOr, PyOperandArg,
@@ -79,7 +79,6 @@ impl RySpan {
     }
 
     fn try_sub(&self, other: &RySpanArithmetic<'_, '_>) -> PyResult<Self> {
-        other.check_duration_range()?;
         let span_arithmetic: SpanArithmetic = other.into();
         self.0
             .checked_sub(span_arithmetic)
@@ -1150,25 +1149,26 @@ impl<'a, 'py> FromPyOperand<'a, 'py> for RySpanArithmetic<'a, 'py> {
     }
 }
 
-impl RySpanArithmetic<'_, '_> {
-    /// jiff 0.2.39 `Span::checked_add` panics (unchecked `+`) on huge durations;
-    /// reject them first (spans max out < 1e13s so jiff would err anyway)
-    /// TODO: revisit and check if fixed
-    fn check_duration_range(&self) -> PyResult<()> {
-        const MAX_SECS: u64 = 1_000_000_000_000_000;
-        let secs = match &self.spanish {
-            Spanish::Span(_) => return Ok(()),
-            Spanish::SignedDuration(sd) => sd.get().0.as_secs().unsigned_abs(),
-            Spanish::DurationLike(DurationLike::Duration(d)) => d.get().inner().as_secs(),
-            Spanish::DurationLike(DurationLike::PyTimeDelta(sd)) => sd.as_secs().unsigned_abs(),
-        };
-        if secs > MAX_SECS {
-            py_overflow_err!("duration out of range for span arithmetic")
-        } else {
-            Ok(())
-        }
-    }
-}
+// OLD WORKAROUND FOR https://github.com/BurntSushi/jiff/issues/683
+// impl RySpanArithmetic<'_, '_> {
+//     /// jiff 0.2.39 `Span::checked_add` panics (unchecked `+`) on huge durations;
+//     /// reject them first (spans max out < 1e13s so jiff would err anyway)
+//     /// TODO: revisit and check if fixed
+//     fn check_duration_range(&self) -> PyResult<()> {
+//         const MAX_SECS: u64 = 1_000_000_000_000_000;
+//         let secs = match &self.spanish {
+//             Spanish::Span(_) => return Ok(()),
+//             Spanish::SignedDuration(sd) => sd.get().0.as_secs().unsigned_abs(),
+//             Spanish::DurationLike(DurationLike::Duration(d)) => d.get().inner().as_secs(),
+//             Spanish::DurationLike(DurationLike::PyTimeDelta(sd)) => sd.as_secs().unsigned_abs(),
+//         };
+//         if secs > MAX_SECS {
+//             py_overflow_err!("duration out of range for span arithmetic")
+//         } else {
+//             Ok(())
+//         }
+//     }
+// }
 
 impl<'a, 'py> From<&'a RySpanArithmetic<'a, 'py>> for SpanArithmetic<'a> {
     fn from(value: &'a RySpanArithmetic<'a, 'py>) -> Self {
@@ -1269,7 +1269,6 @@ impl<'a, 'py> SpanAdd<'a, 'py> for RySpanArithmetic<'a, 'py> {
     type Target = RySpan;
     type Output = Bound<'py, Self::Target>;
     fn add_span(self, py: Python<'py>, span: &RySpan) -> PyResult<Self::Output> {
-        self.check_duration_range()?;
         let span_arithmetic: SpanArithmetic = (&self).into();
         span.0
             .checked_add(span_arithmetic)
@@ -1286,7 +1285,6 @@ impl<'a, 'py> SpanAdd<'a, 'py> for SpanAddTarget<'a, 'py> {
     fn add_span(self, py: Python<'py>, span: &RySpan) -> PyResult<Self::Output> {
         match self {
             Self::Span(span_arithmetic) => {
-                span_arithmetic.check_duration_range()?;
                 let span_arithmetic: SpanArithmetic = (&span_arithmetic).into();
                 span.0
                     .checked_add(span_arithmetic)

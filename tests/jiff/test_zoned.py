@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import datetime as pydt
+import typing as t
 
 import pytest
 
@@ -95,6 +96,24 @@ class TestZonedDateTime:
         assert isinstance(tz, ry.TimeZone)
         s = ry.TimeZone.system()
         assert tz == s
+
+    def test_zoned_fn_matches_new(self) -> None:
+        args = (2020, 8, 26, 6, 27, 0, 123_456_789)
+        assert ry.zoned(*args, tz="America/Los_Angeles") == ry.ZonedDateTime(
+            *args, tz="America/Los_Angeles"
+        )
+        assert ry.zoned(*args) == ry.ZonedDateTime(*args)
+
+    @pytest.mark.parametrize("ctor", [ry.zoned, ry.ZonedDateTime])
+    @pytest.mark.parametrize(
+        "hmsn", [(24, 0, 0, 0), (0, 60, 0, 0), (0, 0, 0, 1_000_000_000)]
+    )
+    def test_new_invalid_time(
+        self, ctor: t.Any, hmsn: tuple[int, int, int, int]
+    ) -> None:
+        # DID panic
+        with pytest.raises(ValueError, match="parameter"):
+            ctor(2024, 1, 1, *hmsn, tz="UTC")
 
     def test_unix_epoch(self) -> None:
         zdt = ry.ZonedDateTime.UNIX_EPOCH

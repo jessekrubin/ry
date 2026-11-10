@@ -145,6 +145,42 @@ impl RyISOWeekDate {
         self.0.date().into()
     }
 
+    fn days_in_year(&self) -> i16 {
+        self.0.days_in_year()
+    }
+
+    fn weeks_in_year(&self) -> i8 {
+        self.0.weeks_in_year()
+    }
+
+    fn in_long_year(&self) -> bool {
+        self.0.in_long_year()
+    }
+
+    fn first_of_week(&self) -> PyResult<Self> {
+        self.0.first_of_week().map(Self).map_err(map_py_value_err)
+    }
+
+    fn last_of_week(&self) -> PyResult<Self> {
+        self.0.last_of_week().map(Self).map_err(map_py_value_err)
+    }
+
+    fn first_of_year(&self) -> PyResult<Self> {
+        self.0.first_of_year().map(Self).map_err(map_py_value_err)
+    }
+
+    fn last_of_year(&self) -> PyResult<Self> {
+        self.0.last_of_year().map(Self).map_err(map_py_value_err)
+    }
+
+    fn tomorrow(&self) -> PyResult<Self> {
+        self.0.tomorrow().map(Self).map_err(map_py_value_err)
+    }
+
+    fn yesterday(&self) -> PyResult<Self> {
+        self.0.yesterday().map(Self).map_err(map_py_value_err)
+    }
+
     fn __str__(&self) -> PyAsciiString {
         <Self as crate::isoformat::PyIsoFormat>::isoformat(self)
     }

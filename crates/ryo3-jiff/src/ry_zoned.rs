@@ -2,7 +2,7 @@ use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::ops::Sub;
 
-use jiff::civil::{Date, Weekday};
+use jiff::civil::{DateTime, Weekday};
 use jiff::tz::TimeZone;
 use jiff::{Zoned, ZonedArithmetic, ZonedDifference, ZonedRound};
 use pyo3::prelude::*;
@@ -77,7 +77,7 @@ impl RyZoned {
         )
     )]
     #[expect(clippy::too_many_arguments, reason = "python kwargs")]
-    fn py_new(
+    pub(crate) fn py_new(
         year: i16,
         month: i8,
         day: i8,
@@ -87,23 +87,16 @@ impl RyZoned {
         nanosecond: i32,
         tz: Option<&str>,
     ) -> PyResult<Self> {
-        if let Some(tz) = tz {
-            let tz = ryo3_jiff_core::get_time_zone(tz).map_err(map_py_value_err)?;
-            Date::new(year, month, day)
-                .map_err(map_py_value_err)?
-                .at(hour, minute, second, nanosecond)
-                .to_zoned(tz)
-                .map(Self::from)
-                .map_err(map_py_value_err)
-        } else {
-            let tz_system = TimeZone::try_system().map_err(map_py_value_err)?;
-            Date::new(year, month, day)
-                .map_err(map_py_value_err)?
-                .at(hour, minute, second, nanosecond)
-                .to_zoned(tz_system)
-                .map(Self::from)
-                .map_err(map_py_value_err)
+        let tz = match tz {
+            Some(tz) => ryo3_jiff_core::get_time_zone(tz),
+            None => TimeZone::try_system(),
         }
+        .map_err(map_py_value_err)?;
+        DateTime::new(year, month, day, hour, minute, second, nanosecond)
+            .map_err(map_py_value_err)?
+            .to_zoned(tz)
+            .map(Self::from)
+            .map_err(map_py_value_err)
     }
 
     #[classattr]

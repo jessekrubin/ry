@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import pytest
+
 import ry
 
 
@@ -23,7 +25,21 @@ def test_strptime() -> None:
 def test_strftime() -> None:
     t = ry.time(16, 30, 59, 0)
     string = t.strftime("%-I:%M%P")
-    assert str(string) == "4:30pm"
+    assert string == "4:30pm"
+
+
+class TestTimeOn:
+    def test_on(self) -> None:
+        dt = ry.time(1, 2, 3, 4).on(2023, 3, 14)
+        assert dt == ry.datetime(2023, 3, 14, 1, 2, 3, 4)
+
+    @pytest.mark.parametrize(
+        "ymd", [(2024, 13, 1), (2024, 2, 30), (10000, 1, 1), (2024, 0, 1)]
+    )
+    def test_on_invalid_date(self, ymd: tuple[int, int, int]) -> None:
+        # used to panic
+        with pytest.raises(ValueError, match="parameter"):
+            ry.time(1, 2).on(*ymd)
 
 
 class TestTimeSinceUntil:

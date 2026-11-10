@@ -1,4 +1,3 @@
-use jiff::civil::Date;
 use jiff::tz::TimeZone;
 use jiff::{Span, Zoned};
 use pyo3::prelude::*;
@@ -52,23 +51,7 @@ pub fn zoned(
     nanosecond: i32,
     tz: Option<&str>,
 ) -> PyResult<RyZoned> {
-    if let Some(tz) = tz {
-        let tz = ryo3_jiff_core::get_time_zone(tz).map_err(map_py_value_err)?;
-        Date::new(year, month, day)
-            .map_err(map_py_value_err)?
-            .at(hour, minute, second, nanosecond)
-            .to_zoned(tz)
-            .map(RyZoned::from)
-            .map_err(map_py_value_err)
-    } else {
-        let tz_system = jiff::tz::TimeZone::try_system().map_err(map_py_value_err)?;
-        Date::new(year, month, day)
-            .map_err(map_py_value_err)?
-            .at(hour, minute, second, nanosecond)
-            .to_zoned(tz_system)
-            .map(RyZoned::from)
-            .map_err(map_py_value_err)
-    }
+    RyZoned::py_new(year, month, day, hour, minute, second, nanosecond, tz)
 }
 
 /// Return `ZondeDateTime` for the current time in the system's local timezone.
