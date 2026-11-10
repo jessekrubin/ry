@@ -220,17 +220,20 @@ fn guess_mime(py: Python<'_>, filename: Option<&str>) -> PyResult<mime::Mime> {
         .unwrap_or(mime::APPLICATION_OCTET_STREAM))
 }
 
-/// `copyreg.__newobj_ex__` pickling w/ kwargs
-fn newobj_ex(py: Python<'_>) -> PyResult<&Bound<'_, PyAny>> {
-    static NEWOBJ_EX: PyOnceLock<Py<PyAny>> = PyOnceLock::new();
-    NEWOBJ_EX.import(py, "copyreg", "__newobj_ex__")
+// TODO: this should prolly move to `ryo3-core`
+/// `__reduce__` value for `cls(*args, **kwargs)` for pypi support?
+fn reduce_with_kwargs<'py, A>(
+    cls: Bound<'py, PyType>,
+    args: A,
+    kwargs: &Bound<'py, PyDict>,
+) -> PyResult<(Bound<'py, PyAny>, A)> {
+    static PARTIAL: PyOnceLock<Py<PyAny>> = PyOnceLock::new();
+    if kwargs.is_empty() {
+        return Ok((cls.into_any(), args));
+    }
+    let partial = PARTIAL.import(cls.py(), "functools", "partial")?;
+    Ok((partial.call((cls,), Some(kwargs))?, args))
 }
-
-/// `(copyreg.__newobj_ex__, (cls, args, kwargs))`
-type ReduceNewObjEx<'py, A> = (
-    Bound<'py, PyAny>,
-    (Bound<'py, PyType>, A, Bound<'py, PyDict>),
-);
 
 impl FromPyObject<'_, '_> for PartValue {
     type Error = PyErr;
@@ -336,7 +339,7 @@ impl RyFormPart {
     fn __reduce__<'py>(
         &self,
         py: Python<'py>,
-    ) -> PyResult<ReduceNewObjEx<'py, (Bound<'py, PyAny>,)>> {
+    ) -> PyResult<(Bound<'py, PyAny>, (Bound<'py, PyAny>,))> {
         let kwargs = PyDict::new(py);
         if let Some(filename) = self.filename() {
             kwargs.set_item("filename", filename)?;
@@ -347,10 +350,7 @@ impl RyFormPart {
         if let Some(headers) = self.headers() {
             kwargs.set_item("headers", headers)?;
         }
-        Ok((
-            newobj_ex(py)?.clone(),
-            (py.get_type::<Self>(), (self.value(py)?,), kwargs),
-        ))
+        reduce_with_kwargs(py.get_type::<Self>(), (self.value(py)?,), &kwargs)
     }
 
     /// `str` | `Bytes` | `pathlib.Path`
@@ -573,7 +573,7 @@ impl RyFormData {
     fn __reduce__<'py>(
         &self,
         py: Python<'py>,
-    ) -> PyResult<ReduceNewObjEx<'py, (Bound<'py, PyList>,)>> {
+    ) -> PyResult<(Bound<'py, PyAny>, (Bound<'py, PyList>,))> {
         let entries = PyList::new(
             py,
             self.entries()
@@ -584,10 +584,7 @@ impl RyFormData {
         if let Some(pe) = self.percent_encode {
             kwargs.set_item("percent_encode", pe.as_str())?;
         }
-        Ok((
-            newobj_ex(py)?.clone(),
-            (py.get_type::<Self>(), (entries,), kwargs),
-        ))
+        reduce_with_kwargs(py.get_type::<Self>(), (entries,), &kwargs)
     }
 
     fn __getitem__<'py>(&self, py: Python<'py>, name: &str) -> PyResult<Bound<'py, PyAny>> {

@@ -21,6 +21,9 @@
     `gzip_compress`/`gzip_decompress`/`is_gzip`
   - removed `pybytes=` from `stringify`/`JSON.stringify`/`JSON.dumps` ~ use
     `dtype=bytes`
+- `ryo3-reqwest`
+  - multipart/form-data! `FormData` + `FormPart` (js-like)
+- `ryo3-bytes`: `Bytes` pickles w/ every protocol (`__reduce__`)
 
 ---
 
