@@ -13,8 +13,5 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(oneshot::zstd_compress, m)?)?;
     m.add_function(wrap_pyfunction!(oneshot::zstd_decompress, m)?)?;
     m.add_function(wrap_pyfunction!(oneshot::is_zstd, m)?)?;
-    // deprecated ~ remove in v0.0.109
-    m.add_function(wrap_pyfunction!(oneshot::zstd_decode, m)?)?;
-    m.add_function(wrap_pyfunction!(oneshot::zstd_encode, m)?)?;
     Ok(())
 }

@@ -1,6 +1,5 @@
 """ry api ~ type annotations"""
 
-from ry.ryo3 import zstd as zstd
 from ry.ryo3.__about__ import __allocator__ as __allocator__
 from ry.ryo3.__about__ import __authors__ as __authors__
 from ry.ryo3.__about__ import __build_profile__ as __build_profile__
@@ -309,6 +308,4 @@ from ry.ryo3._zstd import ZSTD_VERSION as ZSTD_VERSION
 from ry.ryo3._zstd import ZSTD_VERSION_INFO as ZSTD_VERSION_INFO
 from ry.ryo3._zstd import is_zstd as is_zstd
 from ry.ryo3._zstd import zstd_compress as zstd_compress
-from ry.ryo3._zstd import zstd_decode as zstd_decode  # type: ignore[deprecated]  # ty: ignore[deprecated]
 from ry.ryo3._zstd import zstd_decompress as zstd_decompress
-from ry.ryo3._zstd import zstd_encode as zstd_encode  # type: ignore[deprecated]  # ty: ignore[deprecated]

@@ -292,11 +292,8 @@ from ry.ryo3 import (  # type: ignore[deprecated]
     xxh32,
     xxh64,
     zoned,
-    zstd,
     zstd_compress,
-    zstd_decode,  # pyrefly: ignore[deprecated]  # ty: ignore[deprecated]
     zstd_decompress,
-    zstd_encode,  # pyrefly: ignore[deprecated]  # ty: ignore[deprecated]
 )
 
 __all__ = (
@@ -591,9 +588,6 @@ __all__ = (
     "xxh32",
     "xxh64",
     "zoned",
-    "zstd",
     "zstd_compress",
-    "zstd_decode",
     "zstd_decompress",
-    "zstd_encode",
 )
