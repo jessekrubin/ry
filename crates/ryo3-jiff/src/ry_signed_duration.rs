@@ -62,14 +62,11 @@ impl RySignedDuration {
     #[new]
     #[pyo3(signature = (secs = 0, nanos = 0))]
     pub fn py_new(secs: i64, nanos: i32) -> PyResult<Self> {
-        #[expect(clippy::cast_lossless)]
-        if !(-NANOSECONDS_PER_SECOND < nanos && nanos < NANOSECONDS_PER_SECOND) {
-            let addsecs = nanos / NANOSECONDS_PER_SECOND;
-            secs.checked_add(addsecs as i64).ok_or_else(|| {
-                py_overflow_error!("nanoseconds overflowed seconds in PySignedDuration::new")
-            })?;
-        }
-        Ok(Self::from(SignedDuration::new(secs, nanos)))
+        // carry whole seconds out of nanos bc `SignedDuration::new` panics
+        // if the addition overflows
+        secs.checked_add(i64::from(nanos / NANOSECONDS_PER_SECOND))
+            .map(|secs| Self::from(SignedDuration::new(secs, nanos % NANOSECONDS_PER_SECOND)))
+            .ok_or_else(|| py_overflow_error!("nanoseconds overflowed seconds in SignedDuration"))
     }
 
     fn __getnewargs__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
@@ -526,9 +523,7 @@ impl RySignedDuration {
         if (MIN_HOUR..=MAX_HOUR).contains(&hours) {
             Ok(Self(SignedDuration::from_hours(hours)))
         } else {
-            Err(py_overflow_error!(
-                "hours value {hours} out of range [{MIN_HOUR}, {MAX_HOUR}]"
-            ))
+            py_overflow_err!("hours value {hours} out of range [{MIN_HOUR}, {MAX_HOUR}]")
         }
     }
 
