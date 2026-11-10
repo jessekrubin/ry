@@ -7,6 +7,12 @@
 
 ---
 
+## v0.0.109 [unreleased]
+
+- **DEPRECATION REMOVALS**
+
+---
+
 ## v0.0.108 [2026-11-10]
 
 - `ryo3-jiff`
