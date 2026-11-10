@@ -30,9 +30,6 @@ from ry.ryo3._burli import brotli as brotli  # type: ignore[deprecated]  # ty: i
 from ry.ryo3._burli import brotli_compress as brotli_compress
 from ry.ryo3._burli import brotli_encode as brotli_encode  # type: ignore[deprecated]  # ty: ignore[deprecated]
 from ry.ryo3._bytes import Bytes as Bytes
-from ry.ryo3._bzip2 import bzip2 as bzip2  # type: ignore[deprecated]  # ty: ignore[deprecated]
-from ry.ryo3._bzip2 import bzip2_decode as bzip2_decode  # type: ignore[deprecated]  # ty: ignore[deprecated]
-from ry.ryo3._bzip2 import bzip2_encode as bzip2_encode  # type: ignore[deprecated]  # ty: ignore[deprecated]
 from ry.ryo3._cookie import Cookie as Cookie
 from ry.ryo3._crc32fast import crc32 as crc32
 from ry.ryo3._dirs import audio_dir as audio_dir

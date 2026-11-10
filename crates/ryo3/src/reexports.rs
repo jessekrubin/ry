@@ -19,7 +19,6 @@ ryo3_features_reexport! {
     "brotli", ryo3_brotli,
     "burli", ryo3_burli,
     "bytes", ryo3_bytes,
-    "bzip2", ryo3_bzip2,
     "cookie", ryo3_cookie,
     "dirs", ryo3_dirs,
     "flate2", ryo3_flate2,

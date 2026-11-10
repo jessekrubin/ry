@@ -26,8 +26,7 @@ python bindings for rust crates ~ `ry == rust | python`
   `jiff` (pydantic-compatible).
 - **Async file I/O:** `AsyncFile` API similar to `aiofiles` and `anyio`'s
   async-file api.
-- **(de)compression:** (de)compression support for `zstd`, `brotli`, `gzip`, and
-  `bzip2`.
+- **(de)compression:** (de)compression support for `zstd`, `brotli`, and `gzip`.
 - **hashing:** `aws-lc-rs`, `fnv`, and `twox-hash` (aka `xxhash`)
 - **Ergonomic:** APIs designed to be ergonomic and pythonic and familiar to both
   python and rust users.
@@ -102,7 +101,6 @@ _(aka: questions that I have been asking myself)_
 | ------------------ | --------------------------------------------------------------------------------------------------- |
 | `std`              | [`ryo3-std`](https://github.com/jessekrubin/ry/tree/main/crates/ryo3-std)                           |
 | `bytes`            | [`ryo3-bytes`](https://github.com/jessekrubin/ry/tree/main/crates/ryo3-bytes)                       |
-| `bzip2`            | [`ryo3-bzip2`](https://github.com/jessekrubin/ry/tree/main/crates/ryo3-bzip2)                       |
 | `dirs`             | [`ryo3-dirs`](https://github.com/jessekrubin/ry/tree/main/crates/ryo3-dirs)                         |
 | `fspath`           | [`ryo3-fspath`](https://github.com/jessekrubin/ry/tree/main/crates/ryo3-fspath)                     |
 | `glob`             | [`ryo3-glob`](https://github.com/jessekrubin/ry/tree/main/crates/ryo3-glob)                         |

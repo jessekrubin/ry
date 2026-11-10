@@ -238,15 +238,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fc652a48c352aef3ea3aed32080501cf3ef6ed5da78602a020c991775b0aff04"
 
 [[package]]
-name = "bzip2"
-version = "0.6.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f3a53fac24f34a81bc9954b5d6cfce0c21e18ec6959f44f56e8e90e4bb7c346c"
-dependencies = [
- "libbz2-rs-sys",
-]
-
-[[package]]
 name = "cast"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1359,12 +1350,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2604dd126bb14f13fb5d1bd6a66155079cb9fa655b37f875b3a742c705dbed17"
 
 [[package]]
-name = "libbz2-rs-sys"
-version = "0.2.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "32f454fd6831a29c0e827ed075bca2a15be201bd57f4168f0fd1041124eab17e"
-
-[[package]]
 name = "libc"
 version = "0.2.191"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2068,7 +2053,6 @@ dependencies = [
  "ryo3-brotli",
  "ryo3-burli",
  "ryo3-bytes",
- "ryo3-bzip2",
  "ryo3-cookie",
  "ryo3-core",
  "ryo3-crc32fast",
@@ -2142,15 +2126,6 @@ dependencies = [
  "memchr",
  "pyo3",
  "pyo3-build-config",
-]
-
-[[package]]
-name = "ryo3-bzip2"
-version = "0.0.109"
-dependencies = [
- "bzip2",
- "pyo3",
- "ryo3-bytes",
 ]
 
 [[package]]
