@@ -130,11 +130,8 @@ from ry.ryo3 import (  # type: ignore[deprecated]
     aopen,
     asleep,
     audio_dir,
-    brotli,  # pyrefly: ignore[deprecated]  # ty: ignore[deprecated]
     brotli_compress,
-    brotli_decode,  # pyrefly: ignore[deprecated]  # ty: ignore[deprecated]
     brotli_decompress,
-    brotli_encode,  # pyrefly: ignore[deprecated]  # ty: ignore[deprecated]
     cache_dir,
     camel_case,
     canonicalize,
@@ -425,11 +422,8 @@ __all__ = (
     "aopen",
     "asleep",
     "audio_dir",
-    "brotli",
     "brotli_compress",
-    "brotli_decode",
     "brotli_decompress",
-    "brotli_encode",
     "cache_dir",
     "camel_case",
     "canonicalize",

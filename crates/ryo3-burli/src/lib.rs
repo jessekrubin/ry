@@ -7,8 +7,5 @@ pub use compress::{PyBrotliLevel, brotli_compress};
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(compress::brotli_compress, m)?)?;
-    // deprecated ~ remove in v0.0.109
-    m.add_function(wrap_pyfunction!(compress::brotli_encode, m)?)?;
-    m.add_function(wrap_pyfunction!(compress::brotli, m)?)?;
     Ok(())
 }

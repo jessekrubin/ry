@@ -83,52 +83,6 @@ class TestGzipDeprecations:
             ry.gzip_encode(b"data", quality=10)  # type: ignore[arg-type,deprecated]  # ty:ignore[invalid-argument-type, deprecated]
 
 
-class TestBrotliDeprecations:
-    """`brotli`/`brotli_encode`/`brotli_decode` -> `brotli_compress`/`brotli_decompress`"""
-
-    _DATA = b"XXXXXXXXXXYYYYYYYYYY"
-
-    @pytest.mark.parametrize("old", ["brotli_encode", "brotli"])
-    def test_compress_aliases(self, old: str) -> None:
-        msg = _deprecation_message(old, "brotli_compress", "v0.0.109")
-        expected = ry.brotli_compress(self._DATA, level=5)
-        # positional + `quality=` keep working until removal
-        with pytest.warns(DeprecationWarning, match=msg):
-            assert getattr(ry, old)(self._DATA, 5) == expected
-        with pytest.warns(DeprecationWarning, match=msg):
-            assert getattr(ry, old)(self._DATA, quality=5) == expected
-        with pytest.warns(DeprecationWarning, match=msg):
-            assert getattr(ry, old)(self._DATA) == expected
-
-    @pytest.mark.parametrize("old", ["brotli_encode", "brotli"])
-    @pytest.mark.parametrize("magic_number", [False, True])
-    def test_magic_number_removed(self, old: str, *, magic_number: bool) -> None:
-        with pytest.raises(TypeError, match="magic_number"):
-            getattr(ry, old)(self._DATA, magic_number=magic_number)
-
-    def test_decompress_alias(self) -> None:
-        compressed = ry.brotli_compress(self._DATA)
-        with pytest.warns(
-            DeprecationWarning,
-            match=_deprecation_message(
-                "brotli_decode", "brotli_decompress", "v0.0.109"
-            ),
-        ):
-            assert ry.brotli_decode(compressed) == ry.brotli_decompress(compressed)  # type: ignore[deprecated]  # ty:ignore[deprecated]
-
-    @pytest.mark.parametrize("old", ["brotli_encode", "brotli"])
-    @pytest.mark.parametrize("quality", [6, 11, 12])
-    def test_quality_value_error(self, old: str, quality: int) -> None:
-        with (
-            pytest.warns(
-                DeprecationWarning,
-                match=_deprecation_message(old, "brotli_compress", "v0.0.109"),
-            ),
-            pytest.raises(ValueError, match="Compression level must be an integer 0-5"),
-        ):
-            getattr(ry, old)(b"data", quality=quality)
-
-
 class TestStringifyPybytesDeprecation:
     """`pybytes=` -> `dtype=bytes` on `stringify`/`JSON.stringify`/`JSON.dumps`"""
 

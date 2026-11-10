@@ -23,44 +23,6 @@ pub fn brotli_compress(
         .map(RyBytes::from)
 }
 
-// ============================================================================
-// DEPRECATED ~ remove in v0.0.109
-// ============================================================================
-
-#[pyfunction]
-#[pyo3(
-    signature = (data, quality = PyBrotliLevel::default()),
-    text_signature = "(data, quality=5)",
-    warn(
-        message = "`brotli_encode` is deprecated; use `brotli_compress` instead [removal: v0.0.109]",
-        category = pyo3::exceptions::PyDeprecationWarning
-    )
-)]
-pub(crate) fn brotli_encode(
-    py: Python<'_>,
-    data: ReadableBuffer,
-    quality: PyBrotliLevel,
-) -> PyResult<RyBytes> {
-    brotli_compress(py, data, quality)
-}
-
-#[pyfunction]
-#[pyo3(
-    signature = (data, quality = PyBrotliLevel::default()),
-    text_signature = "(data, quality=5)",
-    warn(
-        message = "`brotli` is deprecated; use `brotli_compress` instead [removal: v0.0.109]",
-        category = pyo3::exceptions::PyDeprecationWarning
-    )
-)]
-pub(crate) fn brotli(
-    py: Python<'_>,
-    data: ReadableBuffer,
-    quality: PyBrotliLevel,
-) -> PyResult<RyBytes> {
-    brotli_compress(py, data, quality)
-}
-
 #[derive(Copy, Clone, PartialEq, Eq, Debug)]
 pub struct PyBrotliLevel(u8);
 

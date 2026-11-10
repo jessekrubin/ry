@@ -22,22 +22,7 @@ pub fn brotli_decompress(py: Python<'_>, data: ReadableBuffer) -> PyResult<RyByt
     py.detach(|| brotli_decompress_impl(bin)).map(RyBytes::from)
 }
 
-// ============================================================================
-// DEPRECATED ~ remove in v0.0.109
-// ============================================================================
-
-#[pyfunction]
-#[pyo3(warn(
-    message = "`brotli_decode` is deprecated; use `brotli_decompress` instead [removal: v0.0.109]",
-    category = pyo3::exceptions::PyDeprecationWarning
-))]
-pub fn brotli_decode(py: Python<'_>, data: ReadableBuffer) -> PyResult<RyBytes> {
-    brotli_decompress(py, data)
-}
-
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(brotli_decompress, m)?)?;
-    // deprecated ~ remove in v0.0.109
-    m.add_function(wrap_pyfunction!(brotli_decode, m)?)?;
     Ok(())
 }
