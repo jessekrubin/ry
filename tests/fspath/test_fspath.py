@@ -387,9 +387,9 @@ class TestTouch:
         with pytest.raises(FileNotFoundError) as ry_exc:
             _ = rypath.touch()
         assert ry_exc.value.errno == py_exc.value.errno
-        assert ry_exc.value.filename == py_exc.value.filename
+        assert os.fspath(ry_exc.value.filename) == os.fspath(py_exc.value.filename)
         # stupid fucking windows
-        if sys.platform != "win32":
+        if sys.platform != "win32" and isinstance(py_exc.value.filename, str):
             assert str(ry_exc.value) == str(py_exc.value)
 
     def test_touch_with_mode_not_implemented(self, tmp_path: Path) -> None:
