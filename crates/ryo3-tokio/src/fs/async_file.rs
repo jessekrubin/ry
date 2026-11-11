@@ -1,10 +1,11 @@
 use std::io::SeekFrom;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 
 use pyo3::prelude::*;
 use ryo3_bytes::RyBytes;
+use ryo3_core::map_py_io_err_with_path;
 use ryo3_core::types::{PyOpenMode, PyOpenOptions};
 use ryo3_macro_rules::{
     py_runtime_err, py_stop_async_iteration_err, py_value_error, pytodo, pytodo_pyerr,
@@ -497,28 +498,4 @@ impl PyAsyncFile {
     fn writable(&self) -> bool {
         self.props.writable
     }
-}
-
-/// map `std::io::Error` to Python `OSError` with a filepath str
-///
-/// adapted from pyo3 src
-#[must_use]
-pub(crate) fn map_py_io_err_with_path(e: std::io::Error, path: &Path) -> PyErr {
-    let Some(code) = e.raw_os_error() else {
-        return PyErr::from(e);
-    };
-    let msg = e.to_string();
-    let strerror = msg
-        .strip_suffix(&format!(" (os error {code})"))
-        .unwrap_or(&msg);
-    // win32 + cpython trim trailing . (parity?)
-    #[cfg(windows)]
-    let strerror = strerror.trim_end_matches(|c: char| c == '.' || c.is_whitespace());
-    let strerror = strerror.to_owned();
-    let filename = path.as_os_str().to_owned();
-    #[cfg(windows)]
-    let args = (0, strerror, filename, code);
-    #[cfg(not(windows))]
-    let args = (code, strerror, filename);
-    pyo3::exceptions::PyOSError::new_err(args)
 }
