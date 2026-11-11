@@ -1,17 +1,11 @@
 """ryo3-json ~ types"""
 
-import sys
 import typing as t
 
 from ry._types import Buffer
 from ry.ryo3._bytes import Bytes
 from ry.ryo3._jiter import JSONDecodeError as _JSONDecodeError
 from ry.ryo3._jiter import _JsonValue
-
-if sys.version_info >= (3, 13):
-    from warnings import deprecated
-else:
-    from typing_extensions import deprecated
 
 # `dtype=` output type ~ `ry.Bytes` (default) or `bytes`
 @t.overload
@@ -34,28 +28,6 @@ def stringify(
     append_newline: bool = False,
     dtype: type[bytes],
 ) -> bytes: ...
-@t.overload
-@deprecated("`pybytes` is deprecated; use `dtype=bytes` instead [removal: v0.0.109]")
-def stringify(
-    obj: t.Any,
-    *,
-    default: t.Callable[[t.Any], t.Any] | None = None,
-    fmt: bool = False,
-    sort_keys: bool = False,
-    append_newline: bool = False,
-    pybytes: t.Literal[True],
-) -> bytes: ...
-@t.overload
-@deprecated("`pybytes` is deprecated; use `dtype=bytes` instead [removal: v0.0.109]")
-def stringify(
-    obj: t.Any,
-    *,
-    default: t.Callable[[t.Any], t.Any] | None = None,
-    fmt: bool = False,
-    sort_keys: bool = False,
-    append_newline: bool = False,
-    pybytes: t.Literal[False],
-) -> Bytes: ...
 
 @t.final
 class JSON:
@@ -154,34 +126,6 @@ class JSON:
         dtype: type[bytes],
     ) -> bytes: ...
     @t.overload
-    @deprecated(
-        "`pybytes` is deprecated; use `dtype=bytes` instead [removal: v0.0.109]"
-    )
-    @staticmethod
-    def stringify(
-        obj: t.Any,
-        *,
-        default: t.Callable[[t.Any], t.Any] | None = None,
-        fmt: bool = False,
-        sort_keys: bool = False,
-        append_newline: bool = False,
-        pybytes: t.Literal[True],
-    ) -> bytes: ...
-    @t.overload
-    @deprecated(
-        "`pybytes` is deprecated; use `dtype=bytes` instead [removal: v0.0.109]"
-    )
-    @staticmethod
-    def stringify(
-        obj: t.Any,
-        *,
-        default: t.Callable[[t.Any], t.Any] | None = None,
-        fmt: bool = False,
-        sort_keys: bool = False,
-        append_newline: bool = False,
-        pybytes: t.Literal[False],
-    ) -> Bytes: ...
-    @t.overload
     @staticmethod
     def dumps(
         obj: t.Any,
@@ -203,34 +147,6 @@ class JSON:
         append_newline: bool = False,
         dtype: type[bytes],
     ) -> bytes: ...
-    @t.overload
-    @deprecated(
-        "`pybytes` is deprecated; use `dtype=bytes` instead [removal: v0.0.109]"
-    )
-    @staticmethod
-    def dumps(
-        obj: t.Any,
-        *,
-        default: t.Callable[[t.Any], t.Any] | None = None,
-        fmt: bool = False,
-        sort_keys: bool = False,
-        append_newline: bool = False,
-        pybytes: t.Literal[True],
-    ) -> bytes: ...
-    @t.overload
-    @deprecated(
-        "`pybytes` is deprecated; use `dtype=bytes` instead [removal: v0.0.109]"
-    )
-    @staticmethod
-    def dumps(
-        obj: t.Any,
-        *,
-        default: t.Callable[[t.Any], t.Any] | None = None,
-        fmt: bool = False,
-        sort_keys: bool = False,
-        append_newline: bool = False,
-        pybytes: t.Literal[False],
-    ) -> Bytes: ...
     @staticmethod
     def loads(
         data: Buffer | bytes | str,

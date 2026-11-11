@@ -1,6 +1,5 @@
 """ry api ~ type annotations"""
 
-from ry.ryo3 import zstd as zstd
 from ry.ryo3.__about__ import __allocator__ as __allocator__
 from ry.ryo3.__about__ import __authors__ as __authors__
 from ry.ryo3.__about__ import __build_profile__ as __build_profile__
@@ -24,15 +23,9 @@ from ry.ryo3._aws_lc import sha256 as sha256
 from ry.ryo3._aws_lc import sha384 as sha384
 from ry.ryo3._aws_lc import sha512 as sha512
 from ry.ryo3._aws_lc import sha512_256 as sha512_256
-from ry.ryo3._brotli import brotli_decode as brotli_decode  # type: ignore[deprecated]  # ty: ignore[deprecated]
 from ry.ryo3._brotli import brotli_decompress as brotli_decompress
-from ry.ryo3._burli import brotli as brotli  # type: ignore[deprecated]  # ty: ignore[deprecated]
 from ry.ryo3._burli import brotli_compress as brotli_compress
-from ry.ryo3._burli import brotli_encode as brotli_encode  # type: ignore[deprecated]  # ty: ignore[deprecated]
 from ry.ryo3._bytes import Bytes as Bytes
-from ry.ryo3._bzip2 import bzip2 as bzip2  # type: ignore[deprecated]  # ty: ignore[deprecated]
-from ry.ryo3._bzip2 import bzip2_decode as bzip2_decode  # type: ignore[deprecated]  # ty: ignore[deprecated]
-from ry.ryo3._bzip2 import bzip2_encode as bzip2_encode  # type: ignore[deprecated]  # ty: ignore[deprecated]
 from ry.ryo3._cookie import Cookie as Cookie
 from ry.ryo3._crc32fast import crc32 as crc32
 from ry.ryo3._dirs import audio_dir as audio_dir
@@ -59,14 +52,9 @@ from ry.ryo3._errors import PanicError as PanicError
 from ry.ryo3._errors import UnreachableError as UnreachableError
 from ry.ryo3._errors import panic as panic
 from ry.ryo3._errors import unreachable as unreachable
-from ry.ryo3._flate2 import gunzip as gunzip  # type: ignore[deprecated]  # ty: ignore[deprecated]
-from ry.ryo3._flate2 import gzip as gzip  # type: ignore[deprecated]  # ty: ignore[deprecated]
 from ry.ryo3._flate2 import gzip_compress as gzip_compress
-from ry.ryo3._flate2 import gzip_decode as gzip_decode  # type: ignore[deprecated]  # ty: ignore[deprecated]
 from ry.ryo3._flate2 import gzip_decompress as gzip_decompress
-from ry.ryo3._flate2 import gzip_encode as gzip_encode  # type: ignore[deprecated]  # ty: ignore[deprecated]
 from ry.ryo3._flate2 import is_gzip as is_gzip
-from ry.ryo3._flate2 import is_gzipped as is_gzipped  # type: ignore[deprecated]  # ty: ignore[deprecated]
 from ry.ryo3._fnv import fnv1a as fnv1a
 from ry.ryo3._fspath import FsPath as FsPath
 from ry.ryo3._glob import GlobPattern as GlobPattern
@@ -312,6 +300,4 @@ from ry.ryo3._zstd import ZSTD_VERSION as ZSTD_VERSION
 from ry.ryo3._zstd import ZSTD_VERSION_INFO as ZSTD_VERSION_INFO
 from ry.ryo3._zstd import is_zstd as is_zstd
 from ry.ryo3._zstd import zstd_compress as zstd_compress
-from ry.ryo3._zstd import zstd_decode as zstd_decode  # type: ignore[deprecated]  # ty: ignore[deprecated]
 from ry.ryo3._zstd import zstd_decompress as zstd_decompress
-from ry.ryo3._zstd import zstd_encode as zstd_encode  # type: ignore[deprecated]  # ty: ignore[deprecated]

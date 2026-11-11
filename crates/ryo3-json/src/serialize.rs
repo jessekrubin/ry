@@ -179,40 +179,6 @@ impl<'a, 'py> FromPyObject<'a, 'py> for PyJsonDtype {
     }
 }
 
-#[cold]
-fn warn_pybytes_deprecated(py: Python<'_>) -> PyResult<()> {
-    PyErr::warn(
-        py,
-        &py.get_type::<pyo3::exceptions::PyDeprecationWarning>(),
-        c"`pybytes` is deprecated; use `dtype=bytes` instead [removal: v0.0.109]",
-        1,
-    )?;
-    Ok(())
-}
-
-/// DEPRECATED `pybytes` ~ remove in v0.0.109 (explicit `dtype=ry.Bytes` looks like the default)
-fn stringify_kwargs_check(
-    py: Python<'_>,
-    dtype: PyJsonDtype,
-    pybytes: Option<bool>,
-) -> PyResult<PyJsonDtype> {
-    match (dtype, pybytes) {
-        (_, None) => Ok(dtype),
-        (PyJsonDtype::PyBytes, Some(_)) => Err(PyTypeError::new_err(
-            "`pybytes` and `dtype` are mutually exclusive; use `dtype` (`pybytes` is deprecated)",
-        )),
-        (PyJsonDtype::RyBytes, Some(pybytes)) => {
-            warn_pybytes_deprecated(py)?;
-            Ok(if pybytes {
-                PyJsonDtype::PyBytes
-            } else {
-                PyJsonDtype::RyBytes
-            })
-        }
-    }
-}
-
-#[expect(clippy::too_many_arguments, reason = "python kwargs")]
 #[pyfunction(
     signature=(
         obj,
@@ -221,8 +187,7 @@ fn stringify_kwargs_check(
         fmt = false,
         sort_keys = false,
         append_newline = false,
-        dtype = PyJsonDtype::RyBytes,
-        pybytes = None
+        dtype = PyJsonDtype::RyBytes
     )
 )]
 pub fn stringify<'py>(
@@ -233,13 +198,10 @@ pub fn stringify<'py>(
     sort_keys: bool,
     append_newline: bool,
     dtype: PyJsonDtype,
-    pybytes: Option<bool>,
 ) -> PyResult<Bound<'py, PyAny>> {
-    let dtype = stringify_kwargs_check(py, dtype, pybytes)?;
     stringify_impl(py, obj, default, fmt, sort_keys, append_newline, dtype)
 }
 
-#[expect(clippy::too_many_arguments, reason = "python kwargs")]
 #[pyfunction(
     signature=(
         obj,
@@ -248,8 +210,7 @@ pub fn stringify<'py>(
         fmt = false,
         sort_keys = false,
         append_newline = false,
-        dtype = PyJsonDtype::RyBytes,
-        pybytes = None
+        dtype = PyJsonDtype::RyBytes
     )
 )]
 pub fn dumps<'py>(
@@ -260,8 +221,6 @@ pub fn dumps<'py>(
     sort_keys: bool,
     append_newline: bool,
     dtype: PyJsonDtype,
-    pybytes: Option<bool>,
 ) -> PyResult<Bound<'py, PyAny>> {
-    let dtype = stringify_kwargs_check(py, dtype, pybytes)?;
     stringify_impl(py, obj, default, fmt, sort_keys, append_newline, dtype)
 }

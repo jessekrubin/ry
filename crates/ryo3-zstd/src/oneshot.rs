@@ -87,33 +87,3 @@ pub fn zstd_decompress(py: Python<'_>, data: ReadableBuffer) -> PyResult<RyBytes
 pub fn is_zstd(data: ReadableBuffer) -> bool {
     data.as_slice().starts_with(b"\x28\xB5\x2F\xFD")
 }
-
-// ============================================================================
-// DEPRECATED ~ remove in v0.0.109
-// ============================================================================
-
-#[pyfunction]
-#[pyo3(
-    signature = (data, level = PyCompressionLevel::default()),
-    text_signature = "(data, level=3)",
-    warn(
-        message = "`zstd_encode` is deprecated; use `zstd_compress` instead [removal: v0.0.109]",
-        category = pyo3::exceptions::PyDeprecationWarning
-    )
-)]
-pub fn zstd_encode(
-    py: Python<'_>,
-    data: ReadableBuffer,
-    level: PyCompressionLevel,
-) -> PyResult<RyBytes> {
-    zstd_compress(py, data, level)
-}
-
-#[pyfunction]
-#[pyo3(warn(
-    message = "`zstd_decode` is deprecated; use `zstd_decompress` instead [removal: v0.0.109]",
-    category = pyo3::exceptions::PyDeprecationWarning
-))]
-pub fn zstd_decode(py: Python<'_>, data: ReadableBuffer) -> PyResult<RyBytes> {
-    zstd_decompress(py, data)
-}
