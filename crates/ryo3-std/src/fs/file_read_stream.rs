@@ -5,6 +5,7 @@ use std::path::{Path, PathBuf};
 use bytes::Bytes;
 use pyo3::prelude::*;
 use ryo3_bytes::RyBytes;
+use ryo3_core::PyIoResultExt;
 use ryo3_core::sync::RyMutex;
 use ryo3_macro_rules::py_value_err;
 
@@ -73,8 +74,8 @@ impl FileReadStreamWrapper {
         match self {
             Self::Unbuffered(_) | Self::Buffered(_) => Ok(()),
             Self::Closed(options) => {
-                let file = File::open(&options.path)?;
-                let len = file.metadata()?.len();
+                let file = File::open(&options.path).map_py_io_err(&options.path)?;
+                let len = file.metadata().map_py_io_err(&options.path)?.len();
 
                 if options.strict && options.offset > len {
                     return py_value_err!(
@@ -85,12 +86,15 @@ impl FileReadStreamWrapper {
                 }
 
                 let mut stream = if options.buffered {
-                    Self::Buffered(FileReadStream::from_path_buffered(
-                        &options.path,
-                        options.read_size,
-                    )?)
+                    Self::Buffered(
+                        FileReadStream::from_path_buffered(&options.path, options.read_size)
+                            .map_py_io_err(&options.path)?,
+                    )
                 } else {
-                    Self::Unbuffered(FileReadStream::from_path(&options.path, options.read_size)?)
+                    Self::Unbuffered(
+                        FileReadStream::from_path(&options.path, options.read_size)
+                            .map_py_io_err(&options.path)?,
+                    )
                 };
 
                 if options.offset > 0 {

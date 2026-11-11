@@ -3,6 +3,7 @@ mod map_pyerr;
 mod py_cast;
 pub mod py_dict;
 mod py_int;
+mod py_io_err;
 pub mod py_list;
 mod py_not_implemented;
 mod py_operand;
@@ -13,9 +14,12 @@ pub mod repr;
 pub mod sync;
 pub mod types;
 pub use errors::{FeatureNotEnabledError, PanicError, UnreachableError};
-pub use map_pyerr::{map_py_overflow_err, map_py_runtime_err, map_py_value_err};
+pub use map_pyerr::{
+    map_py_io_err_with_path, map_py_overflow_err, map_py_runtime_err, map_py_value_err,
+};
 pub use py_cast::{PyCastExactOpt, PyCastOpt};
 pub use py_int::{pyindex_check, pynumber_check};
+pub use py_io_err::{PyIoResultExt, map_py_io_err_with_paths};
 pub use py_not_implemented::{PyNotImplementedOr, PyRichCmp};
 pub use py_operand::{FromPyOperand, PyOperandArg, PyOperandExt, PyOperandMatch};
 pub use py_parse::{PyFromStr, PyFromStrArg, PyParse, PyParseArg};

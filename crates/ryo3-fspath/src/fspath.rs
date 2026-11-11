@@ -7,13 +7,13 @@ use std::hash::{Hash, Hasher};
 use std::path::{Path, PathBuf};
 
 use pyo3::BoundObject;
-use pyo3::exceptions::{PyFileExistsError, PyFileNotFoundError, PyNotADirectoryError};
+use pyo3::exceptions::{PyFileExistsError, PyFileNotFoundError};
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyTuple};
 use ryo3_bytes::{ReadableBuffer, RyBytes};
 use ryo3_core::sync::RyMutex;
 use ryo3_core::types::{PathLike, PyUtf8Bytes};
-use ryo3_core::{FromPyOperand, PyCastExactOpt, PyNotImplementedOr, PyOperandArg};
+use ryo3_core::{FromPyOperand, PyCastExactOpt, PyIoResultExt, PyNotImplementedOr, PyOperandArg};
 use ryo3_macro_rules::{py_type_err, py_value_error, pytodo};
 
 // separator
@@ -131,13 +131,11 @@ impl PyFsPath {
     }
 
     fn absolute(&self, py: Python<'_>) -> PyResult<Self> {
-        let p = py.detach(|| self.path().canonicalize())?;
-        Ok(Self::from(p))
+        self.canonicalize(py)
     }
 
     fn resolve(&self, py: Python<'_>) -> PyResult<Self> {
-        let p = py.detach(|| self.path().canonicalize())?;
-        Ok(Self::from(p))
+        self.canonicalize(py)
     }
 
     fn __fspath__(&self) -> &OsStr {
@@ -309,9 +307,7 @@ impl PyFsPath {
 
     #[staticmethod]
     fn cwd() -> PyResult<Self> {
-        std::env::current_dir()
-            .map(Self::from)
-            .map_err(|e| PyFileNotFoundError::new_err(format!("cwd: {e}")))
+        Ok(std::env::current_dir()?.into())
     }
 
     fn as_posix(&self) -> String {
@@ -329,35 +325,33 @@ impl PyFsPath {
     }
 
     fn read(&self, py: Python<'_>) -> PyResult<RyBytes> {
-        let fbytes = py.detach(|| std::fs::read(self.path()))?;
+        let fbytes = py
+            .detach(|| std::fs::read(self.path()))
+            .map_py_io_err(self.path())?;
         Ok(fbytes.into())
     }
 
     fn read_bytes<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyBytes>> {
         let fbytes = py
             .detach(|| std::fs::read(self.path()))
+            .map_py_io_err(self.path())
             .map(|b| PyBytes::new(py, &b))?;
         Ok(fbytes)
     }
 
     fn read_text(&self, py: Python<'_>) -> PyResult<PyUtf8Bytes> {
-        let fbytes = py.detach(|| std::fs::read(self.path()))?;
+        let fbytes = py
+            .detach(|| std::fs::read(self.path()))
+            .map_py_io_err(self.path())?;
         Ok(fbytes.into())
     }
 
     #[expect(clippy::needless_pass_by_value, reason = "python arg extract")]
     fn write(&self, py: Python<'_>, data: ReadableBuffer) -> PyResult<usize> {
         let b = data.as_slice();
-        let write_res = py.detach(|| std::fs::write(self.path(), b));
-        match write_res {
-            Ok(()) => Ok(b.len()),
-            Err(e) => {
-                let fspath = self.py_to_string();
-                Err(PyNotADirectoryError::new_err(format!(
-                    "write_bytes - parent: {fspath} - {e}"
-                )))
-            }
-        }
+        py.detach(|| std::fs::write(self.path(), b))
+            .map_py_io_err(self.path())?;
+        Ok(b.len())
     }
 
     fn write_bytes(&self, py: Python<'_>, data: ReadableBuffer) -> PyResult<usize> {
@@ -365,16 +359,8 @@ impl PyFsPath {
     }
 
     fn write_text(&self, py: Python<'_>, data: &str) -> PyResult<()> {
-        let write_result = py.detach(|| std::fs::write(self.path(), data));
-        match write_result {
-            Ok(()) => Ok(()),
-            Err(e) => {
-                let fspath = self.py_to_string();
-                Err(PyNotADirectoryError::new_err(format!(
-                    "write_bytes - parent: {fspath} - {e}"
-                )))
-            }
-        }
+        py.detach(|| std::fs::write(self.path(), data))
+            .map_py_io_err(self.path())
     }
     // Path.touch(mode=0o666, exist_ok=True)
     // Create a file at this given path. If mode is given, it is combined with the
@@ -391,56 +377,44 @@ impl PyFsPath {
             pytodo!("touch - mode parameter not implemented yet");
         }
         let path = self.path();
-        let exists = path.exists();
-        if exists {
-            if exist_ok {
-                Ok(false)
-            } else {
-                Err(PyFileExistsError::new_err(format!(
-                    "{}",
-                    self.path().display()
-                )))
-            }
-        } else {
-            py.detach(|| {
-                std::fs::OpenOptions::new()
-                    .create(true)
-                    .write(true)
-                    .truncate(false)
-                    .open(path)
-            })
-            .map_err(|e| {
-                let fspath_display = self.path().display();
-                PyFileNotFoundError::new_err(format!(
-                    "No such file or directory: {fspath_display} ~ {e}"
-                ))
-            })?;
-            Ok(true)
+        if exist_ok && path.exists() {
+            return Ok(false);
         }
+        py.detach(|| {
+            std::fs::OpenOptions::new()
+                .create(true)
+                .create_new(!exist_ok)
+                .write(true)
+                .truncate(false)
+                .open(path)
+        })
+        .map_py_io_err(path)?;
+        Ok(true)
     }
 
     #[pyo3(signature = (mode =  0o777, parents = false, exist_ok = false))]
     #[allow(unused_variables)]
     fn mkdir(&self, py: Python<'_>, mode: u32, parents: bool, exist_ok: bool) -> PyResult<()> {
         let path = self.path();
-
-        let exists = path.exists();
-        if !exist_ok && exists {
-            return Err(PyFileExistsError::new_err(format!(
-                "mkdir - parent: {} - directory already exists",
-                self.py_to_string()
-            )));
-        }
-        if parents {
-            py.detach(|| std::fs::create_dir_all(path)).map_err(|e| {
-                let fspath = self.py_to_string();
-                PyNotADirectoryError::new_err(format!("mkdir - parent: {fspath} - {e}"))
-            })?;
-        } else {
-            py.detach(|| std::fs::create_dir(path)).map_err(|e| {
-                let fspath = self.py_to_string();
-                PyNotADirectoryError::new_err(format!("mkdir - parent: {fspath} - {e}"))
-            })?;
+        // like pathlib ~ try dir, only make parents if missing
+        let res = py.detach(|| match std::fs::create_dir(path) {
+            Err(e) if parents && e.kind() == std::io::ErrorKind::NotFound => {
+                if let Some(parent) = path.parent() {
+                    std::fs::create_dir_all(parent)?;
+                }
+                std::fs::create_dir(path)
+            }
+            res => res,
+        });
+        match res {
+            Ok(()) => {}
+            // `exist_ok` only covers an existing *dir* (pathlib does the same)
+            Err(e)
+                if exist_ok && e.kind() == std::io::ErrorKind::AlreadyExists && path.is_dir() =>
+            {
+                return Ok(());
+            }
+            Err(e) => return Err(e).map_py_io_err(path),
         }
 
         #[cfg(unix)]
@@ -448,74 +422,38 @@ impl PyFsPath {
             use std::os::unix::fs::PermissionsExt;
             let mut perms = py
                 .detach(|| std::fs::metadata(path))
-                .map_err(|e| {
-                    PyFileNotFoundError::new_err(format!(
-                        "mkdir - parent: {} - {e}",
-                        self.py_to_string()
-                    ))
-                })?
+                .map_py_io_err(path)?
                 .permissions();
             perms.set_mode(mode);
             py.detach(|| std::fs::set_permissions(path, perms))
-                .map_err(|e| {
-                    let fspath = self.py_to_string();
-                    PyNotADirectoryError::new_err(format!("mkdir - parent: {fspath} - {e}"))
-                })?;
+                .map_py_io_err(path)?;
         }
         Ok(())
     }
 
     #[pyo3(signature = (recursive = false))]
     fn rmdir(&self, py: Python<'_>, recursive: bool) -> PyResult<()> {
-        if !self.exists()? {
-            return Err(PyFileNotFoundError::new_err(format!(
-                "rmdir - parent: {} - directory does not exist",
-                self.py_to_string()
-            )));
-        }
-        if !self.is_dir() {
-            return Err(PyNotADirectoryError::new_err(format!(
-                "rmdir - parent: {} - not a directory",
-                self.py_to_string()
-            )));
-        }
+        let path = self.path();
         if recursive {
-            py.detach(|| std::fs::remove_dir_all(self.path()))
-                .map_err(|e| {
-                    let fspath = self.py_to_string();
-                    PyNotADirectoryError::new_err(format!("rmdir - parent: {fspath} - {e}"))
-                })?;
+            py.detach(|| std::fs::remove_dir_all(path))
         } else {
-            py.detach(|| std::fs::remove_dir(self.path()))
-                .map_err(|e| {
-                    let fspath = self.py_to_string();
-                    PyNotADirectoryError::new_err(format!("rmdir - parent: {fspath} - {e}"))
-                })?;
+            py.detach(|| std::fs::remove_dir(path))
         }
-        Ok(())
+        .map_py_io_err(path)
     }
 
     #[pyo3(signature = (missing_ok = false, recursive = false))]
     fn unlink(&self, py: Python<'_>, missing_ok: bool, recursive: bool) -> PyResult<()> {
-        if !self.exists()? {
-            if missing_ok {
-                return Ok(());
-            }
-            return Err(PyFileNotFoundError::new_err(format!(
-                "unlink - parent: {} - file does not exist",
-                self.py_to_string()
-            )));
-        }
-        if self.is_dir() {
-            self.rmdir(py, recursive)?;
+        let res = if self.is_dir() {
+            self.rmdir(py, recursive)
         } else {
             py.detach(|| std::fs::remove_file(self.path()))
-                .map_err(|e| {
-                    let fspath = self.py_to_string();
-                    PyNotADirectoryError::new_err(format!("unlink - parent: {fspath} - {e}"))
-                })?;
+                .map_py_io_err(self.path())
+        };
+        match res {
+            Err(e) if missing_ok && e.is_instance_of::<PyFileNotFoundError>(py) => Ok(()),
+            res => res,
         }
-        Ok(())
     }
 
     fn rename(&self, py: Python<'_>, new_path: FsPathLike) -> PyResult<Self> {
@@ -524,16 +462,11 @@ impl PyFsPath {
         }
         let path_ref = new_path.as_ref();
         if path_ref.exists() {
-            return Err(PyFileExistsError::new_err(format!(
-                "rename - parent: {} - destination already exists",
-                self.py_to_string()
-            )));
+            let dst = path_ref.as_os_str().to_owned();
+            return Err(PyFileExistsError::new_err((17, "File exists", dst)));
         }
         py.detach(|| std::fs::rename(self.path(), path_ref))
-            .map_err(|e| {
-                let fspath = self.py_to_string();
-                PyNotADirectoryError::new_err(format!("rename - parent: {fspath} - {e}"))
-            })?;
+            .map_py_io_err_with_src_dst(self.path(), path_ref)?;
         Ok(Self::from(new_path))
     }
 
@@ -545,16 +478,14 @@ impl PyFsPath {
         if path_ref.exists() {
             // nuke file/dir
             if path_ref.is_dir() {
-                py.detach(|| std::fs::remove_dir_all(path_ref))?;
+                py.detach(|| std::fs::remove_dir_all(path_ref))
             } else {
-                py.detach(|| std::fs::remove_file(path_ref))?;
+                py.detach(|| std::fs::remove_file(path_ref))
             }
+            .map_py_io_err(path_ref)?;
         }
         py.detach(|| std::fs::rename(self.path(), path_ref))
-            .map_err(|e| {
-                let fspath = self.py_to_string();
-                PyNotADirectoryError::new_err(format!("replace - parent: {fspath} - {e}"))
-            })?;
+            .map_py_io_err_with_src_dst(self.path(), path_ref)?;
         Ok(Self::from(new_path))
     }
 
@@ -626,7 +557,9 @@ impl PyFsPath {
     }
 
     fn canonicalize(&self, py: Python<'_>) -> PyResult<Self> {
-        let p = py.detach(|| self.path().canonicalize())?;
+        let p = py
+            .detach(|| self.path().canonicalize())
+            .map_py_io_err(self.path())?;
         Ok(Self::from(p))
     }
 
@@ -649,9 +582,7 @@ impl PyFsPath {
     }
 
     fn exists(&self) -> PyResult<bool> {
-        self.path()
-            .try_exists()
-            .map_err(|e| PyFileNotFoundError::new_err(format!("try_exists: {e}")))
+        self.path().try_exists().map_py_io_err(self.path())
     }
 
     fn extension(&self) -> Option<OsString> {
@@ -702,20 +633,20 @@ impl PyFsPath {
         self.path()
             .metadata()
             .map(ryo3_std::fs::PyMetadata::from)
-            .map_err(|e| PyFileNotFoundError::new_err(format!("FsPath.metadata: {e}")))
+            .map_py_io_err(self.path())
     }
 
     fn read_dir(&self, py: Python<'_>) -> PyResult<PyFsPathReadDir> {
         py.detach(|| std::fs::read_dir(self.path()))
             .map(PyFsPathReadDir::from)
-            .map_err(|e| PyFileNotFoundError::new_err(format!("FsPath.read_dir: {e}")))
+            .map_py_io_err(self.path())
     }
 
     fn read_link(&self) -> PyResult<Self> {
         self.path()
             .read_link()
             .map(Self::from)
-            .map_err(|e| PyFileNotFoundError::new_err(format!("FsPath.read_link: {e}")))
+            .map_py_io_err(self.path())
     }
 
     fn starts_with(&self, base: FsPathLike) -> bool {
@@ -733,7 +664,7 @@ impl PyFsPath {
         self.path()
             .symlink_metadata()
             .map(ryo3_std::fs::PyMetadata::from)
-            .map_err(|e| PyFileNotFoundError::new_err(format!("FsPath.symlink_metadata: {e}")))
+            .map_py_io_err(self.path())
     }
 
     fn with_extension(&self, extension: String) -> Self {
@@ -787,8 +718,14 @@ impl PyFsPath {
 
     #[cfg(feature = "same-file")]
     fn samefile(&self, py: Python<'_>, other: PathBuf) -> PyResult<bool> {
-        py.detach(|| same_file::is_same_file(self.path(), other))
-            .map_err(|e| PyFileNotFoundError::new_err(format!("FsPath.samefile: {e}")))
+        // open each on its own so the err names the path that failed (like pathlib)
+        let l = py
+            .detach(|| same_file::Handle::from_path(self.path()))
+            .map_py_io_err(self.path())?;
+        let r = py
+            .detach(|| same_file::Handle::from_path(&other))
+            .map_py_io_err(other)?;
+        Ok(l == r)
     }
 
     #[cfg(not(feature = "same-file"))]

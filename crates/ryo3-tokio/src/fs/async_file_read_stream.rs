@@ -9,7 +9,8 @@ use std::sync::Arc;
 use bytes::Bytes;
 use pyo3::prelude::*;
 use ryo3_bytes::RyBytes;
-use ryo3_macro_rules::{py_io_error, py_stop_async_iteration_err, py_value_err};
+use ryo3_core::PyIoResultExt;
+use ryo3_macro_rules::{py_stop_async_iteration_err, py_value_err};
 use ryo3_tokio_rt::{RyCoroutine, pyloop_coro, tokio_coro};
 use tokio::fs::File;
 use tokio::io::{AsyncRead, AsyncReadExt, AsyncSeek, AsyncSeekExt, BufReader, SeekFrom};
@@ -61,22 +62,22 @@ enum AsyncFileReadStreamWrapper {
 }
 
 impl AsyncFileReadStreamWrapper {
-    async fn ensure_open(&mut self) -> io::Result<()> {
+    async fn ensure_open(&mut self) -> PyResult<()> {
         match self {
             Self::Unbuffered(_) | Self::Buffered(_) => Ok(()),
             Self::Closed(options) => {
-                let file = File::open(&options.path).await?;
+                let file = File::open(&options.path)
+                    .await
+                    .map_py_io_err(&options.path)?;
                 if options.strict {
-                    let meta = file.metadata().await?;
+                    let meta = file.metadata().await.map_py_io_err(&options.path)?;
                     let len = meta.len();
                     if options.offset > len {
-                        return Err(io::Error::new(
-                            io::ErrorKind::InvalidInput,
-                            format!(
-                                "offset ({}) is beyond end of file (len = {})",
-                                options.offset, len
-                            ),
-                        ));
+                        return py_value_err!(
+                            "offset ({}) is beyond end of file (len = {})",
+                            options.offset,
+                            len
+                        );
                     }
                 }
 
@@ -91,8 +92,14 @@ impl AsyncFileReadStreamWrapper {
 
                 if options.offset > 0 {
                     match &mut stream {
-                        Self::Unbuffered(s) => s.seek_to(options.offset).await?,
-                        Self::Buffered(s) => s.seek_to(options.offset).await?,
+                        Self::Unbuffered(s) => s
+                            .seek_to(options.offset)
+                            .await
+                            .map_py_io_err(&options.path)?,
+                        Self::Buffered(s) => s
+                            .seek_to(options.offset)
+                            .await
+                            .map_py_io_err(&options.path)?,
                         Self::Closed(_) => unreachable!(),
                     };
                 }
@@ -126,22 +133,6 @@ impl PartialEq for PyAsyncFileReadStream {
     }
 }
 
-fn map_open_error(e: &std::io::Error) -> PyErr {
-    match e.kind() {
-        // not found
-        std::io::ErrorKind::NotFound => {
-            pyo3::exceptions::PyFileNotFoundError::new_err(format!("Failed to open file: {e}"))
-        }
-        // strict
-        std::io::ErrorKind::InvalidInput => {
-            pyo3::exceptions::PyValueError::new_err(format!("Failed to open file: {e}"))
-        }
-        _ => {
-            py_io_error!("Failed to open file: {e}")
-        }
-    }
-}
-
 impl PyAsyncFileReadStream {
     /// opens the file (if not already open) and resolves to the stream itself
     fn ensure_open_coro<'py>(
@@ -152,7 +143,7 @@ impl PyAsyncFileReadStream {
         tokio_coro(py, qualname, async move {
             let this = slf.get();
             let mut guard = this.inner.lock().await;
-            guard.ensure_open().await.map_err(|e| map_open_error(&e))?;
+            guard.ensure_open().await?;
             drop(guard);
             Ok(slf)
         })
@@ -231,7 +222,7 @@ impl PyAsyncFileReadStream {
         let inner = Arc::clone(&self.inner);
         tokio_coro(py, "AsyncFileReadStream.__anext__", async move {
             let mut guard = inner.lock().await;
-            guard.ensure_open().await.map_err(|e| map_open_error(&e))?;
+            guard.ensure_open().await?;
             match guard.next_chunk().await {
                 Ok(Some(bytes)) => Ok(RyBytes::from(bytes)),
                 Ok(None) => py_stop_async_iteration_err!("stream exhausted"),
@@ -245,7 +236,7 @@ impl PyAsyncFileReadStream {
         let inner = Arc::clone(&self.inner);
         tokio_coro(py, "AsyncFileReadStream.take", async move {
             let mut guard = inner.lock().await;
-            guard.ensure_open().await.map_err(|e| map_open_error(&e))?;
+            guard.ensure_open().await?;
             let mut result = Vec::new();
             for _ in 0..n {
                 match guard.next_chunk().await? {
@@ -261,7 +252,7 @@ impl PyAsyncFileReadStream {
         let inner = Arc::clone(&self.inner);
         tokio_coro(py, "AsyncFileReadStream.collect", async move {
             let mut guard = inner.lock().await;
-            guard.ensure_open().await.map_err(|e| map_open_error(&e))?;
+            guard.ensure_open().await?;
             let mut result = Vec::new();
             while let Ok(Some(b)) = guard.next_chunk().await {
                 result.push(RyBytes::from(b));

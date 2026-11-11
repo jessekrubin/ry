@@ -1,24 +1,16 @@
 use std::fs::read_dir;
 
 use pyo3::IntoPyObjectExt;
-use pyo3::exceptions::{PyFileNotFoundError, PyOSError};
+use pyo3::exceptions::PyOSError;
 use pyo3::prelude::*;
+use ryo3_core::PyIoResultExt;
 use ryo3_core::types::PathLike;
 use ryo3_fspath::PyFsPath;
 
 /// Change the current working directory to the specified path
 #[pyfunction]
-#[expect(clippy::needless_pass_by_value)]
 pub fn cd(path: PathLike) -> PyResult<()> {
-    match std::env::set_current_dir(path.as_ref()) {
-        Ok(()) => Ok(()),
-        Err(e) => {
-            let p_string = path.to_string();
-            let emsg = format!("{e}: {p_string:?}");
-            let pye = PyFileNotFoundError::new_err(format!("cd: {emsg}"));
-            Err(pye)
-        }
-    }
+    std::env::set_current_dir(&path).map_py_io_err(path)
 }
 
 /// List the contents of the specified directory as a `Vec<String>`
@@ -37,11 +29,7 @@ pub fn ls(
         let pwd = pwd()?;
         PathLike::Str(pwd)
     };
-    let entries = read_dir(p.as_ref()).map_err(|e| {
-        let p_string = format!("{p:?}");
-        let emsg = format!("{e}: {p_string}");
-        PyFileNotFoundError::new_err(format!("ls: {emsg}"))
-    })?;
+    let entries = read_dir(&p).map_py_io_err(p)?;
 
     let mut v = if absolute {
         entries
@@ -80,41 +68,21 @@ pub fn ls(
 #[pyfunction(
     signature = (path, *, exist_ok = false, recursive = false)
 )]
-#[expect(clippy::needless_pass_by_value)]
 pub fn mkdir(path: PathLike, exist_ok: bool, recursive: bool) -> PyResult<()> {
-    let path = path.as_ref();
     let result = if recursive {
-        std::fs::create_dir_all(path)
+        std::fs::create_dir_all(&path)
     } else {
-        std::fs::create_dir(path)
+        std::fs::create_dir(&path)
     };
     match result {
-        Ok(()) => Ok(()),
-        Err(e) => {
-            if exist_ok && e.kind() == std::io::ErrorKind::AlreadyExists {
-                return Ok(());
-            }
-            let p_string = path.display();
-            let emsg = format!("{e}: {p_string}");
-            let pye = PyFileNotFoundError::new_err(format!("mkdir: {emsg}"));
-            Err(pye)
-        }
+        Err(e) if exist_ok && e.kind() == std::io::ErrorKind::AlreadyExists => Ok(()),
+        res => res.map_py_io_err(path),
     }
 }
 
 #[pyfunction]
-#[expect(clippy::needless_pass_by_value)]
 pub fn mkdirp(path: PathLike) -> PyResult<()> {
-    let path = path.as_ref();
-    match std::fs::create_dir_all(path) {
-        Ok(()) => Ok(()),
-        Err(e) => {
-            let p_string = path.display();
-            let emsg = format!("{e}: {p_string}");
-            let pye = PyFileNotFoundError::new_err(format!("mkdirp: {emsg}"));
-            Err(pye)
-        }
-    }
+    std::fs::create_dir_all(&path).map_py_io_err(path)
 }
 
 #[pyfunction]
