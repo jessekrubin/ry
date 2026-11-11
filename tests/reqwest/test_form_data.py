@@ -131,6 +131,27 @@ class TestFormData:
         fd = ry.FormData({"a": "x", "n": 1, "tags": ["1", "2"]})
         assert fd.items() == [("a", "x"), ("n", "1"), ("tags", "1"), ("tags", "2")]
 
+    def test_from_part_dicts(self) -> None:
+        fd = ry.FormData({
+            "title": "Report",
+            "file": {"value": b"data", "filename": "report.csv", "mime": "text/csv"},
+            "tags": [{"value": "one"}, {"value": "two", "headers": {"x-tag": "2"}}],
+        })
+        assert fd["title"] == "Report"
+        assert fd["file"] == ry.FormPart(
+            b"data", filename="report.csv", mime="text/csv"
+        )
+        assert fd.get_all("tags") == [
+            "one",
+            ry.FormPart("two", headers={"x-tag": "2"}),
+        ]
+
+    def test_invalid_part_dict(self) -> None:
+        with pytest.raises(TypeError, match="requires 'value'"):
+            ry.FormData(t.cast("t.Any", {"file": {"filename": "x.txt"}}))
+        with pytest.raises(TypeError, match="unexpected keyword argument: nope"):
+            ry.FormData(t.cast("t.Any", {"file": {"value": b"x", "nope": 1}}))
+
     def test_from_pairs(self) -> None:
         fd = ry.FormData([("a", "1"), ("a", "2"), ("b", b"x")])
         assert fd.keys() == ["a", "a", "b"]
@@ -391,6 +412,26 @@ class TestFormDataBlocking:
         )
         assert res.status_code == 200
         _check_form_with_file(res.json())
+
+    def test_multipart_part_dict(self, server: ReqtestServer) -> None:
+        res = ry.BlockingClient().post(
+            server.url / "upload",
+            multipart={
+                "title": "Report",
+                "file": {
+                    "value": b"data",
+                    "filename": "report.csv",
+                    "mime": "text/csv",
+                    "headers": {"x-part": "yes"},
+                },
+            },
+        )
+        parts = _parts_by_name(res.json())
+        assert parts["title"]["value"] == "Report"
+        assert parts["file"]["value"] == "data"
+        assert parts["file"]["filename"] == "report.csv"
+        assert parts["file"]["content_type"] == "text/csv"
+        assert parts["file"]["headers"]["x-part"] == "yes"
 
     def test_body_kwarg_fetch_sync(self, server: ReqtestServer, tmp_path: Path) -> None:
         res = ry.fetch_sync(

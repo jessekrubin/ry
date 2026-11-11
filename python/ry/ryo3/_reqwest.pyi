@@ -24,10 +24,18 @@ _Body: t.TypeAlias = (
 # multipart
 _T = t.TypeVar("_T")
 _FormValue: t.TypeAlias = str | int | float | bool | Buffer | PathLike[str] | FormPart
-_FormPair: t.TypeAlias = tuple[str, _FormValue | list[_FormValue]]
+
+class _FormPartDict(t.TypedDict):
+    value: _FormValue
+    filename: t.NotRequired[str | None]
+    mime: t.NotRequired[str | None]
+    headers: t.NotRequired[Headers | dict[str, str] | None]
+
+_FormInput: t.TypeAlias = _FormValue | _FormPartDict
+_FormPair: t.TypeAlias = tuple[str, _FormInput | list[_FormInput]]
 _FormDataLike: t.TypeAlias = (
     FormData
-    | t.Mapping[str, _FormValue | list[_FormValue]]
+    | t.Mapping[str, _FormInput | list[_FormInput]]
     | list[_FormPair]
     | tuple[_FormPair, ...]
 )

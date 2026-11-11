@@ -179,14 +179,17 @@ struct FormPartKwargs {
     headers: Option<HeaderMap>,
 }
 
-impl FromPyObject<'_, '_> for FormPartKwargs {
-    type Error = PyErr;
-
-    fn extract(obj: Borrowed<'_, '_, PyAny>) -> PyResult<Self> {
+impl FormPartKwargs {
+    fn parse<const DICT: bool>(obj: Borrowed<'_, '_, PyAny>) -> PyResult<Self> {
+        use ryo3_core::PyCastExactOpt;
         let mut kwargs = Self::default();
-        for kwarg in KwargsIter::new(obj.cast_exact::<PyDict>()?) {
+        let d = obj
+            .cast_exact_opt::<PyDict>()
+            .ok_or_else(|| py_type_error!("expected a dict"))?;
+        for kwarg in KwargsIter::new(d) {
             let (key, value) = kwarg?;
             match key {
+                "value" if DICT => {}
                 "filename" => kwargs.filename = value.extract()?,
                 "mime" => {
                     if let Some(s) = value.extract::<Option<&str>>()? {
@@ -205,6 +208,14 @@ impl FromPyObject<'_, '_> for FormPartKwargs {
             }
         }
         Ok(kwargs)
+    }
+}
+
+impl FromPyObject<'_, '_> for FormPartKwargs {
+    type Error = PyErr;
+
+    fn extract(obj: Borrowed<'_, '_, PyAny>) -> PyResult<Self> {
+        Self::parse::<false>(obj)
     }
 }
 
@@ -246,9 +257,10 @@ impl FromPyObject<'_, '_> for PartValue {
     type Error = PyErr;
 
     fn extract(obj: Borrowed<'_, '_, PyAny>) -> PyResult<Self> {
-        if let Ok(s) = obj.cast::<PyString>() {
+        use ryo3_core::{PyCastExactOpt, PyCastOpt};
+        if let Some(s) = obj.cast_opt::<PyString>() {
             Utf8Bytes::try_from(s.to_owned()).map(Self::Text)
-        } else if let Ok(b) = obj.cast_exact::<PyBool>() {
+        } else if let Some(b) = obj.cast_exact_opt::<PyBool>() {
             let s = if b.is_true() { "true" } else { "false" };
             Ok(Self::Text(Utf8Bytes::from_static(s)))
         } else if obj.is_instance_of::<PyInt>() || obj.is_instance_of::<PyFloat>() {
@@ -275,7 +287,8 @@ impl FromPyObject<'_, '_> for RyFormPart {
     type Error = PyErr;
 
     fn extract(obj: Borrowed<'_, '_, PyAny>) -> PyResult<Self> {
-        if let Ok(part) = obj.cast_exact::<Self>() {
+        use ryo3_core::PyCastExactOpt;
+        if let Some(part) = obj.cast_exact_opt::<Self>() {
             Ok(part.get().clone())
         } else {
             let inner = PartInner::new(obj.py(), obj.extract()?)?;
@@ -470,23 +483,37 @@ impl From<&RyFormData> for FormDataLike {
 }
 
 /// push `value` under `name` ~ a `list` is a repeated field
+fn extract_entry_part(value: &Bound<'_, PyAny>) -> PyResult<RyFormPart> {
+    use ryo3_core::PyCastExactOpt;
+    if let Some(spec) = value.cast_exact_opt::<PyDict>() {
+        let raw = spec
+            .get_item("value")?
+            .ok_or_else(|| py_type_error!("form part dictionary requires 'value'"))?;
+        let kwargs = FormPartKwargs::parse::<true>(value.as_borrowed())?;
+        Ok(raw.extract::<RyFormPart>()?.with_kwargs(Some(kwargs)))
+    } else {
+        value.extract()
+    }
+}
+
 fn push_entry(
     entries: &mut Vec<FormEntry>,
     name: String,
     value: &Bound<'_, PyAny>,
 ) -> PyResult<()> {
-    if let Ok(list) = value.cast::<PyList>() {
+    use ryo3_core::PyCastOpt;
+    if let Some(list) = value.cast_opt::<PyList>() {
         entries.reserve(list.len());
         for item in list {
             entries.push(FormEntry {
                 name: name.clone(),
-                part: item.extract()?,
+                part: extract_entry_part(&item)?,
             });
         }
     } else {
         entries.push(FormEntry {
             name,
-            part: value.extract()?,
+            part: extract_entry_part(value)?,
         });
     }
     Ok(())
@@ -499,16 +526,17 @@ impl FromPyObject<'_, '_> for FormDataLike {
     type Error = PyErr;
 
     fn extract(obj: Borrowed<'_, '_, PyAny>) -> PyResult<Self> {
-        if let Ok(fd) = obj.cast_exact::<RyFormData>() {
+        use ryo3_core::{PyCastExactOpt, PyCastOpt};
+        if let Some(fd) = obj.cast_exact_opt::<RyFormData>() {
             return Ok(Self::from(fd.get()));
         }
         let mut entries = Vec::new();
-        if let Ok(dict) = obj.cast::<PyDict>() {
+        if let Some(dict) = obj.cast_exact_opt::<PyDict>() {
             entries.reserve(dict.len());
             for (k, v) in dict.iter() {
                 push_entry(&mut entries, k.extract()?, &v)?;
             }
-        } else if let Ok(mapping) = obj.cast::<PyMapping>() {
+        } else if let Some(mapping) = obj.cast_opt::<PyMapping>() {
             for item in mapping.items()? {
                 let (k, v): (String, Bound<'_, PyAny>) = item.extract()?;
                 push_entry(&mut entries, k, &v)?;
@@ -569,7 +597,8 @@ impl RyFormData {
     }
 
     fn __contains__(&self, name: &Bound<'_, PyAny>) -> PyResult<bool> {
-        let Ok(name) = name.cast::<PyString>() else {
+        use ryo3_core::PyCastOpt;
+        let Some(name) = name.cast_opt::<PyString>() else {
             return Ok(false);
         };
         let name = name.to_str()?;

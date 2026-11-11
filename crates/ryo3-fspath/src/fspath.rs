@@ -721,13 +721,12 @@ impl PyFsPath {
     #[cfg(feature = "same-file")]
     fn samefile(&self, py: Python<'_>, other: PathBuf) -> PyResult<bool> {
         let left = self.path();
-        let right = other.as_path();
-        py.detach(|| {
-            let l = same_file::Handle::from_path(left).map_err(|e| (e, left))?;
-            let r = same_file::Handle::from_path(right).map_err(|e| (e, right))?;
+        py.detach(move || {
+            let l = same_file::Handle::from_path(left).map_err(|e| (e, None))?;
+            let r = same_file::Handle::from_path(&other).map_err(|e| (e, Some(other)))?;
             Ok(l == r)
         })
-        .or_else(|(e, path)| Err(e).map_py_io_err_with_path(path))
+        .or_else(|(e, right)| Err(e).map_py_io_err_with_path(right.as_deref().unwrap_or(left)))
     }
 
     #[cfg(not(feature = "same-file"))]
