@@ -18,7 +18,7 @@ use crate::map_py_io_err_with_path;
 ///
 /// ```ignore
 /// std::fs::read(path).map_py_io_err(path)?;
-/// std::fs::rename(src, dst).map_py_io_err2(src, dst)?;
+/// std::fs::rename(src, dst).map_py_io_err_with_src_dst(src, dst)?;
 /// ```
 pub trait PyIoResultExt<T> {
     /// `OSError` subclass w/ `errno` + `filename`

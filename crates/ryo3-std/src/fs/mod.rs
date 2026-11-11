@@ -429,10 +429,10 @@ pub fn soft_link(py: Python<'_>, original: PathBuf, link: PathBuf) -> PyResult<(
             .map_py_io_err(&original)?;
         if metadata.is_dir() {
             py.detach(|| windows_fs::symlink_dir(&original, &link))
-                .map_py_io_err2(original, link)
+                .map_py_io_err_with_src_dst(original, link)
         } else {
             py.detach(|| windows_fs::symlink_file(&original, &link))
-                .map_py_io_err2(original, link)
+                .map_py_io_err_with_src_dst(original, link)
         }
     }
     #[cfg(not(any(unix, windows)))]
