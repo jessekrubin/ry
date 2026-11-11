@@ -5,7 +5,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 
 use pyo3::prelude::*;
 use ryo3_bytes::RyBytes;
-use ryo3_core::map_py_io_err_with_path;
+use ryo3_core::PyIoResultExt;
 use ryo3_core::types::{PyOpenMode, PyOpenOptions};
 use ryo3_macro_rules::{
     py_runtime_err, py_stop_async_iteration_err, py_value_error, pytodo, pytodo_pyerr,
@@ -67,7 +67,7 @@ impl AsyncFileHandle {
         let file = open_opts
             .open(&self.path)
             .await
-            .map_err(|e| map_py_io_err_with_path(e, &self.path))?;
+            .map_py_io_err_with_path(&self.path)?;
         self.state = FileState::Open(Box::new(BufStream::new(file)));
         Ok(())
     }

@@ -327,14 +327,14 @@ impl PyFsPath {
     fn read(&self, py: Python<'_>) -> PyResult<RyBytes> {
         let fbytes = py
             .detach(|| std::fs::read(self.path()))
-            .map_py_io_err(self.path())?;
+            .map_py_io_err_with_path(self.path())?;
         Ok(fbytes.into())
     }
 
     fn read_bytes<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyBytes>> {
         let fbytes = py
             .detach(|| std::fs::read(self.path()))
-            .map_py_io_err(self.path())
+            .map_py_io_err_with_path(self.path())
             .map(|b| PyBytes::new(py, &b))?;
         Ok(fbytes)
     }
@@ -342,7 +342,7 @@ impl PyFsPath {
     fn read_text(&self, py: Python<'_>) -> PyResult<PyUtf8Bytes> {
         let fbytes = py
             .detach(|| std::fs::read(self.path()))
-            .map_py_io_err(self.path())?;
+            .map_py_io_err_with_path(self.path())?;
         Ok(fbytes.into())
     }
 
@@ -350,7 +350,7 @@ impl PyFsPath {
     fn write(&self, py: Python<'_>, data: ReadableBuffer) -> PyResult<usize> {
         let b = data.as_slice();
         py.detach(|| std::fs::write(self.path(), b))
-            .map_py_io_err(self.path())?;
+            .map_py_io_err_with_path(self.path())?;
         Ok(b.len())
     }
 
@@ -360,7 +360,7 @@ impl PyFsPath {
 
     fn write_text(&self, py: Python<'_>, data: &str) -> PyResult<()> {
         py.detach(|| std::fs::write(self.path(), data))
-            .map_py_io_err(self.path())
+            .map_py_io_err_with_path(self.path())
     }
     // Path.touch(mode=0o666, exist_ok=True)
     // Create a file at this given path. If mode is given, it is combined with the
@@ -388,7 +388,7 @@ impl PyFsPath {
                 .truncate(false)
                 .open(path)
         })
-        .map_py_io_err(path)?;
+        .map_py_io_err_with_path(path)?;
         Ok(true)
     }
 
@@ -414,7 +414,7 @@ impl PyFsPath {
             {
                 return Ok(());
             }
-            Err(e) => return Err(e).map_py_io_err(path),
+            Err(e) => return Err(e).map_py_io_err_with_path(path),
         }
 
         #[cfg(unix)]
@@ -422,11 +422,11 @@ impl PyFsPath {
             use std::os::unix::fs::PermissionsExt;
             let mut perms = py
                 .detach(|| std::fs::metadata(path))
-                .map_py_io_err(path)?
+                .map_py_io_err_with_path(path)?
                 .permissions();
             perms.set_mode(mode);
             py.detach(|| std::fs::set_permissions(path, perms))
-                .map_py_io_err(path)?;
+                .map_py_io_err_with_path(path)?;
         }
         Ok(())
     }
@@ -439,7 +439,7 @@ impl PyFsPath {
         } else {
             py.detach(|| std::fs::remove_dir(path))
         }
-        .map_py_io_err(path)
+        .map_py_io_err_with_path(path)
     }
 
     #[pyo3(signature = (missing_ok = false, recursive = false))]
@@ -448,7 +448,7 @@ impl PyFsPath {
             self.rmdir(py, recursive)
         } else {
             py.detach(|| std::fs::remove_file(self.path()))
-                .map_py_io_err(self.path())
+                .map_py_io_err_with_path(self.path())
         };
         match res {
             Err(e) if missing_ok && e.is_instance_of::<PyFileNotFoundError>(py) => Ok(()),
@@ -482,7 +482,7 @@ impl PyFsPath {
             } else {
                 py.detach(|| std::fs::remove_file(path_ref))
             }
-            .map_py_io_err(path_ref)?;
+            .map_py_io_err_with_path(path_ref)?;
         }
         py.detach(|| std::fs::rename(self.path(), path_ref))
             .map_py_io_err_with_src_dst(self.path(), path_ref)?;
@@ -559,7 +559,7 @@ impl PyFsPath {
     fn canonicalize(&self, py: Python<'_>) -> PyResult<Self> {
         let p = py
             .detach(|| self.path().canonicalize())
-            .map_py_io_err(self.path())?;
+            .map_py_io_err_with_path(self.path())?;
         Ok(Self::from(p))
     }
 
@@ -582,7 +582,9 @@ impl PyFsPath {
     }
 
     fn exists(&self) -> PyResult<bool> {
-        self.path().try_exists().map_py_io_err(self.path())
+        self.path()
+            .try_exists()
+            .map_py_io_err_with_path(self.path())
     }
 
     fn extension(&self) -> Option<OsString> {
@@ -633,20 +635,20 @@ impl PyFsPath {
         self.path()
             .metadata()
             .map(ryo3_std::fs::PyMetadata::from)
-            .map_py_io_err(self.path())
+            .map_py_io_err_with_path(self.path())
     }
 
     fn read_dir(&self, py: Python<'_>) -> PyResult<PyFsPathReadDir> {
         py.detach(|| std::fs::read_dir(self.path()))
             .map(PyFsPathReadDir::from)
-            .map_py_io_err(self.path())
+            .map_py_io_err_with_path(self.path())
     }
 
     fn read_link(&self) -> PyResult<Self> {
         self.path()
             .read_link()
             .map(Self::from)
-            .map_py_io_err(self.path())
+            .map_py_io_err_with_path(self.path())
     }
 
     fn starts_with(&self, base: FsPathLike) -> bool {
@@ -664,7 +666,7 @@ impl PyFsPath {
         self.path()
             .symlink_metadata()
             .map(ryo3_std::fs::PyMetadata::from)
-            .map_py_io_err(self.path())
+            .map_py_io_err_with_path(self.path())
     }
 
     fn with_extension(&self, extension: String) -> Self {
@@ -718,13 +720,15 @@ impl PyFsPath {
 
     #[cfg(feature = "same-file")]
     fn samefile(&self, py: Python<'_>, other: PathBuf) -> PyResult<bool> {
-        // open each on its own so the err names the path that failed (like pathlib)
-        let l = py
-            .detach(|| same_file::Handle::from_path(self.path()))
-            .map_py_io_err(self.path())?;
-        let r = py
-            .detach(|| same_file::Handle::from_path(&other))
-            .map_py_io_err(other)?;
+        // one detach, but a result per path so the err names the one that failed
+        let (l, r) = py.detach(|| {
+            (
+                same_file::Handle::from_path(self.path()),
+                same_file::Handle::from_path(&other),
+            )
+        });
+        let l = l.map_py_io_err_with_path(self.path())?;
+        let r = r.map_py_io_err_with_path(other)?;
         Ok(l == r)
     }
 

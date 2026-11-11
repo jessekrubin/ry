@@ -1,15 +1,13 @@
 //! `std::io::Error` -> python `OSError` w/ errno + filename(s)
 //!
-//! `OSError(errno, strerror, filename)` picks the subclass from errno
-//! (`FileNotFoundError`, `PermissionError`, ...) and renders like cpython:
-//! `[Errno 2] No such file or directory: 'nope'`
-use std::io;
-use std::path::Path;
-
-use pyo3::PyErr;
-use pyo3::exceptions::PyOSError;
-
-use crate::map_py_io_err_with_path;
+//! builds `OSError(errno, strerror, filename, winerror, filename2)` like
+//! the cpython `os` module. Python picks the subclass (eg `FileNotFoundError`,
+//! `PermissionError`, et al).
+//!
+//! Io errors without an os code (a custom made up `io::Error`) fall back to
+//! pyo3's `From<io::Error>`, which uses `io::ErrorKind` to pick the exception
+//! cls.
+use std::{io, path};
 
 /// `io::Result` -> `PyResult` w/ the path(s) attached
 ///
@@ -17,57 +15,71 @@ use crate::map_py_io_err_with_path;
 /// over; they drop on the calling thread, so call this after `py.detach`
 ///
 /// ```ignore
-/// std::fs::read(path).map_py_io_err(path)?;
+/// std::fs::read(path).map_py_io_err_with_path(path)?;
 /// std::fs::rename(src, dst).map_py_io_err_with_src_dst(src, dst)?;
 /// ```
 pub trait PyIoResultExt<T> {
     /// `OSError` subclass w/ `errno` + `filename`
-    fn map_py_io_err(self, path: impl AsRef<Path>) -> pyo3::PyResult<T>;
+    fn map_py_io_err_with_path(self, path: impl AsRef<path::Path>) -> pyo3::PyResult<T>;
 
     /// same but w/ `filename2` too ~ for 2-path ops (rename/copy/link),
     /// renders as `[Errno 2] No such file or directory: 'src' -> 'dst'`
     fn map_py_io_err_with_src_dst(
         self,
-        src: impl AsRef<Path>,
-        dst: impl AsRef<Path>,
+        src: impl AsRef<path::Path>,
+        dst: impl AsRef<path::Path>,
     ) -> pyo3::PyResult<T>;
 }
 
 impl<T> PyIoResultExt<T> for io::Result<T> {
     #[inline]
-    fn map_py_io_err(self, path: impl AsRef<Path>) -> pyo3::PyResult<T> {
-        self.map_err(|e| map_py_io_err_with_path(e, path.as_ref()))
+    fn map_py_io_err_with_path(self, path: impl AsRef<path::Path>) -> pyo3::PyResult<T> {
+        self.map_err(|e| os_error(e, path.as_ref(), None))
     }
 
     #[inline]
     fn map_py_io_err_with_src_dst(
         self,
-        src: impl AsRef<Path>,
-        dst: impl AsRef<Path>,
+        src: impl AsRef<path::Path>,
+        dst: impl AsRef<path::Path>,
     ) -> pyo3::PyResult<T> {
-        self.map_err(|e| map_py_io_err_with_paths(e, src.as_ref(), dst.as_ref()))
+        self.map_err(|e| os_error(e, src.as_ref(), Some(dst.as_ref())))
     }
 }
 
-/// [`map_py_io_err_with_path`] w/ a second path (`filename2`)
-#[must_use]
-pub fn map_py_io_err_with_paths(e: io::Error, src: &Path, dst: &Path) -> PyErr {
+/// `OSError(errno, strerror, filename, winerror, filename2)`
+///
+/// REF: <https://docs.python.org/3/builtins/exceptions.html#OSError>
+fn os_error(e: io::Error, filename: &path::Path, filename2: Option<&path::Path>) -> pyo3::PyErr {
     let Some(code) = e.raw_os_error() else {
-        return PyErr::from(e);
+        return pyo3::PyErr::from(e);
     };
-    // same strerror cleanup as `map_py_io_err_with_path`
-    let msg = e.to_string();
-    let strerror = msg
-        .strip_suffix(&format!(" (os error {code})"))
-        .unwrap_or(&msg);
-    #[cfg(windows)]
-    let strerror = strerror.trim_end_matches(|c: char| c == '.' || c.is_whitespace());
-    let strerror = strerror.to_owned();
-    let src = src.as_os_str().to_owned();
-    let dst = dst.as_os_str().to_owned();
-    #[cfg(windows)]
-    let args = (0, strerror, src, code, dst);
-    #[cfg(not(windows))]
-    let args = (code, strerror, src, None::<i32>, dst);
-    PyOSError::new_err(args)
+    let (errno, winerror) = cfg_select! {
+        // raw code is a win32 err; python maps `winerror` -> errno
+        windows => (0, Some(code)),
+        _ => (code, None::<i32>),
+    };
+    pyo3::exceptions::PyOSError::new_err((
+        errno,
+        strerror(&e),
+        filename.as_os_str().to_owned(),
+        winerror,
+        filename2.map(|p| p.as_os_str().to_owned()),
+    ))
+}
+
+/// the os msg minus rust's `" (os error N)"` suffix to match cpython
+fn strerror(e: &io::Error) -> String {
+    let mut msg = e.to_string();
+    if let Some(i) = msg.rfind(" (os error ") {
+        msg.truncate(i);
+    }
+    let len = cfg_select! {
+        windows => msg
+            .trim_end_matches(|c: char| c == '.' || c.is_whitespace())
+            .len(),
+        _ => msg.len(),
+    };
+    msg.truncate(len);
+    msg
 }

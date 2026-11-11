@@ -29,7 +29,7 @@ use pyo3::types::{
 use reqwest::header::HeaderMap;
 use reqwest::multipart::Form;
 use ryo3_bytes::{ReadableBuffer, RyBytes};
-use ryo3_core::map_py_io_err_with_path;
+use ryo3_core::PyIoResultExt;
 use ryo3_core::py_dict::KwargsIter;
 use ryo3_core::sync::RyRwLock;
 use ryo3_http::{PyHeaders, PyHeadersLike};
@@ -103,7 +103,9 @@ impl PartInner {
         }
     }
 
-    /// build the reqwest part ~ opens files
+    /// build the reqwest part
+    ///
+    /// NOTE: can open files
     fn to_part(&self) -> PyResult<reqwest::multipart::Part> {
         let mut part = match &self.value {
             PartValue::Text(s) => {
@@ -114,12 +116,17 @@ impl PartInner {
                 reqwest::multipart::Part::stream_with_length(b.clone(), b.len() as u64)
             }
             PartValue::File(p) => {
-                let file = std::fs::File::open(p).map_err(|e| map_py_io_err_with_path(e, p))?;
-                let len = file.metadata().map(|m| m.len());
+                let file = std::fs::File::open(p).map_py_io_err_with_path(p)?;
+                let meta = file.metadata().ok();
+                // if "it's a unix system" explicit assert not a dir
+                #[cfg(unix)]
+                if meta.as_ref().is_some_and(std::fs::Metadata::is_dir) {
+                    return Err(std::io::Error::from_raw_os_error(21)).map_py_io_err_with_path(p);
+                }
                 let file = tokio::fs::File::from_std(file);
-                match len {
-                    Ok(len) => reqwest::multipart::Part::stream_with_length(file, len),
-                    Err(_) => reqwest::multipart::Part::stream(file),
+                match meta {
+                    Some(meta) => reqwest::multipart::Part::stream_with_length(file, meta.len()),
+                    None => reqwest::multipart::Part::stream(file),
                 }
             }
         };

@@ -3,6 +3,7 @@ from __future__ import annotations
 import collections
 import copy
 import pickle
+import sys
 import types
 import typing as t
 from pathlib import Path
@@ -374,6 +375,14 @@ class TestFormDataAsync:
         with pytest.raises(FileNotFoundError, match=r"nope\.txt"):
             await coro
 
+    @pytest.mark.skipif(sys.platform == "win32", reason="windows wont open a dir")
+    @pytest.mark.anyio
+    async def test_dir_part(self, server: ReqtestServer, tmp_path: Path) -> None:
+        fd = ry.FormData({"d": tmp_path})
+        with pytest.raises(IsADirectoryError) as e:
+            await ry.Client().post(server.url / "upload", multipart=fd)
+        assert e.value.filename == str(tmp_path)
+
 
 class TestFormDataBlocking:
     def test_multipart_kwarg(self, server: ReqtestServer, tmp_path: Path) -> None:
@@ -403,6 +412,12 @@ class TestFormDataBlocking:
         # same as python's own `open()` error (str filename, no rust suffix)
         assert e.value.filename == str(missing)
         assert "os error" not in str(e.value)
+
+    @pytest.mark.skipif(sys.platform == "win32", reason="windows wont open a dir")
+    def test_dir_part(self, server: ReqtestServer, tmp_path: Path) -> None:
+        with pytest.raises(IsADirectoryError) as e:
+            ry.BlockingClient().post(server.url / "upload", multipart={"d": tmp_path})
+        assert e.value.filename == str(tmp_path)
 
     def test_caller_content_type_dropped(self, server: ReqtestServer) -> None:
         res = ry.BlockingClient().post(

@@ -79,6 +79,7 @@ impl<const BLOCKING: bool> ReqwestKwargs<BLOCKING> {
                 // multipart sets its own `content-type` (w/ the boundary)
                 if matches!(self.body, PyReqwestBody::Multipart(_)) {
                     headers.remove(reqwest::header::CONTENT_TYPE);
+                    headers.remove(reqwest::header::CONTENT_LENGTH);
                 }
                 req = req.headers(headers);
             }

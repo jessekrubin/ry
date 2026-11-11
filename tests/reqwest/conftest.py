@@ -255,6 +255,11 @@ async def upload_file(
             if k.decode().lower() == "content-type"
         ],
         "content_length": headers.get("content-length"),
+        "content_lengths": [
+            v.decode()
+            for k, v in scope.get("headers", [])
+            if k.decode().lower() == "content-length"
+        ],
         "parts": parse_multipart(content_type, body),
     }).encode()
     yield uvt.HTTPResponseStartEvent(

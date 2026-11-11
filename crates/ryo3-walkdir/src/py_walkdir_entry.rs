@@ -1,9 +1,10 @@
 //! python wrapper for `walkdir::DirEntry`
 use std::ffi::OsStr;
+use std::io;
 
 use pyo3::prelude::*;
+use ryo3_core::PyIoResultExt;
 use ryo3_core::macros::py_type_err;
-use ryo3_core::map_py_io_err_with_path;
 
 #[pyclass(name = "WalkDirEntry", frozen, immutable_type, eq, ord)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
@@ -80,10 +81,15 @@ impl PyWalkDirEntry {
     }
 
     fn metadata(&self) -> PyResult<ryo3_std::fs::PyMetadata> {
+        // TODO: investigate this chain being weird and wrong feeling
         self.0
             .metadata()
+            .map_err(|e| {
+                let msg = e.to_string();
+                e.into_io_error().unwrap_or_else(|| io::Error::other(msg))
+            })
+            .map_py_io_err_with_path(self.0.path())
             .map(Into::into)
-            .map_err(|e| self.py_io_err(e))
     }
 
     #[getter]
@@ -108,20 +114,7 @@ impl PyWalkDirEntry {
 
     #[getter]
     fn len(&self) -> PyResult<u64> {
-        self.0
-            .metadata()
-            .map(|m| m.len())
-            .map_err(|e| self.py_io_err(e))
-    }
-}
-
-impl PyWalkDirEntry {
-    fn py_io_err(&self, e: walkdir::Error) -> PyErr {
-        let msg = e.to_string();
-        match e.into_io_error() {
-            Some(io) => map_py_io_err_with_path(io, self.0.path()),
-            None => pyo3::exceptions::PyOSError::new_err(msg),
-        }
+        self.metadata().map(|m| m.inner().len())
     }
 }
 
