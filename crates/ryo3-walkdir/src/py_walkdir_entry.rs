@@ -81,7 +81,8 @@ impl PyWalkDirEntry {
     }
 
     fn metadata(&self) -> PyResult<ryo3_std::fs::PyMetadata> {
-        // TODO: investigate this chain being weird and wrong feeling
+        // TODO: investigate if there is a nicer way to do this chain
+        // which is aimed at providing the pathbuf to the usr facing pyerr
         self.0
             .metadata()
             .map_err(|e| {

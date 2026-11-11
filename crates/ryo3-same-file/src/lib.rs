@@ -6,15 +6,14 @@ use ryo3_core::types::PathLike;
 /// Return `True` if pathlike points to same file
 #[pyfunction]
 pub fn is_same_file(py: Python<'_>, left: PathLike, right: PathLike) -> PyResult<bool> {
-    let (l, r) = py.detach(|| {
-        (
-            same_file::Handle::from_path(&left),
-            same_file::Handle::from_path(&right),
-        )
-    });
-    let l = l.map_py_io_err_with_path(left)?;
-    let r = r.map_py_io_err_with_path(right)?;
-    Ok(l == r)
+    let left_path = left.as_ref();
+    let right_path = right.as_ref();
+    py.detach(|| {
+        let l = same_file::Handle::from_path(left_path).map_err(|e| (e, left_path))?;
+        let r = same_file::Handle::from_path(right_path).map_err(|e| (e, right_path))?;
+        Ok(l == r)
+    })
+    .or_else(|(e, path)| Err(e).map_py_io_err_with_path(path))
 }
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {

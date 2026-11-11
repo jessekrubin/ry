@@ -720,16 +720,14 @@ impl PyFsPath {
 
     #[cfg(feature = "same-file")]
     fn samefile(&self, py: Python<'_>, other: PathBuf) -> PyResult<bool> {
-        // one detach, but a result per path so the err names the one that failed
-        let (l, r) = py.detach(|| {
-            (
-                same_file::Handle::from_path(self.path()),
-                same_file::Handle::from_path(&other),
-            )
-        });
-        let l = l.map_py_io_err_with_path(self.path())?;
-        let r = r.map_py_io_err_with_path(other)?;
-        Ok(l == r)
+        let left = self.path();
+        let right = other.as_path();
+        py.detach(|| {
+            let l = same_file::Handle::from_path(left).map_err(|e| (e, left))?;
+            let r = same_file::Handle::from_path(right).map_err(|e| (e, right))?;
+            Ok(l == r)
+        })
+        .or_else(|(e, path)| Err(e).map_py_io_err_with_path(path))
     }
 
     #[cfg(not(feature = "same-file"))]

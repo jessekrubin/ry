@@ -254,7 +254,7 @@ impl FromPyObject<'_, '_> for PartValue {
         } else if obj.is_instance_of::<PyInt>() || obj.is_instance_of::<PyFloat>() {
             Utf8Bytes::try_from(obj.str()?).map(Self::Text)
         } else if let Ok(buf) = obj.extract::<ReadableBuffer>() {
-            // TODO: besure we are zero-copy
+            // TODO: maybe use buff.to_bytes to copy mutable bufs?
             Ok(Self::Bytes(buf.into_bytes()))
         } else if let Ok(p) = obj.extract::<PathBuf>() {
             Ok(Self::File(p))
@@ -420,7 +420,6 @@ impl RyFormData {
         }
     }
 
-    // TODO: make actual iterable?
     fn entries(&self) -> FormEntries {
         Arc::clone(&self.entries.py_read())
     }
