@@ -28,7 +28,6 @@ _TOKIO_FS_AIO_FNS: tuple[t.Callable[..., t.Any], ...] = (
     ry.remove_dir_async,
     ry.remove_file_async,
     ry.rename_async,
-    ry.try_exists_async,
     ry.write_async,
 )
 
@@ -69,7 +68,6 @@ async def test_roundtrip(tmp_path: Path) -> None:
     assert await ry.read_async(a) == b"hello"
     assert await ry.read_to_string_async(a) == "hello"
     assert await ry.exists_async(a) is True
-    assert await ry.try_exists_async(tmp_path / "nope") is False
     md = await ry.metadata_async(a)
     assert md.len == 5
     # stupid fucking windows with this prefix `\\?\`

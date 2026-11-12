@@ -1001,6 +1001,22 @@ where
     RyCoroutine::new(py, qualname, CoroutineState::Unstarted(Box::pin(lazy)))
 }
 
+/// Runs sync `f` on tokio's blocking pool, spawned on first poll and awaited
+/// right on the loop thread.
+pub fn blocking_coro<'py, F, T>(
+    py: Python<'py>,
+    qualname: &'static str,
+    f: F,
+) -> PyResult<Bound<'py, RyCoroutine>>
+where
+    F: FnOnce() -> PyResult<T> + Send + 'static,
+    T: for<'a> IntoPyObject<'a> + Send + 'static,
+{
+    pyloop_coro(py, qualname, async move {
+        get_ry_tokio_runtime().py_spawn_blocking(f).await?
+    })
+}
+
 /// already-finished coroutine ~ no tokio, no poll
 pub fn done_coro<'py, T>(
     py: Python<'py>,
@@ -1042,6 +1058,9 @@ pub fn failed_coro<'py>(
 
 /// poll `future` right on the loop thread ~ ONLY for futures that dont need
 /// the tokio rt context (tokio channels/notify/mutex ok; io/timers/spawn no)
+///
+/// spawning via the runtime handle (`get_ry_tokio_runtime().py_spawn*`) and
+/// awaiting the `JoinHandle` here is fine; bare `tokio::spawn` is not
 ///
 /// tokio can panic here (no reactor here) -> `PanicException`
 pub fn pyloop_coro<'py, F, T>(

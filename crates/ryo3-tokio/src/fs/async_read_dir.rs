@@ -15,15 +15,11 @@ type AsyncResponseStreamInner = Arc<Mutex<Pin<Box<ReadDir>>>>;
 
 #[pyclass(name = "AsyncReadDir", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
-pub struct PyAsyncReadDir {
-    stream: AsyncResponseStreamInner,
-}
+pub struct PyAsyncReadDir(AsyncResponseStreamInner);
 
 impl From<ReadDir> for PyAsyncReadDir {
     fn from(readdir: ReadDir) -> Self {
-        Self {
-            stream: Arc::new(Mutex::new(Box::pin(readdir))),
-        }
+        Self(Arc::new(Mutex::new(Box::pin(readdir))))
     }
 }
 
@@ -34,7 +30,7 @@ impl PyAsyncReadDir {
     }
 
     fn __anext__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, RyCoroutine>> {
-        let stream = Arc::clone(&self.stream);
+        let stream = Arc::clone(&self.0);
         tokio_coro(py, "AsyncReadDir.__anext__", async move {
             let mut guard = stream.lock().await;
             match guard.as_mut().next_entry().await {
@@ -46,7 +42,7 @@ impl PyAsyncReadDir {
     }
 
     fn collect<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, RyCoroutine>> {
-        let stream = Arc::clone(&self.stream);
+        let stream = Arc::clone(&self.0);
         tokio_coro(py, "AsyncReadDir.collect", async move {
             let mut guard = stream.lock().await;
             let mut entries = Vec::new();
@@ -59,7 +55,7 @@ impl PyAsyncReadDir {
 
     #[pyo3(signature = (n = 1))]
     fn take<'py>(&self, py: Python<'py>, n: u32) -> PyResult<Bound<'py, RyCoroutine>> {
-        let stream = Arc::clone(&self.stream);
+        let stream = Arc::clone(&self.0);
         tokio_coro(py, "AsyncReadDir.take", async move {
             let mut guard = stream.lock().await;
             let mut entries = Vec::new();
@@ -76,7 +72,7 @@ impl PyAsyncReadDir {
 
 #[pyclass(name = "AsyncDirEntry", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
-struct PyAsyncDirEntry(pub Arc<tokio::fs::DirEntry>);
+struct PyAsyncDirEntry(Arc<tokio::fs::DirEntry>);
 
 impl From<tokio::fs::DirEntry> for PyAsyncDirEntry {
     fn from(entry: tokio::fs::DirEntry) -> Self {

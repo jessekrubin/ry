@@ -1,133 +1,112 @@
-//! Async file read stream implementation for Tokio runtime, based on the ry
-//! `FileReadStream` in ryo3-std and the `ryo3-reqwest` response stream.
+//! Chunked async file reads on the shared sync `BufferedFile`.
 //!
-//! Kinda a fucking nightmare.
-use std::io;
+//! While python is busy with one chunk, the next one is already being read
+//! (read-ahead).
 use std::path::PathBuf;
 use std::sync::Arc;
+use std::{fmt, io, mem};
 
-use bytes::Bytes;
 use pyo3::prelude::*;
 use ryo3_bytes::RyBytes;
-use ryo3_core::PyIoResultExt;
 use ryo3_macro_rules::{py_stop_async_iteration_err, py_value_err};
-use ryo3_tokio_rt::{RyCoroutine, pyloop_coro, tokio_coro};
-use tokio::fs::File;
-use tokio::io::{AsyncRead, AsyncReadExt, AsyncSeek, AsyncSeekExt, BufReader, SeekFrom};
+use ryo3_std::fs::{BufferedFile, FileReadStreamOptions};
+use ryo3_tokio_rt::{RyCoroutine, RyJoinHandle, get_ry_tokio_runtime, pyloop_coro};
 use tokio::sync::Mutex;
 
-#[derive(Clone, PartialEq, Eq, Hash, Debug)]
-pub(crate) struct PyFileReadStreamOptions {
-    pub(crate) strict: bool,
-    pub(crate) path: PathBuf,
-    pub(crate) read_size: usize,
-    pub(crate) offset: u64,
-    pub(crate) buffered: bool,
+/// the next chunk + the file back (it survives read errors)
+struct ChunkRead {
+    file: BufferedFile,
+    chunk: io::Result<Vec<u8>>,
 }
 
-/// max up-front alloc per chunk; bigger `read_size`s grow w/ the data
-const CHUNK_PREALLOC_CAP: usize = 8 * 1024 * 1024;
-
-struct AsyncFileReadStream<T> {
-    file: T,
-    read_size: usize,
+#[derive(Default)]
+enum StreamState {
+    #[default]
+    Closed,
+    /// open, nothing in-flight
+    Idle(BufferedFile),
+    /// next chunk already being read
+    Reading(RyJoinHandle<ChunkRead>),
 }
 
-impl<T: AsyncRead + AsyncSeek + Unpin> AsyncFileReadStream<T> {
-    fn new(file: T, read_size: usize) -> Self {
-        Self { file, read_size }
-    }
-
-    async fn seek_to(&mut self, offset: u64) -> io::Result<u64> {
-        self.file.seek(SeekFrom::Start(offset)).await
-    }
-
-    async fn next_chunk(&mut self) -> io::Result<Option<Bytes>> {
-        // read up to `read_size` (or eof); buffer grows w/ the data read
-        let mut buf = Vec::with_capacity(self.read_size.min(CHUNK_PREALLOC_CAP));
-        let limit = u64::try_from(self.read_size).unwrap_or(u64::MAX);
-        let bytes_read = (&mut self.file).take(limit).read_to_end(&mut buf).await?;
-        if bytes_read == 0 {
-            return Ok(None);
-        }
-        Ok(Some(Bytes::from(buf)))
-    }
-}
-
-enum AsyncFileReadStreamWrapper {
-    Unbuffered(AsyncFileReadStream<File>),
-    Buffered(AsyncFileReadStream<BufReader<File>>),
-    // put the options in here so we dont gotta pass them around to ensure open
-    Closed(Arc<PyFileReadStreamOptions>),
-}
-
-impl AsyncFileReadStreamWrapper {
-    async fn ensure_open(&mut self) -> PyResult<()> {
+impl StreamState {
+    /// start reading the next chunk in the background (`Idle` -> `Reading`)
+    fn read_ahead(self, read_size: usize) -> Self {
         match self {
-            Self::Unbuffered(_) | Self::Buffered(_) => Ok(()),
-            Self::Closed(options) => {
-                let file = File::open(&options.path)
-                    .await
-                    .map_py_io_err_with_path(&options.path)?;
-                if options.strict {
-                    let meta = file
-                        .metadata()
-                        .await
-                        .map_py_io_err_with_path(&options.path)?;
-                    let len = meta.len();
-                    if options.offset > len {
-                        return py_value_err!(
-                            "offset ({}) is beyond end of file (len = {})",
-                            options.offset,
-                            len
-                        );
+            Self::Idle(mut file) => {
+                Self::Reading(get_ry_tokio_runtime().py_spawn_blocking(move || {
+                    let chunk = file.read(read_size);
+                    ChunkRead { file, chunk }
+                }))
+            }
+            other => other,
+        }
+    }
+
+    /// read ahead unless the buffer already has the next chunk
+    fn prefetch(&mut self, read_size: usize) {
+        if let Self::Idle(file) = self
+            && file.buffered_len() < read_size
+        {
+            *self = mem::take(self).read_ahead(read_size);
+        }
+    }
+
+    async fn ensure_open(&mut self, options: &Arc<FileReadStreamOptions>) -> PyResult<()> {
+        if matches!(self, Self::Closed) {
+            let options = Arc::clone(options);
+            let file = get_ry_tokio_runtime()
+                .py_spawn_blocking(move || options.open())
+                .await??;
+            *self = Self::Idle(file);
+        }
+        Ok(())
+    }
+
+    /// next chunk, `None` at eof
+    ///
+    /// cancel safe: an in-flight read stays in `Reading` for the next call
+    async fn next_chunk(
+        &mut self,
+        options: &Arc<FileReadStreamOptions>,
+    ) -> PyResult<Option<Vec<u8>>> {
+        loop {
+            match self {
+                Self::Closed => self.ensure_open(options).await?,
+                Self::Idle(file) => {
+                    // buffer hit ~ no blocking hop
+                    if let Some(chunk) = file.try_read(options.read_size) {
+                        self.prefetch(options.read_size);
+                        return Ok(Some(chunk));
                     }
+                    *self = mem::take(self).read_ahead(options.read_size);
                 }
-
-                let mut stream = if options.buffered {
-                    Self::Buffered(AsyncFileReadStream::new(
-                        BufReader::new(file),
-                        options.read_size,
-                    ))
-                } else {
-                    Self::Unbuffered(AsyncFileReadStream::new(file, options.read_size))
-                };
-
-                if options.offset > 0 {
-                    match &mut stream {
-                        Self::Unbuffered(s) => s
-                            .seek_to(options.offset)
-                            .await
-                            .map_py_io_err_with_path(&options.path)?,
-                        Self::Buffered(s) => s
-                            .seek_to(options.offset)
-                            .await
-                            .map_py_io_err_with_path(&options.path)?,
-                        Self::Closed(_) => unreachable!(),
+                Self::Reading(read) => {
+                    let ChunkRead { file, chunk } = match read.await {
+                        Ok(done) => done,
+                        Err(e) => {
+                            *self = Self::Closed;
+                            return Err(e);
+                        }
                     };
+                    *self = Self::Idle(file);
+                    let chunk = chunk?;
+                    if chunk.is_empty() {
+                        return Ok(None);
+                    }
+                    self.prefetch(options.read_size);
+                    return Ok(Some(chunk));
                 }
-                *self = stream;
-                Ok(())
             }
         }
     }
-
-    async fn next_chunk(&mut self) -> io::Result<Option<Bytes>> {
-        match self {
-            Self::Unbuffered(s) => s.next_chunk().await,
-            Self::Buffered(s) => s.next_chunk().await,
-            Self::Closed(_) => Err(io::Error::other("Stream not opened")),
-        }
-    }
 }
-
-impl AsyncFileReadStreamWrapper {}
 
 #[pyclass(name = "AsyncFileReadStream", frozen, immutable_type, eq)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct PyAsyncFileReadStream {
-    options: Arc<PyFileReadStreamOptions>,
-    inner: Arc<Mutex<AsyncFileReadStreamWrapper>>,
+    options: Arc<FileReadStreamOptions>,
+    state: Arc<Mutex<StreamState>>,
 }
 
 impl PartialEq for PyAsyncFileReadStream {
@@ -143,25 +122,27 @@ impl PyAsyncFileReadStream {
         py: Python<'py>,
         qualname: &'static str,
     ) -> PyResult<Bound<'py, RyCoroutine>> {
-        tokio_coro(py, qualname, async move {
+        let (state, options) = {
             let this = slf.get();
-            let mut guard = this.inner.lock().await;
-            guard.ensure_open().await?;
-            drop(guard);
+            (Arc::clone(&this.state), Arc::clone(&this.options))
+        };
+        pyloop_coro(py, qualname, async move {
+            state.lock().await.ensure_open(&options).await?;
             Ok(slf)
         })
     }
 
-    /// back to `Closed`
+    /// State transition back to `Closed`
+    ///
+    /// NOTE: in-flight read finishes and closes
     fn close_coro<'py>(
         &self,
         py: Python<'py>,
         qualname: &'static str,
     ) -> PyResult<Bound<'py, RyCoroutine>> {
-        let inner = Arc::clone(&self.inner);
-        let options = Arc::clone(&self.options);
+        let state = Arc::clone(&self.state);
         pyloop_coro(py, qualname, async move {
-            *inner.lock().await = AsyncFileReadStreamWrapper::Closed(options);
+            *state.lock().await = StreamState::Closed;
             Ok(())
         })
     }
@@ -181,21 +162,16 @@ impl PyAsyncFileReadStream {
         if read_size == 0 {
             return py_value_err!("read_size must be greater than 0");
         }
-        let options = PyFileReadStreamOptions {
+        let opts = FileReadStreamOptions {
             strict,
             path,
             read_size,
             offset,
             buffered,
         };
-        let arc_options = Arc::new(options);
-
-        let inner = Arc::new(Mutex::new(AsyncFileReadStreamWrapper::Closed(
-            arc_options.clone(),
-        )));
         Ok(Self {
-            options: arc_options,
-            inner,
+            options: Arc::new(opts),
+            state: Arc::new(Mutex::new(StreamState::Closed)),
         })
     }
 
@@ -221,46 +197,43 @@ impl PyAsyncFileReadStream {
         slf
     }
 
+    #[expect(clippy::single_match_else, reason = "actually cleaner")]
     fn __anext__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, RyCoroutine>> {
-        let inner = Arc::clone(&self.inner);
-        tokio_coro(py, "AsyncFileReadStream.__anext__", async move {
-            let mut guard = inner.lock().await;
-            guard.ensure_open().await?;
-            match guard.next_chunk().await {
-                Ok(Some(bytes)) => Ok(RyBytes::from(bytes)),
-                Ok(None) => py_stop_async_iteration_err!("stream exhausted"),
-                Err(e) => Err(e.into()),
+        let (state, options) = (Arc::clone(&self.state), Arc::clone(&self.options));
+        pyloop_coro(py, "AsyncFileReadStream.__anext__", async move {
+            match state.lock().await.next_chunk(&options).await? {
+                Some(chunk) => Ok(RyBytes::from(chunk)),
+                None => py_stop_async_iteration_err!("stream exhausted"),
             }
         })
     }
 
     #[pyo3(signature = (n = 1))]
     fn take<'py>(&self, py: Python<'py>, n: usize) -> PyResult<Bound<'py, RyCoroutine>> {
-        let inner = Arc::clone(&self.inner);
-        tokio_coro(py, "AsyncFileReadStream.take", async move {
-            let mut guard = inner.lock().await;
-            guard.ensure_open().await?;
-            let mut result = Vec::new();
-            for _ in 0..n {
-                match guard.next_chunk().await? {
-                    Some(b) => result.push(RyBytes::from(b)),
-                    None => break,
-                }
+        let (state, options) = (Arc::clone(&self.state), Arc::clone(&self.options));
+        pyloop_coro(py, "AsyncFileReadStream.take", async move {
+            let mut state = state.lock().await;
+            // open even for `take(0)` so a bad path still raises (like before)
+            state.ensure_open(&options).await?;
+            let mut chunks = Vec::new();
+            while chunks.len() < n
+                && let Some(chunk) = state.next_chunk(&options).await?
+            {
+                chunks.push(RyBytes::from(chunk));
             }
-            Ok(result)
+            Ok(chunks)
         })
     }
 
     fn collect<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, RyCoroutine>> {
-        let inner = Arc::clone(&self.inner);
-        tokio_coro(py, "AsyncFileReadStream.collect", async move {
-            let mut guard = inner.lock().await;
-            guard.ensure_open().await?;
-            let mut result = Vec::new();
-            while let Ok(Some(b)) = guard.next_chunk().await {
-                result.push(RyBytes::from(b));
+        let (state, options) = (Arc::clone(&self.state), Arc::clone(&self.options));
+        pyloop_coro(py, "AsyncFileReadStream.collect", async move {
+            let mut state = state.lock().await;
+            let mut chunks = Vec::new();
+            while let Some(chunk) = state.next_chunk(&options).await? {
+                chunks.push(RyBytes::from(chunk));
             }
-            Ok(result)
+            Ok(chunks)
         })
     }
 
@@ -273,24 +246,8 @@ impl PyAsyncFileReadStream {
     }
 }
 
-impl std::fmt::Display for PyAsyncFileReadStream {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "AsyncFileReadStream(")?;
-        write!(f, "path='{}'", self.options.path.display())?;
-        write!(f, ", read_size={}", self.options.read_size)?;
-        if self.options.offset != 0 {
-            write!(f, ", offset={}", self.options.offset)?;
-        }
-        if self.options.buffered {
-            write!(f, ", buffered=True")?;
-        } else {
-            write!(f, ", buffered=False")?;
-        }
-        if self.options.strict {
-            write!(f, ", strict=True")?;
-        } else {
-            write!(f, ", strict=False")?;
-        }
-        write!(f, ")")
+impl fmt::Display for PyAsyncFileReadStream {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "AsyncFileReadStream({})", self.options)
     }
 }

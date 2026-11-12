@@ -240,3 +240,24 @@ class TestFileReadStreamErrors:
         """Test that read_size of zero raises ValueError."""
         with pytest.raises(ValueError, match="read_size must be greater than 0"):
             _rs = ry.read_stream(_THIS_FILEPATH_ABSOLUTE, read_size=0)
+
+
+def test_read_stream_collect_raises_io_errors(tmp_path: Path) -> None:
+    # used to swallow errors + return the chunks so far as if eof
+    with pytest.raises(OSError):  # noqa: PT011
+        ry.read_stream(tmp_path, read_size=10).collect()
+
+
+@pytest.mark.parametrize("buffered", [True, False])
+@pytest.mark.parametrize("read_size", [1, 7, 4096, 65_536, 200_000])
+def test_read_stream_sizes(tmp_path: Path, read_size: int, *, buffered: bool) -> None:
+    p = tmp_path / "f.bin"
+    data = bytes(range(256)) * (1200 if read_size >= 4096 else 40)
+    p.write_bytes(data)
+    chunks = ry.read_stream(p, read_size=read_size, buffered=buffered).collect()
+    assert b"".join(chunks) == data
+    assert all(len(c) == read_size for c in chunks[:-1])
+    stream = ry.read_stream(p, read_size=read_size, buffered=buffered, offset=3)
+    assert b"".join(stream.take(3)) == data[3 : 3 + 3 * read_size]
+    stream.close()
+    assert next(stream) == data[3 : 3 + read_size]

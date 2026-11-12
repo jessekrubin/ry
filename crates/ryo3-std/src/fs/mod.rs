@@ -1,3 +1,4 @@
+mod buffered_file;
 mod file_read_stream;
 mod file_type;
 use std::convert::Into;
@@ -6,6 +7,8 @@ use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 use std::time::SystemTime;
 
+pub use buffered_file::{BUF_SIZE, BufferedFile};
+pub use file_read_stream::FileReadStreamOptions;
 pub use file_type::PyFileType;
 use pyo3::exceptions::PyRuntimeError;
 use pyo3::prelude::*;

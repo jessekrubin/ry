@@ -7,7 +7,7 @@ use std::hash::{Hash, Hasher};
 use pyo3::IntoPyObjectExt;
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyInt, PyString, PyTuple};
-use sqlformat::{self, QueryParams};
+use sqlformat::QueryParams;
 
 #[pyclass(name = "SqlfmtQueryParams", frozen, immutable_type, eq)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]

@@ -336,3 +336,51 @@ class TestAsyncFileReadStreamCoroutines:
         with pytest.raises(asyncio.CancelledError):
             await task
         assert len(await asyncio.wait_for(stream.take(1), timeout=5)) == 1
+
+
+async def test_read_stream_collect_raises_io_errors(tmp_path: Path) -> None:
+    with pytest.raises(OSError):  # noqa: PT011
+        await ry.read_stream_async(tmp_path, read_size=10).collect()
+
+
+async def test_read_stream_cancelled_next_keeps_order(tmp_path: Path) -> None:
+    p = tmp_path / "f.bin"
+    data = bytes(range(256)) * 4096
+    p.write_bytes(data)
+    stream = ry.read_stream_async(p, read_size=4096)
+    got = bytearray()
+    for _ in range(20):
+        task = asyncio.ensure_future(anext(stream))
+        await asyncio.sleep(0)
+        task.cancel()
+        res = await asyncio.gather(task, return_exceptions=True)
+        if isinstance(res[0], ry.Bytes):
+            got += res[0]
+        got += await anext(stream)
+    got += b"".join(await stream.collect())
+    assert bytes(got) == data
+
+
+@pytest.mark.parametrize("buffered", [True, False])
+@pytest.mark.parametrize("read_size", [1, 7, 4096, 65_536, 200_000])
+async def test_read_stream_sizes(
+    tmp_path: Path, read_size: int, *, buffered: bool
+) -> None:
+    p = tmp_path / "f.bin"
+    # > 2 buffers for the big sizes; tiny sizes just need a few buffer hits
+    data = bytes(range(256)) * (1200 if read_size >= 4096 else 40)
+    p.write_bytes(data)
+    chunks = await ry.read_stream_async(
+        p, read_size=read_size, buffered=buffered
+    ).collect()
+    assert b"".join(chunks) == data
+    assert all(len(c) == read_size for c in chunks[:-1])
+    taken = await ry.read_stream_async(
+        p, read_size=read_size, buffered=buffered, offset=3
+    ).take(3)
+    assert b"".join(taken) == data[3 : 3 + 3 * read_size]
+
+
+async def test_read_stream_take_zero_still_opens(tmp_path: Path) -> None:
+    with pytest.raises(FileNotFoundError):
+        await ry.read_stream_async(tmp_path / "nope", read_size=10).take(0)
