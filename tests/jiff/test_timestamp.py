@@ -439,17 +439,17 @@ class TestFromAnyRaises4Numbers:
     @pytest.mark.parametrize("value", [0, 1700000000, 1700000000.5, True])
     def test_timestamp(self, value: t.Any) -> None:
         with pytest.raises(TypeError):
-            ry.Timestamp.from_any(value)  # type: ignore[attr-defined]  # ty:ignore[unresolved-attribute]
+            ry.Timestamp.from_any(value)  # type: ignore[attr-defined]  # ty:ignore[missing-attribute]
 
     @pytest.mark.parametrize("value", [0, 1700000000, 1700000000.5, True])
     def test_zoned(self, value: t.Any) -> None:
         with pytest.raises(TypeError):
-            ry.ZonedDateTime.from_any(value)  # type: ignore[attr-defined]  # ty:ignore[unresolved-attribute]
+            ry.ZonedDateTime.from_any(value)  # type: ignore[attr-defined]  # ty:ignore[missing-attribute]
 
     @pytest.mark.parametrize("value", [0, 1700000000, 1700000000.5, True])
     def test_datetime(self, value: t.Any) -> None:
         with pytest.raises(TypeError):
-            ry.DateTime.from_any(value)  # type: ignore[attr-defined]  # ty:ignore[unresolved-attribute]
+            ry.DateTime.from_any(value)  # type: ignore[attr-defined]  # ty:ignore[missing-attribute]
 
     @pytest.mark.parametrize(
         "ctor", ["from_millisecond", "from_microsecond", "from_nanosecond"]
