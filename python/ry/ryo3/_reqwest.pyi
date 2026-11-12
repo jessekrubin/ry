@@ -701,11 +701,6 @@ class Proxy:
 # =============================================================================
 # MULTIPART
 # =============================================================================
-class _FormPartKwargs(t.TypedDict, total=False):
-    filename: str | None
-    mime: str | None
-    headers: Headers | dict[str, str] | None
-
 @t.final
 class FormPart:
     """A multipart/form-data part w/ options (filename, mime, headers)
@@ -719,7 +714,10 @@ class FormPart:
         cls,
         value: _FormValue,
         /,
-        **kwargs: Unpack[_FormPartKwargs],
+        *,
+        filename: str | None = None,
+        mime: str | None = None,
+        headers: Headers | dict[str, str] | None = None,
     ) -> t.Self: ...
     @property
     def value(self) -> str | ry.Bytes | Path: ...
@@ -760,14 +758,20 @@ class FormData:
         name: str,
         value: _FormValue,
         /,
-        **kwargs: Unpack[_FormPartKwargs],
+        *,
+        filename: str | None = None,
+        mime: str | None = None,
+        headers: Headers | dict[str, str] | None = None,
     ) -> None: ...
     def set(
         self,
         name: str,
         value: _FormValue,
         /,
-        **kwargs: Unpack[_FormPartKwargs],
+        *,
+        filename: str | None = None,
+        mime: str | None = None,
+        headers: Headers | dict[str, str] | None = None,
     ) -> None: ...
     def delete(self, name: str) -> None: ...
     def extend(self, other: _FormDataLike, /) -> None: ...
@@ -785,8 +789,8 @@ class FormData:
     def __len__(self) -> int: ...
     def __contains__(self, name: object, /) -> bool: ...
     def __iter__(self) -> t.Iterator[str]: ...
-    def __getitem__(self, name: str) -> str | FormPart: ...
-    def __setitem__(self, name: str, value: _FormValue) -> None: ...
-    def __delitem__(self, name: str) -> None: ...
+    def __getitem__(self, name: str, /) -> str | FormPart: ...
+    def __setitem__(self, name: str, value: _FormValue, /) -> None: ...
+    def __delitem__(self, name: str, /) -> None: ...
     def __eq__(self, other: object, /) -> bool: ...
     def __ne__(self, other: object, /) -> bool: ...
