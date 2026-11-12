@@ -68,9 +68,12 @@ impl AsyncFileReadStreamWrapper {
             Self::Closed(options) => {
                 let file = File::open(&options.path)
                     .await
-                    .map_py_io_err(&options.path)?;
+                    .map_py_io_err_with_path(&options.path)?;
                 if options.strict {
-                    let meta = file.metadata().await.map_py_io_err(&options.path)?;
+                    let meta = file
+                        .metadata()
+                        .await
+                        .map_py_io_err_with_path(&options.path)?;
                     let len = meta.len();
                     if options.offset > len {
                         return py_value_err!(
@@ -95,11 +98,11 @@ impl AsyncFileReadStreamWrapper {
                         Self::Unbuffered(s) => s
                             .seek_to(options.offset)
                             .await
-                            .map_py_io_err(&options.path)?,
+                            .map_py_io_err_with_path(&options.path)?,
                         Self::Buffered(s) => s
                             .seek_to(options.offset)
                             .await
-                            .map_py_io_err(&options.path)?,
+                            .map_py_io_err_with_path(&options.path)?,
                         Self::Closed(_) => unreachable!(),
                     };
                 }

@@ -74,8 +74,11 @@ impl FileReadStreamWrapper {
         match self {
             Self::Unbuffered(_) | Self::Buffered(_) => Ok(()),
             Self::Closed(options) => {
-                let file = File::open(&options.path).map_py_io_err(&options.path)?;
-                let len = file.metadata().map_py_io_err(&options.path)?.len();
+                let file = File::open(&options.path).map_py_io_err_with_path(&options.path)?;
+                let len = file
+                    .metadata()
+                    .map_py_io_err_with_path(&options.path)?
+                    .len();
 
                 if options.strict && options.offset > len {
                     return py_value_err!(
@@ -88,12 +91,12 @@ impl FileReadStreamWrapper {
                 let mut stream = if options.buffered {
                     Self::Buffered(
                         FileReadStream::from_path_buffered(&options.path, options.read_size)
-                            .map_py_io_err(&options.path)?,
+                            .map_py_io_err_with_path(&options.path)?,
                     )
                 } else {
                     Self::Unbuffered(
                         FileReadStream::from_path(&options.path, options.read_size)
-                            .map_py_io_err(&options.path)?,
+                            .map_py_io_err_with_path(&options.path)?,
                     )
                 };
 

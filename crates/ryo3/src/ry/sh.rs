@@ -10,9 +10,10 @@ use ryo3_fspath::PyFsPath;
 /// Change the current working directory to the specified path
 #[pyfunction]
 pub fn cd(path: PathLike) -> PyResult<()> {
-    std::env::set_current_dir(&path).map_py_io_err(path)
+    std::env::set_current_dir(&path).map_py_io_err_with_path(path)
 }
 
+// TODO: use `dtype` pattern for return type here
 /// List the contents of the specified directory as a `Vec<String>`
 #[pyfunction]
 #[pyo3(signature = (path = None, *, absolute = false, sort = false, objects = false))]
@@ -29,7 +30,7 @@ pub fn ls(
         let pwd = pwd()?;
         PathLike::Str(pwd)
     };
-    let entries = read_dir(&p).map_py_io_err(p)?;
+    let entries = read_dir(&p).map_py_io_err_with_path(p)?;
 
     let mut v = if absolute {
         entries
@@ -76,13 +77,13 @@ pub fn mkdir(path: PathLike, exist_ok: bool, recursive: bool) -> PyResult<()> {
     };
     match result {
         Err(e) if exist_ok && e.kind() == std::io::ErrorKind::AlreadyExists => Ok(()),
-        res => res.map_py_io_err(path),
+        res => res.map_py_io_err_with_path(path),
     }
 }
 
 #[pyfunction]
 pub fn mkdirp(path: PathLike) -> PyResult<()> {
-    std::fs::create_dir_all(&path).map_py_io_err(path)
+    std::fs::create_dir_all(&path).map_py_io_err_with_path(path)
 }
 
 #[pyfunction]

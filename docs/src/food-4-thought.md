@@ -4,6 +4,30 @@ thinking out loud...
 
 ---
 
+## `FormData` [2026-11-09]
+
+I have been trying to add multipart form data to ry's `reqwest` bindings for
+some time now... Every draft of multi-part form data has **felt** bad and I end
+up scrapping it.
+
+Why has it been hard:
+
+- Figuring out an API design that **feels** right has been challenging (I have
+  taken several stabs at it).
+- The need to support both python-native types and `#[pyclass]` types
+  complicates the API design, given that there are so many conceivable types
+  that would need to be parsed.
+- I haven't personally needed multipart form support (until recently).
+- The `mime_guess` crate adds a 200kb-ish lut to the binary, which I don't
+  like, so `ry` uses python's `mimetypes` instead (reqwest only touches
+  `mime_guess` in `Part::file`, which `ry` doesn't use, so the lut gets LTO-ed
+  out).
+
+**BUT**, now (as of 2026-11-09) I need multipart form support, so it is here,
+and I am not happy with it still.
+
+---
+
 ## `ryo3-bzip2` deprecated [2026-10-30]
 
 The `ryo3-bzip2` crate has been deprecated (removal `v0.0.109`).
