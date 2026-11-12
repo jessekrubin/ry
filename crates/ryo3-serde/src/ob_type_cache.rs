@@ -157,7 +157,7 @@ impl PyTypeCache {
             // URL
             // ----------------------------------------------------------------
             #[cfg(feature = "ryo3-url")]
-            ry_url: ryo3_url::PyUrl::type_object_raw(py) as usize,
+            ry_url: ryo3_url::RyUrl::type_object_raw(py) as usize,
             // ----------------------------------------------------------------
             // HTTP
             // ----------------------------------------------------------------

@@ -10,7 +10,7 @@ use ryo3_http::{PyHeaders, PyHttpStatus, PyHttpVersion, status_code_pystring};
 use ryo3_macro_rules::pytodo;
 use ryo3_std::net::PySocketAddr;
 use ryo3_tokio_rt::{RyCoroutine, done_coro, failed_coro, get_tokio_runtime, tokio_coro};
-use ryo3_url::PyUrl;
+use ryo3_url::RyUrl;
 
 use crate::charset::PyEncoding;
 use crate::errors::map_reqwest_err;
@@ -291,7 +291,7 @@ impl RyResponse {
 
     #[getter]
     #[pyo3(name = "url")]
-    fn url(&self) -> PyUrl {
+    fn url(&self) -> RyUrl {
         self.head.py_url()
     }
 
@@ -512,7 +512,7 @@ impl RyBlockingResponse {
 
     #[getter]
     #[pyo3(name = "url")]
-    fn url(&self) -> PyUrl {
+    fn url(&self) -> RyUrl {
         self.head.py_url()
     }
 

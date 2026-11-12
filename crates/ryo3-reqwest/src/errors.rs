@@ -3,7 +3,7 @@ use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyTuple};
 use ryo3_core::sync::RyMutex;
 use ryo3_http::PyHttpStatus;
-use ryo3_url::PyUrl;
+use ryo3_url::RyUrl;
 
 /// macro for crate use only to return `Response already consumed` error
 #[macro_export]
@@ -119,15 +119,15 @@ impl RyReqwestError {
         }
     }
 
-    fn url(&self) -> Option<PyUrl> {
+    fn url(&self) -> Option<RyUrl> {
         if let Some(e) = &(*self.0.py_lock()) {
-            e.url().map(|url| PyUrl::new(url.clone()))
+            e.url().map(|url| RyUrl::new(url.clone()))
         } else {
             None
         }
     }
 
-    fn with_url<'py>(slf: PyRef<'py, Self>, url: &PyUrl) -> PyRef<'py, Self> {
+    fn with_url<'py>(slf: PyRef<'py, Self>, url: &RyUrl) -> PyRef<'py, Self> {
         // take the error
         let err = slf.0.py_lock().take();
         if let Some(e) = err {

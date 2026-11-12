@@ -5,7 +5,7 @@ use reqwest::StatusCode;
 use reqwest::header::CONTENT_TYPE;
 use ryo3_cookie::PyCookie;
 use ryo3_core::sync::RyRwLock;
-use ryo3_url::PyUrl;
+use ryo3_url::RyUrl;
 
 use crate::charset::PyEncoding;
 
@@ -27,8 +27,8 @@ pub(crate) struct RyResponseHead {
 }
 
 impl RyResponseHead {
-    pub(crate) fn py_url(&self) -> PyUrl {
-        PyUrl::from((*self.url).clone())
+    pub(crate) fn py_url(&self) -> RyUrl {
+        RyUrl::from((*self.url).clone())
     }
 
     /// 4xx/5xx -> `reqwest::Error` (only `reqwest::Response` can make one)

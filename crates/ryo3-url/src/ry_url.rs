@@ -15,9 +15,9 @@ use crate::UrlLike;
 #[cfg_attr(feature = "serde", derive(serde::Serialize), serde(transparent))]
 #[pyclass(name = "URL", frozen, immutable_type, eq, ord)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
-pub struct PyUrl(pub(crate) url::Url);
+pub struct RyUrl(pub(crate) url::Url);
 
-impl PyUrl {
+impl RyUrl {
     #[must_use]
     pub fn new(url: url::Url) -> Self {
         Self(url)
@@ -25,18 +25,18 @@ impl PyUrl {
 }
 
 #[cfg(feature = "serde")]
-impl<'de> serde::Deserialize<'de> for PyUrl {
+impl<'de> serde::Deserialize<'de> for RyUrl {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: serde::Deserializer<'de>,
     {
-        url::Url::deserialize(deserializer).map(PyUrl)
+        url::Url::deserialize(deserializer).map(RyUrl)
     }
 }
 
 type StrArg<'a, 'py> = PyOperandArg<Borrowed<'a, 'py, PyString>>;
 
-impl PyUrl {
+impl RyUrl {
     fn try_join(&self, other: &str) -> PyResult<Self> {
         self.0
             .join(other)
@@ -46,7 +46,7 @@ impl PyUrl {
 }
 
 #[pymethods]
-impl PyUrl {
+impl RyUrl {
     #[new]
     #[pyo3(signature = (url, *, params = None))]
     fn py_new(url: UrlLike, params: Option<&Bound<'_, PyDict>>) -> PyResult<Self> {
@@ -488,35 +488,35 @@ impl PyUrl {
     }
 }
 
-impl FromStr for PyUrl {
+impl FromStr for RyUrl {
     type Err = url::ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        url::Url::parse(s).map(PyUrl)
+        url::Url::parse(s).map(RyUrl)
     }
 }
 
-impl AsRef<url::Url> for PyUrl {
+impl AsRef<url::Url> for RyUrl {
     fn as_ref(&self) -> &url::Url {
         &self.0
     }
 }
 
-impl From<url::Url> for PyUrl {
+impl From<url::Url> for RyUrl {
     #[inline]
     fn from(url: url::Url) -> Self {
         Self(url)
     }
 }
 
-impl std::fmt::Display for PyUrl {
+impl std::fmt::Display for RyUrl {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "URL(\'{}\')", self.0.as_str())
     }
 }
 
 #[cfg(feature = "pydantic")]
-impl ryo3_pydantic::GetPydanticCoreSchemaCls for PyUrl {
+impl ryo3_pydantic::GetPydanticCoreSchemaCls for RyUrl {
     fn get_pydantic_core_schema<'py>(
         cls: &Bound<'py, pyo3::types::PyType>,
         source: &Bound<'py, PyAny>,
