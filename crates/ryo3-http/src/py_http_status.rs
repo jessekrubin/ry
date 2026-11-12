@@ -177,7 +177,8 @@ impl PyHttpStatus {
 
     #[cfg(feature = "pydantic")]
     #[staticmethod]
-    fn _pydantic_validate<'py>(value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, PyAny>> {
+    #[pyo3(name = "_pydantic_validate")]
+    fn py_pydantic_validate<'py>(value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, PyAny>> {
         let py = value.py();
         if let Ok(status) = value.cast_exact::<Self>() {
             Ok(status.clone().into_any())
@@ -199,7 +200,8 @@ impl PyHttpStatus {
     }
 
     #[cfg(feature = "pydantic")]
-    fn _pydantic_serialize(&self) -> u16 {
+    #[pyo3(name = "_pydantic_serialize")]
+    fn py_pydantic_serialize(&self) -> u16 {
         self.0.as_u16()
     }
 

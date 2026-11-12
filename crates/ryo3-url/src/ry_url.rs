@@ -444,7 +444,8 @@ impl RyUrl {
     // ========================================================================
     #[cfg(feature = "pydantic")]
     #[staticmethod]
-    fn _pydantic_validate<'py>(value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, PyAny>> {
+    #[pyo3(name = "_pydantic_validate")]
+    fn py_pydantic_validate<'py>(value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, PyAny>> {
         use pyo3::IntoPyObjectExt;
         use ryo3_macro_rules::{py_value_err, py_value_error};
         if let Ok(url) = value.cast_exact::<Self>() {

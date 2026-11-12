@@ -707,7 +707,7 @@ impl PyHexFormatter {
         let sep_count = if num_bytes == 0 {
             0
         } else if let Some(group_size) = NonZeroUsize::new(self.bytes_per_sep) {
-            (num_bytes - 1) / group_size.get()
+            (num_bytes - 1) / group_size
         } else {
             0
         };

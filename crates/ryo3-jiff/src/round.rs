@@ -178,14 +178,17 @@ impl RyDateTimeRound {
         Self::from(options)
     }
 
+    #[expect(clippy::used_underscore_items, reason = "python-private-method")]
     fn _smallest(&self, unit: JiffUnit) -> Self {
         self.replace(Some(unit), None, None)
     }
 
+    #[expect(clippy::used_underscore_items, reason = "python-private-method")]
     fn _mode(&self, mode: JiffRoundMode) -> Self {
         self.replace(None, Some(mode), None)
     }
 
+    #[expect(clippy::used_underscore_items, reason = "python-private-method")]
     fn _increment(&self, increment: i64) -> Self {
         self.replace(None, None, Some(increment))
     }
@@ -290,14 +293,17 @@ impl RySignedDurationRound {
         }
     }
 
+    #[expect(clippy::used_underscore_items, reason = "python-private-method")]
     fn _smallest(&self, unit: JiffUnit) -> Self {
         self.replace(Some(unit), None, None)
     }
 
+    #[expect(clippy::used_underscore_items, reason = "python-private-method")]
     fn _mode(&self, mode: JiffRoundMode) -> Self {
         self.replace(None, Some(mode), None)
     }
 
+    #[expect(clippy::used_underscore_items, reason = "python-private-method")]
     fn _increment(&self, increment: i64) -> Self {
         self.replace(None, None, Some(increment))
     }
@@ -402,14 +408,17 @@ impl RyTimeRound {
         }
     }
 
+    #[expect(clippy::used_underscore_items, reason = "python-private-method")]
     fn _smallest(&self, unit: JiffUnit) -> Self {
         self.replace(Some(unit), None, None)
     }
 
+    #[expect(clippy::used_underscore_items, reason = "python-private-method")]
     fn _mode(&self, mode: JiffRoundMode) -> Self {
         self.replace(None, Some(mode), None)
     }
 
+    #[expect(clippy::used_underscore_items, reason = "python-private-method")]
     fn _increment(&self, increment: i64) -> Self {
         self.replace(None, None, Some(increment))
     }
@@ -517,14 +526,17 @@ impl RyTimestampRound {
         Self::from(options)
     }
 
+    #[expect(clippy::used_underscore_items, reason = "python-private-method")]
     fn _smallest(&self, unit: JiffUnit) -> Self {
         self.replace(Some(unit), None, None)
     }
 
+    #[expect(clippy::used_underscore_items, reason = "python-private-method")]
     fn _mode(&self, mode: JiffRoundMode) -> Self {
         self.replace(None, Some(mode), None)
     }
 
+    #[expect(clippy::used_underscore_items, reason = "python-private-method")]
     fn _increment(&self, increment: i64) -> Self {
         self.replace(None, None, Some(increment))
     }
@@ -631,14 +643,17 @@ impl RyZonedDateTimeRound {
         Self::from(options)
     }
 
+    #[expect(clippy::used_underscore_items, reason = "python-private-method")]
     fn _smallest(&self, unit: JiffUnit) -> Self {
         self.replace(Some(unit), None, None)
     }
 
+    #[expect(clippy::used_underscore_items, reason = "python-private-method")]
     fn _mode(&self, mode: JiffRoundMode) -> Self {
         self.replace(None, Some(mode), None)
     }
 
+    #[expect(clippy::used_underscore_items, reason = "python-private-method")]
     fn _increment(&self, increment: i64) -> Self {
         self.replace(None, None, Some(increment))
     }
@@ -743,14 +758,17 @@ impl RyOffsetRound {
         }
     }
 
+    #[expect(clippy::used_underscore_items, reason = "python-private-method")]
     fn _smallest(&self, unit: JiffUnit) -> Self {
         self.replace(Some(unit), None, None)
     }
 
+    #[expect(clippy::used_underscore_items, reason = "python-private-method")]
     fn _mode(&self, mode: JiffRoundMode) -> Self {
         self.replace(None, Some(mode), None)
     }
 
+    #[expect(clippy::used_underscore_items, reason = "python-private-method")]
     fn _increment(&self, increment: i64) -> Self {
         self.replace(None, None, Some(increment))
     }

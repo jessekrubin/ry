@@ -185,6 +185,7 @@ impl RyDateDifference {
         self.options.increment
     }
 
+    #[expect(clippy::used_underscore_items, reason = "python-private-method")]
     fn _smallest(&self, unit: JiffUnit) -> Self {
         Self {
             options: DifferenceOptions {
@@ -196,6 +197,7 @@ impl RyDateDifference {
         }
     }
 
+    #[expect(clippy::used_underscore_items, reason = "python-private-method")]
     fn _largest(&self, unit: JiffUnit) -> Self {
         Self {
             options: DifferenceOptions {
@@ -207,6 +209,7 @@ impl RyDateDifference {
         }
     }
 
+    #[expect(clippy::used_underscore_items, reason = "python-private-method")]
     fn _mode(&self, mode: JiffRoundMode) -> Self {
         Self {
             options: DifferenceOptions {
@@ -218,6 +221,7 @@ impl RyDateDifference {
         }
     }
 
+    #[expect(clippy::used_underscore_items, reason = "python-private-method")]
     fn _increment(&self, increment: i64) -> Self {
         Self {
             options: DifferenceOptions {
@@ -404,6 +408,7 @@ impl RyDateTimeDifference {
         self.options.increment
     }
 
+    #[expect(clippy::used_underscore_items, reason = "python-private-method")]
     fn _smallest(&self, unit: JiffUnit) -> Self {
         Self {
             options: DifferenceOptions {
@@ -415,6 +420,7 @@ impl RyDateTimeDifference {
         }
     }
 
+    #[expect(clippy::used_underscore_items, reason = "python-private-method")]
     fn _largest(&self, unit: JiffUnit) -> Self {
         Self {
             options: DifferenceOptions {
@@ -426,6 +432,7 @@ impl RyDateTimeDifference {
         }
     }
 
+    #[expect(clippy::used_underscore_items, reason = "python-private-method")]
     fn _mode(&self, mode: JiffRoundMode) -> Self {
         Self {
             options: DifferenceOptions {
@@ -437,6 +444,7 @@ impl RyDateTimeDifference {
         }
     }
 
+    #[expect(clippy::used_underscore_items, reason = "python-private-method")]
     fn _increment(&self, increment: i64) -> Self {
         Self {
             options: DifferenceOptions {
@@ -623,6 +631,7 @@ impl RyTimeDifference {
         self.options.increment
     }
 
+    #[expect(clippy::used_underscore_items, reason = "python-private-method")]
     fn _smallest(&self, unit: JiffUnit) -> Self {
         Self {
             options: DifferenceOptions {
@@ -634,6 +643,7 @@ impl RyTimeDifference {
         }
     }
 
+    #[expect(clippy::used_underscore_items, reason = "python-private-method")]
     fn _largest(&self, unit: JiffUnit) -> Self {
         Self {
             options: DifferenceOptions {
@@ -645,6 +655,7 @@ impl RyTimeDifference {
         }
     }
 
+    #[expect(clippy::used_underscore_items, reason = "python-private-method")]
     fn _mode(&self, mode: JiffRoundMode) -> Self {
         Self {
             options: DifferenceOptions {
@@ -656,6 +667,7 @@ impl RyTimeDifference {
         }
     }
 
+    #[expect(clippy::used_underscore_items, reason = "python-private-method")]
     fn _increment(&self, increment: i64) -> Self {
         Self {
             options: DifferenceOptions {
@@ -845,6 +857,7 @@ impl RyTimestampDifference {
         self.options.increment
     }
 
+    #[expect(clippy::used_underscore_items, reason = "python-private-method")]
     fn _smallest(&self, unit: JiffUnit) -> Self {
         Self {
             options: DifferenceOptions {
@@ -856,6 +869,7 @@ impl RyTimestampDifference {
         }
     }
 
+    #[expect(clippy::used_underscore_items, reason = "python-private-method")]
     fn _largest(&self, unit: JiffUnit) -> Self {
         Self {
             options: DifferenceOptions {
@@ -867,6 +881,7 @@ impl RyTimestampDifference {
         }
     }
 
+    #[expect(clippy::used_underscore_items, reason = "python-private-method")]
     fn _mode(&self, mode: JiffRoundMode) -> Self {
         Self {
             options: DifferenceOptions {
@@ -878,6 +893,7 @@ impl RyTimestampDifference {
         }
     }
 
+    #[expect(clippy::used_underscore_items, reason = "python-private-method")]
     fn _increment(&self, increment: i64) -> Self {
         Self {
             options: DifferenceOptions {
@@ -1053,6 +1069,7 @@ impl RyZonedDifference {
         self.options.increment
     }
 
+    #[expect(clippy::used_underscore_items, reason = "python-private-method")]
     fn _smallest(&self, unit: JiffUnit) -> Self {
         Self {
             options: DifferenceOptions {
@@ -1063,6 +1080,7 @@ impl RyZonedDifference {
         }
     }
 
+    #[expect(clippy::used_underscore_items, reason = "python-private-method")]
     fn _largest(&self, unit: JiffUnit) -> Self {
         Self {
             options: DifferenceOptions {
@@ -1073,6 +1091,7 @@ impl RyZonedDifference {
         }
     }
 
+    #[expect(clippy::used_underscore_items, reason = "python-private-method")]
     fn _mode(&self, mode: JiffRoundMode) -> Self {
         Self {
             options: DifferenceOptions {
@@ -1083,6 +1102,7 @@ impl RyZonedDifference {
         }
     }
 
+    #[expect(clippy::used_underscore_items, reason = "python-private-method")]
     fn _increment(&self, increment: i64) -> Self {
         Self {
             options: DifferenceOptions {
