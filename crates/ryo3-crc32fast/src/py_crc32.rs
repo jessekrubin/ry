@@ -149,6 +149,7 @@ impl PyCrc32Fast {
     }
 
     // FUTURE: could possibly add inplace kwarg
+    #[expect(clippy::used_underscore_items, reason = "python-private-method")]
     fn _combine(&self, other: &Self) -> PyResult<Self> {
         self.combine_inner(other)
     }

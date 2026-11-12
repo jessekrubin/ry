@@ -549,6 +549,7 @@ impl RyDate {
             .map_err(map_py_value_err)
     }
 
+    #[expect(clippy::used_underscore_items, reason = "python-private-method")]
     fn _since(&self, other: &RyDateDifference) -> PyResult<RySpan> {
         self.0
             .since(other.diff)
@@ -556,6 +557,7 @@ impl RyDate {
             .map_err(map_py_value_err)
     }
 
+    #[expect(clippy::used_underscore_items, reason = "python-private-method")]
     fn _until(&self, other: &RyDateDifference) -> PyResult<RySpan> {
         self.0
             .until(other.diff)
@@ -614,7 +616,8 @@ impl RyDate {
     /// Try to create a Date from a variety of python objects
     #[cfg(feature = "pydantic")]
     #[staticmethod]
-    fn _pydantic_validate<'py>(value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, Self>> {
+    #[pyo3(name = "_pydantic_validate")]
+    fn py_pydantic_validate<'py>(value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, Self>> {
         Self::from_any(value).map_err(map_py_value_err)
     }
 

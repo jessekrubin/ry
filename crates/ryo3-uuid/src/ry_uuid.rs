@@ -603,6 +603,7 @@ impl RyUuid {
     /// Reseed the rng
     #[staticmethod]
     #[pyo3(name = "_reseed_rng")]
+    #[expect(clippy::used_underscore_items, reason = "python-private-method")]
     fn _py_reseed_rng() -> PyResult<()> {
         Self::reseed_rng()
     }
@@ -633,7 +634,8 @@ impl RyUuid {
     // ========================================================================
     #[cfg(feature = "pydantic")]
     #[staticmethod]
-    fn _pydantic_validate<'py>(value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, Self>> {
+    #[pyo3(name = "_pydantic_validate")]
+    fn py_pydantic_validate<'py>(value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, Self>> {
         use ryo3_core::macros::py_value_error;
         Self::from_any(value).map_err(|e| py_value_error!("UUID validation error: {e}"))
     }

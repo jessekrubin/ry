@@ -409,13 +409,15 @@ impl PyHeaders {
 
     #[cfg(feature = "pydantic")]
     #[staticmethod]
-    fn _pydantic_validate<'py>(value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, Self>> {
+    #[pyo3(name = "_pydantic_validate")]
+    fn py_pydantic_validate<'py>(value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, Self>> {
         use ryo3_core::macros::py_value_error;
         Self::from_any(value).map_err(|e| py_value_error!("Headers validation error: {e}"))
     }
 
     #[cfg(feature = "pydantic")]
-    fn _pydantic_serialize<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
+    #[pyo3(name = "_pydantic_serialize")]
+    fn py_pydantic_serialize<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
         self.py_dict(py)
     }
 

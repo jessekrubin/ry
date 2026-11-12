@@ -240,6 +240,7 @@ impl RyUlid {
     /// Reset the ulid generator
     #[staticmethod]
     #[pyo3(name = "_reset_generator")]
+    #[expect(clippy::used_underscore_items, reason = "python-private-method")]
     fn _py_reset_generator() {
         Self::reset_generator();
     }
@@ -456,7 +457,8 @@ impl RyUlid {
 
     #[cfg(feature = "pydantic")]
     #[classmethod]
-    fn _pydantic_validate<'py>(
+    #[pyo3(name = "_pydantic_validate")]
+    fn py_pydantic_validate<'py>(
         cls: &Bound<'py, pyo3::types::PyType>,
         value: &Bound<'py, pyo3::types::PyAny>,
         handler: &Bound<'py, pyo3::types::PyAny>,
@@ -479,7 +481,8 @@ impl RyUlid {
 
     #[cfg(feature = "pydantic")]
     #[classmethod]
-    fn _pydantic_validate_strict<'py>(
+    #[pyo3(name = "_pydantic_validate_strict")]
+    fn py_pydantic_validate_strict<'py>(
         cls: &Bound<'py, pyo3::types::PyType>,
         value: &Bound<'py, pyo3::types::PyAny>,
         handler: &Bound<'py, pyo3::types::PyAny>,

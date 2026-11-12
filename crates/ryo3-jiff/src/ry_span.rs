@@ -361,6 +361,7 @@ impl RySpan {
     }
 
     #[pyo3(signature = (years, /))]
+    #[expect(clippy::used_underscore_items, reason = "python-private-method")]
     fn _years(&self, years: i64) -> PyResult<Self> {
         self.0
             .try_years(years)
@@ -369,6 +370,7 @@ impl RySpan {
     }
 
     #[pyo3(signature = (months, /))]
+    #[expect(clippy::used_underscore_items, reason = "python-private-method")]
     fn _months(&self, months: i64) -> PyResult<Self> {
         self.0
             .try_months(months)
@@ -377,6 +379,7 @@ impl RySpan {
     }
 
     #[pyo3(signature = (weeks, /))]
+    #[expect(clippy::used_underscore_items, reason = "python-private-method")]
     fn _weeks(&self, weeks: i64) -> PyResult<Self> {
         self.0
             .try_weeks(weeks)
@@ -385,6 +388,7 @@ impl RySpan {
     }
 
     #[pyo3(signature = (days, /))]
+    #[expect(clippy::used_underscore_items, reason = "python-private-method")]
     fn _days(&self, days: i64) -> PyResult<Self> {
         self.0
             .try_days(days)
@@ -393,6 +397,7 @@ impl RySpan {
     }
 
     #[pyo3(signature = (hours, /))]
+    #[expect(clippy::used_underscore_items, reason = "python-private-method")]
     fn _hours(&self, hours: i64) -> PyResult<Self> {
         self.0
             .try_hours(hours)
@@ -401,6 +406,7 @@ impl RySpan {
     }
 
     #[pyo3(signature = (minutes, /))]
+    #[expect(clippy::used_underscore_items, reason = "python-private-method")]
     fn _minutes(&self, minutes: i64) -> PyResult<Self> {
         self.0
             .try_minutes(minutes)
@@ -409,6 +415,7 @@ impl RySpan {
     }
 
     #[pyo3(signature = (seconds, /))]
+    #[expect(clippy::used_underscore_items, reason = "python-private-method")]
     fn _seconds(&self, seconds: i64) -> PyResult<Self> {
         self.0
             .try_seconds(seconds)
@@ -417,6 +424,7 @@ impl RySpan {
     }
 
     #[pyo3(signature = (milliseconds, /))]
+    #[expect(clippy::used_underscore_items, reason = "python-private-method")]
     fn _milliseconds(&self, milliseconds: i64) -> PyResult<Self> {
         self.0
             .try_milliseconds(milliseconds)
@@ -425,6 +433,7 @@ impl RySpan {
     }
 
     #[pyo3(signature = (microseconds, /))]
+    #[expect(clippy::used_underscore_items, reason = "python-private-method")]
     fn _microseconds(&self, microseconds: i64) -> PyResult<Self> {
         self.0
             .try_microseconds(microseconds)
@@ -433,6 +442,7 @@ impl RySpan {
     }
 
     #[pyo3(signature = (nanoseconds, /))]
+    #[expect(clippy::used_underscore_items, reason = "python-private-method")]
     fn _nanoseconds(&self, nanoseconds: i64) -> PyResult<Self> {
         self.0
             .try_nanoseconds(nanoseconds)
@@ -945,7 +955,8 @@ impl RySpan {
 
     #[cfg(feature = "pydantic")]
     #[staticmethod]
-    fn _pydantic_validate<'py>(value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, Self>> {
+    #[pyo3(name = "_pydantic_validate")]
+    fn py_pydantic_validate<'py>(value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, Self>> {
         Self::from_any(value).map_err(map_py_value_err)
     }
 

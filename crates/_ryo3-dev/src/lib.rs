@@ -8,7 +8,6 @@
 #![deny(clippy::style)]
 #![deny(clippy::unwrap_used)]
 #![expect(clippy::missing_errors_doc)]
-#![expect(unused_crate_dependencies)]
 use pyo3::prelude::*;
 
 #[pyfunction]

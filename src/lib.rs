@@ -58,6 +58,7 @@ fn warn_debug_build(py: Python) -> PyResult<()> {
 }
 
 /// build info for `python -m ry` (private; not part of the api)
+#[expect(clippy::used_underscore_items, reason = "python-private-method")]
 #[pyfunction]
 fn _build_info(py: Python<'_>) -> PyResult<Bound<'_, PyDict>> {
     let d = PyDict::new(py);
