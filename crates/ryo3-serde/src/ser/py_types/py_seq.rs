@@ -183,7 +183,7 @@ macro_rules! serialize_seq_element {
             // __URL__
             #[cfg(feature = "ryo3-url")]
             PyObType::RyUrl => {
-                $seq.serialize_element(&ry_types::PyUrlSerializer::new_unchecked($element))?;
+                $seq.serialize_element(&ry_types::RyUrlSerializer::new_unchecked($element))?;
             }
             // __UUID__
             #[cfg(feature = "ryo3-uuid")]

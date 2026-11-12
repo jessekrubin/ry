@@ -13,7 +13,8 @@ use crate::UrlLike;
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize), serde(transparent))]
-#[pyclass(name = "URL", frozen, immutable_type, eq, ord)]
+#[pyclass(name = "URL", frozen, eq, ord)]
+#[cfg_attr(any(not(Py_LIMITED_API), Py_3_14), pyo3(immutable_type))]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyUrl(pub(crate) url::Url);
 
@@ -576,8 +577,6 @@ fn extract_ip_host(address: &Bound<'_, PyAny>) -> PyResult<IpAddr> {
         .ok_or_else(|| py_type_error!("Expected ipaddress.IPv4Address or ipaddress.IPv6Address",))
 }
 
-/// `replace` kwarg: omitted/`...` -> `Keep`, value -> `Set(Some(v))`,
-/// `None` -> `Set(None)` if `NULLABLE` else a `TypeError` at extraction
 #[derive(Clone, Copy)]
 enum ReplaceKwarg<T, const NULLABLE: bool = true> {
     Keep,
@@ -587,7 +586,7 @@ enum ReplaceKwarg<T, const NULLABLE: bool = true> {
 type ReplaceKwargNonNullable<T> = ReplaceKwarg<T, false>;
 
 impl<T> ReplaceKwarg<T, false> {
-    /// non-nullable never holds `Set(None)` so this is just keep-or-value
+    /// non-nullable never holds `Set(None)`
     fn into_option(self) -> Option<T> {
         match self {
             Self::Keep => None,
@@ -609,11 +608,9 @@ where
             if NULLABLE {
                 Ok(Self::Set(None))
             } else {
-                // pyo3 adds a "while processing '<name>'" note w/ the kwarg name
                 py_type_err!("cannot be None")
             }
         } else if ob.is(PyEllipsis::get(ob.py())) {
-            // explicit `...` == omitted (it's the default `inspect` shows)
             Ok(Self::Keep)
         } else {
             T::extract(ob)
@@ -624,45 +621,6 @@ where
 }
 
 struct PyUrlHost<'a>(url::Host<&'a str>);
-
-/// what `host=` takes: a str (parsed later by `set_host`, which knows the
-/// url's scheme -- don't `Host::parse` it here) or an ip object (`set_ip_host`)
-#[derive(Clone, Copy)]
-enum PyHostArg<'a> {
-    Str(&'a str),
-    Ip(IpAddr),
-}
-
-impl PyHostArg<'_> {
-    /// set the host on `url`; `None` clears it
-    fn apply_to(host: Option<Self>, url: &mut url::Url) -> PyResult<()> {
-        match host {
-            None => url
-                .set_host(None)
-                .map_err(|e| py_value_error!("{e} (host=None)")),
-            Some(Self::Str(s)) => url
-                .set_host(Some(s))
-                .map_err(|e| py_value_error!("{e} (host={s:?})")),
-            Some(Self::Ip(ip)) => url
-                .set_ip_host(ip)
-                .map_err(|()| py_value_error!("Err setting host (host={ip})")),
-        }
-    }
-}
-
-impl<'a, 'py> FromPyObject<'a, 'py> for PyHostArg<'a> {
-    type Error = PyErr;
-
-    fn extract(ob: Borrowed<'a, 'py, PyAny>) -> PyResult<Self> {
-        if let Ok(s) = ob.extract::<&'a str>() {
-            Ok(Self::Str(s))
-        } else if let Some(ip) = extract_ip_host_opt(&ob) {
-            Ok(Self::Ip(ip))
-        } else {
-            py_type_err!("expected str or ip address, got {}", ob.get_type().name()?)
-        }
-    }
-}
 
 impl<'a> From<url::Host<&'a str>> for PyUrlHost<'a> {
     fn from(host: url::Host<&'a str>) -> Self {
@@ -696,6 +654,43 @@ impl<'py> IntoPyObject<'py> for PyUrlHost<'py> {
                 url::Host::Ipv4(addr) => addr.into_bound_py_any(py),
                 url::Host::Ipv6(addr) => addr.into_bound_py_any(py),
             }
+        }
+    }
+}
+
+#[derive(Clone, Copy)]
+enum PyHostArg<'a> {
+    Str(&'a str),
+    Ip(IpAddr),
+}
+
+impl PyHostArg<'_> {
+    /// set the host on `url`; `None` clears
+    fn apply_to(host: Option<Self>, url: &mut url::Url) -> PyResult<()> {
+        match host {
+            None => url
+                .set_host(None)
+                .map_err(|e| py_value_error!("{e} (host=None)")),
+            Some(Self::Str(s)) => url
+                .set_host(Some(s))
+                .map_err(|e| py_value_error!("{e} (host={s:?})")),
+            Some(Self::Ip(ip)) => url
+                .set_ip_host(ip)
+                .map_err(|()| py_value_error!("Err setting host (host={ip})")),
+        }
+    }
+}
+
+impl<'a, 'py> FromPyObject<'a, 'py> for PyHostArg<'a> {
+    type Error = PyErr;
+
+    fn extract(ob: Borrowed<'a, 'py, PyAny>) -> PyResult<Self> {
+        if let Ok(s) = ob.extract::<&'a str>() {
+            Ok(Self::Str(s))
+        } else if let Some(ip) = extract_ip_host_opt(&ob) {
+            Ok(Self::Ip(ip))
+        } else {
+            py_type_err!("expected str or ip address, got {}", ob.get_type().name()?)
         }
     }
 }

@@ -247,8 +247,8 @@ impl EventStreamInner {
             .unwrap_or_default()
     }
 
-    fn py_url(&self) -> RyUrl {
-        RyUrl::from((*self.url).clone())
+    fn ry_url(&self) -> RyUrl {
+        RyUrl::new((*self.url).clone())
     }
 
     fn retry(&self) -> Option<u32> {
@@ -299,7 +299,7 @@ impl RyEventStream {
 
     #[getter]
     fn url(&self) -> RyUrl {
-        self.0.py_url()
+        self.0.ry_url()
     }
 
     #[getter]
@@ -391,7 +391,7 @@ impl RyBlockingEventStream {
 
     #[getter]
     fn url(&self) -> RyUrl {
-        self.0.py_url()
+        self.0.ry_url()
     }
 
     #[getter]

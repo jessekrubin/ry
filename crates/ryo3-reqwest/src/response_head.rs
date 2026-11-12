@@ -27,8 +27,8 @@ pub(crate) struct RyResponseHead {
 }
 
 impl RyResponseHead {
-    pub(crate) fn py_url(&self) -> RyUrl {
-        RyUrl::from((*self.url).clone())
+    pub(crate) fn ry_url(&self) -> RyUrl {
+        RyUrl::new((*self.url).clone())
     }
 
     /// 4xx/5xx -> `reqwest::Error` (only `reqwest::Response` can make one)

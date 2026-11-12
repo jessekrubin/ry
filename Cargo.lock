@@ -2556,6 +2556,7 @@ name = "ryo3-url"
 version = "0.0.109"
 dependencies = [
  "pyo3",
+ "pyo3-build-config",
  "ryo3-core",
  "ryo3-macro-rules",
  "ryo3-pydantic",

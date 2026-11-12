@@ -26,8 +26,10 @@
 - `ryo3-bytes`: `Bytes` pickles w/ every protocol (`__reduce__`)
 - `ryo3-url`
   - **BREAKING** `URL.replace` works how you would expect; see docstrings
+    (`None` clears stuff now instead of doing nothing)
   - **BREAKING** `URL.replace(ip_host=...)` is gone, removed in favor of `host=`
     w/ more flexibility
+  - **INTERNAL:** renamed `#[pyclass]` `PyUrl` -> `RyUrl`
 
 ---
 

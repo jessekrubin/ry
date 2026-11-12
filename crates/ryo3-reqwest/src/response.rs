@@ -292,7 +292,7 @@ impl RyResponse {
     #[getter]
     #[pyo3(name = "url")]
     fn url(&self) -> RyUrl {
-        self.head.py_url()
+        self.head.ry_url()
     }
 
     #[getter]
@@ -513,7 +513,7 @@ impl RyBlockingResponse {
     #[getter]
     #[pyo3(name = "url")]
     fn url(&self) -> RyUrl {
-        self.head.py_url()
+        self.head.ry_url()
     }
 
     #[getter]

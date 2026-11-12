@@ -208,7 +208,7 @@ where
             // __URL__
             #[cfg(feature = "ryo3-url")]
             PyObType::RyUrl => {
-                ry_types::PyUrlSerializer::new_unchecked(self.obj).serialize(serializer)
+                ry_types::RyUrlSerializer::new_unchecked(self.obj).serialize(serializer)
             }
             // __UUID__
             #[cfg(feature = "ryo3-uuid")]

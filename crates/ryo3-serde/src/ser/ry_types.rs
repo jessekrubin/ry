@@ -177,7 +177,7 @@ ry_type_serializer_struct! (
 // ===========================================================================
 ry_type_serializer_struct! (
     #[cfg(feature = "ryo3-url")]
-    PyUrlSerializer => ryo3_url::RyUrl
+    RyUrlSerializer => ryo3_url::RyUrl
 );
 // ===========================================================================
 // UUID
