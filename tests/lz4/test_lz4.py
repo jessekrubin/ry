@@ -153,7 +153,7 @@ class TestLz4Frame:
         with pytest.raises(
             ValueError, match="Invalid FrameInfo key: block_szie"
         ):  # typos:ignore
-            ry.lz4_compress(_10X_10Y, frame_info={"block_szie": "auto"})  # type: ignore[arg-type] # typos:ignore  # ty: ignore[invalid-argument-type, invalid-key]
+            ry.lz4_compress(_10X_10Y, frame_info={"block_szie": "auto"})  # type: ignore[arg-type] # typos:ignore  # ty: ignore[invalid-argument-type, unknown-typed-dict-constructor-key]
 
     def test_frame_info_invalid_block_size(self) -> None:
         with pytest.raises(ValueError, match="Invalid block-size"):

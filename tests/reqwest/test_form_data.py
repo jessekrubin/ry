@@ -107,9 +107,9 @@ class TestFormPart:
 
     def test_unknown_kwarg(self) -> None:
         with pytest.raises(TypeError, match="unexpected keyword argument: nope"):
-            ry.FormPart("x", nope=1)  # type: ignore[call-arg]
+            ry.FormPart("x", nope=1)  # type: ignore[call-arg]  # ty: ignore[unknown-argument]
         with pytest.raises(TypeError, match="unexpected keyword argument: nope"):
-            ry.FormData().append("a", "x", nope=1)  # type: ignore[call-arg]
+            ry.FormData().append("a", "x", nope=1)  # type: ignore[call-arg]  # ty: ignore[unknown-argument]
 
     def test_none_kwargs_are_noops(self) -> None:
         p = ry.FormPart(b"x", filename="f.bin")

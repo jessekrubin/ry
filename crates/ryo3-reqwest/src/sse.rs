@@ -19,7 +19,7 @@ use reqwest::StatusCode;
 use ryo3_bytes::RyBytes;
 use ryo3_core::sync::RyMutex;
 use ryo3_tokio_rt::{RyCoroutine, done_coro, failed_coro, get_tokio_runtime, pyloop_coro};
-use ryo3_url::PyUrl;
+use ryo3_url::RyUrl;
 
 use crate::errors::map_reqwest_err;
 use crate::response_stream::ResponseStreamInner;
@@ -247,8 +247,8 @@ impl EventStreamInner {
             .unwrap_or_default()
     }
 
-    fn py_url(&self) -> PyUrl {
-        PyUrl::from((*self.url).clone())
+    fn ry_url(&self) -> RyUrl {
+        RyUrl::new((*self.url).clone())
     }
 
     fn retry(&self) -> Option<u32> {
@@ -298,8 +298,8 @@ impl RyEventStream {
     }
 
     #[getter]
-    fn url(&self) -> PyUrl {
-        self.0.py_url()
+    fn url(&self) -> RyUrl {
+        self.0.ry_url()
     }
 
     #[getter]
@@ -390,8 +390,8 @@ impl RyBlockingEventStream {
     }
 
     #[getter]
-    fn url(&self) -> PyUrl {
-        self.0.py_url()
+    fn url(&self) -> RyUrl {
+        self.0.ry_url()
     }
 
     #[getter]

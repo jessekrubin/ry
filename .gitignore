@@ -4,6 +4,7 @@
 test-cov.sh
 /*.py
 /*.txt
+/*.whl
 
 # ===================
 /target

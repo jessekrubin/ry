@@ -166,27 +166,24 @@ pub unsafe fn pystring_fast_new_ascii<'py>(py: Python<'py>, s: &str) -> Bound<'p
 pub unsafe fn pystring_ascii_new<'py>(py: Python<'py>, s: &str) -> Bound<'py, PyString> {
     cfg_select! {
         any(PyPy, GraalPy, Py_LIMITED_API) => PyString::new(py, s),
-        _ => {
-            unsafe {
-                let ptr = pyo3::ffi::PyUnicode_New(s.len().cast_signed(), 127);
-                // convert the pointer BEFORE using the Unicode macros.
-                // this handles allocation failure how `PyString::new` does, w/ a
-                // panic on OOM and not doing ptr shenanigans on NULL.
-                // REF: https://github.com/pydantic/jiter/issues/261
-                let string: Bound<'py, PyString> =
-                    Bound::from_owned_ptr(py, ptr).cast_into_unchecked();
-                let ptr = string.as_ptr();
-                // REF: https://github.com/pydantic/jiter/pull/72#discussion_r1545485907
-                debug_assert_eq!(
-                    pyo3::ffi::PyUnicode_KIND(ptr),
-                    pyo3::ffi::PyUnicode_1BYTE_KIND
-                );
-                let data_ptr = pyo3::ffi::PyUnicode_DATA(ptr).cast();
-                core::ptr::copy_nonoverlapping(s.as_ptr(), data_ptr, s.len());
-                core::ptr::write(data_ptr.add(s.len()), 0);
-                string
-            }
-        }
+        _ => {unsafe {
+            let ptr = pyo3::ffi::PyUnicode_New(s.len().cast_signed(), 127);
+            // convert the pointer BEFORE using the Unicode macros.
+            // this handles allocation failure how `PyString::new` does, w/ a
+            // panic on OOM and not doing ptr shenanigans on NULL.
+            // REF: https://github.com/pydantic/jiter/issues/261
+            let string: Bound<'py, PyString> = Bound::from_owned_ptr(py, ptr).cast_into_unchecked();
+            let ptr = string.as_ptr();
+            // REF: https://github.com/pydantic/jiter/pull/72#discussion_r1545485907
+            debug_assert_eq!(
+                pyo3::ffi::PyUnicode_KIND(ptr),
+                pyo3::ffi::PyUnicode_1BYTE_KIND
+            );
+            let data_ptr = pyo3::ffi::PyUnicode_DATA(ptr).cast();
+            core::ptr::copy_nonoverlapping(s.as_ptr(), data_ptr, s.len());
+            core::ptr::write(data_ptr.add(s.len()), 0);
+            string
+        }}
     }
 }
 

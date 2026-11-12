@@ -248,7 +248,7 @@ class TestUrlReplace:
 
     def test_with_ip_host(self) -> None:
         u = ry.URL("http://example.com")
-        replaced = u.replace(ip_host=pyip.ip_interface("2001:db8:85a3::8a2e:370:7334"))
+        replaced = u.replace(host=pyip.ip_interface("2001:db8:85a3::8a2e:370:7334"))
         assert str(replaced) == "http://[2001:db8:85a3::8a2e:370:7334]/"
         assert (
             str(u.with_ip_host(pyip.ip_interface("2001:db8:85a3::8a2e:370:7334")))
@@ -288,7 +288,7 @@ class TestUrlReplace:
         u = ry.URL("http://example.com")
         replaced = u.with_ip_host(ip_addr)
         assert str(replaced) == expected_url
-        replaced = u.replace(ip_host=ip_addr)
+        replaced = u.replace(host=ip_addr)
         assert str(replaced) == expected_url
 
     def test_with_username(self) -> None:
@@ -304,6 +304,63 @@ class TestUrlReplace:
         expected = "http://:pass@example.com/"
         assert str(replaced) == expected
         assert str(u.with_password("pass")) == expected
+
+    _FULL = "http://user:pass@example.com:8080/foo?a=1#frag"
+
+    def test_omitted_and_ellipsis_keep(self) -> None:
+        u = ry.URL(self._FULL)
+        assert u.replace() == u
+        assert u.replace(port=..., host=..., query=..., scheme=...) == u  # type: ignore[arg-type]  # ty: ignore[invalid-argument-type]
+        assert (
+            str(u.replace(path="/bar"))
+            == "http://user:pass@example.com:8080/bar?a=1#frag"
+        )
+
+    @pytest.mark.parametrize(
+        ("kwargs", "expected"),
+        [
+            ({"fragment": None}, "http://user:pass@example.com:8080/foo?a=1"),
+            ({"query": None}, "http://user:pass@example.com:8080/foo#frag"),
+            ({"port": None}, "http://user:pass@example.com/foo?a=1#frag"),
+            ({"password": None}, "http://user@example.com:8080/foo?a=1#frag"),
+        ],
+    )
+    def test_none_clears(self, kwargs: dict[str, None], expected: str) -> None:
+        assert str(ry.URL(self._FULL).replace(**kwargs)) == expected  # type: ignore[arg-type]  # ty: ignore[invalid-argument-type]
+
+    def test_none_host(self) -> None:
+        u = ry.URL("foo://example.com/bar")
+        assert str(u.replace(host=None)) == "foo:/bar"
+        assert str(u.with_host(None)) == "foo:/bar"
+        with pytest.raises(ValueError, match="empty host"):
+            ry.URL("http://example.com").replace(host=None)
+
+    @pytest.mark.parametrize("kwarg", ["scheme", "username", "path"])
+    def test_none_not_allowed(self, kwarg: str) -> None:
+        with pytest.raises(TypeError, match="cannot be None"):
+            ry.URL("http://example.com").replace(**{kwarg: None})  # type: ignore[arg-type]  # ty: ignore[invalid-argument-type]
+
+    def test_username_empty_clears(self) -> None:
+        u = ry.URL("http://user@example.com/")
+        assert str(u.replace(username="")) == "http://example.com/"
+
+    def test_host_bad_type(self) -> None:
+        with pytest.raises(TypeError):
+            ry.URL("http://example.com").replace(host=123)  # type: ignore[arg-type]  # ty: ignore[invalid-argument-type]
+
+    @pytest.mark.parametrize(
+        "src", ["http://10.0.0.1/", "http://[::1]/", "http://example.org/"]
+    )
+    def test_host_roundtrips(self, src: str) -> None:
+        host = ry.URL(src).host
+        u = ry.URL("http://example.com/x")
+        assert u.replace(host=host).host == host
+        assert u.with_host(host).host == host
+
+    def test_applied_in_url_order(self) -> None:
+        # port before host would fail (no host yet), kwarg order shouldn't matter
+        u = ry.URL("foo:/bar")
+        assert str(u.replace(port=8080, host="x")) == "foo://x:8080/bar"
 
 
 def test_socket_addrs() -> None:

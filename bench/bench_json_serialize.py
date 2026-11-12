@@ -134,7 +134,7 @@ def test_bench_serialize(
     data_fn: t.Callable[[], t.Any],
     stringify_fn: t.Callable[[t.Any], object],
 ) -> None:
-    benchmark.group = f"stringify-{data_fn.__name__}"  # ty:ignore[unresolved-attribute]
+    benchmark.group = f"stringify-{data_fn.__name__}"  # ty:ignore[missing-attribute]
     data = data_fn()
     benchmark(stringify_fn, data)
 

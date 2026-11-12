@@ -1144,7 +1144,7 @@ class TestSignedDurationFromIntegers:
 
     def test_from_days(self) -> None:
         with pytest.raises(AttributeError):
-            _ = ry.SignedDuration.from_days(1)  # type: ignore[attr-defined]  # ty:ignore[unresolved-attribute]
+            _ = ry.SignedDuration.from_days(1)  # type: ignore[attr-defined]  # ty:ignore[missing-attribute]
 
     @given(st.floats(width=32))
     def test_from_secs_f32(self, secs: float) -> None:

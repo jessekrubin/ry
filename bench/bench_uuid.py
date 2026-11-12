@@ -158,7 +158,7 @@ _FROM_ANY_INPUTS = [
 @pytest.mark.benchmark(group="uuid-from-any")
 @pytest.mark.parametrize("value", _FROM_ANY_INPUTS)
 def test_from_any(benchmark: BenchmarkFixture, value: object) -> None:
-    benchmark(ryuuid.UUID.from_any, value)  # type: ignore[attr-defined]  # ty:ignore[unresolved-attribute]
+    benchmark(ryuuid.UUID.from_any, value)  # type: ignore[attr-defined]  # ty:ignore[missing-attribute]
 
 
 # =============================================================================
