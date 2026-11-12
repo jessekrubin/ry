@@ -130,27 +130,261 @@ class URL(FromStr, ToString, _Parse):
     def replace(
         self,
         *,
-        fragment: str | None = None,
-        host: str | None = None,
-        ip_host: IPv4Address | IPv6Address | Ipv4Addr | Ipv6Addr | IpAddr | None = None,
-        password: str | None = None,
-        path: str | None = None,
-        port: int | None = None,
-        query: str | None = None,
-        scheme: str | None = None,
-        username: str | None = None,
-    ) -> t.Self: ...
-    def with_fragment(self, fragment: str | None = None) -> t.Self: ...
-    def with_host(self, host: str | None = None) -> t.Self: ...
+        scheme: str = ...,
+        username: str = ...,
+        password: str | None = ...,
+        host: str
+        | IPv4Address
+        | IPv6Address
+        | Ipv4Addr
+        | Ipv6Addr
+        | IpAddr
+        | None = ...,
+        port: int | None = ...,
+        path: str = ...,
+        query: str | None = ...,
+        fragment: str | None = ...,
+    ) -> t.Self:
+        """Return a new URL with the given parts replaced (like `dataclasses.replace`)
+
+        Omitted kwargs are kept and `None` clears a part. Parts are applied in
+        url order (scheme, username, password, host, port, path, query,
+        fragment), so combined replacements don't depend on kwarg order.
+
+        Parameters
+        ----------
+        scheme : str, optional
+            url scheme (`http`, `https`, `ws`, `wss`, `ftp`, `file`)
+        username : str, optional
+            username; `""` removes it (the password is kept).
+        password : str | None, optional
+            New password; `None` removes it.
+        host : str | IPv4Address | IPv6Address | Ipv4Addr | Ipv6Addr | IpAddr | None, optional
+            host to set; a str is parsed based on the URL's scheme.
+        port : int | None, optional
+            port (0-65535); `None` removes it.
+        path : str, optional
+            path; a leading `/` is added for urls with a host.
+        query : str | None, optional
+            query string (without the `?`); `None` removes it, `""` leaves
+            an empty `?`.
+        fragment : str | None, optional
+            fragment (without the `#`); `None` removes it, `""` leaves an empty `#`.
+
+        Raises
+        ------
+        TypeError
+            If `None` is given for `scheme`, `username` or `path`, or wrong kw type
+        ValueError
+            If the url can't take the new value (e.g. a port on a `file:` url,
+            removing the host of an `http` url, an invalid host).
+        OverflowError
+            If `port` is outside 0-65535.
+
+        Examples
+        --------
+        >>> import ry
+        >>> u = ry.URL("http://user:pass@example.com:8080/foo?a=1#frag")
+        >>> u.replace(path="/bar", query=None, fragment=None)
+        URL('http://user:pass@example.com:8080/bar')
+        >>> u.replace(port=None, password=None)
+        URL('http://user@example.com/foo?a=1#frag')
+        >>> u.replace(host=ry.Ipv4Addr(127, 0, 0, 1))
+        URL('http://user:pass@127.0.0.1:8080/foo?a=1#frag')
+
+        """
+    def with_fragment(self, fragment: str | None = None) -> t.Self:
+        """Return a new URL with the fragment replaced
+
+        Parameters
+        ----------
+        fragment : str | None, optional
+            fragment (without the `#`); `None` (the default) removes it, `""`
+            leaves an empty `#`.
+
+        Examples
+        --------
+        >>> import ry
+        >>> ry.URL("http://example.com/a#x").with_fragment("y")
+        URL('http://example.com/a#y')
+        >>> ry.URL("http://example.com/a#x").with_fragment(None)
+        URL('http://example.com/a')
+
+        """
+    def with_host(
+        self,
+        host: str
+        | IPv4Address
+        | IPv6Address
+        | Ipv4Addr
+        | Ipv6Addr
+        | IpAddr
+        | None = None,
+    ) -> t.Self:
+        """Return a new URL with the host replaced
+
+        Parameters
+        ----------
+        host : str | IPv4Address | IPv6Address | Ipv4Addr | Ipv6Addr | IpAddr | None, optional
+            host to set; a str is parsed based on the URL's scheme. `None`
+            (the default) removes it.
+
+        Raises
+        ------
+        ValueError
+            If the host is invalid or can't be removed.
+
+        Examples
+        --------
+        >>> import ry
+        >>> ry.URL("http://example.com/a").with_host("example.org")
+        URL('http://example.org/a')
+        >>> ry.URL("http://example.com/a").with_host(ry.Ipv6Addr.parse("::1"))
+        URL('http://[::1]/a')
+        >>> ry.URL("foo://example.com/a").with_host(None)
+        URL('foo:/a')
+
+        """
     def with_ip_host(
         self, address: IPv4Address | IPv6Address | Ipv4Addr | Ipv6Addr | IpAddr
-    ) -> t.Self: ...
-    def with_password(self, password: str | None = None) -> t.Self: ...
-    def with_path(self, path: str) -> t.Self: ...
-    def with_port(self, port: int | None = None) -> t.Self: ...
-    def with_query(self, query: str | None = None) -> t.Self: ...
-    def with_scheme(self, scheme: str) -> t.Self: ...
-    def with_username(self, username: str) -> t.Self: ...
+    ) -> t.Self:
+        """Return a new URL with an ip address as the host
+
+        Parameters
+        ----------
+        address : IPv4Address | IPv6Address | Ipv4Addr | Ipv6Addr | IpAddr
+            ip address to set as the host (`with_host` & `replace(host=...)`
+            accept ip addresses too).
+
+        Raises
+        ------
+        ValueError
+            If the url can't have a host (e.g. `mailto:`).
+
+        Examples
+        --------
+        >>> import ry
+        >>> ry.URL("http://example.com/a").with_ip_host(ry.Ipv4Addr(10, 0, 0, 1))
+        URL('http://10.0.0.1/a')
+
+        """
+    def with_password(self, password: str | None = None) -> t.Self:
+        """Return a new URL with the password replaced
+
+        Parameters
+        ----------
+        password : str | None, optional
+            password; `None` (the default) removes it.
+
+        Raises
+        ------
+        ValueError
+            If the url can't have a password (no host, or `file:`).
+
+        Examples
+        --------
+        >>> import ry
+        >>> ry.URL("http://user@example.com/").with_password("pw")
+        URL('http://user:pw@example.com/')
+
+        """
+    def with_path(self, path: str) -> t.Self:
+        """Return a new URL with the path replaced
+
+        Parameters
+        ----------
+        path : str
+            path; a leading `/` is added for urls with a host.
+
+        Examples
+        --------
+        >>> import ry
+        >>> ry.URL("http://example.com/a?q=1").with_path("b/c")
+        URL('http://example.com/b/c?q=1')
+
+        """
+    def with_port(self, port: int | None = None) -> t.Self:
+        """Return a new URL with the port replaced
+
+        Parameters
+        ----------
+        port : int | None, optional
+            port (0-65535); `None` (the default) removes it.
+
+        Raises
+        ------
+        ValueError
+            If the url can't have a port (no host, or `file:`).
+        OverflowError
+            If `port` is outside 0-65535.
+
+        Examples
+        --------
+        >>> import ry
+        >>> ry.URL("http://example.com/").with_port(8080)
+        URL('http://example.com:8080/')
+        >>> ry.URL("http://example.com:8080/").with_port(None)
+        URL('http://example.com/')
+
+        """
+    def with_query(self, query: str | None = None) -> t.Self:
+        """Return a new URL with the query string replaced
+
+        Parameters
+        ----------
+        query : str | None, optional
+            query string (without the `?`); `None` (the default) removes it,
+            `""` leaves an empty `?`.
+
+        Examples
+        --------
+        >>> import ry
+        >>> ry.URL("http://example.com/a?x=1").with_query("y=2")
+        URL('http://example.com/a?y=2')
+        >>> ry.URL("http://example.com/a?x=1").with_query(None)
+        URL('http://example.com/a')
+
+        """
+    def with_scheme(self, scheme: str) -> t.Self:
+        """Return a new URL with the scheme replaced
+
+        Parameters
+        ----------
+        scheme : str
+            url scheme (`http`, `https`, `ws`, `wss`, `ftp`, `file`)
+
+        Raises
+        ------
+        ValueError
+            If the scheme is invalid or the switch isn't allowed.
+
+        Examples
+        --------
+        >>> import ry
+        >>> ry.URL("http://example.com/").with_scheme("https")
+        URL('https://example.com/')
+
+        """
+    def with_username(self, username: str) -> t.Self:
+        """Return a new URL with the username replaced
+
+        Parameters
+        ----------
+        username : str
+            username; `""` removes it (the password is kept).
+
+        Raises
+        ------
+        ValueError
+            If the url can't have a username (no host, or `file:`).
+
+        Examples
+        --------
+        >>> import ry
+        >>> ry.URL("http://example.com/").with_username("me")
+        URL('http://me@example.com/')
+
+        """
 
     # =========================================================================
     # OPERATORS/DUNDER

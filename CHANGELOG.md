@@ -24,6 +24,10 @@
 - `ryo3-reqwest`
   - multipart/form-data! `FormData` + `FormPart` (js-like)
 - `ryo3-bytes`: `Bytes` pickles w/ every protocol (`__reduce__`)
+- `ryo3-url`
+  - **BREAKING** `URL.replace` works how you would expect; see docstrings
+  - **BREAKING** `URL.replace(ip_host=...)` is gone, removed in favor of `host=`
+    w/ more flexibility
 
 ---
 

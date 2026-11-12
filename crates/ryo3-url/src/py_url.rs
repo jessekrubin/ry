@@ -5,9 +5,9 @@ use std::path::PathBuf;
 use std::str::FromStr;
 
 use pyo3::prelude::*;
-use pyo3::types::{PyDict, PyString, PyTuple};
+use pyo3::types::{PyDict, PyEllipsis, PyString, PyTuple};
 use ryo3_core::{PyNotImplementedOr, PyOperandArg, pystr_read_fast};
-use ryo3_macro_rules::{py_type_err, py_value_error};
+use ryo3_macro_rules::{py_type_err, py_type_error, py_value_error};
 
 use crate::UrlLike;
 
@@ -294,69 +294,59 @@ impl PyUrl {
             .map_err(|_e| py_value_error!("Url::to_filepath: {}", self.__str__()))
     }
 
-    // TODO: figure out if this is problematic... it could be a problem w/ how some
-    //       of the underlying set methods take `Option` values...
     #[expect(clippy::too_many_arguments, reason = "python kwargs")]
     #[pyo3(
         signature = (
             *,
-            fragment = None,
-            host = None,
-            ip_host = None,
-            password = None,
-            path = None,
-            port = None,
-            query = None,
-            scheme = None,
-            username = None
+            scheme = ReplaceKwarg::Keep,
+            username = ReplaceKwarg::Keep,
+            password = ReplaceKwarg::Keep,
+            host = ReplaceKwarg::Keep,
+            port = ReplaceKwarg::Keep,
+            path = ReplaceKwarg::Keep,
+            query = ReplaceKwarg::Keep,
+            fragment = ReplaceKwarg::Keep,
         )
     )]
     fn replace(
         &self,
-        fragment: Option<&str>,
-        host: Option<&str>,
-        ip_host: Option<&Bound<'_, PyAny>>,
-        password: Option<&str>,
-        path: Option<&str>,
-        port: Option<u16>,
-        query: Option<&str>,
-        scheme: Option<&str>,
-        username: Option<&str>,
+        scheme: ReplaceKwargNonNullable<&str>,
+        username: ReplaceKwargNonNullable<&str>,
+        password: ReplaceKwarg<&str>,
+        host: ReplaceKwarg<PyHostArg<'_>>,
+        port: ReplaceKwarg<u16>,
+        path: ReplaceKwargNonNullable<&str>,
+        query: ReplaceKwarg<&str>,
+        fragment: ReplaceKwarg<&str>,
     ) -> PyResult<Self> {
         let mut url = self.0.clone();
-        if let Some(fragment) = fragment {
-            url.set_fragment(fragment.into());
-        }
-        if let Some(host) = host {
-            url.set_host(host.into())
-                .map_err(|e| py_value_error!("{e} (host={host:?})"))?;
-        }
-        if let Some(ip_host) = ip_host {
-            let ip_host = extract_ip_host(ip_host)?;
-            url.set_ip_host(ip_host)
-                .map_err(|()| py_value_error!("Err setting ip_host (ip_host={ip_host})"))?;
-        }
-        if let Some(password) = password {
-            url.set_password(password.into())
-                .map_err(|()| py_value_error!("Err setting password (password={password:?})"))?;
-        }
-        if let Some(path) = path {
-            url.set_path(path);
-        }
-        if let Some(port) = port {
-            url.set_port(port.into())
-                .map_err(|()| py_value_error!("Err setting port (port={port:?})"))?;
-        }
-        if let Some(query) = query {
-            url.set_query(query.into());
-        }
-        if let Some(scheme) = scheme {
+        if let Some(scheme) = scheme.into_option() {
             url.set_scheme(scheme)
                 .map_err(|()| py_value_error!("Err setting scheme (scheme={scheme})"))?;
         }
-        if let Some(username) = username {
+        if let Some(username) = username.into_option() {
             url.set_username(username)
                 .map_err(|()| py_value_error!("Err setting username (username={username:?})"))?;
+        }
+        if let ReplaceKwarg::Set(password) = password {
+            url.set_password(password)
+                .map_err(|()| py_value_error!("Err setting password (password={password:?})"))?;
+        }
+        if let ReplaceKwarg::Set(host) = host {
+            PyHostArg::apply_to(host, &mut url)?;
+        }
+        if let ReplaceKwarg::Set(port) = port {
+            url.set_port(port)
+                .map_err(|()| py_value_error!("Err setting port (port={port:?})"))?;
+        }
+        if let Some(path) = path.into_option() {
+            url.set_path(path);
+        }
+        if let ReplaceKwarg::Set(query) = query {
+            url.set_query(query);
+        }
+        if let ReplaceKwarg::Set(fragment) = fragment {
+            url.set_fragment(fragment);
         }
         Ok(Self(url))
     }
@@ -369,10 +359,9 @@ impl PyUrl {
     }
 
     #[pyo3(signature = (host = None))]
-    fn with_host(&self, host: Option<&str>) -> PyResult<Self> {
+    fn with_host(&self, host: Option<PyHostArg<'_>>) -> PyResult<Self> {
         let mut url = self.0.clone();
-        url.set_host(host)
-            .map_err(|e| py_value_error!("{e} (host={host:?})"))?;
+        PyHostArg::apply_to(host, &mut url)?;
         Ok(Self(url))
     }
 
@@ -554,34 +543,126 @@ impl ryo3_pydantic::GetPydanticCoreSchemaCls for PyUrl {
 }
 
 #[cfg(feature = "ryo3-std")]
-fn extract_ip_host(address: &Bound<'_, PyAny>) -> PyResult<IpAddr> {
+fn extract_ip_host_opt(address: &Bound<'_, PyAny>) -> Option<IpAddr> {
     use ryo3_core::PyCastExactOpt;
     use ryo3_std::net::{PyIpAddr, PyIpv4Addr, PyIpv6Addr};
     if let Some(pyipv4) = address.cast_exact_opt::<PyIpv4Addr>() {
-        Ok((*pyipv4.get()).into())
+        Some((*pyipv4.get()).into())
     } else if let Some(pyipv6) = address.cast_exact_opt::<PyIpv6Addr>() {
-        Ok((*pyipv6.get()).into())
+        Some((*pyipv6.get()).into())
     } else if let Some(pyipaddr) = address.cast_exact_opt::<PyIpAddr>() {
-        Ok(pyipaddr.get().into())
-    } else if let Ok(ip) = address.extract::<std::net::IpAddr>() {
-        Ok(ip)
+        Some(pyipaddr.get().into())
     } else {
-        py_type_err!(
+        address.extract::<std::net::IpAddr>().ok()
+    }
+}
+#[cfg(feature = "ryo3-std")]
+fn extract_ip_host(address: &Bound<'_, PyAny>) -> PyResult<IpAddr> {
+    extract_ip_host_opt(address).ok_or_else(|| {
+        py_type_error!(
             "Expected Ipv4Addr, Ipv6Addr, IpAddr, ipaddress.IPv4Address, ipaddress.IPv6Address",
         )
-    }
+    })
+}
+
+#[cfg(not(feature = "ryo3-std"))]
+fn extract_ip_host_opt(address: &Bound<'_, PyAny>) -> Option<IpAddr> {
+    address.extract::<std::net::IpAddr>().ok()
 }
 
 #[cfg(not(feature = "ryo3-std"))]
 fn extract_ip_host(address: &Bound<'_, PyAny>) -> PyResult<IpAddr> {
-    if let Ok(ip) = address.extract::<std::net::IpAddr>() {
-        Ok(ip)
-    } else {
-        py_type_err!("Expected ipaddress.IPv4Address or ipaddress.IPv6Address",)
+    extract_ip_host_opt(address)
+        .ok_or_else(|| py_type_error!("Expected ipaddress.IPv4Address or ipaddress.IPv6Address",))
+}
+
+/// `replace` kwarg: omitted/`...` -> `Keep`, value -> `Set(Some(v))`,
+/// `None` -> `Set(None)` if `NULLABLE` else a `TypeError` at extraction
+#[derive(Clone, Copy)]
+enum ReplaceKwarg<T, const NULLABLE: bool = true> {
+    Keep,
+    Set(Option<T>),
+}
+
+type ReplaceKwargNonNullable<T> = ReplaceKwarg<T, false>;
+
+impl<T> ReplaceKwarg<T, false> {
+    /// non-nullable never holds `Set(None)` so this is just keep-or-value
+    fn into_option(self) -> Option<T> {
+        match self {
+            Self::Keep => None,
+            Self::Set(v) => v,
+        }
+    }
+}
+
+impl<'a, 'py, T, const NULLABLE: bool> FromPyObject<'a, 'py> for ReplaceKwarg<T, NULLABLE>
+where
+    T: FromPyObject<'a, 'py>,
+    T::Error: Into<PyErr>,
+{
+    type Error = PyErr;
+
+    #[inline]
+    fn extract(ob: Borrowed<'a, 'py, PyAny>) -> PyResult<Self> {
+        if ob.is_none() {
+            if NULLABLE {
+                Ok(Self::Set(None))
+            } else {
+                // pyo3 adds a "while processing '<name>'" note w/ the kwarg name
+                py_type_err!("cannot be None")
+            }
+        } else if ob.is(PyEllipsis::get(ob.py())) {
+            // explicit `...` == omitted (it's the default `inspect` shows)
+            Ok(Self::Keep)
+        } else {
+            T::extract(ob)
+                .map(|v| Self::Set(Some(v)))
+                .map_err(Into::into)
+        }
     }
 }
 
 struct PyUrlHost<'a>(url::Host<&'a str>);
+
+/// what `host=` takes: a str (parsed later by `set_host`, which knows the
+/// url's scheme -- don't `Host::parse` it here) or an ip object (`set_ip_host`)
+#[derive(Clone, Copy)]
+enum PyHostArg<'a> {
+    Str(&'a str),
+    Ip(IpAddr),
+}
+
+impl PyHostArg<'_> {
+    /// set the host on `url`; `None` clears it
+    fn apply_to(host: Option<Self>, url: &mut url::Url) -> PyResult<()> {
+        match host {
+            None => url
+                .set_host(None)
+                .map_err(|e| py_value_error!("{e} (host=None)")),
+            Some(Self::Str(s)) => url
+                .set_host(Some(s))
+                .map_err(|e| py_value_error!("{e} (host={s:?})")),
+            Some(Self::Ip(ip)) => url
+                .set_ip_host(ip)
+                .map_err(|()| py_value_error!("Err setting host (host={ip})")),
+        }
+    }
+}
+
+impl<'a, 'py> FromPyObject<'a, 'py> for PyHostArg<'a> {
+    type Error = PyErr;
+
+    fn extract(ob: Borrowed<'a, 'py, PyAny>) -> PyResult<Self> {
+        if let Ok(s) = ob.extract::<&'a str>() {
+            Ok(Self::Str(s))
+        } else if let Some(ip) = extract_ip_host_opt(&ob) {
+            Ok(Self::Ip(ip))
+        } else {
+            py_type_err!("expected str or ip address, got {}", ob.get_type().name()?)
+        }
+    }
+}
 
 impl<'a> From<url::Host<&'a str>> for PyUrlHost<'a> {
     fn from(host: url::Host<&'a str>) -> Self {
