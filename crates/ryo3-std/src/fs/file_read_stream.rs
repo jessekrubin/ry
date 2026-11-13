@@ -27,9 +27,9 @@ pub struct FileReadStreamOptions {
 }
 
 impl FileReadStreamOptions {
-    /// open + (strict) offset check + seek to `offset`
+    /// open the file, check `offset` (if strict) and seek to it
     pub fn open(&self) -> PyResult<BufferedFile> {
-        // reads >= the buffer skip it, so unbuffered is just a 0 size buffer
+        // unbuffered == buffer size 0 (reads at least the buffer size skip it)
         let cap = if self.buffered { BUF_SIZE } else { 0 };
         let mut file = BufferedFile::open(&self.path, OpenOptions::new().read(true), cap)
             .map_py_io_err_with_path(&self.path)?;
@@ -74,7 +74,7 @@ impl fmt::Display for FileReadStreamOptions {
     }
 }
 
-/// `None` = closed ~ reopens at `offset` on next usage
+/// `None` = closed; the next read reopens it at `offset`
 struct StreamState(Option<BufferedFile>);
 
 impl StreamState {
@@ -175,7 +175,7 @@ impl PyFileReadStream {
     #[pyo3(signature = (n = 1))]
     fn take(&self, py: Python<'_>, n: usize) -> PyResult<Vec<RyBytes>> {
         let mut state = self.state.py_lock_attached(py)?;
-        // open even for `take(0)` (reopens after `close()` like before)
+        // open even for `take(0)`, like before (this also reopens after `close()`)
         state.ensure_open(&self.options)?;
         let mut chunks = Vec::new();
         while chunks.len() < n

@@ -48,8 +48,7 @@
 //! - [`tokio_coro`]: io/timers/spawn, the default
 //! - [`pyloop_coro`]: only needs a waker (tokio channels/notify/mutex), polled
 //!   on the loop thread
-//! - [`blocking_coro`]: sync work on tokio's blocking pool, awaited on the
-//!   loop thread
+//! - [`blocking_coro`]: a sync closure, run on tokio's blocking thread pool
 //! - [`done_coro`] / [`failed_coro`]: already have the answer
 //! - [`yield_coro`]: yield once, like `asyncio.sleep(0)`
 //!
@@ -1002,8 +1001,8 @@ where
     RyCoroutine::new(py, qualname, CoroutineState::Unstarted(Box::pin(lazy)))
 }
 
-/// Runs sync `f` on tokio's blocking pool, spawned on first poll and awaited
-/// right on the loop thread.
+/// Runs sync `f` on tokio's blocking thread pool. Nothing starts until the
+/// coroutine is first awaited.
 pub fn blocking_coro<'py, F, T>(
     py: Python<'py>,
     qualname: &'static str,
@@ -1060,8 +1059,8 @@ pub fn failed_coro<'py>(
 /// poll `future` right on the loop thread ~ ONLY for futures that dont need
 /// the tokio rt context (tokio channels/notify/mutex ok; io/timers/spawn no)
 ///
-/// spawning via the runtime handle (`get_ry_tokio_runtime().py_spawn*`) and
-/// awaiting the `JoinHandle` here is fine; bare `tokio::spawn` is not
+/// spawning through the runtime handle (`get_ry_tokio_runtime().py_spawn*`)
+/// and awaiting the `JoinHandle` works here; bare `tokio::spawn` panics
 ///
 /// tokio can panic here (no reactor here) -> `PanicException`
 pub fn pyloop_coro<'py, F, T>(

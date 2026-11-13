@@ -51,8 +51,8 @@ impl RyRuntime<'_> {
         RyJoinHandle(self.spawn(fut))
     }
 
-    /// `spawn_blocking` version of `py_spawn`; works from any thread.
-    /// abort-on-drop only stops the closure if it hasn't started yet
+    /// `py_spawn` for blocking code (`spawn_blocking`); works from any thread.
+    /// dropping the handle only cancels the closure if it hasn't started yet
     #[inline]
     pub fn py_spawn_blocking<F, T>(&self, f: F) -> RyJoinHandle<T>
     where

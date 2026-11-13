@@ -881,10 +881,11 @@ async def test_negative_sizes_mean_no_limit(tmp_path: Path) -> None:
 
 
 @pytest.mark.anyio
-async def test_readline_zero_after_write_no_io(tmp_path: Path) -> None:
+async def test_zero_reads_after_write_no_io(tmp_path: Path) -> None:
     p = tmp_path / "f.bin"
     async with AsyncFile(p, "wb+") as f:
         await f.write(b"abc")
+        assert await f.read(0) == b""
         assert await f.readline(0) == b""
         assert p.read_bytes() == b""  # still pending, not flushed
     assert p.read_bytes() == b"abc"

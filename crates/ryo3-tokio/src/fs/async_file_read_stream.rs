@@ -1,7 +1,6 @@
-//! Chunked async file reads on the shared sync `BufferedFile`.
+//! Async chunked file reads, built on the sync `BufferedFile`.
 //!
-//! While python is busy with one chunk, the next one is already being read
-//! (read-ahead).
+//! While python works on one chunk, the next one is read in the background.
 use std::path::PathBuf;
 use std::sync::Arc;
 use std::{fmt, io, mem};
@@ -23,9 +22,9 @@ struct ChunkRead {
 enum StreamState {
     #[default]
     Closed,
-    /// open, nothing in-flight
+    /// open, no read running
     Idle(BufferedFile),
-    /// next chunk already being read
+    /// a read is running on a blocking thread
     Reading(RyJoinHandle<ChunkRead>),
     /// read task died w/ and nuked the file. errors until `close()` (reopening
     /// would re-yield chunks (which is wrong))
@@ -69,9 +68,10 @@ impl StreamState {
         Ok(())
     }
 
-    /// next chunk, `None` at eof; `prefetch` starts reading the one after
+    /// next chunk, `None` at eof; `prefetch` also starts reading the one after
     ///
-    /// cancel safe: an in-flight read stays in `Reading` for the next call
+    /// cancel safe: if the caller stops waiting, the running read stays in
+    /// `Reading` and the next call picks it up
     async fn next_chunk(
         &mut self,
         options: &Arc<FileReadStreamOptions>,
@@ -118,6 +118,7 @@ impl StreamState {
     }
 }
 
+// TODO: investigate if 2 arcs are really needed?
 #[pyclass(name = "AsyncFileReadStream", frozen, immutable_type, eq)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct PyAsyncFileReadStream {
@@ -148,7 +149,7 @@ impl PyAsyncFileReadStream {
         })
     }
 
-    /// State transition back to `Closed`
+    /// back to `Closed`
     fn close_coro<'py>(
         &self,
         py: Python<'py>,

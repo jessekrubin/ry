@@ -1,8 +1,8 @@
-//! std file w/ read-ahead/write-behind buffers; used by `FileReadStream`,
+//! std file + a read buffer and a write buffer; used by `FileReadStream`,
 //! `AsyncFile` and `AsyncFileReadStream`
 //!
-//! the `try_*` methods only touch the buffers (no io), so async callers can
-//! answer buffer hits w/o a thread hop
+//! the `try_*` methods never touch the file, only the buffers, so async code
+//! can call them directly instead of sending them to a blocking thread
 use std::fs::{File, OpenOptions};
 use std::io::{self, Read, Seek, SeekFrom, Write};
 use std::path::Path;
@@ -10,23 +10,24 @@ use std::path::Path;
 /// Read/write buffer size (cpython's `io.DEFAULT_BUFFER_SIZE` as of 3.14).
 pub const BUF_SIZE: usize = 128 * 1024;
 
-/// Max up-front allocation for big reads; the buffer grows with the data.
+/// Most a big `read(n)` allocates up front; past that it grows as data comes in.
 const READ_PREALLOC_CAP: usize = 8 * 1024 * 1024;
 
-/// A std file plus read-ahead/write-behind buffers, kinda like cpython's
+/// A std file plus a read buffer and a write buffer, kinda like cpython's
 /// `BufferedRandom`.
 ///
-/// The two buffers are never both non-empty. `try_*` -> `None`/`false` means
-/// it needs io.
+/// Only one of the two buffers has data at any time. A `try_*` returning
+/// `None`/`false` means the buffers can't answer it and the caller has to do
+/// REAL (american) io.
 pub struct BufferedFile {
     file: File,
     /// Probed on open (pipes, fifos and ttys can't seek).
     seekable: bool,
     /// Reads and writes at least this big skip the buffers; 0 means unbuffered.
     cap: usize,
-    /// Read-ahead.
+    /// Read buffer ~ read from the file but not handed out (yet)
     rbuf: ReadBuf,
-    /// Pending writes.
+    /// Written by the caller but not sent to the file yet
     wbuf: Vec<u8>,
 }
 
@@ -34,7 +35,7 @@ impl BufferedFile {
     /// Opens `path` and probes whether it can seek.
     pub fn open(path: &Path, opts: &OpenOptions, cap: usize) -> io::Result<Self> {
         let mut file = opts.open(path)?;
-        // lseek(0, SEEK_CUR) ~ what cpython's `FileIO.seekable` does
+        // same check as cpython's `FileIO.seekable` (lseek(0, SEEK_CUR))
         let seekable = file.stream_position().is_ok();
         Ok(Self {
             file,
@@ -54,29 +55,33 @@ impl BufferedFile {
         Ok(self.file.metadata()?.len())
     }
 
-    /// Number of read-ahead bytes not consumed yet.
+    /// Number o' bytes sitting in the read buf.
     #[must_use]
     pub fn buffered_len(&self) -> usize {
         self.rbuf.len()
     }
 
     // ------------------------------------------------------------------------
-    // buffer hits (no io)
+    // buffers only (no io)
     // ------------------------------------------------------------------------
 
-    /// exactly `n` bytes if the read-ahead has them all
+    /// exactly `n` bytes, if the read buffer has that many
     pub fn try_read(&mut self, n: usize) -> Option<Vec<u8>> {
-        (self.wbuf.is_empty() && self.rbuf.len() >= n).then(|| self.rbuf.consume(n))
+        // no pending-writes check needed: while writes are pending the read
+        // buf is empty, so the only read that gets through is `read(0)`
+        // (which shouldn't flush anyway iirc)
+        (self.rbuf.len() >= n).then(|| self.rbuf.consume(n))
     }
 
-    /// a line (or `limit` bytes) if the read-ahead has one
+    /// the next line (cut off at `limit`), if the read buffer has all of it
     pub fn try_readline(&mut self, limit: Option<usize>) -> Option<Vec<u8>> {
-        // pending writes -> empty read-ahead, so only `limit == 0` hits here
+        // no pending-writes check needed, same reason as `try_read`: the only
+        // call that gets through is `readline(0)`
         let end = self.rbuf.line_end(limit)?;
         Some(self.rbuf.consume(end))
     }
 
-    /// up to `n` bytes without moving the position
+    /// up to `n` bytes without moving the position, if the read buffer has any
     #[must_use]
     pub fn try_peek(&self, n: usize) -> Option<Vec<u8>> {
         let unread = self.rbuf.unread();
@@ -101,10 +106,10 @@ impl BufferedFile {
     // io
     // ------------------------------------------------------------------------
 
-    /// Writes out pending writes; on error the unwritten rest stays pending
-    /// (like cpython), so the next flush retries just that.
+    /// Sends pending writes to the file. If that fails, whatever didn't get
+    /// written stays pending (like cpython) and the next flush tries again.
     pub fn flush(&mut self) -> io::Result<()> {
-        // not `write_all`: on error it doesn't say how much got written
+        // not `write_all`: when it fails it doesn't say how much it wrote
         let mut written = 0;
         let res = loop {
             if written == self.wbuf.len() {
@@ -121,7 +126,8 @@ impl BufferedFile {
         res
     }
 
-    // toss the read-ahead + move the os position back to the logical one
+    // drop the read buffer and seek the file back to where the caller is
+    // (the file itself is ahead by however much is still buffered)
     fn discard_read_ahead(&mut self) -> io::Result<()> {
         // seek back first, so an unseekable file (fifo/pipe) errs w the read
         // buf not lost in the ether (this was gnarly)
@@ -134,10 +140,10 @@ impl BufferedFile {
         Ok(())
     }
 
-    // refill the (empty) read-ahead; `false` at eof
+    // refill the (empty) read buffer; `false` at eof
     fn fill(&mut self) -> io::Result<bool> {
         self.flush()?;
-        // unbuffered still needs a byte of lookahead for readline/peek
+        // unbuffered (cap 0) still reads 1 byte at a time so readline/peek work
         Ok(self.rbuf.fill(&mut self.file, self.cap.max(1))? > 0)
     }
 
@@ -163,7 +169,7 @@ impl BufferedFile {
             }
             let want = n - out.len();
             if want >= self.cap {
-                // big read ~ straight into `out`, skip the read-ahead
+                // big read: straight into `out`, skip the read buf
                 let limit = u64::try_from(want).unwrap_or(u64::MAX);
                 (&mut self.file).take(limit).read_to_end(&mut out)?;
                 break;
@@ -191,7 +197,7 @@ impl BufferedFile {
                 self.rbuf.consume_into(end, &mut line);
                 return Ok(Some(line));
             }
-            // no newline (and under `limit`) in the read-ahead ~ take it all + refill
+            // the buffer doesn't hold the whole line: take what's there and refill
             self.rbuf.consume_into(self.rbuf.len(), &mut line);
             if !self.fill()? {
                 return Ok((!line.is_empty()).then_some(line));
@@ -227,7 +233,8 @@ impl BufferedFile {
         Ok(buf.len())
     }
 
-    /// Seeks relative to the logical position (not the read-ahead).
+    /// `SeekFrom::Current` is relative to where the caller is, not to how far
+    /// the file has been read into the buffer.
     pub fn seek(&mut self, pos: SeekFrom) -> io::Result<u64> {
         self.flush()?;
         let pos = match pos {
@@ -254,7 +261,7 @@ impl BufferedFile {
         Ok(self.file.stream_position()? - unread)
     }
 
-    /// Truncates to `size` (default: the current position) w/o changing pos.
+    /// Truncates to `size` (default: the current position) without moving the position.
     pub fn truncate(&mut self, size: Option<u64>) -> io::Result<u64> {
         self.flush()?;
         self.discard_read_ahead()?;
@@ -274,9 +281,7 @@ impl Drop for BufferedFile {
     }
 }
 
-/// Read ahead buffer.
-///
-/// the unread bytes are `buf[pos..]`
+/// Read buffer; `buf[pos..]` is what hasn't been handed out yet.
 #[derive(Default)]
 struct ReadBuf {
     buf: Vec<u8>,
@@ -296,8 +301,8 @@ impl ReadBuf {
         self.pos == self.buf.len()
     }
 
-    /// end of the next line (or `limit` bytes) if it's all in here; only
-    /// looks at the first `limit` bytes
+    /// where the next line ends (cut off at `limit`), or `None` if the buffer
+    /// doesn't hold all of it. only searches the first `limit` bytes
     fn line_end(&self, limit: Option<usize>) -> Option<usize> {
         let unread = self.unread();
         let window = limit.map_or(unread, |limit| &unread[..limit.min(unread.len())]);

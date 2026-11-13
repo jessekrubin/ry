@@ -17,7 +17,8 @@ use tokio::sync::{Mutex, OwnedMutexGuard};
 
 pyo3::import_exception!(io, UnsupportedOperation);
 
-/// open/closed + seekable, readable w/o the lock (for the sync getters)
+/// whether the file is open + seekable, kept outside the lock so `closed` and
+/// `seekable()` can read it without waiting
 #[derive(Clone, Copy, PartialEq, Eq)]
 #[repr(u8)]
 enum FileStatus {
@@ -26,15 +27,16 @@ enum FileStatus {
     Unseekable = 2,
 }
 
-/// `BufferedFile` behind a fifo async lock (`tokio::sync::Mutex`)
+/// `BufferedFile` behind an async lock (`tokio::sync::Mutex`, first come first
+/// served)
 ///
-/// every op: take the lock, try the buffer right on the loop thread, else one
-/// blocking hop that owns the lock till it's done ~ a cancelled await can't
-/// leave a half done op behind
+/// every op takes the lock and tries the buffers right away. if they can't
+/// answer it, the op runs on a blocking thread that holds the lock until it's
+/// done, so cancelling the await can't leave an op half finished
 #[derive(Clone)]
 struct AsyncBufferedFile {
     file: Arc<Mutex<Option<BufferedFile>>>,
-    /// `FileStatus` of `file`; only written under the lock (open/close)
+    /// `FileStatus` of `file`; only open/close change it, while holding the lock
     status: Arc<AtomicU8>,
 }
 
@@ -99,11 +101,12 @@ impl AsyncBufferedFile {
         let Some(mut file) = lock.0.take() else {
             return Ok(());
         };
-        // nothing to flush ~ drop it here, no blocking hop
+        // nothing to flush: just drop it, no thread needed
         if !file.has_pending_writes() {
             return Ok(());
         }
-        // `lock` rides along so nothing reopens the path mid-flush
+        // the lock goes into the thread too, so nothing can reopen the file
+        // until the flush is done
         get_ry_tokio_runtime()
             .py_spawn_blocking(move || {
                 let _lock = lock;
@@ -191,7 +194,7 @@ impl FileLock {
             .ok_or_else(|| py_runtime_error!("File is closed; must open first"))
     }
 
-    /// run `f` on the file as one blocking hop (the lock goes along)
+    /// run `f` on the file on a blocking thread, holding the lock until it's done
     async fn unblock<T: Send + 'static>(
         mut self,
         f: impl FnOnce(&mut BufferedFile) -> io::Result<T> + Send + 'static,
@@ -429,7 +432,7 @@ impl PyAsyncFile {
     }
 
     fn seekable(&self) -> bool {
-        // not known until opened; `True` like before
+        // unknown until opened; says `True` until then, like before
         self.file.status() != FileStatus::Unseekable
     }
 
