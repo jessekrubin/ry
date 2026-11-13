@@ -2,7 +2,7 @@
 use std::fs;
 use std::path::PathBuf;
 
-pub use async_read_dir::PyAsyncReadDir;
+pub use async_read_dir::RyAsyncReadDir;
 use pyo3::prelude::*;
 use pyo3::pybacked::PyBackedStr;
 use pyo3::types::PyDict;
@@ -14,8 +14,8 @@ use ryo3_std::fs::PyMetadata;
 use ryo3_tokio_rt::{RyCoroutine, blocking_coro, tokio_coro};
 mod async_file;
 mod async_file_read_stream;
-pub use async_file::PyAsyncFile;
-pub use async_file_read_stream::PyAsyncFileReadStream;
+pub use async_file::RyAsyncFile;
+pub use async_file_read_stream::RyAsyncFileReadStream;
 mod async_read_dir;
 
 #[pyfunction]
@@ -83,7 +83,7 @@ pub fn read_dir_async(py: Python<'_>, path: PathBuf) -> PyResult<Bound<'_, RyCor
         let readdir = tokio::fs::read_dir(&path)
             .await
             .map_py_io_err_with_path(&path)?;
-        Ok(PyAsyncReadDir::from(readdir))
+        Ok(RyAsyncReadDir::from(readdir))
     })
 }
 
@@ -175,7 +175,7 @@ pub fn aopen(
     mode: PyOpenMode,
     buffering: i8,
     kwargs: Option<&Bound<'_, PyDict>>,
-) -> PyResult<PyAsyncFile> {
+) -> PyResult<RyAsyncFile> {
     if buffering != -1 {
         return py_not_implemented_err!("aopen buffering not implemented: {buffering}");
     }
@@ -187,7 +187,7 @@ pub fn aopen(
             "aopen text mode not implemented",
         ));
     }
-    Ok(PyAsyncFile::new(path, mode.into()))
+    Ok(RyAsyncFile::new(path, mode.into()))
 }
 
 #[pyfunction]
@@ -198,14 +198,14 @@ pub fn read_stream_async(
     offset: u64,
     buffered: bool,
     strict: bool,
-) -> PyResult<PyAsyncFileReadStream> {
-    PyAsyncFileReadStream::py_new(path, read_size, offset, buffered, strict)
+) -> PyResult<RyAsyncFileReadStream> {
+    RyAsyncFileReadStream::py_new(path, read_size, offset, buffered, strict)
 }
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     // classes
-    m.add_class::<PyAsyncFile>()?;
-    m.add_class::<PyAsyncFileReadStream>()?;
+    m.add_class::<RyAsyncFile>()?;
+    m.add_class::<RyAsyncFileReadStream>()?;
     // functions
     m.add_function(wrap_pyfunction!(aopen, m)?)?;
     m.add_function(wrap_pyfunction!(canonicalize_async, m)?)?;

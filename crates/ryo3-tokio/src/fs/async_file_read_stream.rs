@@ -159,18 +159,18 @@ async fn read_chunks(
 // TODO: investigate if 2 arcs are really needed?
 #[pyclass(name = "AsyncFileReadStream", frozen, immutable_type, eq)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
-pub struct PyAsyncFileReadStream {
+pub struct RyAsyncFileReadStream {
     options: Arc<FileReadStreamOptions>,
     state: Arc<Mutex<StreamState>>,
 }
 
-impl PartialEq for PyAsyncFileReadStream {
+impl PartialEq for RyAsyncFileReadStream {
     fn eq(&self, other: &Self) -> bool {
         self.options == other.options
     }
 }
 
-impl PyAsyncFileReadStream {
+impl RyAsyncFileReadStream {
     /// opens the file (if not already open) and resolves to the stream itself
     fn ensure_open_coro<'py>(
         slf: Py<Self>,
@@ -215,7 +215,7 @@ impl PyAsyncFileReadStream {
 }
 
 #[pymethods]
-impl PyAsyncFileReadStream {
+impl RyAsyncFileReadStream {
     #[new]
     #[pyo3(signature = (path, *, read_size = 65536, offset = 0, buffered = true, strict = true))]
     pub fn py_new(
@@ -301,7 +301,7 @@ impl PyAsyncFileReadStream {
     }
 }
 
-impl fmt::Display for PyAsyncFileReadStream {
+impl fmt::Display for RyAsyncFileReadStream {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "AsyncFileReadStream({})", self.options)
     }

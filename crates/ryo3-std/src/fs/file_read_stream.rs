@@ -94,18 +94,18 @@ impl StreamState {
 
 #[pyclass(name = "FileReadStream", frozen, immutable_type, eq)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
-pub struct PyFileReadStream {
+pub struct RyFileReadStream {
     options: FileReadStreamOptions,
     state: RyMutex<StreamState>,
 }
 
-impl PartialEq for PyFileReadStream {
+impl PartialEq for RyFileReadStream {
     fn eq(&self, other: &Self) -> bool {
         self.options == other.options
     }
 }
 
-impl PyFileReadStream {
+impl RyFileReadStream {
     pub(crate) fn new(options: FileReadStreamOptions) -> PyResult<Self> {
         if options.read_size == 0 {
             return py_value_err!("read_size must be greater than 0");
@@ -119,7 +119,7 @@ impl PyFileReadStream {
 }
 
 #[pymethods]
-impl PyFileReadStream {
+impl RyFileReadStream {
     #[new]
     #[pyo3(signature = (path, *, read_size = 65536, offset = 0, buffered = true, strict = true))]
     pub fn py_new(
@@ -207,7 +207,7 @@ impl PyFileReadStream {
     }
 }
 
-impl fmt::Display for PyFileReadStream {
+impl fmt::Display for RyFileReadStream {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "FileReadStream({})", self.options)
     }

@@ -220,13 +220,13 @@ macro_rules! size_limit {
 
 #[pyclass(name = "AsyncFile", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
-pub struct PyAsyncFile {
+pub struct RyAsyncFile {
     path: Arc<Path>,
     open_options: PyOpenOptions,
     file: AsyncBufferedFile,
 }
 
-impl PyAsyncFile {
+impl RyAsyncFile {
     pub(crate) fn new(path: PathBuf, open_options: PyOpenOptions) -> Self {
         Self {
             path: path.into(),
@@ -265,7 +265,7 @@ impl PyAsyncFile {
 }
 
 #[pymethods]
-impl PyAsyncFile {
+impl RyAsyncFile {
     #[new]
     #[pyo3(
         signature = (p, mode = PyOpenMode::default()),
