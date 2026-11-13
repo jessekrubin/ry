@@ -2463,8 +2463,8 @@ dependencies = [
 name = "ryo3-std"
 version = "0.0.109"
 dependencies = [
- "bytes",
  "jiff",
+ "memchr",
  "pyo3",
  "ryo3-bytes",
  "ryo3-core",
@@ -2478,7 +2478,6 @@ dependencies = [
 name = "ryo3-tokio"
 version = "0.0.109"
 dependencies = [
- "bytes",
  "pyo3",
  "ryo3-bytes",
  "ryo3-core",

@@ -1,179 +1,125 @@
-use std::fs::File;
-use std::io::{self, BufReader, Read, Seek, SeekFrom};
-use std::path::{Path, PathBuf};
+use std::fmt;
+use std::fs::OpenOptions;
+use std::io::SeekFrom;
+use std::path::PathBuf;
 
-use bytes::Bytes;
 use pyo3::prelude::*;
 use ryo3_bytes::RyBytes;
 use ryo3_core::PyIoResultExt;
 use ryo3_core::sync::RyMutex;
 use ryo3_macro_rules::py_value_err;
 
-pub(crate) const DEFAULT_READ_SIZE: usize = 65536;
-/// max up-front alloc per buf; bigger `read_size` will grow w/ data
-const MAX_BUFFER_PREALLOC_SIZE: usize = 8 * 1024 * 1024;
+use crate::fs::buffered_file::{BUF_SIZE, BufferedFile};
 
-pub(crate) struct FileReadStream<T: Read + Seek> {
-    file: T,
-    read_size: usize,
+/// Options for the sync `FileReadStream` + ryo3-tokio's `AsyncFileReadStream`
+#[derive(Clone, PartialEq, Eq, Hash, Debug)]
+pub struct FileReadStreamOptions {
+    /// Whether to enforce strict offset checking.
+    pub strict: bool,
+    /// Path to the file to read.
+    pub path: PathBuf,
+    /// Size of each chunk to read.
+    pub read_size: usize,
+    /// Offset to start reading from.
+    pub offset: u64,
+    /// Whether to use buffered reading.
+    pub buffered: bool,
 }
 
-impl<T: Read + Seek> FileReadStream<T> {
-    pub(crate) fn new(file: T, read_size: usize) -> Self {
-        Self { file, read_size }
-    }
-}
-
-impl FileReadStream<File> {
-    fn from_path<P: AsRef<Path>>(path: P, read_size: usize) -> io::Result<Self> {
-        let file = File::open(path)?;
-        Ok(Self::new(file, read_size))
-    }
-}
-
-impl FileReadStream<BufReader<File>> {
-    fn from_path_buffered<P: AsRef<Path>>(path: P, read_size: usize) -> io::Result<Self> {
-        let file = File::open(path)?;
-        let reader = BufReader::with_capacity(
-            read_size.saturating_mul(2).min(MAX_BUFFER_PREALLOC_SIZE),
-            file,
-        );
-        Ok(Self::new(reader, read_size))
-    }
-}
-
-impl<T: Read + Seek> FileReadStream<T> {
-    fn seek_to(&mut self, offset: u64) -> io::Result<u64> {
-        self.file.seek(SeekFrom::Start(offset))
-    }
-}
-
-impl<T: Read + Seek> Iterator for FileReadStream<T> {
-    type Item = io::Result<Bytes>;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        // read up to `read_size` (or eof); buffer grows w/ the data read
-        let mut buf = Vec::with_capacity(self.read_size.min(MAX_BUFFER_PREALLOC_SIZE));
-        let limit = u64::try_from(self.read_size).unwrap_or(u64::MAX);
-        match (&mut self.file).take(limit).read_to_end(&mut buf) {
-            Ok(0) => None,
-            Ok(_) => Some(Ok(Bytes::from(buf))),
-            Err(e) => Some(Err(e)),
-        }
-    }
-}
-
-pub(crate) enum FileReadStreamWrapper {
-    Unbuffered(FileReadStream<File>),
-    Buffered(FileReadStream<BufReader<File>>),
-    Closed(PyFileReadStreamOptions),
-}
-
-impl FileReadStreamWrapper {
-    fn ensure_open(&mut self) -> PyResult<()> {
-        match self {
-            Self::Unbuffered(_) | Self::Buffered(_) => Ok(()),
-            Self::Closed(options) => {
-                let file = File::open(&options.path).map_py_io_err_with_path(&options.path)?;
-                let len = file
-                    .metadata()
-                    .map_py_io_err_with_path(&options.path)?
-                    .len();
-
-                if options.strict && options.offset > len {
-                    return py_value_err!(
-                        "offset ({}) is beyond end of file (len = {})",
-                        options.offset,
-                        len
-                    );
-                }
-
-                let mut stream = if options.buffered {
-                    Self::Buffered(
-                        FileReadStream::from_path_buffered(&options.path, options.read_size)
-                            .map_py_io_err_with_path(&options.path)?,
-                    )
-                } else {
-                    Self::Unbuffered(
-                        FileReadStream::from_path(&options.path, options.read_size)
-                            .map_py_io_err_with_path(&options.path)?,
-                    )
-                };
-
-                if options.offset > 0 {
-                    stream.seek_to(options.offset)?;
-                }
-
-                *self = stream;
-                Ok(())
+impl FileReadStreamOptions {
+    /// open the file, check `offset` (if strict) and seek to it
+    pub fn open(&self) -> PyResult<BufferedFile> {
+        // unbuffered == buffer size 0 (reads at least the buffer size skip it)
+        let cap = if self.buffered { BUF_SIZE } else { 0 };
+        let mut file = BufferedFile::open(&self.path, OpenOptions::new().read(true), cap)
+            .map_py_io_err_with_path(&self.path)?;
+        if self.strict {
+            let len = file.file_len().map_py_io_err_with_path(&self.path)?;
+            if self.offset > len {
+                return py_value_err!(
+                    "offset ({}) is beyond end of file (len = {len})",
+                    self.offset
+                );
             }
         }
-    }
-
-    fn seek_to(&mut self, offset: u64) -> io::Result<u64> {
-        match self {
-            Self::Unbuffered(stream) => stream.seek_to(offset),
-            Self::Buffered(stream) => stream.seek_to(offset),
-            Self::Closed(_) => Err(io::Error::other("stream not opened")),
+        if self.offset > 0 {
+            file.seek(SeekFrom::Start(self.offset))
+                .map_py_io_err_with_path(&self.path)?;
         }
+        Ok(file)
     }
 }
 
-impl Iterator for FileReadStreamWrapper {
-    type Item = io::Result<Bytes>;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        match self {
-            Self::Unbuffered(stream) => stream.next(),
-            Self::Buffered(stream) => stream.next(),
-            Self::Closed(_) => Some(Err(io::Error::other("stream not opened"))),
+/// The python repr args, e.g. `path='f.txt', read_size=65536, buffered=True, strict=True`.
+///
+/// TODO: this could very well mean figuring out some sort of `KwargsWriter` thingy
+impl fmt::Display for FileReadStreamOptions {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let py_bool_str = |b: bool| if b { "True" } else { "False" };
+        write!(
+            f,
+            "path='{}', read_size={}",
+            self.path.display(),
+            self.read_size
+        )?;
+        if self.offset != 0 {
+            write!(f, ", offset={}", self.offset)?;
         }
+        write!(
+            f,
+            ", buffered={}, strict={}",
+            py_bool_str(self.buffered),
+            py_bool_str(self.strict)
+        )
     }
 }
 
-#[derive(Clone, PartialEq, Eq, Hash)]
-pub(crate) struct PyFileReadStreamOptions {
-    /// Whether to enforce strict offset checking
-    pub(crate) strict: bool,
-    /// Path to the file to read
-    pub(crate) path: PathBuf,
-    /// Size of each chunk to read
-    pub(crate) read_size: usize,
-    /// Offset to start reading from
-    pub(crate) offset: u64,
-    /// Whether to use buffered reading
-    pub(crate) buffered: bool,
+/// `None` = closed; the next read reopens it at `offset`
+struct StreamState(Option<BufferedFile>);
+
+impl StreamState {
+    fn ensure_open(&mut self, options: &FileReadStreamOptions) -> PyResult<&mut BufferedFile> {
+        match self.0 {
+            Some(ref mut file) => Ok(file),
+            None => Ok(self.0.insert(options.open()?)),
+        }
+    }
+
+    // `None` at eof
+    fn next_chunk(&mut self, options: &FileReadStreamOptions) -> PyResult<Option<RyBytes>> {
+        let chunk = self.ensure_open(options)?.read(options.read_size)?;
+        Ok((!chunk.is_empty()).then(|| RyBytes::from(chunk)))
+    }
 }
 
 #[pyclass(name = "FileReadStream", frozen, immutable_type, eq)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
-pub struct PyFileReadStream {
-    pub(crate) options: PyFileReadStreamOptions,
-    pub(crate) file_read_stream: RyMutex<FileReadStreamWrapper>,
+pub struct RyFileReadStream {
+    options: FileReadStreamOptions,
+    state: RyMutex<StreamState>,
 }
 
-impl PartialEq for PyFileReadStream {
+impl PartialEq for RyFileReadStream {
     fn eq(&self, other: &Self) -> bool {
         self.options == other.options
     }
 }
 
-impl PyFileReadStream {
-    pub(crate) fn new(options: PyFileReadStreamOptions) -> PyResult<Self> {
+impl RyFileReadStream {
+    pub(crate) fn new(options: FileReadStreamOptions) -> PyResult<Self> {
         if options.read_size == 0 {
             return py_value_err!("read_size must be greater than 0");
         }
-        let mut stream = FileReadStreamWrapper::Closed(options.clone());
-        stream.ensure_open()?;
+        let file = options.open()?;
         Ok(Self {
             options,
-            file_read_stream: RyMutex::new(stream),
+            state: RyMutex::new(StreamState(Some(file))),
         })
     }
 }
 
 #[pymethods]
-impl PyFileReadStream {
+impl RyFileReadStream {
     #[new]
     #[pyo3(signature = (path, *, read_size = 65536, offset = 0, buffered = true, strict = true))]
     pub fn py_new(
@@ -183,7 +129,7 @@ impl PyFileReadStream {
         buffered: bool,
         strict: bool,
     ) -> PyResult<Self> {
-        let options = PyFileReadStreamOptions {
+        let options = FileReadStreamOptions {
             strict,
             path,
             read_size,
@@ -202,11 +148,12 @@ impl PyFileReadStream {
     }
 
     fn __enter__(slf: Py<Self>, py: Python<'_>) -> PyResult<Py<Self>> {
-        slf.borrow(py)
-            .file_read_stream
-            .py_lock_attached(py)?
-            .ensure_open()?;
-
+        {
+            let this = slf.get();
+            this.state
+                .py_lock_attached(py)?
+                .ensure_open(&this.options)?;
+        }
         Ok(slf)
     }
 
@@ -222,84 +169,46 @@ impl PyFileReadStream {
     }
 
     fn __next__(&self, py: Python<'_>) -> PyResult<Option<RyBytes>> {
-        let mut inner = self.file_read_stream.py_lock_attached(py)?;
-        inner.ensure_open()?;
-        match inner.next() {
-            Some(Ok(b)) => Ok(Some(b.into())),
-            Some(Err(e)) => Err(e.into()),
-            None => Ok(None),
-        }
+        self.state.py_lock_attached(py)?.next_chunk(&self.options)
     }
-
-    // NOT GIL RELEASING ? tbd if ought to roll this out everywhere.
-    // fn __next__(&self) -> PyResult<Option<RyBytes>> {
-    //     let mut inner = self.file_read_stream.py_lock()?;
-    //     match inner.next() {
-    //         Some(Ok(b)) => Ok(Some(b.into())),
-    //         Some(Err(e)) => Err(e.into()),
-    //         None => Ok(None),
-    //     }
-    // }
 
     #[pyo3(signature = (n = 1))]
     fn take(&self, py: Python<'_>, n: usize) -> PyResult<Vec<RyBytes>> {
-        let mut inner = self.file_read_stream.py_lock_attached(py)?;
-        inner.ensure_open()?;
-        let mut result = Vec::new();
-        for _ in 0..n {
-            match inner.next() {
-                Some(Ok(b)) => result.push(b.into()),
-                Some(Err(e)) => return Err(e.into()),
-                None => break,
-            }
-            if result.len().is_multiple_of(256) {
+        let mut state = self.state.py_lock_attached(py)?;
+        // open even for `take(0)`, like before (this also reopens after `close()`)
+        state.ensure_open(&self.options)?;
+        let mut chunks = Vec::new();
+        while chunks.len() < n
+            && let Some(chunk) = state.next_chunk(&self.options)?
+        {
+            chunks.push(chunk);
+            if chunks.len().is_multiple_of(256) {
                 py.check_signals()?;
             }
         }
-        Ok(result)
+        Ok(chunks)
     }
 
     fn collect(&self, py: Python<'_>) -> PyResult<Vec<RyBytes>> {
-        let mut inner = self.file_read_stream.py_lock_attached(py)?;
-        inner.ensure_open()?;
-        let mut result = Vec::new();
-        while let Some(Ok(b)) = inner.next() {
-            result.push(b.into());
-            if result.len().is_multiple_of(256) {
+        let mut state = self.state.py_lock_attached(py)?;
+        let mut chunks = Vec::new();
+        while let Some(chunk) = state.next_chunk(&self.options)? {
+            chunks.push(chunk);
+            if chunks.len().is_multiple_of(256) {
                 py.check_signals()?;
             }
         }
-        Ok(result)
+        Ok(chunks)
     }
 
     fn close(&self, py: Python<'_>) -> PyResult<()> {
-        let mut inner = self.file_read_stream.py_lock_attached(py)?;
-        *inner = FileReadStreamWrapper::Closed(self.options.clone());
+        self.state.py_lock_attached(py)?.0 = None;
         Ok(())
     }
 }
 
-impl std::fmt::Display for PyFileReadStream {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "FileReadStream(path='{}'", self.options.path.display())?;
-        if self.options.read_size == DEFAULT_READ_SIZE {
-            write!(f, ", read_size={DEFAULT_READ_SIZE}")?;
-        } else {
-            write!(f, ", read_size={}", self.options.read_size)?;
-        }
-        if self.options.offset != 0 {
-            write!(f, ", offset={}", self.options.offset)?;
-        }
-        if self.options.buffered {
-            write!(f, ", buffered=True")?;
-        } else {
-            write!(f, ", buffered=False")?;
-        }
-        if self.options.strict {
-            write!(f, ", strict=True")?;
-        } else {
-            write!(f, ", strict=False")?;
-        }
-        write!(f, ")")
+impl fmt::Display for RyFileReadStream {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "FileReadStream({})", self.options)
     }
 }

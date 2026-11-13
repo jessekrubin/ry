@@ -10,17 +10,18 @@ use pyo3::exceptions::PyRuntimeError;
 use tokio::runtime::Runtime;
 
 pub use crate::coroutine::{
-    LoopHandle, RyCoroutine, done_coro, failed_coro, pyloop_coro, tokio_coro, yield_coro,
+    LoopHandle, RyCoroutine, blocking_coro, done_coro, failed_coro, pyloop_coro, tokio_coro,
+    yield_coro,
 };
 
-pub struct RyRuntime<'r>(pub &'r Runtime);
+pub struct RyRuntime<'r>(&'r Runtime);
 
 /// join handle that maps join errors to `PyErr` and aborts the task on drop
 ///
 /// abort-on-drop is the cancel story ~ if whoever is awaiting this goes away
 /// (cancelled task, dropped coroutine, ...) the tokio task gets nuked instead
 /// of running detached in the background
-pub struct RyJoinHandle<T>(pub tokio::task::JoinHandle<T>);
+pub struct RyJoinHandle<T>(tokio::task::JoinHandle<T>);
 
 impl<T> Drop for RyJoinHandle<T> {
     fn drop(&mut self) {
@@ -48,6 +49,17 @@ impl RyRuntime<'_> {
         T: Send + 'static,
     {
         RyJoinHandle(self.spawn(fut))
+    }
+
+    /// `py_spawn` for blocking code (`spawn_blocking`); works from any thread.
+    /// dropping the handle only cancels the closure if it hasn't started yet
+    #[inline]
+    pub fn py_spawn_blocking<F, T>(&self, f: F) -> RyJoinHandle<T>
+    where
+        F: FnOnce() -> T + Send + 'static,
+        T: Send + 'static,
+    {
+        RyJoinHandle(self.0.spawn_blocking(f))
     }
 }
 

@@ -28,14 +28,16 @@ _TOKIO_FS_AIO_FNS: tuple[t.Callable[..., t.Any], ...] = (
     ry.remove_dir_async,
     ry.remove_file_async,
     ry.rename_async,
-    ry.try_exists_async,
     ry.write_async,
+    ry.write_string_async,
 )
 
 
 def _build_fn_args(fn: t.Callable[..., t.Any], tmp_path: Path) -> tuple[t.Any, ...]:
     if fn is ry.write_async:
         return (tmp_path / "w", b"x")
+    if fn is ry.write_string_async:
+        return (tmp_path / "w", "x")
     if fn in (ry.copy_async, ry.hard_link_async, ry.rename_async):
         return (tmp_path / "a", tmp_path / "b")
     return (tmp_path / "a",)
@@ -52,7 +54,12 @@ def test_is_coroutine(fn: t.Any, tmp_path: Path) -> None:
 
 @pytest.mark.parametrize(
     "fn",
-    [ry.write_async, ry.create_dir_async, ry.create_dir_all_async],
+    [
+        ry.write_async,
+        ry.write_string_async,
+        ry.create_dir_async,
+        ry.create_dir_all_async,
+    ],
     ids=lambda fn: fn.__name__,
 )
 def test_lazy(fn: t.Callable[..., t.Any], tmp_path: Path) -> None:
@@ -69,7 +76,12 @@ async def test_roundtrip(tmp_path: Path) -> None:
     assert await ry.read_async(a) == b"hello"
     assert await ry.read_to_string_async(a) == "hello"
     assert await ry.exists_async(a) is True
-    assert await ry.try_exists_async(tmp_path / "nope") is False
+    assert await ry.exists_async(tmp_path / "nope") is False
+    assert await ry.write_string_async(tmp_path / "s.txt", "héllo") == len(
+        "héllo".encode()
+    )
+    assert (tmp_path / "s.txt").read_text(encoding="utf-8") == "héllo"
+    (tmp_path / "s.txt").unlink()
     md = await ry.metadata_async(a)
     assert md.len == 5
     # stupid fucking windows with this prefix `\\?\`
@@ -119,6 +131,21 @@ async def test_errors_raise(tmp_path: Path) -> None:
         await ry.metadata_async(tmp_path / "nope")
     with pytest.raises(FileExistsError):
         await ry.create_dir_async(tmp_path)
+
+
+@pytest.mark.anyio
+async def test_errors_have_filenames(tmp_path: Path) -> None:
+    nope, dst = tmp_path / "nope", tmp_path / "dst"
+    with pytest.raises(FileNotFoundError) as e:
+        await ry.metadata_async(nope)
+    assert e.value.filename == str(nope)
+    with pytest.raises(FileNotFoundError) as e:
+        await ry.read_to_string_async(nope)
+    assert e.value.filename == str(nope)
+    for fn in (ry.copy_async, ry.rename_async):
+        with pytest.raises(FileNotFoundError) as e:
+            await fn(nope, dst)
+        assert (e.value.filename, e.value.filename2) == (str(nope), str(dst))
 
 
 @pytest.mark.anyio

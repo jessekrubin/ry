@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import asyncio
+import os
 import re
+import sys
 import types
 import typing as t
 from pathlib import Path
@@ -336,3 +338,148 @@ class TestAsyncFileReadStreamCoroutines:
         with pytest.raises(asyncio.CancelledError):
             await task
         assert len(await asyncio.wait_for(stream.take(1), timeout=5)) == 1
+
+
+async def test_read_stream_collect_raises_io_errors(tmp_path: Path) -> None:
+    with pytest.raises(OSError):  # noqa: PT011
+        await ry.read_stream_async(tmp_path, read_size=10).collect()
+
+
+async def test_read_stream_cancelled_next_keeps_order(tmp_path: Path) -> None:
+    p = tmp_path / "f.bin"
+    data = bytes(range(256)) * 4096
+    p.write_bytes(data)
+    stream = ry.read_stream_async(p, read_size=4096)
+    got = bytearray()
+    for _ in range(20):
+        task = asyncio.ensure_future(anext(stream))
+        await asyncio.sleep(0)
+        task.cancel()
+        res = await asyncio.gather(task, return_exceptions=True)
+        if isinstance(res[0], ry.Bytes):
+            got += res[0]
+        got += await anext(stream)
+    got += b"".join(await stream.collect())
+    assert bytes(got) == data
+
+
+@pytest.mark.parametrize("buffered", [True, False])
+@pytest.mark.parametrize("read_size", [1, 7, 4096, 65_536, 200_000])
+async def test_read_stream_sizes(
+    tmp_path: Path, read_size: int, *, buffered: bool
+) -> None:
+    p = tmp_path / "f.bin"
+    # > 2 buffers for the big sizes; tiny sizes just need a few buffer hits
+    data = bytes(range(256)) * (1200 if read_size >= 4096 else 40)
+    p.write_bytes(data)
+    chunks = await ry.read_stream_async(
+        p, read_size=read_size, buffered=buffered
+    ).collect()
+    assert b"".join(chunks) == data
+    assert all(len(c) == read_size for c in chunks[:-1])
+    taken = await ry.read_stream_async(
+        p, read_size=read_size, buffered=buffered, offset=3
+    ).take(3)
+    assert b"".join(taken) == data[3 : 3 + 3 * read_size]
+
+
+async def test_read_stream_take_zero_still_opens(tmp_path: Path) -> None:
+    with pytest.raises(FileNotFoundError):
+        await ry.read_stream_async(tmp_path / "nope", read_size=10).take(0)
+
+
+@pytest.mark.skipif(not sys.platform.startswith("linux"), reason="/proc/self/fd")
+async def test_read_stream_close_waits_for_read_ahead(tmp_path: Path) -> None:
+    p = tmp_path / "f.bin"
+    p.write_bytes(b"x" * (32 << 20))
+
+    def open_fds() -> int:
+        fds = os.listdir("/proc/self/fd")
+        return sum(1 for fd in fds if _readlink(f"/proc/self/fd/{fd}") == str(p))
+
+    # racy (the read-ahead may not have started yet) ~ loop to catch it
+    for _ in range(20):
+        async with ry.read_stream_async(p, read_size=16 << 20) as stream:
+            await anext(stream)  # kicks off the read-ahead of the next chunk
+        assert open_fds() == 0
+        await asyncio.sleep(0.01)
+
+
+def _readlink(path: str) -> str | None:
+    try:
+        return os.readlink(path)
+    except OSError:
+        return None
+
+
+@pytest.mark.skipif(not sys.platform.startswith("linux"), reason="mkfifo + /proc")
+async def test_read_stream_fifo_close(tmp_path: Path) -> None:
+    # the writer stays open, so a read with no data waiting blocks
+    fifo = tmp_path / "fifo"
+    os.mkfifo(fifo)
+    writer = os.open(fifo, os.O_RDWR)  # O_RDWR so neither end blocks on open
+
+    def open_fds() -> int:
+        fds = os.listdir("/proc/self/fd")
+        return sum(1 for fd in fds if _readlink(f"/proc/self/fd/{fd}") == str(fifo))
+
+    try:
+        # no read-ahead on a fifo, so closing doesn't wait for more data
+        os.write(writer, b"abcd")
+        async with ry.read_stream_async(fifo, read_size=4) as stream:
+            assert await anext(stream) == b"abcd"
+        assert open_fds() == 1  # just the writer
+
+        # close doesn't wait for a cancelled read that's still blocked; that
+        # read keeps the fd open until data arrives
+        stream = await ry.read_stream_async(fifo, read_size=4)
+        reading = asyncio.ensure_future(anext(stream))
+        await asyncio.sleep(0.05)
+        reading.cancel()
+        await asyncio.wait_for(stream.close(), 1)
+        assert open_fds() == 2
+        os.write(writer, b"efgh")
+        for _ in range(100):
+            if open_fds() == 1:
+                break
+            await asyncio.sleep(0.01)
+        assert open_fds() == 1
+    finally:
+        os.close(writer)
+
+
+@pytest.mark.parametrize("read_size", [1, 3, 4096])
+async def test_read_stream_mixed_next_take_collect(
+    tmp_path: Path, read_size: int
+) -> None:
+    # anext, take and collect read differently; mixed together they must
+    # still return every byte in order
+    p = tmp_path / "f.bin"
+    data = bytes(range(256)) * 300
+    p.write_bytes(data)
+    async with ry.read_stream_async(p, read_size=read_size) as stream:
+        first = await anext(stream)
+        taken = await stream.take(5)
+        assert len(taken) == 5
+        rest = await stream.collect()
+        assert await stream.take(3) == []
+    assert first + b"".join(taken) + b"".join(rest) == data
+
+
+@pytest.mark.skipif(not sys.platform.startswith("linux"), reason="mkfifo")
+async def test_read_stream_fifo_cancelled_collect_then_close(tmp_path: Path) -> None:
+    # collect() grabs the first chunk and then waits for more; cancel it and
+    # make sure close() doesn't hang
+    fifo = tmp_path / "fifo"
+    os.mkfifo(fifo)
+    writer = os.open(fifo, os.O_RDWR)
+    try:
+        os.write(writer, b"abcd")
+        stream = await ry.read_stream_async(fifo, read_size=4)
+        collecting = asyncio.ensure_future(stream.collect())
+        await asyncio.sleep(0.05)
+        collecting.cancel()
+        await asyncio.wait_for(stream.close(), 1)
+    finally:
+        os.write(writer, b"efgh")  # let the stuck read finish
+        os.close(writer)

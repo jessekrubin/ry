@@ -1,3 +1,4 @@
+mod buffered_file;
 mod file_read_stream;
 mod file_type;
 use std::convert::Into;
@@ -6,6 +7,8 @@ use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 use std::time::SystemTime;
 
+pub use buffered_file::{BUF_SIZE, BufferedFile};
+pub use file_read_stream::FileReadStreamOptions;
 pub use file_type::PyFileType;
 use pyo3::exceptions::PyRuntimeError;
 use pyo3::prelude::*;
@@ -15,7 +18,7 @@ use ryo3_core::PyIoResultExt;
 use ryo3_core::types::{PathLike, PyUtf8Bytes};
 use ryo3_macro_rules::py_type_err;
 
-use crate::fs::file_read_stream::PyFileReadStream;
+use crate::fs::file_read_stream::RyFileReadStream;
 
 #[pyclass(name = "Metadata", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
@@ -255,8 +258,8 @@ pub fn read_stream(
     offset: u64,
     buffered: bool,
     strict: bool,
-) -> PyResult<PyFileReadStream> {
-    PyFileReadStream::py_new(path, read_size, offset, buffered, strict)
+) -> PyResult<RyFileReadStream> {
+    RyFileReadStream::py_new(path, read_size, offset, buffered, strict)
 }
 
 #[pyfunction]
@@ -540,7 +543,7 @@ impl std::fmt::Display for PyReadDir {
 }
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    m.add_class::<PyFileReadStream>()?;
+    m.add_class::<RyFileReadStream>()?;
     m.add_class::<PyFileType>()?;
     m.add_class::<PyDirEntry>()?;
     m.add_class::<PyReadDir>()?;

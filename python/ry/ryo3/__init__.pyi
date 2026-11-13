@@ -271,8 +271,8 @@ from ry.ryo3._tokio import remove_dir_async as remove_dir_async
 from ry.ryo3._tokio import remove_file_async as remove_file_async
 from ry.ryo3._tokio import rename_async as rename_async
 from ry.ryo3._tokio import sleep_async as sleep_async
-from ry.ryo3._tokio import try_exists_async as try_exists_async
 from ry.ryo3._tokio import write_async as write_async
+from ry.ryo3._tokio import write_string_async as write_string_async
 from ry.ryo3._tokio_websockets import WebSocket as WebSocket
 from ry.ryo3._tokio_websockets import WsMessage as WsMessage
 from ry.ryo3._tokio_websockets import websocket as websocket

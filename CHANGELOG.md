@@ -7,7 +7,7 @@
 
 ---
 
-## v0.0.109 [unreleased]
+## v0.0.109 [2026-11-13]
 
 - **DEPRECATION REMOVALS**
   - removed `ryo3-bzip2` (`bzip2_encode`/`bzip2`/`bzip2_decode`) ~ use the
@@ -30,6 +30,27 @@
   - **BREAKING** `URL.replace(ip_host=...)` is gone, removed in favor of `host=`
     w/ more flexibility
   - **INTERNAL:** renamed `#[pyclass]` `PyUrl` -> `RyUrl`
+- `ryo3-tokio` (big ass refactor);
+  - `AsyncFile`/`AsyncFileReadStream`/`FileReadStream` use shared impl for sync
+    buffered file access
+  - **BREAKING** removed `try_exists_async` ~ use `exists_async`
+  - **BREAKING** `AsyncFile.readline()` returns `b""` at eof (was `None`), like
+    cpython
+  - added `write_string_async` to `ry` exports
+  - `AsyncFile`
+    - **PERF:** buffered small ops are "brazenly fast"
+    - **FIX:** `seekable()` is `False` for pipes/fifos (long standing bug)
+    - `write` on a read-only file raises `io.UnsupportedOperation` immediately
+      (as any sane person would expect)
+    - negative sizes mean no limit in `read`/`readline`/`readlines`
+  - `AsyncFileReadStream`
+    - reads the next chunk in the background (regular files only ie no
+      pipes/fifos)
+    - `collect()` raises io errors where it previously would have returned the
+      chunks so far (this was a long standing issue for moi)
+    - `close()` waits for an in-flight read (file is really closed after)
+  - `FileReadStream.collect()` raises io errors too
+- **INTERNAL:** MSRV `1.100` b/c of the fancy new `DropGuard`! pretty cool
 
 ---
 

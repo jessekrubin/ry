@@ -1,49 +1,50 @@
 //! python `tokio::fs` module
+use std::fs;
 use std::path::PathBuf;
 
-pub use async_read_dir::PyAsyncReadDir;
+pub use async_read_dir::RyAsyncReadDir;
 use pyo3::prelude::*;
 use pyo3::pybacked::PyBackedStr;
 use pyo3::types::PyDict;
 use ryo3_bytes::RyBytes;
+use ryo3_core::PyIoResultExt;
 use ryo3_core::types::PyOpenMode;
 use ryo3_macro_rules::py_not_implemented_err;
 use ryo3_std::fs::PyMetadata;
-use ryo3_tokio_rt::{RyCoroutine, tokio_coro};
+use ryo3_tokio_rt::{RyCoroutine, blocking_coro, tokio_coro};
 mod async_file;
 mod async_file_read_stream;
-pub use async_file::PyAsyncFile;
-pub use async_file_read_stream::PyAsyncFileReadStream;
+pub use async_file::RyAsyncFile;
+pub use async_file_read_stream::RyAsyncFileReadStream;
 mod async_read_dir;
 
 #[pyfunction]
 pub fn canonicalize_async(py: Python<'_>, path: PathBuf) -> PyResult<Bound<'_, RyCoroutine>> {
-    tokio_coro(py, "canonicalize_async", async move {
-        tokio::fs::canonicalize(path)
-            .await
-            .map(PathBuf::into_os_string)
-            .map_err(PyErr::from)
+    blocking_coro(py, "canonicalize_async", move || {
+        Ok(fs::canonicalize(&path)
+            .map_py_io_err_with_path(&path)?
+            .into_os_string())
     })
 }
 
 #[pyfunction]
 pub fn copy_async(py: Python<'_>, from: PathBuf, to: PathBuf) -> PyResult<Bound<'_, RyCoroutine>> {
-    tokio_coro(py, "copy_async", async move {
-        tokio::fs::copy(from, to).await.map_err(PyErr::from)
+    blocking_coro(py, "copy_async", move || {
+        fs::copy(&from, &to).map_py_io_err_with_src_dst(&from, &to)
     })
 }
 
 #[pyfunction]
 pub fn create_dir_async(py: Python<'_>, path: PathBuf) -> PyResult<Bound<'_, RyCoroutine>> {
-    tokio_coro(py, "create_dir_async", async move {
-        tokio::fs::create_dir(path).await.map_err(PyErr::from)
+    blocking_coro(py, "create_dir_async", move || {
+        fs::create_dir(&path).map_py_io_err_with_path(&path)
     })
 }
 
 #[pyfunction]
 pub fn create_dir_all_async(py: Python<'_>, path: PathBuf) -> PyResult<Bound<'_, RyCoroutine>> {
-    tokio_coro(py, "create_dir_all_async", async move {
-        tokio::fs::create_dir_all(path).await.map_err(PyErr::from)
+    blocking_coro(py, "create_dir_all_async", move || {
+        fs::create_dir_all(&path).map_py_io_err_with_path(&path)
     })
 }
 
@@ -53,74 +54,73 @@ pub fn hard_link_async(
     from: PathBuf,
     to: PathBuf,
 ) -> PyResult<Bound<'_, RyCoroutine>> {
-    tokio_coro(py, "hard_link_async", async move {
-        tokio::fs::hard_link(from, to).await.map_err(PyErr::from)
+    blocking_coro(py, "hard_link_async", move || {
+        fs::hard_link(&from, &to).map_py_io_err_with_src_dst(&from, &to)
     })
 }
 
 #[pyfunction]
 pub fn metadata_async(py: Python<'_>, path: PathBuf) -> PyResult<Bound<'_, RyCoroutine>> {
-    tokio_coro(py, "metadata_async", async move {
-        tokio::fs::metadata(path)
-            .await
-            .map(PyMetadata::from)
-            .map_err(PyErr::from)
+    blocking_coro(py, "metadata_async", move || {
+        Ok(PyMetadata::from(
+            fs::metadata(&path).map_py_io_err_with_path(&path)?,
+        ))
     })
 }
 
 #[pyfunction]
 pub fn read_async(py: Python<'_>, path: PathBuf) -> PyResult<Bound<'_, RyCoroutine>> {
-    tokio_coro(py, "read_async", async move {
-        tokio::fs::read(path)
-            .await
-            .map(RyBytes::from)
-            .map_err(PyErr::from)
+    blocking_coro(py, "read_async", move || {
+        Ok(RyBytes::from(
+            fs::read(&path).map_py_io_err_with_path(&path)?,
+        ))
     })
 }
 
 #[pyfunction]
 pub fn read_dir_async(py: Python<'_>, path: PathBuf) -> PyResult<Bound<'_, RyCoroutine>> {
     tokio_coro(py, "read_dir_async", async move {
-        let readdir = tokio::fs::read_dir(path).await.map_err(PyErr::from)?;
-        Ok(PyAsyncReadDir::from(readdir))
+        let readdir = tokio::fs::read_dir(&path)
+            .await
+            .map_py_io_err_with_path(&path)?;
+        Ok(RyAsyncReadDir::from(readdir))
     })
 }
 
 #[pyfunction]
 pub fn read_link_async(py: Python<'_>, path: PathBuf) -> PyResult<Bound<'_, RyCoroutine>> {
-    tokio_coro(py, "read_link_async", async move {
-        tokio::fs::read_link(path)
-            .await
-            .map(PathBuf::into_os_string)
-            .map_err(PyErr::from)
+    blocking_coro(py, "read_link_async", move || {
+        Ok(fs::read_link(&path)
+            .map_py_io_err_with_path(&path)?
+            .into_os_string())
     })
 }
 
 #[pyfunction]
 pub fn read_to_string_async(py: Python<'_>, path: PathBuf) -> PyResult<Bound<'_, RyCoroutine>> {
-    tokio_coro(py, "read_to_string_async", async move {
-        tokio::fs::read_to_string(path).await.map_err(PyErr::from)
+    blocking_coro(py, "read_to_string_async", move || {
+        fs::read_to_string(&path).map_py_io_err_with_path(&path)
     })
 }
 
 #[pyfunction]
 pub fn remove_dir_async(py: Python<'_>, path: PathBuf) -> PyResult<Bound<'_, RyCoroutine>> {
-    tokio_coro(py, "remove_dir_async", async move {
-        tokio::fs::remove_dir(path).await.map_err(PyErr::from)
+    blocking_coro(py, "remove_dir_async", move || {
+        fs::remove_dir(&path).map_py_io_err_with_path(&path)
     })
 }
 
 #[pyfunction]
 pub fn remove_dir_all_async(py: Python<'_>, path: PathBuf) -> PyResult<Bound<'_, RyCoroutine>> {
-    tokio_coro(py, "remove_dir_all_async", async move {
-        tokio::fs::remove_dir_all(path).await.map_err(PyErr::from)
+    blocking_coro(py, "remove_dir_all_async", move || {
+        fs::remove_dir_all(&path).map_py_io_err_with_path(&path)
     })
 }
 
 #[pyfunction]
 pub fn remove_file_async(py: Python<'_>, path: PathBuf) -> PyResult<Bound<'_, RyCoroutine>> {
-    tokio_coro(py, "remove_file_async", async move {
-        tokio::fs::remove_file(path).await.map_err(PyErr::from)
+    blocking_coro(py, "remove_file_async", move || {
+        fs::remove_file(&path).map_py_io_err_with_path(&path)
     })
 }
 
@@ -130,22 +130,15 @@ pub fn rename_async(
     from: PathBuf,
     to: PathBuf,
 ) -> PyResult<Bound<'_, RyCoroutine>> {
-    tokio_coro(py, "rename_async", async move {
-        tokio::fs::rename(from, to).await.map_err(PyErr::from)
-    })
-}
-
-#[pyfunction]
-pub fn try_exists_async(py: Python<'_>, path: PathBuf) -> PyResult<Bound<'_, RyCoroutine>> {
-    tokio_coro(py, "try_exists_async", async move {
-        tokio::fs::try_exists(path).await.map_err(PyErr::from)
+    blocking_coro(py, "rename_async", move || {
+        fs::rename(&from, &to).map_py_io_err_with_src_dst(&from, &to)
     })
 }
 
 #[pyfunction]
 pub fn exists_async(py: Python<'_>, path: PathBuf) -> PyResult<Bound<'_, RyCoroutine>> {
-    tokio_coro(py, "exists_async", async move {
-        tokio::fs::try_exists(path).await.map_err(PyErr::from)
+    blocking_coro(py, "exists_async", move || {
+        path.try_exists().map_py_io_err_with_path(&path)
     })
 }
 
@@ -155,12 +148,9 @@ pub fn write_async(
     path: PathBuf,
     buf: RyBytes,
 ) -> PyResult<Bound<'_, RyCoroutine>> {
-    tokio_coro(py, "write_async", async move {
-        let len = buf.as_slice().len();
-        tokio::fs::write(path, buf)
-            .await
-            .map(|()| len)
-            .map_err(PyErr::from)
+    blocking_coro(py, "write_async", move || {
+        fs::write(&path, buf.as_slice()).map_py_io_err_with_path(&path)?;
+        Ok(buf.len())
     })
 }
 
@@ -170,10 +160,9 @@ pub fn write_string_async(
     path: PathBuf,
     s: PyBackedStr,
 ) -> PyResult<Bound<'_, RyCoroutine>> {
-    tokio_coro(py, "write_string_async", async move {
-        let nbytes = s.len();
-        tokio::fs::write(path, s).await.map_err(PyErr::from)?;
-        Ok(nbytes)
+    blocking_coro(py, "write_string_async", move || {
+        fs::write(&path, &*s).map_py_io_err_with_path(&path)?;
+        Ok(s.len())
     })
 }
 
@@ -186,7 +175,7 @@ pub fn aopen(
     mode: PyOpenMode,
     buffering: i8,
     kwargs: Option<&Bound<'_, PyDict>>,
-) -> PyResult<PyAsyncFile> {
+) -> PyResult<RyAsyncFile> {
     if buffering != -1 {
         return py_not_implemented_err!("aopen buffering not implemented: {buffering}");
     }
@@ -198,7 +187,7 @@ pub fn aopen(
             "aopen text mode not implemented",
         ));
     }
-    Ok(PyAsyncFile::new(path, mode.into()))
+    Ok(RyAsyncFile::new(path, mode.into()))
 }
 
 #[pyfunction]
@@ -209,14 +198,14 @@ pub fn read_stream_async(
     offset: u64,
     buffered: bool,
     strict: bool,
-) -> PyResult<PyAsyncFileReadStream> {
-    PyAsyncFileReadStream::py_new(path, read_size, offset, buffered, strict)
+) -> PyResult<RyAsyncFileReadStream> {
+    RyAsyncFileReadStream::py_new(path, read_size, offset, buffered, strict)
 }
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     // classes
-    m.add_class::<PyAsyncFile>()?;
-    m.add_class::<PyAsyncFileReadStream>()?;
+    m.add_class::<RyAsyncFile>()?;
+    m.add_class::<RyAsyncFileReadStream>()?;
     // functions
     m.add_function(wrap_pyfunction!(aopen, m)?)?;
     m.add_function(wrap_pyfunction!(canonicalize_async, m)?)?;
@@ -235,7 +224,7 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(remove_dir_async, m)?)?;
     m.add_function(wrap_pyfunction!(remove_file_async, m)?)?;
     m.add_function(wrap_pyfunction!(rename_async, m)?)?;
-    m.add_function(wrap_pyfunction!(try_exists_async, m)?)?;
     m.add_function(wrap_pyfunction!(write_async, m)?)?;
+    m.add_function(wrap_pyfunction!(write_string_async, m)?)?;
     Ok(())
 }

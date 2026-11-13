@@ -48,6 +48,7 @@
 //! - [`tokio_coro`]: io/timers/spawn, the default
 //! - [`pyloop_coro`]: only needs a waker (tokio channels/notify/mutex), polled
 //!   on the loop thread
+//! - [`blocking_coro`]: a sync closure, run on tokio's blocking thread pool
 //! - [`done_coro`] / [`failed_coro`]: already have the answer
 //! - [`yield_coro`]: yield once, like `asyncio.sleep(0)`
 //!
@@ -162,7 +163,7 @@ struct LoopHub {
     /// Empty ctx for running flush
     context: Py<PyAny>,
     /// Reader/`call_soon_threadsafe` cb ~ `run_ready`
-    flush: Py<FlushCallback>,
+    flush: Py<RyCoroutineFlush>,
     /// (rx, tx)
     ///
     /// NOTE: `None` => no `add_reader` => `poke_fallback`
@@ -185,7 +186,7 @@ impl LoopHub {
     fn new(event_loop: &Bound<'_, PyAny>) -> PyResult<Arc<Self>> {
         let py = event_loop.py();
         let context = empty_context(py)?;
-        let flush = Py::new(py, FlushCallback(OnceLock::new()))?;
+        let flush = Py::new(py, RyCoroutineFlush(OnceLock::new()))?;
         #[cfg(unix)]
         let wake_pair = register_reader(event_loop, &context, flush.bind(py));
         let hub = Arc::new(Self {
@@ -320,7 +321,7 @@ impl LoopHub {
 fn register_reader(
     event_loop: &Bound<'_, PyAny>,
     context: &Bound<'_, PyAny>,
-    flush: &Bound<'_, FlushCallback>,
+    flush: &Bound<'_, RyCoroutineFlush>,
 ) -> Option<(UnixStream, UnixStream)> {
     let py = event_loop.py();
     let (rx, tx) = UnixStream::pair().ok()?;
@@ -339,10 +340,10 @@ fn register_reader(
 #[pyclass(name = "CoroutineFlush", frozen)]
 #[cfg_attr(any(not(Py_LIMITED_API), Py_3_14), pyo3(immutable_type))]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
-struct FlushCallback(OnceLock<Weak<LoopHub>>);
+struct RyCoroutineFlush(OnceLock<Weak<LoopHub>>);
 
 #[pymethods]
-impl FlushCallback {
+impl RyCoroutineFlush {
     fn __call__(&self, py: Python<'_>) -> PyResult<()> {
         match self.0.get().and_then(Weak::upgrade) {
             Some(hub) => hub.run_ready(py),
@@ -950,8 +951,7 @@ impl RyCoroutine {
     }
 
     // the future dies here w/o async cleanup. `Drop` cant `block_on` either, it
-    // can run on a tokio worker. see `AsyncFileHandle::drop` (ryo3-tokio) +
-    // <https://github.com/jessekrubin/ry/pull/899>
+    // can run on a tokio worker. see <https://github.com/jessekrubin/ry/pull/899>
     #[pyo3(signature = (typ, value = None, _traceback = None, /))]
     fn throw(
         &self,
@@ -1001,6 +1001,22 @@ where
     RyCoroutine::new(py, qualname, CoroutineState::Unstarted(Box::pin(lazy)))
 }
 
+/// Runs sync `f` on tokio's blocking thread pool. Nothing starts until the
+/// coroutine is first awaited.
+pub fn blocking_coro<'py, F, T>(
+    py: Python<'py>,
+    qualname: &'static str,
+    f: F,
+) -> PyResult<Bound<'py, RyCoroutine>>
+where
+    F: FnOnce() -> PyResult<T> + Send + 'static,
+    T: for<'a> IntoPyObject<'a> + Send + 'static,
+{
+    pyloop_coro(py, qualname, async move {
+        get_ry_tokio_runtime().py_spawn_blocking(f).await?
+    })
+}
+
 /// already-finished coroutine ~ no tokio, no poll
 pub fn done_coro<'py, T>(
     py: Python<'py>,
@@ -1042,6 +1058,9 @@ pub fn failed_coro<'py>(
 
 /// poll `future` right on the loop thread ~ ONLY for futures that dont need
 /// the tokio rt context (tokio channels/notify/mutex ok; io/timers/spawn no)
+///
+/// spawning through the runtime handle (`get_ry_tokio_runtime().py_spawn*`)
+/// and awaiting the `JoinHandle` works here; bare `tokio::spawn` panics
 ///
 /// tokio can panic here (no reactor here) -> `PanicException`
 pub fn pyloop_coro<'py, F, T>(
