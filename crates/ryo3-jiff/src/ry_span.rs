@@ -18,7 +18,7 @@ use ryo3_jiff_core::{JiffFriendlyDesignator, JiffRoundMode, JiffSpan, JiffUnit};
 use crate::py_temporal_like::PyTemporalArg;
 use crate::ry_signed_duration::RySignedDuration;
 use crate::span_units::{SpanUnit, SpanUnitsMask};
-use crate::spanish::{DurationLike, Spanish};
+use crate::spanish::Spanish;
 use crate::util::SpanKwargs;
 use crate::{RyDate, RyDateTime, RyTime, RyTimestamp, RyZoned, constants, timespan};
 
@@ -1183,26 +1183,10 @@ impl<'a, 'py> FromPyOperand<'a, 'py> for RySpanArithmetic<'a, 'py> {
 
 impl<'a, 'py> From<&'a RySpanArithmetic<'a, 'py>> for SpanArithmetic<'a> {
     fn from(value: &'a RySpanArithmetic<'a, 'py>) -> Self {
-        if let Some(ref relative_to) = value.relative_to {
-            macro_rules! from_relative_to {
-                ($x:expr) => {
-                    match relative_to {
-                        RySpanRelativeTo::Zoned(z) => SpanArithmetic::from(($x, &z.get().0)),
-                        RySpanRelativeTo::Date(d) => SpanArithmetic::from(($x, d.get().0)),
-                        RySpanRelativeTo::DateTime(dt) => SpanArithmetic::from(($x, dt.get().0)),
-                    }
-                };
-            }
-            match &value.spanish {
-                Spanish::Span(sp) => from_relative_to!(sp.get().0),
-                Spanish::SignedDuration(sd) => from_relative_to!(sd.get().0),
-                Spanish::DurationLike(DurationLike::Duration(d)) => {
-                    from_relative_to!(*d.get().inner())
-                }
-                Spanish::DurationLike(DurationLike::PyTimeDelta(sd)) => from_relative_to!(*sd),
-            }
-        } else {
-            SpanArithmetic::from(&value.spanish).days_are_24_hours()
+        let arithmetic = SpanArithmetic::from(&value.spanish);
+        match &value.relative_to {
+            Some(relative_to) => arithmetic.relative(SpanRelativeTo::from(relative_to)),
+            None => arithmetic.days_are_24_hours(),
         }
     }
 }
