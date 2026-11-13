@@ -464,3 +464,22 @@ async def test_read_stream_mixed_next_take_collect(
         rest = await stream.collect()
         assert await stream.take(3) == []
     assert first + b"".join(taken) + b"".join(rest) == data
+
+
+@pytest.mark.skipif(not sys.platform.startswith("linux"), reason="mkfifo")
+async def test_read_stream_fifo_cancelled_collect_then_close(tmp_path: Path) -> None:
+    # collect() grabs the first chunk and then waits for more; cancel it and
+    # make sure close() doesn't hang
+    fifo = tmp_path / "fifo"
+    os.mkfifo(fifo)
+    writer = os.open(fifo, os.O_RDWR)
+    try:
+        os.write(writer, b"abcd")
+        stream = await ry.read_stream_async(fifo, read_size=4)
+        collecting = asyncio.ensure_future(stream.collect())
+        await asyncio.sleep(0.05)
+        collecting.cancel()
+        await asyncio.wait_for(stream.close(), 1)
+    finally:
+        os.write(writer, b"efgh")  # let the stuck read finish
+        os.close(writer)

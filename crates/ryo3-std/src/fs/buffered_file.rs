@@ -91,7 +91,9 @@ impl BufferedFile {
 
     /// buffers `buf` if it fits; `false` means it needs `write`.
     pub fn try_write(&mut self, buf: &[u8]) -> bool {
-        let fits = self.rbuf.is_empty() && self.wbuf.len() + buf.len() <= self.cap;
+        // an empty write always fits (and MUST NOT screw w/ the rbuf)
+        let fits =
+            buf.is_empty() || (self.rbuf.is_empty() && self.wbuf.len() + buf.len() <= self.cap);
         if fits {
             self.wbuf.extend_from_slice(buf);
         }
@@ -231,6 +233,11 @@ impl BufferedFile {
     }
 
     pub fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
+        // nothing to write: dropping the read buffer would seek, which FUCKS
+        // over a pipe/fifo
+        if buf.is_empty() {
+            return Ok(0);
+        }
         self.discard_read_ahead()?;
         if self.wbuf.len() + buf.len() > self.cap {
             self.flush()?;
@@ -268,7 +275,8 @@ impl BufferedFile {
     pub fn tell(&mut self) -> io::Result<u64> {
         self.flush()?;
         let unread = self.rbuf.len() as u64;
-        Ok(self.file.stream_position()? - unread)
+        // devices like /dev/zero always report position 0 (like cpython)
+        Ok(self.file.stream_position()?.saturating_sub(unread))
     }
 
     /// Truncates to `size` (default: the current position) without moving the position.

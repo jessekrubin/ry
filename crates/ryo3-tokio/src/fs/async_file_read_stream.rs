@@ -3,7 +3,7 @@
 //! While python works on one chunk, the next one is read in the background.
 use std::path::PathBuf;
 use std::sync::Arc;
-use std::{fmt, io, iter, mem};
+use std::{fmt, io, mem};
 
 use pyo3::prelude::*;
 use ryo3_bytes::RyBytes;
@@ -127,33 +127,41 @@ impl StreamState {
 
 /// up to `n` chunks for `take`/`collect`
 ///
-/// the first one comes from `next_chunk` (which opens the file and picks up a
-/// read-ahead), the rest are read in one go on a blocking thread. that thread
-/// holds the lock, so a cancelled `take`/`collect` can't leave the stream
-/// half read
+/// starts with `next_chunk` (opens the file, picks up any read-ahead). if it's
+/// a regular file, the rest get read in one go on a blocking thread that holds
+/// the lock, so cancelling `take`/`collect` can't leave the stream half read.
+///
+/// pipes/fifos keep going one chunk at a time: a big read there can sit
+/// waiting on the writer while holding the lock, and `close()` would hang
 async fn read_chunks(
     mut state: OwnedMutexGuard<StreamState>,
     options: &Arc<FileReadStreamOptions>,
     n: usize,
 ) -> PyResult<Vec<RyBytes>> {
-    if n == 0 {
-        return Ok(Vec::new());
+    let mut chunks = Vec::new();
+    while chunks.len() < n
+        && let Some(chunk) = state.next_chunk(options, false).await?
+    {
+        chunks.push(chunk);
+        if let StreamState::Idle(file) = &*state
+            && file.seekable()
+        {
+            let (read_size, rest) = (options.read_size, n - chunks.len());
+            let more = get_ry_tokio_runtime()
+                .py_spawn_blocking(move || {
+                    let StreamState::Idle(file) = &mut *state else {
+                        return Ok(Vec::new());
+                    };
+                    file.chunks(read_size)
+                        .take(rest)
+                        .collect::<io::Result<Vec<_>>>()
+                })
+                .await??;
+            chunks.extend(more);
+            break;
+        }
     }
-    let Some(first) = state.next_chunk(options, false).await? else {
-        return Ok(Vec::new());
-    };
-    let read_size = options.read_size;
-    let rest = get_ry_tokio_runtime()
-        .py_spawn_blocking(move || {
-            let StreamState::Idle(file) = &mut *state else {
-                return Ok(Vec::new());
-            };
-            file.chunks(read_size)
-                .take(n - 1)
-                .collect::<io::Result<Vec<_>>>()
-        })
-        .await??;
-    Ok(iter::once(first).chain(rest).map(RyBytes::from).collect())
+    Ok(chunks.into_iter().map(RyBytes::from).collect())
 }
 
 // TODO: investigate if 2 arcs are really needed?

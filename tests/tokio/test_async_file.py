@@ -918,3 +918,29 @@ async def test_failed_flush_keeps_pending_writes() -> None:
     with pytest.raises(OSError, match="No space left"):
         await f.close()
     assert f.closed
+
+
+@pytest.mark.skipif(not os.path.exists("/dev/zero"), reason="needs /dev/zero")
+@pytest.mark.anyio
+async def test_tell_on_device_is_zero() -> None:
+    # /dev/zero always says it's at 0, so tell() shouldn't underflow
+    async with AsyncFile("/dev/zero", "rb") as f:
+        assert await f.read(10) == b"\0" * 10
+        assert await f.tell() == 0
+
+
+@pytest.mark.skipif(not sys.platform.startswith("linux"), reason="mkfifo")
+@pytest.mark.anyio
+async def test_empty_write_after_fifo_read(tmp_path: Path) -> None:
+    # writing nothing shouldn't try to seek (fifos can't)
+    fifo = tmp_path / "fifo"
+    os.mkfifo(fifo)
+    writer = os.open(fifo, os.O_RDWR)
+    try:
+        os.write(writer, b"abcd")
+        async with AsyncFile(fifo, "rb+") as f:
+            assert await f.read(2) == b"ab"
+            assert await f.write(b"") == 0
+            assert await f.read(2) == b"cd"
+    finally:
+        os.close(writer)
