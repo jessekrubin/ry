@@ -1,5 +1,6 @@
 use std::fs::OpenOptions;
 use std::io::{self, SeekFrom};
+use std::mem::DropGuard;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use std::sync::atomic::{AtomicU8, Ordering};
@@ -98,7 +99,7 @@ impl AsyncBufferedFile {
         let mut lock = self.lock().await;
         self.status
             .store(FileStatus::Closed as u8, Ordering::Release);
-        let Some(mut file) = lock.0.take() else {
+        let Some(file) = lock.0.take() else {
             return Ok(());
         };
         // nothing to flush: just drop it, no thread needed
@@ -106,12 +107,14 @@ impl AsyncBufferedFile {
             return Ok(());
         }
         // the lock goes into the thread too, so nothing can reopen the file
-        // until the flush is done
+        // until the flush is done. the file has to drop first (its drop
+        // retries a failed flush), whether the closure runs or not
+        let mut file = DropGuard::new(file, move |file| {
+            drop(file);
+            drop(lock);
+        });
         get_ry_tokio_runtime()
-            .py_spawn_blocking(move || {
-                let _lock = lock;
-                file.flush()
-            })
+            .py_spawn_blocking(move || file.flush())
             .await??;
         Ok(())
     }

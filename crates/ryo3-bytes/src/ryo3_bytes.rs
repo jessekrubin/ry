@@ -107,6 +107,7 @@ impl RyBytes {
     }
 
     /// Construct an empty [`RyBytes`] object
+    #[must_use]
     pub const fn empty() -> Self {
         Self::new(Bytes::new())
     }

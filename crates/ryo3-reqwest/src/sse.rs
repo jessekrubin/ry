@@ -243,8 +243,7 @@ impl EventStreamInner {
         parser
             .decoder
             .last_event_id()
-            .map(ToString::to_string)
-            .unwrap_or_default()
+            .map_or_default(ToString::to_string)
     }
 
     fn ry_url(&self) -> RyUrl {

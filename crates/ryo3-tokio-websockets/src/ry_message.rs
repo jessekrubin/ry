@@ -133,7 +133,7 @@ impl RyWsMessage {
             )?;
         }
         // check that if reason is present/non-empty, code is also present
-        let reason = reason.map(|r| r.0).unwrap_or_default();
+        let reason = reason.map_or_default(|r| r.0);
         Ok(Self::from(Message::close(Some(code.0), reason.as_ref())))
     }
 
