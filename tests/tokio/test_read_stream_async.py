@@ -410,3 +410,57 @@ def _readlink(path: str) -> str | None:
         return os.readlink(path)
     except OSError:
         return None
+
+
+@pytest.mark.skipif(not sys.platform.startswith("linux"), reason="mkfifo + /proc")
+async def test_read_stream_fifo_close(tmp_path: Path) -> None:
+    # the writer stays open, so a read with no data waiting blocks
+    fifo = tmp_path / "fifo"
+    os.mkfifo(fifo)
+    writer = os.open(fifo, os.O_RDWR)  # O_RDWR so neither end blocks on open
+
+    def open_fds() -> int:
+        fds = os.listdir("/proc/self/fd")
+        return sum(1 for fd in fds if _readlink(f"/proc/self/fd/{fd}") == str(fifo))
+
+    try:
+        # no read-ahead on a fifo, so closing doesn't wait for more data
+        os.write(writer, b"abcd")
+        async with ry.read_stream_async(fifo, read_size=4) as stream:
+            assert await anext(stream) == b"abcd"
+        assert open_fds() == 1  # just the writer
+
+        # close doesn't wait for a cancelled read that's still blocked; that
+        # read keeps the fd open until data arrives
+        stream = await ry.read_stream_async(fifo, read_size=4)
+        reading = asyncio.ensure_future(anext(stream))
+        await asyncio.sleep(0.05)
+        reading.cancel()
+        await asyncio.wait_for(stream.close(), 1)
+        assert open_fds() == 2
+        os.write(writer, b"efgh")
+        for _ in range(100):
+            if open_fds() == 1:
+                break
+            await asyncio.sleep(0.01)
+        assert open_fds() == 1
+    finally:
+        os.close(writer)
+
+
+@pytest.mark.parametrize("read_size", [1, 3, 4096])
+async def test_read_stream_mixed_next_take_collect(
+    tmp_path: Path, read_size: int
+) -> None:
+    # anext, take and collect read differently; mixed together they must
+    # still return every byte in order
+    p = tmp_path / "f.bin"
+    data = bytes(range(256)) * 300
+    p.write_bytes(data)
+    async with ry.read_stream_async(p, read_size=read_size) as stream:
+        first = await anext(stream)
+        taken = await stream.take(5)
+        assert len(taken) == 5
+        rest = await stream.collect()
+        assert await stream.take(3) == []
+    assert first + b"".join(taken) + b"".join(rest) == data
