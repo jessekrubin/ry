@@ -24,9 +24,8 @@ pub struct BufferedFile {
     seekable: bool,
     /// Reads and writes at least this big skip the buffers; 0 means unbuffered.
     cap: usize,
-    /// Read-ahead; the unread bytes are `rbuf[rpos..]`.
-    rbuf: Vec<u8>,
-    rpos: usize,
+    /// Read-ahead.
+    rbuf: ReadBuf,
     /// Pending writes.
     wbuf: Vec<u8>,
 }
@@ -41,8 +40,7 @@ impl BufferedFile {
             file,
             seekable,
             cap,
-            rbuf: Vec::new(),
-            rpos: 0,
+            rbuf: ReadBuf::default(),
             wbuf: Vec::new(),
         })
     }
@@ -59,22 +57,7 @@ impl BufferedFile {
     /// Number of read-ahead bytes not consumed yet.
     #[must_use]
     pub fn buffered_len(&self) -> usize {
-        self.unread().len()
-    }
-
-    fn unread(&self) -> &[u8] {
-        &self.rbuf[self.rpos..]
-    }
-
-    fn consume_into(&mut self, n: usize, out: &mut Vec<u8>) {
-        out.extend_from_slice(&self.rbuf[self.rpos..self.rpos + n]);
-        self.rpos += n;
-    }
-
-    fn consume(&mut self, n: usize) -> Vec<u8> {
-        let out = self.unread()[..n].to_vec();
-        self.rpos += n;
-        out
+        self.rbuf.len()
     }
 
     // ------------------------------------------------------------------------
@@ -83,7 +66,7 @@ impl BufferedFile {
 
     /// exactly `n` bytes if the read-ahead has them all
     pub fn try_read(&mut self, n: usize) -> Option<Vec<u8>> {
-        (self.wbuf.is_empty() && self.unread().len() >= n).then(|| self.consume(n))
+        (self.wbuf.is_empty() && self.rbuf.len() >= n).then(|| self.rbuf.consume(n))
     }
 
     /// a line (or `limit` bytes) if the read-ahead has one
@@ -91,24 +74,24 @@ impl BufferedFile {
         if !self.wbuf.is_empty() {
             return None;
         }
-        let unread = self.unread();
+        let unread = self.rbuf.unread();
         let end = match memchr::memchr(b'\n', unread) {
             Some(i) => limit.map_or(i + 1, |limit| limit.min(i + 1)),
             None => limit.filter(|&limit| limit <= unread.len())?,
         };
-        Some(self.consume(end))
+        Some(self.rbuf.consume(end))
     }
 
     /// up to `n` bytes without moving the position
     #[must_use]
     pub fn try_peek(&self, n: usize) -> Option<Vec<u8>> {
-        let unread = self.unread();
+        let unread = self.rbuf.unread();
         (self.wbuf.is_empty() && !unread.is_empty()).then(|| unread[..n.min(unread.len())].to_vec())
     }
 
     /// buffers `buf` if it fits; `false` means it needs `write`.
     pub fn try_write(&mut self, buf: &[u8]) -> bool {
-        let fits = self.unread().is_empty() && self.wbuf.len() + buf.len() <= self.cap;
+        let fits = self.rbuf.is_empty() && self.wbuf.len() + buf.len() <= self.cap;
         if fits {
             self.wbuf.extend_from_slice(buf);
         }
@@ -136,9 +119,8 @@ impl BufferedFile {
 
     // toss the read-ahead + move the os position back to the logical one
     fn discard_read_ahead(&mut self) -> io::Result<()> {
-        let unread = self.unread().len();
+        let unread = self.rbuf.len();
         self.rbuf.clear();
-        self.rpos = 0;
         if unread > 0 {
             let back = i64::try_from(unread).map_err(io::Error::other)?;
             self.file.seek(SeekFrom::Current(-back))?;
@@ -150,26 +132,16 @@ impl BufferedFile {
     fn fill(&mut self) -> io::Result<bool> {
         self.flush()?;
         // unbuffered still needs a byte of lookahead for readline/peek
-        self.rbuf.resize(self.cap.max(1), 0);
-        self.rpos = 0;
-        let n = loop {
-            match self.file.read(&mut self.rbuf) {
-                Err(e) if e.kind() == io::ErrorKind::Interrupted => {}
-                res => break res,
-            }
-        }
-        .inspect_err(|_| self.rbuf.clear())?;
-        self.rbuf.truncate(n);
-        Ok(n > 0)
+        Ok(self.rbuf.fill(&mut self.file, self.cap.max(1))? > 0)
     }
 
     /// up to `n` bytes without moving the position.
     pub fn peek(&mut self, n: usize) -> io::Result<Vec<u8>> {
         self.flush()?;
-        if self.unread().is_empty() {
+        if self.rbuf.is_empty() {
             self.fill()?;
         }
-        let unread = self.unread();
+        let unread = self.rbuf.unread();
         Ok(unread[..n.min(unread.len())].to_vec())
     }
 
@@ -178,9 +150,9 @@ impl BufferedFile {
         self.flush()?;
         let mut out = Vec::with_capacity(n.min(READ_PREALLOC_CAP));
         while out.len() < n {
-            let take = (n - out.len()).min(self.unread().len());
+            let take = (n - out.len()).min(self.rbuf.len());
             if take > 0 {
-                self.consume_into(take, &mut out);
+                self.rbuf.consume_into(take, &mut out);
                 continue;
             }
             let want = n - out.len();
@@ -199,7 +171,7 @@ impl BufferedFile {
 
     pub fn read_all(&mut self) -> io::Result<Vec<u8>> {
         self.flush()?;
-        let mut out = self.consume(self.unread().len());
+        let mut out = self.rbuf.consume(self.rbuf.len());
         self.file.read_to_end(&mut out)?;
         Ok(out)
     }
@@ -218,7 +190,7 @@ impl BufferedFile {
                 return Ok(Some(line));
             }
             // no newline (and under `limit`) in the read-ahead ~ take it all + refill
-            self.consume_into(self.unread().len(), &mut line);
+            self.rbuf.consume_into(self.rbuf.len(), &mut line);
             if !self.fill()? {
                 return Ok((!line.is_empty()).then_some(line));
             }
@@ -257,24 +229,22 @@ impl BufferedFile {
         self.flush()?;
         let pos = match pos {
             SeekFrom::Current(off) => {
-                let unread = i64::try_from(self.unread().len()).map_err(io::Error::other)?;
+                let unread = i64::try_from(self.rbuf.len()).map_err(io::Error::other)?;
                 SeekFrom::Current(off - unread)
             }
             other => other,
         };
         self.rbuf.clear();
-        self.rpos = 0;
         self.file.seek(pos)
     }
 
     pub fn tell(&mut self) -> io::Result<u64> {
         self.flush()?;
-        let unread = self.unread().len() as u64;
+        let unread = self.rbuf.len() as u64;
         Ok(self.file.stream_position()? - unread)
     }
 
-    /// Truncates to `size` (default: the current position) without moving the
-    /// position.
+    /// Truncates to `size` (default: the current position) w/o changing pos.
     pub fn truncate(&mut self, size: Option<u64>) -> io::Result<u64> {
         self.flush()?;
         self.discard_read_ahead()?;
@@ -291,5 +261,59 @@ impl Drop for BufferedFile {
     fn drop(&mut self) {
         // like std's `BufWriter`: best effort, errors ignored
         let _ = self.flush();
+    }
+}
+
+/// Read ahead buffer.
+///
+/// the unread bytes are `buf[pos..]`
+#[derive(Default)]
+struct ReadBuf {
+    buf: Vec<u8>,
+    pos: usize,
+}
+
+impl ReadBuf {
+    fn unread(&self) -> &[u8] {
+        &self.buf[self.pos..]
+    }
+
+    fn len(&self) -> usize {
+        self.buf.len() - self.pos
+    }
+
+    fn is_empty(&self) -> bool {
+        self.pos == self.buf.len()
+    }
+
+    fn consume(&mut self, n: usize) -> Vec<u8> {
+        let out = self.unread()[..n].to_vec();
+        self.pos += n;
+        out
+    }
+
+    fn consume_into(&mut self, n: usize, out: &mut Vec<u8>) {
+        out.extend_from_slice(&self.unread()[..n]);
+        self.pos += n;
+    }
+
+    fn clear(&mut self) {
+        self.buf.clear();
+        self.pos = 0;
+    }
+
+    /// refills w/ up to `n` bytes from `file`; returns how many (0 at eof)
+    fn fill(&mut self, file: &mut File, n: usize) -> io::Result<usize> {
+        self.buf.resize(n, 0);
+        self.pos = 0;
+        let read = loop {
+            match file.read(&mut self.buf) {
+                Err(e) if e.kind() == io::ErrorKind::Interrupted => {}
+                res => break res,
+            }
+        }
+        .inspect_err(|_| self.buf.clear())?;
+        self.buf.truncate(read);
+        Ok(read)
     }
 }
