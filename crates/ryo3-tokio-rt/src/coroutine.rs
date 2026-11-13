@@ -163,7 +163,7 @@ struct LoopHub {
     /// Empty ctx for running flush
     context: Py<PyAny>,
     /// Reader/`call_soon_threadsafe` cb ~ `run_ready`
-    flush: Py<FlushCallback>,
+    flush: Py<RyCoroutineFlush>,
     /// (rx, tx)
     ///
     /// NOTE: `None` => no `add_reader` => `poke_fallback`
@@ -186,7 +186,7 @@ impl LoopHub {
     fn new(event_loop: &Bound<'_, PyAny>) -> PyResult<Arc<Self>> {
         let py = event_loop.py();
         let context = empty_context(py)?;
-        let flush = Py::new(py, FlushCallback(OnceLock::new()))?;
+        let flush = Py::new(py, RyCoroutineFlush(OnceLock::new()))?;
         #[cfg(unix)]
         let wake_pair = register_reader(event_loop, &context, flush.bind(py));
         let hub = Arc::new(Self {
@@ -321,7 +321,7 @@ impl LoopHub {
 fn register_reader(
     event_loop: &Bound<'_, PyAny>,
     context: &Bound<'_, PyAny>,
-    flush: &Bound<'_, FlushCallback>,
+    flush: &Bound<'_, RyCoroutineFlush>,
 ) -> Option<(UnixStream, UnixStream)> {
     let py = event_loop.py();
     let (rx, tx) = UnixStream::pair().ok()?;
@@ -340,10 +340,10 @@ fn register_reader(
 #[pyclass(name = "CoroutineFlush", frozen)]
 #[cfg_attr(any(not(Py_LIMITED_API), Py_3_14), pyo3(immutable_type))]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
-struct FlushCallback(OnceLock<Weak<LoopHub>>);
+struct RyCoroutineFlush(OnceLock<Weak<LoopHub>>);
 
 #[pymethods]
-impl FlushCallback {
+impl RyCoroutineFlush {
     fn __call__(&self, py: Python<'_>) -> PyResult<()> {
         match self.0.get().and_then(Weak::upgrade) {
             Some(hub) => hub.run_ready(py),
