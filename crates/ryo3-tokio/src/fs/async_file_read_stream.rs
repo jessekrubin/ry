@@ -3,14 +3,14 @@
 //! While python works on one chunk, the next one is read in the background.
 use std::path::PathBuf;
 use std::sync::Arc;
-use std::{fmt, io, mem};
+use std::{fmt, io, iter, mem};
 
 use pyo3::prelude::*;
 use ryo3_bytes::RyBytes;
 use ryo3_macro_rules::{py_runtime_error, py_stop_async_iteration_err, py_value_err};
 use ryo3_std::fs::{BufferedFile, FileReadStreamOptions};
 use ryo3_tokio_rt::{RyCoroutine, RyJoinHandle, get_ry_tokio_runtime, pyloop_coro};
-use tokio::sync::Mutex;
+use tokio::sync::{Mutex, OwnedMutexGuard};
 
 /// the next chunk + the file back (it survives read errors)
 struct ChunkRead {
@@ -25,21 +25,28 @@ enum StreamState {
     /// open, no read running
     Idle(BufferedFile),
     /// a read is running on a blocking thread
-    Reading(RyJoinHandle<ChunkRead>),
+    Reading {
+        read: RyJoinHandle<ChunkRead>,
+        /// `false` for pipes/fifos, where a read can block until the writer
+        /// sends more
+        seekable: bool,
+    },
     /// read task died w/ and nuked the file. errors until `close()` (reopening
     /// would re-yield chunks (which is wrong))
     Failed,
 }
 
 impl StreamState {
-    /// start reading the next chunk in the background (`Idle` -> `Reading`)
-    fn read_ahead(self, read_size: usize) -> Self {
+    /// start reading the next chunk on a blocking thread (`Idle` -> `Reading`)
+    fn read(self, read_size: usize) -> Self {
         match self {
             Self::Idle(mut file) => {
-                Self::Reading(get_ry_tokio_runtime().py_spawn_blocking(move || {
+                let seekable = file.seekable();
+                let read = get_ry_tokio_runtime().py_spawn_blocking(move || {
                     let chunk = file.read(read_size);
                     ChunkRead { file, chunk }
-                }))
+                });
+                Self::Reading { read, seekable }
             }
             other => other,
         }
@@ -53,7 +60,7 @@ impl StreamState {
             && file.seekable()
             && file.buffered_len() < read_size
         {
-            *self = mem::take(self).read_ahead(read_size);
+            *self = mem::take(self).read(read_size);
         }
     }
 
@@ -93,9 +100,9 @@ impl StreamState {
                         }
                         return Ok(Some(chunk));
                     }
-                    *self = mem::take(self).read_ahead(options.read_size);
+                    *self = mem::take(self).read(options.read_size);
                 }
-                Self::Reading(read) => {
+                Self::Reading { read, .. } => {
                     let ChunkRead { file, chunk } = match read.await {
                         Ok(done) => done,
                         Err(e) => {
@@ -116,6 +123,37 @@ impl StreamState {
             }
         }
     }
+}
+
+/// up to `n` chunks for `take`/`collect`
+///
+/// the first one comes from `next_chunk` (which opens the file and picks up a
+/// read-ahead), the rest are read in one go on a blocking thread. that thread
+/// holds the lock, so a cancelled `take`/`collect` can't leave the stream
+/// half read
+async fn read_chunks(
+    mut state: OwnedMutexGuard<StreamState>,
+    options: &Arc<FileReadStreamOptions>,
+    n: usize,
+) -> PyResult<Vec<RyBytes>> {
+    if n == 0 {
+        return Ok(Vec::new());
+    }
+    let Some(first) = state.next_chunk(options, false).await? else {
+        return Ok(Vec::new());
+    };
+    let read_size = options.read_size;
+    let rest = get_ry_tokio_runtime()
+        .py_spawn_blocking(move || {
+            let StreamState::Idle(file) = &mut *state else {
+                return Ok(Vec::new());
+            };
+            file.chunks(read_size)
+                .take(n - 1)
+                .collect::<io::Result<Vec<_>>>()
+        })
+        .await??;
+    Ok(iter::once(first).chain(rest).map(RyBytes::from).collect())
 }
 
 // TODO: investigate if 2 arcs are really needed?
@@ -162,7 +200,12 @@ impl PyAsyncFileReadStream {
             // AFAICT file is actually closed once `close()` finishes.
             // await here RIGHT NOW so a cancelled close doesn't leave file in
             // invalid state
-            if let StreamState::Reading(read) = &mut *state {
+            // NOTE: not on a pipe/fifo though! it can block til writer sends more which may never ever ever happen stupid moi
+            if let StreamState::Reading {
+                read,
+                seekable: true,
+            } = &mut *state
+            {
                 let _ = read.await;
             }
             *state = StreamState::Closed;
@@ -235,29 +278,17 @@ impl PyAsyncFileReadStream {
     fn take<'py>(&self, py: Python<'py>, n: usize) -> PyResult<Bound<'py, RyCoroutine>> {
         let (state, options) = (Arc::clone(&self.state), Arc::clone(&self.options));
         pyloop_coro(py, "AsyncFileReadStream.take", async move {
-            let mut state = state.lock().await;
+            let mut state = state.lock_owned().await;
             // open even for `take(0)` so a bad path still raises (like before)
             state.ensure_open(&options).await?;
-            let mut chunks = Vec::new();
-            // dont read ahead beyond last chunk take would want
-            while chunks.len() < n
-                && let Some(chunk) = state.next_chunk(&options, chunks.len() + 1 < n).await?
-            {
-                chunks.push(RyBytes::from(chunk));
-            }
-            Ok(chunks)
+            read_chunks(state, &options, n).await
         })
     }
 
     fn collect<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, RyCoroutine>> {
         let (state, options) = (Arc::clone(&self.state), Arc::clone(&self.options));
         pyloop_coro(py, "AsyncFileReadStream.collect", async move {
-            let mut state = state.lock().await;
-            let mut chunks = Vec::new();
-            while let Some(chunk) = state.next_chunk(&options, true).await? {
-                chunks.push(RyBytes::from(chunk));
-            }
-            Ok(chunks)
+            read_chunks(state.lock_owned().await, &options, usize::MAX).await
         })
     }
 

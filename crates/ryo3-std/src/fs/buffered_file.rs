@@ -5,6 +5,7 @@
 //! can call them directly instead of sending them to a blocking thread
 use std::fs::{File, OpenOptions};
 use std::io::{self, Read, Seek, SeekFrom, Write};
+use std::iter;
 use std::path::Path;
 
 /// Read/write buffer size (cpython's `io.DEFAULT_BUFFER_SIZE` as of 3.14).
@@ -179,6 +180,15 @@ impl BufferedFile {
             }
         }
         Ok(out)
+    }
+
+    /// `size` byte chunks until eof (the last one can be shorter)
+    pub fn chunks(&mut self, size: usize) -> impl Iterator<Item = io::Result<Vec<u8>>> + '_ {
+        iter::from_fn(move || {
+            self.read(size)
+                .map(|chunk| (!chunk.is_empty()).then_some(chunk))
+                .transpose()
+        })
     }
 
     pub fn read_all(&mut self) -> io::Result<Vec<u8>> {
