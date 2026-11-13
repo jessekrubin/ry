@@ -8,7 +8,7 @@ use std::{fmt, io, mem};
 
 use pyo3::prelude::*;
 use ryo3_bytes::RyBytes;
-use ryo3_macro_rules::{py_stop_async_iteration_err, py_value_err};
+use ryo3_macro_rules::{py_runtime_error, py_stop_async_iteration_err, py_value_err};
 use ryo3_std::fs::{BufferedFile, FileReadStreamOptions};
 use ryo3_tokio_rt::{RyCoroutine, RyJoinHandle, get_ry_tokio_runtime, pyloop_coro};
 use tokio::sync::Mutex;
@@ -27,6 +27,9 @@ enum StreamState {
     Idle(BufferedFile),
     /// next chunk already being read
     Reading(RyJoinHandle<ChunkRead>),
+    /// read task died w/ and nuked the file. errors until `close()` (reopening
+    /// would re-yield chunks (which is wrong))
+    Failed,
 }
 
 impl StreamState {
@@ -44,8 +47,11 @@ impl StreamState {
     }
 
     /// read ahead unless the buffer already has the next chunk
+    ///
+    /// regular files only ~ pipe/fifo read can block till writer writes mo'.
     fn prefetch(&mut self, read_size: usize) {
         if let Self::Idle(file) = self
+            && file.seekable()
             && file.buffered_len() < read_size
         {
             *self = mem::take(self).read_ahead(read_size);
@@ -63,20 +69,28 @@ impl StreamState {
         Ok(())
     }
 
-    /// next chunk, `None` at eof
+    /// next chunk, `None` at eof; `prefetch` starts reading the one after
     ///
     /// cancel safe: an in-flight read stays in `Reading` for the next call
     async fn next_chunk(
         &mut self,
         options: &Arc<FileReadStreamOptions>,
+        prefetch: bool,
     ) -> PyResult<Option<Vec<u8>>> {
         loop {
             match self {
                 Self::Closed => self.ensure_open(options).await?,
+                Self::Failed => {
+                    return Err(py_runtime_error!(
+                        "stream failed on an earlier read; close it to start over"
+                    ));
+                }
                 Self::Idle(file) => {
                     // buffer hit ~ no blocking hop
                     if let Some(chunk) = file.try_read(options.read_size) {
-                        self.prefetch(options.read_size);
+                        if prefetch {
+                            self.prefetch(options.read_size);
+                        }
                         return Ok(Some(chunk));
                     }
                     *self = mem::take(self).read_ahead(options.read_size);
@@ -85,7 +99,7 @@ impl StreamState {
                     let ChunkRead { file, chunk } = match read.await {
                         Ok(done) => done,
                         Err(e) => {
-                            *self = Self::Closed;
+                            *self = Self::Failed;
                             return Err(e);
                         }
                     };
@@ -94,7 +108,9 @@ impl StreamState {
                     if chunk.is_empty() {
                         return Ok(None);
                     }
-                    self.prefetch(options.read_size);
+                    if prefetch {
+                        self.prefetch(options.read_size);
+                    }
                     return Ok(Some(chunk));
                 }
             }
@@ -133,8 +149,6 @@ impl PyAsyncFileReadStream {
     }
 
     /// State transition back to `Closed`
-    ///
-    /// NOTE: in-flight read finishes and closes
     fn close_coro<'py>(
         &self,
         py: Python<'py>,
@@ -142,7 +156,15 @@ impl PyAsyncFileReadStream {
     ) -> PyResult<Bound<'py, RyCoroutine>> {
         let state = Arc::clone(&self.state);
         pyloop_coro(py, qualname, async move {
-            *state.lock().await = StreamState::Closed;
+            let mut state = state.lock().await;
+            // abort wont kill an inflight blocking read, SO wait?
+            // AFAICT file is actually closed once `close()` finishes.
+            // await here RIGHT NOW so a cancelled close doesn't leave file in
+            // invalid state
+            if let StreamState::Reading(read) = &mut *state {
+                let _ = read.await;
+            }
+            *state = StreamState::Closed;
             Ok(())
         })
     }
@@ -201,7 +223,7 @@ impl PyAsyncFileReadStream {
     fn __anext__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, RyCoroutine>> {
         let (state, options) = (Arc::clone(&self.state), Arc::clone(&self.options));
         pyloop_coro(py, "AsyncFileReadStream.__anext__", async move {
-            match state.lock().await.next_chunk(&options).await? {
+            match state.lock().await.next_chunk(&options, true).await? {
                 Some(chunk) => Ok(RyBytes::from(chunk)),
                 None => py_stop_async_iteration_err!("stream exhausted"),
             }
@@ -216,8 +238,9 @@ impl PyAsyncFileReadStream {
             // open even for `take(0)` so a bad path still raises (like before)
             state.ensure_open(&options).await?;
             let mut chunks = Vec::new();
+            // dont read ahead beyond last chunk take would want
             while chunks.len() < n
-                && let Some(chunk) = state.next_chunk(&options).await?
+                && let Some(chunk) = state.next_chunk(&options, chunks.len() + 1 < n).await?
             {
                 chunks.push(RyBytes::from(chunk));
             }
@@ -230,7 +253,7 @@ impl PyAsyncFileReadStream {
         pyloop_coro(py, "AsyncFileReadStream.collect", async move {
             let mut state = state.lock().await;
             let mut chunks = Vec::new();
-            while let Some(chunk) = state.next_chunk(&options).await? {
+            while let Some(chunk) = state.next_chunk(&options, true).await? {
                 chunks.push(RyBytes::from(chunk));
             }
             Ok(chunks)

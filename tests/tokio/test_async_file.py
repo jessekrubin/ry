@@ -4,6 +4,7 @@ import asyncio
 import dataclasses
 import gc
 import io
+import os
 import random
 import sys
 from itertools import permutations
@@ -762,7 +763,6 @@ async def _diff_vs_cpython(seed: int, tmp_path: Path) -> None:  # noqa: C901
                 elif op == "readline":
                     limit = rng.choice([None, *_DIFF_SIZES])
                     got = await f.readline(limit)
-                    got = b"" if got is None else got
                     want = ref.readline(-1 if limit is None else limit)
                 elif op == "readall":
                     got, want = await f.read(), ref.read()
@@ -812,3 +812,108 @@ async def test_cancelled_read_keeps_position_consistent(tmp_path: Path) -> None:
             # the next read must agree w/ each other
             pos = await f.tell()
             assert await f.read(1000) == data[pos : pos + 1000]
+
+
+@pytest.mark.anyio
+async def test_failed_seek_keeps_position(tmp_path: Path) -> None:
+    p = tmp_path / "f.bin"
+    p.write_bytes(bytes(range(256)) * 4)
+    async with AsyncFile(p, "rb") as f:
+        assert await f.read(1) == b"\x00"
+        # linux/mac: EINVAL; windows: ERROR_NEGATIVE_SEEK
+        with pytest.raises(
+            OSError, match=r"(?i)invalid argument|negative|before the beginning"
+        ):
+            await f.seek(-10, 1)
+        assert await f.tell() == 1
+        with pytest.raises(OSError, match="seek offset out of range"):
+            await f.seek(-(2**63), 1)
+        assert await f.tell() == 1
+        assert await f.read(1) == b"\x01"
+
+
+@pytest.mark.anyio
+@pytest.mark.skipif(sys.platform == "win32", reason="no fifos on windows")
+async def test_fifo_write_after_read_keeps_read_ahead(tmp_path: Path) -> None:
+    import os
+
+    fifo = tmp_path / "fifo"
+    os.mkfifo(fifo)
+    async with AsyncFile(fifo, "rb+") as f:
+        fd = os.open(fifo, os.O_WRONLY | os.O_NONBLOCK)
+        os.write(fd, b"hello world\n")
+        assert await f.read(1) == b"h"
+        # ESPIPE ~ can't seek back over the read-ahead
+        with pytest.raises(OSError, match="Illegal seek"):
+            await f.write(b"X")
+        # more data so a lost read-ahead fails the assert instead of hanging
+        os.write(fd, b"next\n")
+        os.close(fd)
+        assert await f.readline() == b"ello world\n"
+        assert await f.readline() == b"next\n"
+
+
+@pytest.mark.anyio
+async def test_write_read_only_raises(tmp_path: Path) -> None:
+    p = tmp_path / "f.bin"
+    p.write_bytes(b"abc")
+    async with AsyncFile(p, "rb") as f:
+        with pytest.raises(io.UnsupportedOperation):
+            await f.write(b"zz")
+        assert await f.read() == b"abc"
+    assert p.read_bytes() == b"abc"
+
+
+@pytest.mark.anyio
+async def test_negative_sizes_mean_no_limit(tmp_path: Path) -> None:
+    p = tmp_path / "f.bin"
+    p.write_bytes(b"a\nb\nc\n")
+    async with AsyncFile(p, "rb") as f:
+        assert await f.readline(-1) == b"a\n"
+        assert await f.read(-1) == b"b\nc\n"
+        for hint in (0, -1):
+            await f.seek(0)
+            assert await f.readlines(hint) == [b"a\n", b"b\n", b"c\n"]
+        await f.seek(0)
+        assert await f.readlines(1) == [b"a\n"]
+        await f.seek(0)
+        assert await f.readlines(2) == [b"a\n", b"b\n"]
+
+
+@pytest.mark.anyio
+async def test_readline_zero_after_write_no_io(tmp_path: Path) -> None:
+    p = tmp_path / "f.bin"
+    async with AsyncFile(p, "wb+") as f:
+        await f.write(b"abc")
+        assert await f.readline(0) == b""
+        assert p.read_bytes() == b""  # still pending, not flushed
+    assert p.read_bytes() == b"abc"
+
+
+@pytest.mark.anyio
+async def test_readline_limit_no_newline(tmp_path: Path) -> None:
+    p = tmp_path / "f.bin"
+    data = bytes(range(97, 123)) * 700  # no newlines, len % 7 == 0
+    p.write_bytes(data + b"\nend")
+    async with AsyncFile(p, "rb") as f:
+        chunks = [await f.readline(7) for _ in range(len(data) // 7)]
+        assert b"".join(chunks) == data
+        assert await f.readline() == b"\n"
+        assert await f.readline(100) == b"end"
+        assert await f.readline() == b""  # eof, like cpython
+
+
+@pytest.mark.skipif(not os.path.exists("/dev/full"), reason="needs /dev/full")
+@pytest.mark.anyio
+async def test_failed_flush_keeps_pending_writes() -> None:
+    # like cpython: the data stays pending, SO the next flush fails again
+    f = AsyncFile("/dev/full", "wb")
+    await f.open()
+    await f.write(b"abc")
+    with pytest.raises(OSError, match="No space left"):
+        await f.flush()
+    with pytest.raises(OSError, match="No space left"):
+        await f.flush()
+    with pytest.raises(OSError, match="No space left"):
+        await f.close()
+    assert f.closed

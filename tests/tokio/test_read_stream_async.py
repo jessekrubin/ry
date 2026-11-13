@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import asyncio
+import os
 import re
+import sys
 import types
 import typing as t
 from pathlib import Path
@@ -384,3 +386,27 @@ async def test_read_stream_sizes(
 async def test_read_stream_take_zero_still_opens(tmp_path: Path) -> None:
     with pytest.raises(FileNotFoundError):
         await ry.read_stream_async(tmp_path / "nope", read_size=10).take(0)
+
+
+@pytest.mark.skipif(not sys.platform.startswith("linux"), reason="/proc/self/fd")
+async def test_read_stream_close_waits_for_read_ahead(tmp_path: Path) -> None:
+    p = tmp_path / "f.bin"
+    p.write_bytes(b"x" * (32 << 20))
+
+    def open_fds() -> int:
+        fds = os.listdir("/proc/self/fd")
+        return sum(1 for fd in fds if _readlink(f"/proc/self/fd/{fd}") == str(p))
+
+    # racy (the read-ahead may not have started yet) ~ loop to catch it
+    for _ in range(20):
+        async with ry.read_stream_async(p, read_size=16 << 20) as stream:
+            await anext(stream)  # kicks off the read-ahead of the next chunk
+        assert open_fds() == 0
+        await asyncio.sleep(0.01)
+
+
+def _readlink(path: str) -> str | None:
+    try:
+        return os.readlink(path)
+    except OSError:
+        return None

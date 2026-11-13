@@ -7,6 +7,7 @@ use pyo3::prelude::*;
 use pyo3::pybacked::PyBackedStr;
 use pyo3::types::PyDict;
 use ryo3_bytes::RyBytes;
+use ryo3_core::PyIoResultExt;
 use ryo3_core::types::PyOpenMode;
 use ryo3_macro_rules::py_not_implemented_err;
 use ryo3_std::fs::PyMetadata;
@@ -20,24 +21,30 @@ mod async_read_dir;
 #[pyfunction]
 pub fn canonicalize_async(py: Python<'_>, path: PathBuf) -> PyResult<Bound<'_, RyCoroutine>> {
     blocking_coro(py, "canonicalize_async", move || {
-        Ok(fs::canonicalize(path)?.into_os_string())
+        Ok(fs::canonicalize(&path)
+            .map_py_io_err_with_path(&path)?
+            .into_os_string())
     })
 }
 
 #[pyfunction]
 pub fn copy_async(py: Python<'_>, from: PathBuf, to: PathBuf) -> PyResult<Bound<'_, RyCoroutine>> {
-    blocking_coro(py, "copy_async", move || Ok(fs::copy(from, to)?))
+    blocking_coro(py, "copy_async", move || {
+        fs::copy(&from, &to).map_py_io_err_with_src_dst(&from, &to)
+    })
 }
 
 #[pyfunction]
 pub fn create_dir_async(py: Python<'_>, path: PathBuf) -> PyResult<Bound<'_, RyCoroutine>> {
-    blocking_coro(py, "create_dir_async", move || Ok(fs::create_dir(path)?))
+    blocking_coro(py, "create_dir_async", move || {
+        fs::create_dir(&path).map_py_io_err_with_path(&path)
+    })
 }
 
 #[pyfunction]
 pub fn create_dir_all_async(py: Python<'_>, path: PathBuf) -> PyResult<Bound<'_, RyCoroutine>> {
     blocking_coro(py, "create_dir_all_async", move || {
-        Ok(fs::create_dir_all(path)?)
+        fs::create_dir_all(&path).map_py_io_err_with_path(&path)
     })
 }
 
@@ -47,25 +54,35 @@ pub fn hard_link_async(
     from: PathBuf,
     to: PathBuf,
 ) -> PyResult<Bound<'_, RyCoroutine>> {
-    blocking_coro(py, "hard_link_async", move || Ok(fs::hard_link(from, to)?))
+    blocking_coro(py, "hard_link_async", move || {
+        fs::hard_link(&from, &to).map_py_io_err_with_src_dst(&from, &to)
+    })
 }
 
 #[pyfunction]
 pub fn metadata_async(py: Python<'_>, path: PathBuf) -> PyResult<Bound<'_, RyCoroutine>> {
     blocking_coro(py, "metadata_async", move || {
-        Ok(PyMetadata::from(fs::metadata(path)?))
+        Ok(PyMetadata::from(
+            fs::metadata(&path).map_py_io_err_with_path(&path)?,
+        ))
     })
 }
 
 #[pyfunction]
 pub fn read_async(py: Python<'_>, path: PathBuf) -> PyResult<Bound<'_, RyCoroutine>> {
-    blocking_coro(py, "read_async", move || Ok(RyBytes::from(fs::read(path)?)))
+    blocking_coro(py, "read_async", move || {
+        Ok(RyBytes::from(
+            fs::read(&path).map_py_io_err_with_path(&path)?,
+        ))
+    })
 }
 
 #[pyfunction]
 pub fn read_dir_async(py: Python<'_>, path: PathBuf) -> PyResult<Bound<'_, RyCoroutine>> {
     tokio_coro(py, "read_dir_async", async move {
-        let readdir = tokio::fs::read_dir(path).await.map_err(PyErr::from)?;
+        let readdir = tokio::fs::read_dir(&path)
+            .await
+            .map_py_io_err_with_path(&path)?;
         Ok(PyAsyncReadDir::from(readdir))
     })
 }
@@ -73,32 +90,38 @@ pub fn read_dir_async(py: Python<'_>, path: PathBuf) -> PyResult<Bound<'_, RyCor
 #[pyfunction]
 pub fn read_link_async(py: Python<'_>, path: PathBuf) -> PyResult<Bound<'_, RyCoroutine>> {
     blocking_coro(py, "read_link_async", move || {
-        Ok(fs::read_link(path)?.into_os_string())
+        Ok(fs::read_link(&path)
+            .map_py_io_err_with_path(&path)?
+            .into_os_string())
     })
 }
 
 #[pyfunction]
 pub fn read_to_string_async(py: Python<'_>, path: PathBuf) -> PyResult<Bound<'_, RyCoroutine>> {
     blocking_coro(py, "read_to_string_async", move || {
-        Ok(fs::read_to_string(path)?)
+        fs::read_to_string(&path).map_py_io_err_with_path(&path)
     })
 }
 
 #[pyfunction]
 pub fn remove_dir_async(py: Python<'_>, path: PathBuf) -> PyResult<Bound<'_, RyCoroutine>> {
-    blocking_coro(py, "remove_dir_async", move || Ok(fs::remove_dir(path)?))
+    blocking_coro(py, "remove_dir_async", move || {
+        fs::remove_dir(&path).map_py_io_err_with_path(&path)
+    })
 }
 
 #[pyfunction]
 pub fn remove_dir_all_async(py: Python<'_>, path: PathBuf) -> PyResult<Bound<'_, RyCoroutine>> {
     blocking_coro(py, "remove_dir_all_async", move || {
-        Ok(fs::remove_dir_all(path)?)
+        fs::remove_dir_all(&path).map_py_io_err_with_path(&path)
     })
 }
 
 #[pyfunction]
 pub fn remove_file_async(py: Python<'_>, path: PathBuf) -> PyResult<Bound<'_, RyCoroutine>> {
-    blocking_coro(py, "remove_file_async", move || Ok(fs::remove_file(path)?))
+    blocking_coro(py, "remove_file_async", move || {
+        fs::remove_file(&path).map_py_io_err_with_path(&path)
+    })
 }
 
 #[pyfunction]
@@ -107,12 +130,16 @@ pub fn rename_async(
     from: PathBuf,
     to: PathBuf,
 ) -> PyResult<Bound<'_, RyCoroutine>> {
-    blocking_coro(py, "rename_async", move || Ok(fs::rename(from, to)?))
+    blocking_coro(py, "rename_async", move || {
+        fs::rename(&from, &to).map_py_io_err_with_src_dst(&from, &to)
+    })
 }
 
 #[pyfunction]
 pub fn exists_async(py: Python<'_>, path: PathBuf) -> PyResult<Bound<'_, RyCoroutine>> {
-    blocking_coro(py, "exists_async", move || Ok(path.try_exists()?))
+    blocking_coro(py, "exists_async", move || {
+        path.try_exists().map_py_io_err_with_path(&path)
+    })
 }
 
 #[pyfunction]
@@ -122,7 +149,7 @@ pub fn write_async(
     buf: RyBytes,
 ) -> PyResult<Bound<'_, RyCoroutine>> {
     blocking_coro(py, "write_async", move || {
-        fs::write(path, buf.as_slice())?;
+        fs::write(&path, buf.as_slice()).map_py_io_err_with_path(&path)?;
         Ok(buf.len())
     })
 }
@@ -134,7 +161,7 @@ pub fn write_string_async(
     s: PyBackedStr,
 ) -> PyResult<Bound<'_, RyCoroutine>> {
     blocking_coro(py, "write_string_async", move || {
-        fs::write(path, &*s)?;
+        fs::write(&path, &*s).map_py_io_err_with_path(&path)?;
         Ok(s.len())
     })
 }

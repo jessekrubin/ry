@@ -71,14 +71,8 @@ impl BufferedFile {
 
     /// a line (or `limit` bytes) if the read-ahead has one
     pub fn try_readline(&mut self, limit: Option<usize>) -> Option<Vec<u8>> {
-        if !self.wbuf.is_empty() {
-            return None;
-        }
-        let unread = self.rbuf.unread();
-        let end = match memchr::memchr(b'\n', unread) {
-            Some(i) => limit.map_or(i + 1, |limit| limit.min(i + 1)),
-            None => limit.filter(|&limit| limit <= unread.len())?,
-        };
+        // pending writes -> empty read-ahead, so only `limit == 0` hits here
+        let end = self.rbuf.line_end(limit)?;
         Some(self.rbuf.consume(end))
     }
 
@@ -107,24 +101,36 @@ impl BufferedFile {
     // io
     // ------------------------------------------------------------------------
 
-    /// Writes out pending writes. They are dropped on error, like cpython.
+    /// Writes out pending writes; on error the unwritten rest stays pending
+    /// (like cpython), so the next flush retries just that.
     pub fn flush(&mut self) -> io::Result<()> {
-        if self.wbuf.is_empty() {
-            return Ok(());
-        }
-        let res = self.file.write_all(&self.wbuf);
-        self.wbuf.clear();
+        // not `write_all`: on error it doesn't say how much got written
+        let mut written = 0;
+        let res = loop {
+            if written == self.wbuf.len() {
+                break Ok(());
+            }
+            match self.file.write(&self.wbuf[written..]) {
+                Ok(0) => break Err(io::ErrorKind::WriteZero.into()),
+                Ok(n) => written += n,
+                Err(e) if e.kind() == io::ErrorKind::Interrupted => {}
+                Err(e) => break Err(e),
+            }
+        };
+        self.wbuf.drain(..written);
         res
     }
 
     // toss the read-ahead + move the os position back to the logical one
     fn discard_read_ahead(&mut self) -> io::Result<()> {
+        // seek back first, so an unseekable file (fifo/pipe) errs w the read
+        // buf not lost in the ether (this was gnarly)
         let unread = self.rbuf.len();
-        self.rbuf.clear();
         if unread > 0 {
             let back = i64::try_from(unread).map_err(io::Error::other)?;
             self.file.seek(SeekFrom::Current(-back))?;
         }
+        self.rbuf.clear();
         Ok(())
     }
 
@@ -181,12 +187,8 @@ impl BufferedFile {
         let mut line = Vec::new();
         loop {
             let left = limit.map(|limit| limit - line.len());
-            if let Some(rest) = self.try_readline(left) {
-                // whole line was already buffered
-                if line.is_empty() {
-                    return Ok(Some(rest));
-                }
-                line.extend_from_slice(&rest);
+            if let Some(end) = self.rbuf.line_end(left) {
+                self.rbuf.consume_into(end, &mut line);
                 return Ok(Some(line));
             }
             // no newline (and under `limit`) in the read-ahead ~ take it all + refill
@@ -204,7 +206,8 @@ impl BufferedFile {
         while let Some(line) = self.readline(None)? {
             total += line.len();
             lines.push(line);
-            if hint.is_some_and(|hint| total > hint) {
+            // hint 0 == no limit (ala cpython)
+            if hint.is_some_and(|hint| hint > 0 && total > hint) {
                 break;
             }
         }
@@ -230,12 +233,19 @@ impl BufferedFile {
         let pos = match pos {
             SeekFrom::Current(off) => {
                 let unread = i64::try_from(self.rbuf.len()).map_err(io::Error::other)?;
-                SeekFrom::Current(off - unread)
+                // huge negative offsets overflowed
+                let off = off.checked_sub(unread).ok_or_else(|| {
+                    io::Error::new(io::ErrorKind::InvalidInput, "seek offset out of range")
+                })?;
+                SeekFrom::Current(off)
             }
             other => other,
         };
+        // seek first, and if ok nuke the read buf. this fixes a seek failure
+        // causing jumping to the end of the read-buf.
+        let new_pos = self.file.seek(pos)?;
         self.rbuf.clear();
-        self.file.seek(pos)
+        Ok(new_pos)
     }
 
     pub fn tell(&mut self) -> io::Result<u64> {
@@ -284,6 +294,21 @@ impl ReadBuf {
 
     fn is_empty(&self) -> bool {
         self.pos == self.buf.len()
+    }
+
+    /// end of the next line (or `limit` bytes) if it's all in here; only
+    /// looks at the first `limit` bytes
+    fn line_end(&self, limit: Option<usize>) -> Option<usize> {
+        let unread = self.unread();
+        let window = limit.map_or(unread, |limit| &unread[..limit.min(unread.len())]);
+        let newline = cfg_select! {
+            feature = "memchr" => memchr::memchr(b'\n', window),
+            _ => window.iter().position(|&b| b == b'\n'),
+        };
+        match newline {
+            Some(i) => Some(i + 1),
+            None => limit.filter(|&limit| limit <= unread.len()),
+        }
     }
 
     fn consume(&mut self, n: usize) -> Vec<u8> {

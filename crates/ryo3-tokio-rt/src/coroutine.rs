@@ -48,6 +48,8 @@
 //! - [`tokio_coro`]: io/timers/spawn, the default
 //! - [`pyloop_coro`]: only needs a waker (tokio channels/notify/mutex), polled
 //!   on the loop thread
+//! - [`blocking_coro`]: sync work on tokio's blocking pool, awaited on the
+//!   loop thread
 //! - [`done_coro`] / [`failed_coro`]: already have the answer
 //! - [`yield_coro`]: yield once, like `asyncio.sleep(0)`
 //!
@@ -950,8 +952,7 @@ impl RyCoroutine {
     }
 
     // the future dies here w/o async cleanup. `Drop` cant `block_on` either, it
-    // can run on a tokio worker. see `AsyncFileHandle::drop` (ryo3-tokio) +
-    // <https://github.com/jessekrubin/ry/pull/899>
+    // can run on a tokio worker. see <https://github.com/jessekrubin/ry/pull/899>
     #[pyo3(signature = (typ, value = None, _traceback = None, /))]
     fn throw(
         &self,

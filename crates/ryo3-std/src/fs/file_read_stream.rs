@@ -74,18 +74,15 @@ impl fmt::Display for FileReadStreamOptions {
     }
 }
 
-struct StreamState {
-    /// `None` = closed ~ reopens at `offset` on next usage
-    file: Option<BufferedFile>,
-}
+/// `None` = closed ~ reopens at `offset` on next usage
+struct StreamState(Option<BufferedFile>);
 
 impl StreamState {
     fn ensure_open(&mut self, options: &FileReadStreamOptions) -> PyResult<&mut BufferedFile> {
-        let file = match self.file.take() {
-            Some(file) => file,
-            None => options.open()?,
-        };
-        Ok(self.file.insert(file))
+        match self.0 {
+            Some(ref mut file) => Ok(file),
+            None => Ok(self.0.insert(options.open()?)),
+        }
     }
 
     // `None` at eof
@@ -116,7 +113,7 @@ impl PyFileReadStream {
         let file = options.open()?;
         Ok(Self {
             options,
-            state: RyMutex::new(StreamState { file: Some(file) }),
+            state: RyMutex::new(StreamState(Some(file))),
         })
     }
 }
@@ -205,7 +202,7 @@ impl PyFileReadStream {
     }
 
     fn close(&self, py: Python<'_>) -> PyResult<()> {
-        self.state.py_lock_attached(py)?.file = None;
+        self.state.py_lock_attached(py)?.0 = None;
         Ok(())
     }
 }

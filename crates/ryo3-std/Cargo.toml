@@ -15,11 +15,10 @@ description = "rust-std python wrappers"
 [features]
 default = []
 pydantic = ["ryo3-pydantic", "serde", "jiff"]
-ry = ["serde", "jiff", "time", "net", "fs", "process", "pydantic"]
+ry = ["serde", "jiff", "time", "net", "fs", "process", "pydantic", "memchr"]
 time = ["dep:ryo3-core", "dep:ryo3-macro-rules"]
 net = ["dep:ryo3-core", "dep:ryo3-macro-rules"]
 fs = [
-  "dep:memchr",
   "dep:ryo3-bytes",
   "dep:ryo3-core",
   "dep:ryo3-macro-rules",
@@ -27,6 +26,7 @@ fs = [
 process = []
 
 # dep features
+memchr = ["dep:memchr"]
 jiff = ["dep:jiff", "dep:ryo3-jiff-core"]
 serde = ["dep:serde", "jiff?/serde", "ryo3-jiff-core?/serde"]
 
