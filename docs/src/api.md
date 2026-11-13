@@ -8,7 +8,6 @@
 - [`ry.ryo3._brotli`](#ry.ryo3._brotli)
 - [`ry.ryo3._burli`](#ry.ryo3._burli)
 - [`ry.ryo3._bytes`](#ry.ryo3._bytes)
-- [`ry.ryo3._bzip2`](#ry.ryo3._bzip2)
 - [`ry.ryo3._cookie`](#ry.ryo3._cookie)
 - [`ry.ryo3._crc32fast`](#ry.ryo3._crc32fast)
 - [`ry.ryo3._dev`](#ry.ryo3._dev)
@@ -48,17 +47,14 @@
 - [`ry.ryo3._walkdir`](#ry.ryo3._walkdir)
 - [`ry.ryo3._which`](#ry.ryo3._which)
 - [`ry.ryo3._zstd`](#ry.ryo3._zstd)
-- [`ry.ryo3.zstd`](#ry.ryo3.zstd)
 - [`ry._types`](#ry._types)
 - [`ry.dev._lz4rip`](#ry.dev._lz4rip)
 - [`ry.protocols`](#ry.protocols)
-- [`ry.zstd`](#ry.zstd)
 <h2 id="ry.ryo3.__init__"><code>ry.ryo3.__init__</code></h2>
 
 ```python
 """ry api ~ type annotations"""
 
-from ry.ryo3 import zstd as zstd
 from ry.ryo3.__about__ import __allocator__ as __allocator__
 from ry.ryo3.__about__ import __authors__ as __authors__
 from ry.ryo3.__about__ import __build_profile__ as __build_profile__
@@ -82,15 +78,9 @@ from ry.ryo3._aws_lc import sha256 as sha256
 from ry.ryo3._aws_lc import sha384 as sha384
 from ry.ryo3._aws_lc import sha512 as sha512
 from ry.ryo3._aws_lc import sha512_256 as sha512_256
-from ry.ryo3._brotli import brotli_decode as brotli_decode  # type: ignore[deprecated]  # ty: ignore[deprecated]
 from ry.ryo3._brotli import brotli_decompress as brotli_decompress
-from ry.ryo3._burli import brotli as brotli  # type: ignore[deprecated]  # ty: ignore[deprecated]
 from ry.ryo3._burli import brotli_compress as brotli_compress
-from ry.ryo3._burli import brotli_encode as brotli_encode  # type: ignore[deprecated]  # ty: ignore[deprecated]
 from ry.ryo3._bytes import Bytes as Bytes
-from ry.ryo3._bzip2 import bzip2 as bzip2  # type: ignore[deprecated]  # ty: ignore[deprecated]
-from ry.ryo3._bzip2 import bzip2_decode as bzip2_decode  # type: ignore[deprecated]  # ty: ignore[deprecated]
-from ry.ryo3._bzip2 import bzip2_encode as bzip2_encode  # type: ignore[deprecated]  # ty: ignore[deprecated]
 from ry.ryo3._cookie import Cookie as Cookie
 from ry.ryo3._crc32fast import crc32 as crc32
 from ry.ryo3._dirs import audio_dir as audio_dir
@@ -117,14 +107,9 @@ from ry.ryo3._errors import PanicError as PanicError
 from ry.ryo3._errors import UnreachableError as UnreachableError
 from ry.ryo3._errors import panic as panic
 from ry.ryo3._errors import unreachable as unreachable
-from ry.ryo3._flate2 import gunzip as gunzip  # type: ignore[deprecated]  # ty: ignore[deprecated]
-from ry.ryo3._flate2 import gzip as gzip  # type: ignore[deprecated]  # ty: ignore[deprecated]
 from ry.ryo3._flate2 import gzip_compress as gzip_compress
-from ry.ryo3._flate2 import gzip_decode as gzip_decode  # type: ignore[deprecated]  # ty: ignore[deprecated]
 from ry.ryo3._flate2 import gzip_decompress as gzip_decompress
-from ry.ryo3._flate2 import gzip_encode as gzip_encode  # type: ignore[deprecated]  # ty: ignore[deprecated]
 from ry.ryo3._flate2 import is_gzip as is_gzip
-from ry.ryo3._flate2 import is_gzipped as is_gzipped  # type: ignore[deprecated]  # ty: ignore[deprecated]
 from ry.ryo3._fnv import fnv1a as fnv1a
 from ry.ryo3._fspath import FsPath as FsPath
 from ry.ryo3._glob import GlobPattern as GlobPattern
@@ -213,6 +198,8 @@ from ry.ryo3._reqwest import (
 from ry.ryo3._reqwest import Client as Client
 from ry.ryo3._reqwest import ClientConfig as ClientConfig
 from ry.ryo3._reqwest import EventStream as EventStream
+from ry.ryo3._reqwest import FormData as FormData
+from ry.ryo3._reqwest import FormPart as FormPart
 from ry.ryo3._reqwest import Identity as Identity
 from ry.ryo3._reqwest import Proxy as Proxy
 from ry.ryo3._reqwest import RequestKwargs as RequestKwargs
@@ -341,8 +328,8 @@ from ry.ryo3._tokio import remove_dir_async as remove_dir_async
 from ry.ryo3._tokio import remove_file_async as remove_file_async
 from ry.ryo3._tokio import rename_async as rename_async
 from ry.ryo3._tokio import sleep_async as sleep_async
-from ry.ryo3._tokio import try_exists_async as try_exists_async
 from ry.ryo3._tokio import write_async as write_async
+from ry.ryo3._tokio import write_string_async as write_string_async
 from ry.ryo3._tokio_websockets import WebSocket as WebSocket
 from ry.ryo3._tokio_websockets import WsMessage as WsMessage
 from ry.ryo3._tokio_websockets import websocket as websocket
@@ -372,9 +359,7 @@ from ry.ryo3._zstd import ZSTD_VERSION as ZSTD_VERSION
 from ry.ryo3._zstd import ZSTD_VERSION_INFO as ZSTD_VERSION_INFO
 from ry.ryo3._zstd import is_zstd as is_zstd
 from ry.ryo3._zstd import zstd_compress as zstd_compress
-from ry.ryo3._zstd import zstd_decode as zstd_decode  # type: ignore[deprecated]  # ty: ignore[deprecated]
 from ry.ryo3._zstd import zstd_decompress as zstd_decompress
-from ry.ryo3._zstd import zstd_encode as zstd_encode  # type: ignore[deprecated]  # ty: ignore[deprecated]
 ```
 
 <h2 id="ry.ryo3.__about__"><code>ry.ryo3.__about__</code></h2>
@@ -496,22 +481,11 @@ sha512_256: type[_Sha[_Sha512_256Name, _Sha512_256BlockSize, _Sha512_256DigestSi
 ```python
 """ryo3-brotli ~ types"""
 
-import sys
-
 from ry._types import Buffer
 from ry.ryo3._bytes import Bytes
 
-if sys.version_info >= (3, 13):
-    from warnings import deprecated
-else:
-    from typing_extensions import deprecated
-
 
 def brotli_decompress(data: Buffer, /) -> Bytes: ...
-@deprecated(
-    "`brotli_decode` is deprecated; use `brotli_decompress` instead [removal: v0.0.109]"
-)
-def brotli_decode(data: Buffer) -> Bytes: ...
 ```
 
 <h2 id="ry.ryo3._burli"><code>ry.ryo3._burli</code></h2>
@@ -519,27 +493,15 @@ def brotli_decode(data: Buffer) -> Bytes: ...
 ```python
 """ryo3-burli ~ types"""
 
-import sys
 import typing as t
 
 from ry._types import Buffer
 from ry.ryo3._bytes import Bytes
 
-if sys.version_info >= (3, 13):
-    from warnings import deprecated
-else:
-    from typing_extensions import deprecated
-
 _BrotliLevel: t.TypeAlias = t.Literal[0, 1, 2, 3, 4, 5]
 
 
 def brotli_compress(data: Buffer, /, level: _BrotliLevel = 5) -> Bytes: ...
-@deprecated(
-    "`brotli_encode` is deprecated; use `brotli_compress` instead [removal: v0.0.109]"
-)
-def brotli_encode(data: Buffer, quality: _BrotliLevel = 5) -> Bytes: ...
-@deprecated("`brotli` is deprecated; use `brotli_compress` instead [removal: v0.0.109]")
-def brotli(data: Buffer, quality: _BrotliLevel = 5) -> Bytes: ...
 ```
 
 <h2 id="ry.ryo3._bytes"><code>ry.ryo3._bytes</code></h2>
@@ -930,37 +892,6 @@ class _BytesSliceIter(t.Protocol):
 
 
 ReadableBuffer: t.TypeAlias = Buffer | bytes | bytearray | memoryview | Bytes
-```
-
-<h2 id="ry.ryo3._bzip2"><code>ry.ryo3._bzip2</code></h2>
-
-```python
-"""ryo3-bzip2 ~ types (DEPRECATED ~ use the stdlib `bz2`)"""
-
-import sys
-import typing as t
-
-from ry._types import Buffer
-from ry.ryo3._bytes import Bytes
-
-if sys.version_info >= (3, 13):
-    from warnings import deprecated
-else:
-    from typing_extensions import deprecated
-
-_Bzip2Quality: t.TypeAlias = t.Literal[1, 2, 3, 4, 5, 6, 7, 8, 9, "best", "fast"]
-
-
-@deprecated(
-    "`bzip2_decode` is deprecated; use `bz2.decompress` instead [removal: v0.0.109]"
-)
-def bzip2_decode(data: Buffer) -> Bytes: ...
-@deprecated(
-    "`bzip2_encode` is deprecated; use `bz2.compress` instead [removal: v0.0.109]"
-)
-def bzip2_encode(data: Buffer, quality: _Bzip2Quality = 6) -> Bytes: ...
-@deprecated("`bzip2` is deprecated; use `bz2.compress` instead [removal: v0.0.109]")
-def bzip2(data: Buffer, quality: _Bzip2Quality = 6) -> Bytes: ...
 ```
 
 <h2 id="ry.ryo3._cookie"><code>ry.ryo3._cookie</code></h2>
@@ -1683,16 +1614,10 @@ def panic(msg: str | None = None) -> t.NoReturn:
 ```python
 """ryo3-flate2 ~ types"""
 
-import sys
 import typing as t
 
 from ry import Bytes
 from ry._types import Buffer
-
-if sys.version_info >= (3, 13):
-    from warnings import deprecated
-else:
-    from typing_extensions import deprecated
 
 _GzipLevel: t.TypeAlias = t.Literal[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, "best", "fast"]
 
@@ -1700,23 +1625,6 @@ _GzipLevel: t.TypeAlias = t.Literal[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, "best", "fast"
 def gzip_compress(data: Buffer, /, level: _GzipLevel = 6) -> Bytes: ...
 def gzip_decompress(data: Buffer, /) -> Bytes: ...
 def is_gzip(data: Buffer, /) -> bool: ...
-
-
-# ==== DEPRECATED ~ remove in v0.0.109 ====
-@deprecated(
-    "`gzip_encode` is deprecated; use `gzip_compress` instead [removal: v0.0.109]"
-)
-def gzip_encode(data: Buffer, quality: _GzipLevel = 6) -> Bytes: ...
-@deprecated(
-    "`gzip_decode` is deprecated; use `gzip_decompress` instead [removal: v0.0.109]"
-)
-def gzip_decode(data: Buffer) -> Bytes: ...
-@deprecated("`gzip` is deprecated; use `gzip_compress` instead [removal: v0.0.109]")
-def gzip(data: Buffer, quality: _GzipLevel = 6) -> Bytes: ...
-@deprecated("`gunzip` is deprecated; use `gzip_decompress` instead [removal: v0.0.109]")
-def gunzip(data: Buffer) -> Bytes: ...
-@deprecated("`is_gzipped` is deprecated; use `is_gzip` instead [removal: v0.0.109]")
-def is_gzipped(data: Buffer) -> bool: ...
 ```
 
 <h2 id="ry.ryo3._fnv"><code>ry.ryo3._fnv</code></h2>
@@ -5802,18 +5710,12 @@ class JSONDecodeError(ValueError):
 ```python
 """ryo3-json ~ types"""
 
-import sys
 import typing as t
 
 from ry._types import Buffer
 from ry.ryo3._bytes import Bytes
 from ry.ryo3._jiter import JSONDecodeError as _JSONDecodeError
 from ry.ryo3._jiter import _JsonValue
-
-if sys.version_info >= (3, 13):
-    from warnings import deprecated
-else:
-    from typing_extensions import deprecated
 
 
 # `dtype=` output type ~ `ry.Bytes` (default) or `bytes`
@@ -5837,28 +5739,6 @@ def stringify(
     append_newline: bool = False,
     dtype: type[bytes],
 ) -> bytes: ...
-@t.overload
-@deprecated("`pybytes` is deprecated; use `dtype=bytes` instead [removal: v0.0.109]")
-def stringify(
-    obj: t.Any,
-    *,
-    default: t.Callable[[t.Any], t.Any] | None = None,
-    fmt: bool = False,
-    sort_keys: bool = False,
-    append_newline: bool = False,
-    pybytes: t.Literal[True],
-) -> bytes: ...
-@t.overload
-@deprecated("`pybytes` is deprecated; use `dtype=bytes` instead [removal: v0.0.109]")
-def stringify(
-    obj: t.Any,
-    *,
-    default: t.Callable[[t.Any], t.Any] | None = None,
-    fmt: bool = False,
-    sort_keys: bool = False,
-    append_newline: bool = False,
-    pybytes: t.Literal[False],
-) -> Bytes: ...
 
 
 @t.final
@@ -5958,34 +5838,6 @@ class JSON:
         dtype: type[bytes],
     ) -> bytes: ...
     @t.overload
-    @deprecated(
-        "`pybytes` is deprecated; use `dtype=bytes` instead [removal: v0.0.109]"
-    )
-    @staticmethod
-    def stringify(
-        obj: t.Any,
-        *,
-        default: t.Callable[[t.Any], t.Any] | None = None,
-        fmt: bool = False,
-        sort_keys: bool = False,
-        append_newline: bool = False,
-        pybytes: t.Literal[True],
-    ) -> bytes: ...
-    @t.overload
-    @deprecated(
-        "`pybytes` is deprecated; use `dtype=bytes` instead [removal: v0.0.109]"
-    )
-    @staticmethod
-    def stringify(
-        obj: t.Any,
-        *,
-        default: t.Callable[[t.Any], t.Any] | None = None,
-        fmt: bool = False,
-        sort_keys: bool = False,
-        append_newline: bool = False,
-        pybytes: t.Literal[False],
-    ) -> Bytes: ...
-    @t.overload
     @staticmethod
     def dumps(
         obj: t.Any,
@@ -6007,34 +5859,6 @@ class JSON:
         append_newline: bool = False,
         dtype: type[bytes],
     ) -> bytes: ...
-    @t.overload
-    @deprecated(
-        "`pybytes` is deprecated; use `dtype=bytes` instead [removal: v0.0.109]"
-    )
-    @staticmethod
-    def dumps(
-        obj: t.Any,
-        *,
-        default: t.Callable[[t.Any], t.Any] | None = None,
-        fmt: bool = False,
-        sort_keys: bool = False,
-        append_newline: bool = False,
-        pybytes: t.Literal[True],
-    ) -> bytes: ...
-    @t.overload
-    @deprecated(
-        "`pybytes` is deprecated; use `dtype=bytes` instead [removal: v0.0.109]"
-    )
-    @staticmethod
-    def dumps(
-        obj: t.Any,
-        *,
-        default: t.Callable[[t.Any], t.Any] | None = None,
-        fmt: bool = False,
-        sort_keys: bool = False,
-        append_newline: bool = False,
-        pybytes: t.Literal[False],
-    ) -> Bytes: ...
     @staticmethod
     def loads(
         data: Buffer | bytes | str,
@@ -6429,6 +6253,8 @@ class Regex:
 """ryo3-reqwest ~ types"""
 
 import typing as t
+from os import PathLike
+from pathlib import Path
 from types import TracebackType
 
 import ry
@@ -6441,10 +6267,31 @@ from ry.ryo3._url import URL
 
 _Body: t.TypeAlias = (
     Buffer
+    | FormData
     | t.Generator[Buffer]
     | t.AsyncGenerator[Buffer]
     | t.Iterable[Buffer]
     | t.AsyncIterable[Buffer]
+)
+# multipart
+_T = t.TypeVar("_T")
+_FormValue: t.TypeAlias = str | int | float | bool | Buffer | PathLike[str] | FormPart
+
+
+class _FormPartDict(t.TypedDict):
+    value: _FormValue
+    filename: t.NotRequired[str | None]
+    mime: t.NotRequired[str | None]
+    headers: t.NotRequired[Headers | dict[str, str] | None]
+
+
+_FormInput: t.TypeAlias = _FormValue | _FormPartDict
+_FormPair: t.TypeAlias = tuple[str, _FormInput | list[_FormInput]]
+_FormDataLike: t.TypeAlias = (
+    FormData
+    | t.Mapping[str, _FormInput | list[_FormInput]]
+    | list[_FormPair]
+    | tuple[_FormPair, ...]
 )
 # proxy
 _ProxyKw: t.TypeAlias = t.Sequence[Proxy | URL | str] | Proxy | URL | str
@@ -6458,7 +6305,7 @@ class RequestKwargs(t.TypedDict, total=False):
     query: dict[str, t.Any] | t.Sequence[tuple[str, t.Any]] | None
     json: t.Any
     form: t.Any
-    multipart: t.Any
+    multipart: _FormDataLike | None
     timeout: Duration | None
     basic_auth: tuple[str, str | None] | None
     bearer_auth: str | None
@@ -7010,7 +6857,7 @@ async def fetch(
     query: dict[str, t.Any] | t.Sequence[tuple[str, t.Any]] | None = None,
     json: t.Any = None,
     form: t.Any = None,
-    multipart: t.Any | None = None,
+    multipart: _FormDataLike | None = None,
     timeout: Duration | None = None,
     basic_auth: tuple[str, str | None] | None = None,
     bearer_auth: str | None = None,
@@ -7025,7 +6872,7 @@ def fetch_sync(
     query: dict[str, t.Any] | t.Sequence[tuple[str, t.Any]] | None = None,
     json: t.Any = None,
     form: t.Any = None,
-    multipart: t.Any | None = None,
+    multipart: _FormDataLike | None = None,
     timeout: Duration | None = None,
     basic_auth: tuple[str, str | None] | None = None,
     bearer_auth: str | None = None,
@@ -7123,6 +6970,105 @@ class Proxy:
     # -------------------------------------------------------------------------
     def __eq__(self, other: object, /) -> bool: ...
     def __hash__(self) -> int: ...
+
+
+# =============================================================================
+# MULTIPART
+# =============================================================================
+@t.final
+class FormPart:
+    """A multipart/form-data part w/ options (filename, mime, headers)
+
+    value types: str -> text, int/float/bool -> text, bytes-like -> binary,
+    os.PathLike -> file (opened + streamed per request; filename + mime
+    default from the path)
+    """
+
+    def __new__(
+        cls,
+        value: _FormValue,
+        /,
+        *,
+        filename: str | None = None,
+        mime: str | None = None,
+        headers: Headers | dict[str, str] | None = None,
+    ) -> t.Self: ...
+    @property
+    def value(self) -> str | ry.Bytes | Path: ...
+    @property
+    def filename(self) -> str | None: ...
+    @property
+    def mime(self) -> str | None: ...
+    @property
+    def headers(self) -> Headers | None: ...
+    def __eq__(self, other: object, /) -> bool: ...
+    def __ne__(self, other: object, /) -> bool: ...
+    def __hash__(self) -> int: ...
+
+
+@t.final
+class FormData:
+    """multipart/form-data (mutable multimap like js `FormData`)
+
+    Values are snapshotted when a request is built ~ mutating a `FormData`
+    does not affect requests already made and it can be reused.
+
+    `get`/`get_all`/`values`/`items` give back `str` for plain text values
+    and `FormPart` for everything else.
+    """
+
+    def __new__(
+        cls,
+        data: _FormDataLike | None = None,
+        /,
+        *,
+        percent_encode: t.Literal["path-segment", "attr-chars", "noop"] | None = None,
+    ) -> t.Self: ...
+    @property
+    def percent_encode(
+        self,
+    ) -> t.Literal["path-segment", "attr-chars", "noop"] | None: ...
+    def append(
+        self,
+        name: str,
+        value: _FormValue,
+        /,
+        *,
+        filename: str | None = None,
+        mime: str | None = None,
+        headers: Headers | dict[str, str] | None = None,
+    ) -> None: ...
+    def set(
+        self,
+        name: str,
+        value: _FormValue,
+        /,
+        *,
+        filename: str | None = None,
+        mime: str | None = None,
+        headers: Headers | dict[str, str] | None = None,
+    ) -> None: ...
+    def delete(self, name: str) -> None: ...
+    def extend(self, other: _FormDataLike, /) -> None: ...
+    @t.overload
+    def get(self, name: str) -> str | FormPart | None: ...
+    @t.overload
+    def get(self, name: str, default: _T) -> str | FormPart | _T: ...
+    def get_all(self, name: str) -> list[str | FormPart]: ...
+    def keys(self) -> list[str]: ...
+    def values(self) -> list[str | FormPart]: ...
+    def items(self) -> list[tuple[str, str | FormPart]]: ...
+    def copy(self) -> FormData: ...
+    def __copy__(self) -> FormData: ...
+    def __deepcopy__(self, memo: object) -> FormData: ...
+    def __len__(self) -> int: ...
+    def __contains__(self, name: object, /) -> bool: ...
+    def __iter__(self) -> t.Iterator[str]: ...
+    def __getitem__(self, name: str, /) -> str | FormPart: ...
+    def __setitem__(self, name: str, value: _FormValue, /) -> None: ...
+    def __delitem__(self, name: str, /) -> None: ...
+    def __eq__(self, other: object, /) -> bool: ...
+    def __ne__(self, other: object, /) -> bool: ...
 ```
 
 <h2 id="ry.ryo3._same_file"><code>ry.ryo3._same_file</code></h2>
@@ -7133,7 +7079,7 @@ class Proxy:
 from os import PathLike
 
 
-def is_same_file(left: PathLike[str], right: PathLike[str]) -> bool: ...
+def is_same_file(left: str | PathLike[str], right: str | PathLike[str]) -> bool: ...
 ```
 
 <h2 id="ry.ryo3._sh"><code>ry.ryo3._sh</code></h2>
@@ -8699,7 +8645,7 @@ async def read_link_async(path: FsPathLike) -> FsPathLike: ...
 async def read_to_string_async(path: FsPathLike) -> str: ...
 async def rename_async(src: FsPathLike, dst: FsPathLike) -> None: ...
 async def write_async(path: FsPathLike, buf: Buffer) -> int: ...
-async def try_exists_async(path: FsPathLike) -> bool: ...
+async def write_string_async(path: FsPathLike, s: str) -> int: ...
 async def exists_async(path: FsPathLike) -> bool: ...
 
 
@@ -8747,15 +8693,15 @@ class AsyncFile:
     async def open(self) -> None: ...
     async def peek(self, size: int = ..., /) -> Bytes: ...
     async def read(self, size: int | None = None, /) -> Bytes: ...
-    async def readable(self) -> bool: ...
+    def readable(self) -> bool: ...
     async def readall(self) -> Bytes: ...
     async def readline(self, size: int | None = None, /) -> Bytes: ...
     async def readlines(self, hint: int | None = None, /) -> list[Bytes]: ...
     async def seek(self, offset: int, whence: int = ..., /) -> int: ...
-    async def seekable(self) -> bool: ...
+    def seekable(self) -> bool: ...
     async def tell(self) -> int: ...
     async def truncate(self, pos: int | None = None, /) -> int: ...
-    async def writable(self) -> bool: ...
+    def writable(self) -> bool: ...
     async def write(self, b: Buffer, /) -> int: ...
     @property
     def closed(self) -> bool: ...
@@ -9618,27 +9564,270 @@ class URL(FromStr, ToString, _Parse):
     def replace(
         self,
         *,
-        fragment: str | None = None,
-        host: str | None = None,
-        ip_host: IPv4Address | IPv6Address | Ipv4Addr | Ipv6Addr | IpAddr | None = None,
-        password: str | None = None,
-        path: str | None = None,
-        port: int | None = None,
-        query: str | None = None,
-        scheme: str | None = None,
-        username: str | None = None,
-    ) -> t.Self: ...
-    def with_fragment(self, fragment: str | None = None) -> t.Self: ...
-    def with_host(self, host: str | None = None) -> t.Self: ...
+        scheme: str = ...,
+        username: str = ...,
+        password: str | None = ...,
+        host: str
+        | IPv4Address
+        | IPv6Address
+        | Ipv4Addr
+        | Ipv6Addr
+        | IpAddr
+        | None = ...,
+        port: int | None = ...,
+        path: str = ...,
+        query: str | None = ...,
+        fragment: str | None = ...,
+    ) -> t.Self:
+        """Return a new URL with the given parts replaced (like `dataclasses.replace`)
+
+        Omitted kwargs are kept and `None` clears a part. Parts are applied in
+        url order (scheme, username, password, host, port, path, query,
+        fragment), so combined replacements don't depend on kwarg order.
+
+        Parameters
+        ----------
+        scheme : str, optional
+            url scheme (`http`, `https`, `ws`, `wss`, `ftp`, `file`)
+        username : str, optional
+            username; `""` removes it (the password is kept).
+        password : str | None, optional
+            New password; `None` removes it.
+        host : str | IPv4Address | IPv6Address | Ipv4Addr | Ipv6Addr | IpAddr | None, optional
+            host to set; a str is parsed based on the URL's scheme.
+        port : int | None, optional
+            port (0-65535); `None` removes it.
+        path : str, optional
+            path; a leading `/` is added for urls with a host.
+        query : str | None, optional
+            query string (without the `?`); `None` removes it, `""` leaves
+            an empty `?`.
+        fragment : str | None, optional
+            fragment (without the `#`); `None` removes it, `""` leaves an empty `#`.
+
+        Raises
+        ------
+        TypeError
+            If `None` is given for `scheme`, `username` or `path`, or wrong kw type
+        ValueError
+            If the url can't take the new value (e.g. a port on a `file:` url,
+            removing the host of an `http` url, an invalid host).
+        OverflowError
+            If `port` is outside 0-65535.
+
+        Examples
+        --------
+        >>> import ry
+        >>> u = ry.URL("http://user:pass@example.com:8080/foo?a=1#frag")
+        >>> u.replace(path="/bar", query=None, fragment=None)
+        URL('http://user:pass@example.com:8080/bar')
+        >>> u.replace(port=None, password=None)
+        URL('http://user@example.com/foo?a=1#frag')
+        >>> u.replace(host=ry.Ipv4Addr(127, 0, 0, 1))
+        URL('http://user:pass@127.0.0.1:8080/foo?a=1#frag')
+
+        """
+
+    def with_fragment(self, fragment: str | None = None) -> t.Self:
+        """Return a new URL with the fragment replaced
+
+        Parameters
+        ----------
+        fragment : str | None, optional
+            fragment (without the `#`); `None` (the default) removes it, `""`
+            leaves an empty `#`.
+
+        Examples
+        --------
+        >>> import ry
+        >>> ry.URL("http://example.com/a#x").with_fragment("y")
+        URL('http://example.com/a#y')
+        >>> ry.URL("http://example.com/a#x").with_fragment(None)
+        URL('http://example.com/a')
+
+        """
+
+    def with_host(
+        self,
+        host: str
+        | IPv4Address
+        | IPv6Address
+        | Ipv4Addr
+        | Ipv6Addr
+        | IpAddr
+        | None = None,
+    ) -> t.Self:
+        """Return a new URL with the host replaced
+
+        Parameters
+        ----------
+        host : str | IPv4Address | IPv6Address | Ipv4Addr | Ipv6Addr | IpAddr | None, optional
+            host to set; a str is parsed based on the URL's scheme. `None`
+            (the default) removes it.
+
+        Raises
+        ------
+        ValueError
+            If the host is invalid or can't be removed.
+
+        Examples
+        --------
+        >>> import ry
+        >>> ry.URL("http://example.com/a").with_host("example.org")
+        URL('http://example.org/a')
+        >>> ry.URL("http://example.com/a").with_host(ry.Ipv6Addr.parse("::1"))
+        URL('http://[::1]/a')
+        >>> ry.URL("foo://example.com/a").with_host(None)
+        URL('foo:/a')
+
+        """
+
     def with_ip_host(
         self, address: IPv4Address | IPv6Address | Ipv4Addr | Ipv6Addr | IpAddr
-    ) -> t.Self: ...
-    def with_password(self, password: str | None = None) -> t.Self: ...
-    def with_path(self, path: str) -> t.Self: ...
-    def with_port(self, port: int | None = None) -> t.Self: ...
-    def with_query(self, query: str | None = None) -> t.Self: ...
-    def with_scheme(self, scheme: str) -> t.Self: ...
-    def with_username(self, username: str) -> t.Self: ...
+    ) -> t.Self:
+        """Return a new URL with an ip address as the host
+
+        Parameters
+        ----------
+        address : IPv4Address | IPv6Address | Ipv4Addr | Ipv6Addr | IpAddr
+            ip address to set as the host (`with_host` & `replace(host=...)`
+            accept ip addresses too).
+
+        Raises
+        ------
+        ValueError
+            If the url can't have a host (e.g. `mailto:`).
+
+        Examples
+        --------
+        >>> import ry
+        >>> ry.URL("http://example.com/a").with_ip_host(ry.Ipv4Addr(10, 0, 0, 1))
+        URL('http://10.0.0.1/a')
+
+        """
+
+    def with_password(self, password: str | None = None) -> t.Self:
+        """Return a new URL with the password replaced
+
+        Parameters
+        ----------
+        password : str | None, optional
+            password; `None` (the default) removes it.
+
+        Raises
+        ------
+        ValueError
+            If the url can't have a password (no host, or `file:`).
+
+        Examples
+        --------
+        >>> import ry
+        >>> ry.URL("http://user@example.com/").with_password("pw")
+        URL('http://user:pw@example.com/')
+
+        """
+
+    def with_path(self, path: str) -> t.Self:
+        """Return a new URL with the path replaced
+
+        Parameters
+        ----------
+        path : str
+            path; a leading `/` is added for urls with a host.
+
+        Examples
+        --------
+        >>> import ry
+        >>> ry.URL("http://example.com/a?q=1").with_path("b/c")
+        URL('http://example.com/b/c?q=1')
+
+        """
+
+    def with_port(self, port: int | None = None) -> t.Self:
+        """Return a new URL with the port replaced
+
+        Parameters
+        ----------
+        port : int | None, optional
+            port (0-65535); `None` (the default) removes it.
+
+        Raises
+        ------
+        ValueError
+            If the url can't have a port (no host, or `file:`).
+        OverflowError
+            If `port` is outside 0-65535.
+
+        Examples
+        --------
+        >>> import ry
+        >>> ry.URL("http://example.com/").with_port(8080)
+        URL('http://example.com:8080/')
+        >>> ry.URL("http://example.com:8080/").with_port(None)
+        URL('http://example.com/')
+
+        """
+
+    def with_query(self, query: str | None = None) -> t.Self:
+        """Return a new URL with the query string replaced
+
+        Parameters
+        ----------
+        query : str | None, optional
+            query string (without the `?`); `None` (the default) removes it,
+            `""` leaves an empty `?`.
+
+        Examples
+        --------
+        >>> import ry
+        >>> ry.URL("http://example.com/a?x=1").with_query("y=2")
+        URL('http://example.com/a?y=2')
+        >>> ry.URL("http://example.com/a?x=1").with_query(None)
+        URL('http://example.com/a')
+
+        """
+
+    def with_scheme(self, scheme: str) -> t.Self:
+        """Return a new URL with the scheme replaced
+
+        Parameters
+        ----------
+        scheme : str
+            url scheme (`http`, `https`, `ws`, `wss`, `ftp`, `file`)
+
+        Raises
+        ------
+        ValueError
+            If the scheme is invalid or the switch isn't allowed.
+
+        Examples
+        --------
+        >>> import ry
+        >>> ry.URL("http://example.com/").with_scheme("https")
+        URL('https://example.com/')
+
+        """
+
+    def with_username(self, username: str) -> t.Self:
+        """Return a new URL with the username replaced
+
+        Parameters
+        ----------
+        username : str
+            username; `""` removes it (the password is kept).
+
+        Raises
+        ------
+        ValueError
+            If the url can't have a username (no host, or `file:`).
+
+        Examples
+        --------
+        >>> import ry
+        >>> ry.URL("http://example.com/").with_username("me")
+        URL('http://me@example.com/')
+
+        """
 
     # =========================================================================
     # OPERATORS/DUNDER
@@ -9932,16 +10121,10 @@ def which_re(regex: str | Regex, path: str | None = None) -> list[Path]: ...
 ```python
 """ryo3-zstd ~ types"""
 
-import sys
 import typing as t
 
 from ry import Bytes
 from ry._types import Buffer
-
-if sys.version_info >= (3, 13):
-    from warnings import deprecated
-else:
-    from typing_extensions import deprecated
 
 _ZstdLevel: t.TypeAlias = t.Literal[
     1,
@@ -9975,74 +10158,6 @@ ZSTD_VERSION_INFO: tuple[int, int, int]  # (1, 5, 7) (c. 2026-10-29)
 def zstd_compress(data: Buffer, /, level: _ZstdLevel = 3) -> Bytes: ...
 def zstd_decompress(data: Buffer, /) -> Bytes: ...
 def is_zstd(data: Buffer, /) -> bool: ...
-@deprecated(
-    "`zstd_encode` is deprecated; use `zstd_compress` instead [removal: v0.0.109]"
-)
-def zstd_encode(data: Buffer, level: _ZstdLevel = 3) -> Bytes: ...
-@deprecated(
-    "`zstd_decode` is deprecated; use `zstd_decompress` instead [removal: v0.0.109]"
-)
-def zstd_decode(data: Buffer) -> Bytes: ...
-```
-
-<h2 id="ry.ryo3.zstd"><code>ry.ryo3.zstd</code></h2>
-
-```python
-"""ry.zstd submodule ~ DEPRECATED, remove in v0.0.109
-
-use the flat `ry.zstd_compress` / `ry.zstd_decompress` / `ry.is_zstd` /
-`ry.ZSTD_VERSION` / `ry.ZSTD_VERSION_INFO` instead
-"""
-
-import sys
-
-from ry import Bytes
-from ry._types import Buffer
-from ry.ryo3._zstd import _ZstdLevel
-
-if sys.version_info >= (3, 13):
-    from warnings import deprecated
-else:
-    from typing_extensions import deprecated
-
-# deprecated constants ~ they warn at runtime (served by a module
-# `__getattr__`), but variables can't be marked `@deprecated` in stubs
-__zstd_version__: str  # -> `ry.ZSTD_VERSION`
-BLOCKSIZELOG_MAX: int  # no replacement
-BLOCKSIZE_MAX: int  # no replacement
-CLEVEL_DEFAULT: int  # -> `ry.zstd_compress` default `level=3`
-CONTENTSIZE_ERROR: int  # no replacement
-CONTENTSIZE_UNKNOWN: int  # no replacement
-MAGICNUMBER: int  # -> `ry.is_zstd`
-MAGIC_DICTIONARY: int  # no replacement
-MAGIC_SKIPPABLE_MASK: int  # no replacement
-MAGIC_SKIPPABLE_START: int  # no replacement
-VERSION_MAJOR: int  # -> `ry.ZSTD_VERSION_INFO`
-VERSION_MINOR: int  # -> `ry.ZSTD_VERSION_INFO`
-VERSION_NUMBER: int  # -> `ry.ZSTD_VERSION_INFO`
-VERSION_RELEASE: int  # -> `ry.ZSTD_VERSION_INFO`
-
-
-@deprecated(
-    "`ry.zstd.compress` is deprecated; use `ry.zstd_compress` instead [removal: v0.0.109]"
-)
-def compress(data: Buffer, level: _ZstdLevel = 3) -> Bytes: ...
-@deprecated(
-    "`ry.zstd.decompress` is deprecated; use `ry.zstd_decompress` instead [removal: v0.0.109]"
-)
-def decompress(data: Buffer) -> Bytes: ...
-@deprecated(
-    "`ry.zstd.decode` is deprecated; use `ry.zstd_decompress` instead [removal: v0.0.109]"
-)
-def decode(data: Buffer) -> Bytes: ...
-@deprecated(
-    "`ry.zstd.unzstd` is deprecated; use `ry.zstd_decompress` instead [removal: v0.0.109]"
-)
-def unzstd(data: Buffer) -> Bytes: ...
-@deprecated(
-    "`ry.zstd.is_zstd` is deprecated; use `ry.is_zstd` instead [removal: v0.0.109]"
-)
-def is_zstd(data: Buffer) -> bool: ...
 ```
 
 <h2 id="ry._types"><code>ry._types</code></h2>
@@ -10228,50 +10343,4 @@ class ToPyTzInfo(t.Protocol):
     """Objects that can be converted to a Python `datetime.tzinfo`."""
 
     def to_pytzinfo(self) -> pydt.tzinfo: ...
-```
-
-<h2 id="ry.zstd"><code>ry.zstd</code></h2>
-
-```python
-from ry.ryo3.zstd import BLOCKSIZE_MAX as BLOCKSIZE_MAX
-from ry.ryo3.zstd import BLOCKSIZELOG_MAX as BLOCKSIZELOG_MAX
-from ry.ryo3.zstd import CLEVEL_DEFAULT as CLEVEL_DEFAULT
-from ry.ryo3.zstd import CONTENTSIZE_ERROR as CONTENTSIZE_ERROR
-from ry.ryo3.zstd import CONTENTSIZE_UNKNOWN as CONTENTSIZE_UNKNOWN
-from ry.ryo3.zstd import MAGIC_DICTIONARY as MAGIC_DICTIONARY
-from ry.ryo3.zstd import MAGIC_SKIPPABLE_MASK as MAGIC_SKIPPABLE_MASK
-from ry.ryo3.zstd import MAGIC_SKIPPABLE_START as MAGIC_SKIPPABLE_START
-from ry.ryo3.zstd import MAGICNUMBER as MAGICNUMBER
-from ry.ryo3.zstd import VERSION_MAJOR as VERSION_MAJOR
-from ry.ryo3.zstd import VERSION_MINOR as VERSION_MINOR
-from ry.ryo3.zstd import VERSION_NUMBER as VERSION_NUMBER
-from ry.ryo3.zstd import VERSION_RELEASE as VERSION_RELEASE
-from ry.ryo3.zstd import __zstd_version__ as __zstd_version__
-from ry.ryo3.zstd import compress as compress  # type: ignore[deprecated]  # ty: ignore[deprecated]  # pyrefly: ignore[deprecated]
-from ry.ryo3.zstd import decode as decode  # type: ignore[deprecated]  # ty: ignore[deprecated]  # pyrefly: ignore[deprecated]
-from ry.ryo3.zstd import decompress as decompress  # type: ignore[deprecated]  # ty: ignore[deprecated]  # pyrefly: ignore[deprecated]
-from ry.ryo3.zstd import is_zstd as is_zstd  # type: ignore[deprecated]  # ty: ignore[deprecated]  # pyrefly: ignore[deprecated]
-from ry.ryo3.zstd import unzstd as unzstd  # type: ignore[deprecated]  # ty: ignore[deprecated]  # pyrefly: ignore[deprecated]
-
-__all__ = (
-    "BLOCKSIZELOG_MAX",
-    "BLOCKSIZE_MAX",
-    "CLEVEL_DEFAULT",
-    "CONTENTSIZE_ERROR",
-    "CONTENTSIZE_UNKNOWN",
-    "MAGICNUMBER",
-    "MAGIC_DICTIONARY",
-    "MAGIC_SKIPPABLE_MASK",
-    "MAGIC_SKIPPABLE_START",
-    "VERSION_MAJOR",
-    "VERSION_MINOR",
-    "VERSION_NUMBER",
-    "VERSION_RELEASE",
-    "__zstd_version__",
-    "compress",
-    "decode",
-    "decompress",
-    "is_zstd",
-    "unzstd",
-)
 ```
