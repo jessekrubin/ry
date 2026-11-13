@@ -843,8 +843,9 @@ async def test_fifo_write_after_read_keeps_read_ahead(tmp_path: Path) -> None:
         fd = os.open(fifo, os.O_WRONLY | os.O_NONBLOCK)
         os.write(fd, b"hello world\n")
         assert await f.read(1) == b"h"
-        # ESPIPE ~ can't seek back over the read-ahead
-        with pytest.raises(OSError, match="Illegal seek"):
+        # glibc errs w "Illegal seek", musl errs w "Invalid seek" so sloppy
+        # error check seek
+        with pytest.raises(OSError, match="seek"):
             await f.write(b"X")
         # more data so a lost read-ahead fails the assert instead of hanging
         os.write(fd, b"next\n")
