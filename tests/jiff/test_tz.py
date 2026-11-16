@@ -124,7 +124,7 @@ def test_to_ambiguous_timestamp() -> None:
         tz.to_ambiguous_timestamp()
 
 
-def test_to_ambiguous_zoned() -> None:
+def test_to_ambiguous_zoned_datetime() -> None:
     tz = ry.TimeZone("America/New_York")
     with pytest.raises(NotImplementedError):
-        tz.to_ambiguous_zoned()
+        tz.to_ambiguous_zoned_datetime()

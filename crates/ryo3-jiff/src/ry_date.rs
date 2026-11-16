@@ -143,11 +143,21 @@ impl RyDate {
     }
 
     #[expect(clippy::wrong_self_convention)]
-    fn to_zoned(&self, tz: &RyTimeZone) -> PyResult<RyZonedDateTime> {
+    fn to_zoned_datetime(&self, tz: &RyTimeZone) -> PyResult<RyZonedDateTime> {
         self.0
             .to_zoned_datetime(tz.to_inner())
             .map(RyZonedDateTime::from)
             .map_err(map_py_value_err)
+    }
+
+    // DEPRECATED ~ remove in v0.0.112 (jiff 1.0 renamed `to_zoned`)
+    #[expect(clippy::wrong_self_convention)]
+    #[pyo3(warn(
+        message = "`Date.to_zoned` is deprecated; use `Date.to_zoned_datetime` instead [removal: v0.0.112]",
+        category = pyo3::exceptions::PyDeprecationWarning
+    ))]
+    fn to_zoned(&self, tz: &RyTimeZone) -> PyResult<RyZonedDateTime> {
+        self.to_zoned_datetime(tz)
     }
 
     #[pyo3(name = "to_string")]

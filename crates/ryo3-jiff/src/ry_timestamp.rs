@@ -127,8 +127,18 @@ impl RyTimestamp {
     }
 
     #[expect(clippy::wrong_self_convention)]
-    fn to_zoned(&self, time_zone: &RyTimeZone) -> RyZonedDateTime {
+    fn to_zoned_datetime(&self, time_zone: &RyTimeZone) -> RyZonedDateTime {
         ZonedDateTime::new(self.0, time_zone.to_inner()).into()
+    }
+
+    // DEPRECATED ~ remove in v0.0.112 (jiff 1.0 renamed `to_zoned`)
+    #[expect(clippy::wrong_self_convention)]
+    #[pyo3(warn(
+        message = "`Timestamp.to_zoned` is deprecated; use `Timestamp.to_zoned_datetime` instead [removal: v0.0.112]",
+        category = pyo3::exceptions::PyDeprecationWarning
+    ))]
+    fn to_zoned(&self, time_zone: &RyTimeZone) -> RyZonedDateTime {
+        self.to_zoned_datetime(time_zone)
     }
 
     #[expect(clippy::wrong_self_convention)]

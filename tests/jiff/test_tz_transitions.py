@@ -16,7 +16,7 @@ class TestTimeZoneTransitions:
         )
         transitions = now.timezone.preceding(now.timestamp())
         transition = transitions[0]
-        prev_at = transition["timestamp"].to_zoned(now.timezone)
+        prev_at = transition["timestamp"].to_zoned_datetime(now.timezone)
         span = now.since(prev_at, largest="year")
         assert f"{span:#}" == "1mo 27d 17h 25m"
 
@@ -30,7 +30,7 @@ class TestTimeZoneTransitions:
         transitions = now.timezone.preceding(now.timestamp(), 5)
         result = [
             (
-                t["timestamp"].to_zoned(now.timezone),
+                t["timestamp"].to_zoned_datetime(now.timezone),
                 t["offset"],
                 t["abbreviation"],
             )
@@ -56,7 +56,7 @@ class TestTimeZoneTransitions:
         )
         transitions = now.timezone.following(now.timestamp())
         transition = transitions[0]
-        next_at = transition["timestamp"].to_zoned(now.timezone)
+        next_at = transition["timestamp"].to_zoned_datetime(now.timezone)
         span = now.until(next_at, largest="year")
         assert f"{span:#}" == "2mo 8d 7h 35m"
 
@@ -67,7 +67,7 @@ class TestTimeZoneTransitions:
         )
         result = [
             (
-                t["timestamp"].to_zoned(now.timezone),
+                t["timestamp"].to_zoned_datetime(now.timezone),
                 t["offset"],
                 t["abbreviation"],
             )

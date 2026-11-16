@@ -41,9 +41,9 @@ class TestDate:
         with pytest.raises(ValueError, match="parameter"):
             ry.date(2024, 1, 1).at(*hms)
 
-    def test_to_zoned(self) -> None:
+    def test_to_zoned_datetime(self) -> None:
         d = ry.date(2023, 3, 14)
-        zdt = d.to_zoned(ry.TimeZone("America/New_York"))
+        zdt = d.to_zoned_datetime(ry.TimeZone("America/New_York"))
         assert isinstance(zdt, ry.ZonedDateTime)
         assert zdt.year == 2023
         assert zdt.month == 3

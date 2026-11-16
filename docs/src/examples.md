@@ -323,7 +323,7 @@ def test_print_current_unix_timestamp() -> None:
 
 def test_print_datetime_for_a_timestamp() -> None:
     ts = ry.Timestamp.from_millisecond(1_720_646_365_567)
-    zdt = ts.to_zoned(ry.TimeZone("America/New_York"))
+    zdt = ts.to_zoned_datetime(ry.TimeZone("America/New_York"))
     assert str(zdt) == "2024-07-10T17:19:25.567-04:00[America/New_York]"
     assert str(ts) == "2024-07-10T21:19:25.567Z"
 

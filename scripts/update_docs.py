@@ -259,6 +259,16 @@ def main() -> None:
         check=parsed.check,
     )
 
+    # run just fmt
+    if parsed.check:
+        return
+
+    just_which = ry.which("just")
+    if not just_which:
+        emsg = "Could not find 'just' command."
+        raise RuntimeError(emsg)
+    sp.run([just_which, "fmt"], check=True)
+
 
 if __name__ == "__main__":
     main()
