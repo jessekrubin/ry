@@ -441,7 +441,7 @@ class TestFromAnyRaises4Numbers:
             ry.Timestamp.from_any(value)  # type: ignore[attr-defined]  # ty:ignore[missing-attribute]
 
     @pytest.mark.parametrize("value", [0, 1700000000, 1700000000.5, True])
-    def test_zoned(self, value: t.Any) -> None:
+    def test_zoned_datetime(self, value: t.Any) -> None:
         with pytest.raises(TypeError):
             ry.ZonedDateTime.from_any(value)  # type: ignore[attr-defined]  # ty:ignore[missing-attribute]
 

@@ -52,19 +52,19 @@ class TestZonedUntil:
     def test_zoned_until_rounding_the_result(self) -> None:
         """
         ```rust
-        use jiff::{civil::date, Unit, ToSpan, ZonedDifference};
+        use jiff::{civil::date, Unit, ToSpan, ZonedDateTimeDifference};
 
         let zdt1 = date(1995, 12, 07).at(3, 24, 30, 3500).in_tz("America/New_York")?;
         let zdt2 = date(2019, 01, 31).at(15, 30, 0, 0).in_tz("America/New_York")?;
 
         let span = zdt1.until(
-            ZonedDifference::from(&zdt2).smallest(Unit::Second),
+            ZonedDateTimeDifference::from(&zdt2).smallest(Unit::Second),
         )?;
         assert_eq!(span, 202_956.hours().minutes(5).seconds(29));
 
         // We can combine smallest and largest units too!
         let span = zdt1.until(
-            ZonedDifference::from(&zdt2)
+            ZonedDateTimeDifference::from(&zdt2)
                 .smallest(Unit::Second)
                 .largest(Unit::Year),
         )?;

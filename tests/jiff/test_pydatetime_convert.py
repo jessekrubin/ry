@@ -42,7 +42,7 @@ def test_from_datetime() -> None:
     assert py_dt.second == ry_dt.second
 
 
-def test_from_zoned() -> None:
+def test_from_zoned_datetime() -> None:
     zdt = ry.date(2020, 8, 26).at(6, 27, 0, 0).in_tz("America/New_York")
     pdt = zdt.to_pydatetime()
     assert pdt.year == zdt.year

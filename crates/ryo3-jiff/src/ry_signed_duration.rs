@@ -1054,7 +1054,7 @@ mod maths {
                 Ok(Self::TemporalType(date_time_type))
             } else {
                 py_type_err!(
-                    "unsupported operand type(s); must be SignedDuration | datetime.timedelta | TemporalType( Date | DateTime | Time | Zoned | Timestamp )"
+                    "unsupported operand type(s); must be SignedDuration | datetime.timedelta | TemporalType( Date | DateTime | Time | ZonedDateTime | Timestamp )"
                 )
             }
         }

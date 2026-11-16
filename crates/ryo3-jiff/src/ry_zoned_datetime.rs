@@ -701,15 +701,14 @@ impl RyZonedDateTime {
         // start the builder
         let mut builder = self.0.with();
         if let Some(obj) = obj {
-            // if obj is a Zoned, use it as the base
-            if let Ok(zoned) = obj.cast_exact::<RyDate>() {
-                // if obj is a Zoned, use it as the base
-                builder = builder.date(zoned.get().0);
+            if let Ok(d) = obj.cast_exact::<RyDate>() {
+                // if obj is a Date, use it as the base
+                builder = builder.date(d.get().0);
             } else if let Ok(time) = obj.cast_exact::<RyTime>() {
                 // if obj is a Time, use it as the base
                 builder = builder.time(time.get().0);
             } else if let Ok(dt) = obj.cast_exact::<RyDateTime>() {
-                // if obj is a Time, use it as the base
+                // if obj is a DateTime, use its date + time as the base
                 builder = builder.time(dt.get().0.time()).date(dt.get().0.date());
             } else if let Ok(offset) = obj.cast_exact::<RyOffset>() {
                 builder = builder.offset(offset.get().0);

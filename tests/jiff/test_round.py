@@ -7,14 +7,14 @@ import pytest
 import ry
 
 
-class TestZonedRound:
+class TestZonedDateTimeRound:
     """
-    REF: https://docs.rs/jiff/latest/jiff/struct.Zoned.html#method.round
+    REF: https://docs.rs/jiff/1/jiff/struct.ZonedDateTime.html#method.round
     """
 
     def test_zoned_difference_docs_example(self) -> None:
         """
-        REF: https://docs.rs/jiff/latest/jiff/struct.Zoned.html#example-44
+        REF: https://docs.rs/jiff/1/jiff/struct.ZonedDateTime.html#method.round
         """
         # rounds up
         zdt = ry.date(2024, 6, 19).at(15, 0, 0, 0).in_tz("America/New_York")
@@ -29,7 +29,7 @@ class TestZonedRound:
 
     def test_zoned_difference_docs_example_changing_the_rounding_mode(self) -> None:
         """
-        REF: https://docs.rs/jiff/latest/jiff/struct.Zoned.html#example-changing-the-rounding-mode
+        REF: https://docs.rs/jiff/1/jiff/struct.ZonedDateTime.html#example-changing-the-rounding-mode
         """
         zdt = ry.date(2024, 6, 19).at(15, 0, 0, 0).in_tz("America/New_York")
         assert zdt.round("day") == ry.date(2024, 6, 20).at(0, 0, 0, 0).in_tz(
@@ -44,7 +44,7 @@ class TestZonedRound:
         self,
     ) -> None:
         """
-        REF: https://docs.rs/jiff/latest/jiff/struct.Zoned.html#example-rounding-to-the-nearest-5-minute-increment
+        REF: https://docs.rs/jiff/1/jiff/struct.ZonedDateTime.html#example-rounding-to-the-nearest-5-minute-increment
         """
         zdt = ry.date(2024, 6, 19).at(15, 27, 29, 999_999_999).in_tz("America/New_York")
         assert zdt._round(
@@ -58,7 +58,7 @@ class TestZonedRound:
 
     def test_example_over_flow_error(self) -> None:
         """
-        REF: https://docs.rs/jiff/latest/jiff/struct.Zoned.html#example-overflow-error
+        REF: https://docs.rs/jiff/1/jiff/struct.ZonedDateTime.html#example-overflow-error
         """
         zdt = ry.Timestamp.MAX.in_tz("America/New_York")
         with pytest.raises(

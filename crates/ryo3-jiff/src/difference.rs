@@ -28,7 +28,7 @@
 //!     - largest:   None
 //!     - mode:      Trunc
 //!     - increment: 1
-//! - `ZonedDifference`
+//! - `ZonedDateTimeDifference`
 //!   - smallest-max: ???
 //!   - defaults
 //!     - smallest:  Nanosecond
@@ -706,7 +706,7 @@ impl std::fmt::Display for RyTimeDifference {
 }
 
 // ============================================================================
-// Zoned/Time/DateTime
+// ZonedDateTime/Time/DateTime
 // ============================================================================
 
 #[derive(Debug, Clone)]
@@ -931,7 +931,7 @@ impl std::fmt::Display for RyTimestampDifference {
 }
 
 // ============================================================================
-// Zoned/Time/DateTime
+// ZonedDateTime/Time/DateTime
 // ============================================================================
 
 #[derive(Debug, Clone)]

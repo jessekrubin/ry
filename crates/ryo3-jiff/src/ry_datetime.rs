@@ -483,7 +483,6 @@ impl RyDateTime {
         // start the builder
         let mut builder = self.0.with();
         if let Some(obj) = obj {
-            // if obj is a Zoned, use it as the base
             if let Ok(d) = obj.cast_exact::<RyDate>() {
                 builder = builder.date(d.get().0);
             } else if let Ok(time) = obj.cast_exact::<RyTime>() {
