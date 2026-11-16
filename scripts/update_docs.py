@@ -60,40 +60,33 @@ def get_types_dictionary() -> dict[str, str]:
     return types_dict
 
 
-@lru_cache
-def ruff_format_pyi(string: str, line_length: int = 80, indent_width: int = 4) -> str:
+def _ruff_format_stdin(string: str, stdin_filename: FsPath) -> str:
+    """`ruff format` with the project config (found via `stdin_filename`)"""
     ruff_path = which("ruff")
     assert ruff_path is not None, "ruff not found in PATH"
-    # format the file... w/ 2 spaces so it fits in the README better
-    # ruff format --config "indent-width = 2" -
-    # line length 80 for the API docs
     run_res = sp.run(
-        [
-            ruff_path,
-            "format",
-            "--line-length",
-            str(line_length),
-            "--config",
-            f"indent-width = {indent_width}",
-            "-",
-        ],
+        [ruff_path, "format", "--stdin-filename", str(stdin_filename), "-"],
         input=string,
         text=True,
         capture_output=True,
         check=True,
     )
-    return run_res.stdout.rstrip("\n")
+    return run_res.stdout
 
 
-def _gen_api_content_readme(
-    line_length: int = 80,
-    indent_width: int = 4,
-) -> Iterable[str]:
+@lru_cache
+def ruff_format_pyi(string: str) -> str:
+    return _ruff_format_stdin(string, REPO_ROOT / "scripts" / "_stdin.py").rstrip("\n")
+
+
+def ruff_format_md(string: str, filepath: FsPath) -> str:
+    return _ruff_format_stdin(string, filepath)
+
+
+def _gen_api_content_readme() -> Iterable[str]:
     dictionary = get_types_dictionary()
     # format all of them...
-    dictionary_formatted = {
-        k: ruff_format_pyi(v, line_length, indent_width) for k, v in dictionary.items()
-    }
+    dictionary_formatted = {k: ruff_format_pyi(v) for k, v in dictionary.items()}
     # first one is '__init__.pyi'
     # then the rest are just sorted...
     parts = []
@@ -125,11 +118,8 @@ def _gen_api_content_readme(
 
 
 @lru_cache
-def get_api_content_readme(
-    line_length: int = 80,
-    indent_width: int = 4,
-) -> str:
-    return "\n".join(_gen_api_content_readme(line_length, indent_width))
+def get_api_content_readme() -> str:
+    return "\n".join(_gen_api_content_readme())
 
 
 def write_text(
@@ -140,10 +130,11 @@ def write_text(
 ) -> bool:
     """Write text to a file, creating the file if it doesn't exist."""
     filepath = FsPath(p)
+    if filepath.suffix == ".md":
+        text = ruff_format_md(text, filepath)
     # check if the file is up to date
     current_text = filepath.read_text()
     if current_text != text:
-        print(f"File is up to date: {filepath}")
         if check:
             msg = f"File is not up to date: {filepath}\n"
             raise ValueError(msg)
@@ -189,7 +180,7 @@ def update_docs_examples(*, check: bool = False) -> None:
         # add the toc entry
         toc.append(f"- [{p.stem}](#{p.stem})")
 
-        formatted_content = ruff_format_pyi(content, line_length=80, indent_width=4)
+        formatted_content = ruff_format_pyi(content)
         parts.append(f"## {p.stem}\n\n```python\n{formatted_content}\n```\n")
 
     # write the file
@@ -258,6 +249,16 @@ def main() -> None:
     update_docs(
         check=parsed.check,
     )
+
+    # run just fmt
+    if parsed.check:
+        return
+
+    just_which = ry.which("just")
+    if not just_which:
+        emsg = "Could not find 'just' command."
+        raise RuntimeError(emsg)
+    sp.run([just_which, "fmt"], check=True)
 
 
 if __name__ == "__main__":

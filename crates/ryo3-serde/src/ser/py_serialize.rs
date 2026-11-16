@@ -197,8 +197,8 @@ where
                 ry_types::RyTimeZoneSerializer::new_unchecked(self.obj).serialize(serializer)
             }
             #[cfg(feature = "ryo3-jiff")]
-            PyObType::RyZoned => {
-                ry_types::RyZonedSerializer::new_unchecked(self.obj).serialize(serializer)
+            PyObType::RyZonedDateTime => {
+                ry_types::RyZonedDateTimeSerializer::new_unchecked(self.obj).serialize(serializer)
             }
             // __ULID__
             #[cfg(feature = "ryo3-ulid")]

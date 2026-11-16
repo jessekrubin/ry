@@ -381,12 +381,18 @@ impl RyOffset {
         RyTimeZone::from(self.0.to_time_zone())
     }
 
-    fn saturating_add(&self, other: Spanish) -> Self {
-        Self::from(self.0.saturating_add(other))
+    fn saturating_add(&self, other: Spanish) -> PyResult<Self> {
+        self.0
+            .saturating_add(other)
+            .map(Self::from)
+            .map_err(map_py_value_err)
     }
 
-    fn saturating_sub(&self, other: Spanish) -> Self {
-        Self::from(self.0.saturating_sub(other))
+    fn saturating_sub(&self, other: Spanish) -> PyResult<Self> {
+        self.0
+            .saturating_sub(other)
+            .map(Self::from)
+            .map_err(map_py_value_err)
     }
 
     #[staticmethod]

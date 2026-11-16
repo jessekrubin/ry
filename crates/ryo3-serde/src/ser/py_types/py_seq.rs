@@ -172,8 +172,10 @@ macro_rules! serialize_seq_element {
                 $seq.serialize_element(&ry_types::RyTimeZoneSerializer::new_unchecked($element))?;
             }
             #[cfg(feature = "ryo3-jiff")]
-            PyObType::RyZoned => {
-                $seq.serialize_element(&ry_types::RyZonedSerializer::new_unchecked($element))?;
+            PyObType::RyZonedDateTime => {
+                $seq.serialize_element(&ry_types::RyZonedDateTimeSerializer::new_unchecked(
+                    $element,
+                ))?;
             }
             // __ULID__
             #[cfg(feature = "ryo3-ulid")]

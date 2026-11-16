@@ -2,7 +2,7 @@ use pyo3::prelude::*;
 
 pub use crate::difference::{
     RyDateDifference, RyDateTimeDifference, RyTimeDifference, RyTimestampDifference,
-    RyZonedDifference,
+    RyZonedDateTimeDifference,
 };
 pub use crate::functions::*;
 use crate::round::RyOffsetRound;
@@ -19,9 +19,9 @@ pub use crate::ry_time::RyTime;
 pub use crate::ry_timestamp::RyTimestamp;
 pub use crate::ry_timezone::RyTimeZone;
 pub use crate::ry_timezone_database::RyTimeZoneDatabase;
-pub use crate::ry_zoned::RyZoned;
+pub use crate::ry_zoned_datetime::RyZonedDateTime;
 pub use crate::series::{
-    RyDateSeries, RyDateTimeSeries, RyTimeSeries, RyTimestampSeries, RyZonedSeries,
+    RyDateSeries, RyDateTimeSeries, RyTimeSeries, RyTimestampSeries, RyZonedDateTimeSeries,
 };
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
@@ -35,7 +35,7 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<RyTime>()?;
     m.add_class::<RyTimeZone>()?;
     m.add_class::<RyTimestamp>()?;
-    m.add_class::<RyZoned>()?;
+    m.add_class::<RyZonedDateTime>()?;
 
     // timezone database
     m.add_class::<RyTimeZoneDatabase>()?;
@@ -45,7 +45,7 @@ pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<RyDateTimeDifference>()?;
     m.add_class::<RyTimeDifference>()?;
     m.add_class::<RyTimestampDifference>()?;
-    m.add_class::<RyZonedDifference>()?;
+    m.add_class::<RyZonedDateTimeDifference>()?;
 
     // round
     m.add_class::<RyDateTimeRound>()?;

@@ -124,7 +124,59 @@ def test_to_ambiguous_timestamp() -> None:
         tz.to_ambiguous_timestamp()
 
 
-def test_to_ambiguous_zoned() -> None:
+def test_to_ambiguous_zoned_datetime() -> None:
     tz = ry.TimeZone("America/New_York")
     with pytest.raises(NotImplementedError):
-        tz.to_ambiguous_zoned()
+        tz.to_ambiguous_zoned_datetime()
+
+
+class TestTimeZonePrimaryAndLocation:
+    """jiff 0.2.45+ ~ ECMAScript primary tz ids + tz locations"""
+
+    @pytest.mark.parametrize(
+        ("name", "primary", "is_primary"),
+        [
+            ("Asia/Calcutta", "Asia/Kolkata", False),
+            ("Asia/Kolkata", "Asia/Kolkata", True),
+            ("Atlantic/Jan_Mayen", "Arctic/Longyearbyen", False),
+            ("America/New_York", "America/New_York", True),
+            ("UTC", "UTC", True),
+        ],
+    )
+    def test_primary_iana_name(
+        self, name: str, primary: str, *, is_primary: bool
+    ) -> None:
+        tz = ry.TimeZone(name)
+        assert tz.primary_iana_name() == primary
+        assert tz.is_primary() is is_primary
+
+    def test_primary_iana_name_fixed_offset(self) -> None:
+        tz = ry.TimeZone.fixed(ry.Offset(hours=-5))
+        assert tz.primary_iana_name() is None
+        assert tz.is_primary() is False
+
+    def test_location(self) -> None:
+        loc = ry.TimeZone("Europe/Copenhagen").location()
+        assert loc is not None
+        assert loc["country"] == "DK"
+        assert isinstance(loc["latitude"], float)
+        assert isinstance(loc["longitude"], float)
+        assert set(loc) == {"country", "latitude", "longitude"}
+
+    def test_location_alias_uses_primary(self) -> None:
+        # alias + primary resolve to the same location
+        assert (
+            ry.TimeZone("Asia/Calcutta").location()
+            == ry.TimeZone("Asia/Kolkata").location()
+        )
+
+    @pytest.mark.parametrize(
+        "tz",
+        [
+            ry.TimeZone.UTC,
+            ry.TimeZone.fixed(ry.Offset(hours=-5)),
+            ry.TimeZone("EST5EDT"),
+        ],
+    )
+    def test_location_none(self, tz: ry.TimeZone) -> None:
+        assert tz.location() is None

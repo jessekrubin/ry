@@ -1,4 +1,4 @@
-use jiff::{Unit, Zoned};
+use jiff::{Unit, ZonedDateTime};
 
 fn main() {
     pyo3_build_config::use_pyo3_cfgs();
@@ -8,7 +8,7 @@ fn main() {
         std::env::var("PROFILE").expect("PROFILE env var not found which is SUPER strange!");
     println!("cargo:rustc-env=PROFILE={profile}");
 
-    let build_ts = Zoned::now()
+    let build_ts = ZonedDateTime::now()
         .round(Unit::Second)
         .expect("oh no, build time error");
     // build timestamp

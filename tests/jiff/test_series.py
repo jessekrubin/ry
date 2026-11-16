@@ -67,3 +67,10 @@ def test_zoned_series() -> None:
     assert next(it).to_string() == "2011-12-31T00:00:00+14:00[Pacific/Apia]"
     assert next(it).to_string() == "2011-12-29T00:00:00-10:00[Pacific/Apia]"
     assert next(it).to_string() == "2011-12-28T00:00:00-10:00[Pacific/Apia]"
+
+
+def test_zoned_series_type_name() -> None:
+    zdt = ry.ZonedDateTime(2012, 1, 1, 0, 0, 0, 0, "Pacific/Apia")
+    it = zdt.series(ry.timespan(hours=1))
+    assert type(it).__name__ == "ZonedDateTimeSeries"
+    assert repr(it).startswith("ZonedDateTimeSeries(")

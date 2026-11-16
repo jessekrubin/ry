@@ -2,7 +2,7 @@ use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::ops::Sub;
 
-use jiff::Zoned;
+use jiff::ZonedDateTime;
 use jiff::civil::{Date, DateArithmetic, Weekday};
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyTuple};
@@ -22,7 +22,7 @@ use crate::ry_signed_duration::RySignedDuration;
 use crate::ry_span::RySpan;
 use crate::ry_time::RyTime;
 use crate::ry_timezone::RyTimeZone;
-use crate::ry_zoned::RyZoned;
+use crate::ry_zoned_datetime::RyZonedDateTime;
 use crate::series::RyDateSeries;
 use crate::spanish::{DurationLike, Spanish};
 use crate::util::SpanKwargs;
@@ -99,7 +99,7 @@ impl RyDate {
 
     #[staticmethod]
     fn now() -> Self {
-        Self::from(Zoned::now().date())
+        Self::from(ZonedDateTime::now().date())
     }
 
     #[pyo3(signature = (hour, minute, second, nanosecond = 0))]
@@ -143,11 +143,21 @@ impl RyDate {
     }
 
     #[expect(clippy::wrong_self_convention)]
-    fn to_zoned(&self, tz: &RyTimeZone) -> PyResult<RyZoned> {
+    fn to_zoned_datetime(&self, tz: &RyTimeZone) -> PyResult<RyZonedDateTime> {
         self.0
-            .to_zoned(tz.to_inner())
-            .map(RyZoned::from)
+            .to_zoned_datetime(tz.to_inner())
+            .map(RyZonedDateTime::from)
             .map_err(map_py_value_err)
+    }
+
+    // DEPRECATED ~ remove in v0.0.112 (jiff 1.0 renamed `to_zoned`)
+    #[expect(clippy::wrong_self_convention)]
+    #[pyo3(warn(
+        message = "`Date.to_zoned` is deprecated; use `Date.to_zoned_datetime` instead [removal: v0.0.112]",
+        category = pyo3::exceptions::PyDeprecationWarning
+    ))]
+    fn to_zoned(&self, tz: &RyTimeZone) -> PyResult<RyZonedDateTime> {
+        self.to_zoned_datetime(tz)
     }
 
     #[pyo3(name = "to_string")]
@@ -381,11 +391,11 @@ impl RyDate {
         PyTuple::new(py, parts)
     }
 
-    fn in_tz(&self, tz: &str) -> PyResult<RyZoned> {
+    fn in_tz(&self, tz: &str) -> PyResult<RyZonedDateTime> {
         let tz = ryo3_jiff_core::get_time_zone(tz).map_err(map_py_value_err)?;
         self.0
-            .to_zoned(tz)
-            .map(RyZoned::from)
+            .to_zoned_datetime(tz)
+            .map(RyZonedDateTime::from)
             .map_err(map_py_value_err)
     }
 
@@ -599,7 +609,7 @@ impl RyDate {
         } else if let Ok(pybytes) = value.cast::<pyo3::types::PyBytes>() {
             let s = String::from_utf8_lossy(pybytes.as_bytes());
             Self::from_str(&s).map(|dt| dt.into_pyobject(py))?
-        } else if let Ok(d) = value.cast_exact::<RyZoned>() {
+        } else if let Ok(d) = value.cast_exact::<RyZonedDateTime>() {
             Self::from(d.get()).into_pyobject(py)
         } else if let Ok(ts) = value.cast_exact::<RyTimestamp>() {
             Self::from(ts.get()).into_pyobject(py)

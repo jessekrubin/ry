@@ -175,9 +175,9 @@ dependencies = [
 
 [[package]]
 name = "brotli"
-version = "9.1.1"
+version = "9.1.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "627b7cfb0578f0eafce087a90fcd40add1231900b69e4d4de2d456260a4f5d81"
+checksum = "9071f285ed78f04f37d675abaaef5de7689e2f30a216c8dc6795465d81910a13"
 dependencies = [
  "alloc-no-stdlib",
  "alloc-stdlib",
@@ -186,9 +186,9 @@ dependencies = [
 
 [[package]]
 name = "brotli-decompressor"
-version = "6.3.1"
+version = "6.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "75c74c9c51b9140663e196b5fb88bc94c334d7a497c8311cb759d8557874747f"
+checksum = "cc031cd87c6529082b0b65c604e86af0ed7744841b17ccfe60b1e31fa606179e"
 dependencies = [
  "alloc-no-stdlib",
  "alloc-stdlib",
@@ -1180,9 +1180,9 @@ checksum = "9028f49264629065d057f340a86acb84867925865f73bbf8d47b4d149a7e88b8"
 
 [[package]]
 name = "jiff"
-version = "0.2.43"
+version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "26699905cc795a23e3949585cc7ba3ee8ade090872a27e4316304a777297894a"
+checksum = "9cc767b5763de45e810109520123bb2829a653f3a7ed9be40b2bc4f81158f595"
 dependencies = [
  "jiff-core",
  "jiff-static",
@@ -1197,36 +1197,36 @@ dependencies = [
 
 [[package]]
 name = "jiff-core"
-version = "0.1.5"
+version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ffe6854081f5ac0a3046a9b223729ccd7a20b1e0e8277e44dc0660eedf67dfe2"
+checksum = "894f7ac42105f584100691b3bf6e6b92dd12fcfa225f6c397f95c8a94b47b68f"
 dependencies = [
  "log",
 ]
 
 [[package]]
 name = "jiff-static"
-version = "0.2.43"
+version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4b4ff49b2887190c760b86207b55cdcaabbdecaf7a0660d68aa2ed6f652abf0a"
+checksum = "955491488dc99b572ea6d67b172dcd98787d00744b1fb44a5689b4e6413695a6"
 dependencies = [
  "jiff-core",
  "proc-macro2",
  "quote",
- "syn 2.0.119",
+ "syn 3.0.10",
 ]
 
 [[package]]
 name = "jiff-tzdb"
-version = "0.1.9"
+version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fa8377070c6bae868759445e5a77f66d84f0b72f3a054bfb00e6d038b8282da7"
+checksum = "12e71a1b68a875a44a33bb7a1dd84392cb77145a3367a552a3cfe6a4f5cf3afc"
 
 [[package]]
 name = "jiff-tzdb-platform"
-version = "0.1.3"
+version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "875a5a69ac2bab1a891711cf5eccbec1ce0341ea805560dcd90b7a2e925132e8"
+checksum = "dc65b284afcfa8f6cf189c7274c805505314a7ab975c60e1f548bff56525420e"
 dependencies = [
  "jiff-tzdb",
 ]
@@ -1402,9 +1402,9 @@ checksum = "5d15f86d12da44cd8d4ec3c73984537eb7f4cadcb9776a575a0a8a05ca11005c"
 
 [[package]]
 name = "lz4rip"
-version = "0.12.1"
+version = "0.12.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "44d2d90f8780c813b8c8e9ba4a462c30c03463a7b092e237342a96177635ed18"
+checksum = "9a02e1ec2764c530e9ffe17687884c824e488ca8511640d78966a59c592b099b"
 dependencies = [
  "lz4rip-core",
  "lz4rip-decode",
@@ -1414,24 +1414,24 @@ dependencies = [
 
 [[package]]
 name = "lz4rip-core"
-version = "0.6.1"
+version = "0.6.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "687eec55dae7866f9a8cf785555aa81ea02ebed8a13c7079c4a4f59c2de46e92"
+checksum = "052afa89a977207a207f3e074b1518b0fb5767dab3274464fd1ee5fc7699a30b"
 
 [[package]]
 name = "lz4rip-decode"
-version = "0.11.0"
+version = "0.11.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bd92d97be818770dc15bf1562ee2986e0ab2197155fb41bddd8305ba963a6a7e"
+checksum = "5f408c3237d4c7a20084f2e3b86c02d91e551c295c8804e66f4a734c64c23f8d"
 dependencies = [
  "lz4rip-core",
 ]
 
 [[package]]
 name = "lz4rip-encode"
-version = "0.10.12"
+version = "0.10.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "19d07fb7d01f4fe624c9b63f942671e32088794647bce814d3960b89580554b2"
+checksum = "a69d815f24588d9dc2c171cd245d239353b159a297352c56faf7aa1a03e86a3d"
 dependencies = [
  "lz4rip-core",
 ]
@@ -1805,9 +1805,9 @@ checksum = "dc33ff2d4973d518d823d61aa239014831e521c75da58e3df4840d3f47749d09"
 
 [[package]]
 name = "rand"
-version = "0.10.3"
+version = "0.10.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "65c9fb96cbc91e3478eaae79a69fcd3f1ae4ad052e471fe6732fff548984b4af"
+checksum = "8f6fa277c67e6ea590466f04c3fe82cb509f0864fe470643e5570de9514a9b11"
 dependencies = [
  "chacha20",
  "getrandom 0.4.3",
@@ -2029,7 +2029,7 @@ checksum = "cf54715a573b99ac80df0bc206da022bcd442c974952c7b9720069370852e21f"
 
 [[package]]
 name = "ry"
-version = "0.0.109"
+version = "0.0.110"
 dependencies = [
  "cc",
  "jiff",
@@ -2044,7 +2044,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3"
-version = "0.0.109"
+version = "0.0.110"
 dependencies = [
  "jiff",
  "pyo3",
@@ -2092,7 +2092,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-aws-lc"
-version = "0.0.109"
+version = "0.0.110"
 dependencies = [
  "aws-lc-rs",
  "pyo3",
@@ -2102,7 +2102,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-brotli"
-version = "0.0.109"
+version = "0.0.110"
 dependencies = [
  "brotli",
  "pyo3",
@@ -2111,7 +2111,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-burli"
-version = "0.0.109"
+version = "0.0.110"
 dependencies = [
  "burli-encode",
  "pyo3",
@@ -2120,7 +2120,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-bytes"
-version = "0.0.109"
+version = "0.0.110"
 dependencies = [
  "bytes",
  "memchr",
@@ -2130,7 +2130,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-cookie"
-version = "0.0.109"
+version = "0.0.110"
 dependencies = [
  "cookie",
  "pyo3",
@@ -2142,7 +2142,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-core"
-version = "0.0.109"
+version = "0.0.110"
 dependencies = [
  "pyo3",
  "pyo3-build-config",
@@ -2151,7 +2151,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-crc32fast"
-version = "0.0.109"
+version = "0.0.110"
 dependencies = [
  "crc32fast",
  "pyo3",
@@ -2161,7 +2161,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-dev"
-version = "0.0.109"
+version = "0.0.110"
 dependencies = [
  "pyo3",
  "ryo3-core",
@@ -2170,7 +2170,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-dirs"
-version = "0.0.109"
+version = "0.0.110"
 dependencies = [
  "dirs",
  "pyo3",
@@ -2178,7 +2178,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-flate2"
-version = "0.0.109"
+version = "0.0.110"
 dependencies = [
  "flate2",
  "pyo3",
@@ -2187,7 +2187,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-fnv"
-version = "0.0.109"
+version = "0.0.110"
 dependencies = [
  "pyo3",
  "ryo3-bytes",
@@ -2196,7 +2196,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-fspath"
-version = "0.0.109"
+version = "0.0.110"
 dependencies = [
  "pyo3",
  "ryo3-bytes",
@@ -2211,7 +2211,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-glob"
-version = "0.0.109"
+version = "0.0.110"
 dependencies = [
  "glob",
  "pyo3",
@@ -2221,7 +2221,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-globset"
-version = "0.0.109"
+version = "0.0.110"
 dependencies = [
  "globset",
  "pyo3",
@@ -2230,7 +2230,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-heck"
-version = "0.0.109"
+version = "0.0.110"
 dependencies = [
  "heck",
  "pyo3",
@@ -2238,7 +2238,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-http"
-version = "0.0.109"
+version = "0.0.110"
 dependencies = [
  "http",
  "pyo3",
@@ -2251,7 +2251,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-ignore"
-version = "0.0.109"
+version = "0.0.110"
 dependencies = [
  "ignore",
  "pyo3",
@@ -2259,7 +2259,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-jiff"
-version = "0.0.109"
+version = "0.0.110"
 dependencies = [
  "jiff",
  "pyo3",
@@ -2275,7 +2275,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-jiff-core"
-version = "0.0.109"
+version = "0.0.110"
 dependencies = [
  "jiff",
  "pyo3",
@@ -2286,7 +2286,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-jiter"
-version = "0.0.109"
+version = "0.0.110"
 dependencies = [
  "jiter",
  "pyo3",
@@ -2296,7 +2296,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-json"
-version = "0.0.109"
+version = "0.0.110"
 dependencies = [
  "jiter",
  "pyo3",
@@ -2311,7 +2311,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-json-ser"
-version = "0.0.109"
+version = "0.0.110"
 dependencies = [
  "criterion",
  "itoap",
@@ -2322,7 +2322,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-lz4rip"
-version = "0.0.109"
+version = "0.0.110"
 dependencies = [
  "lz4rip",
  "pyo3",
@@ -2332,14 +2332,14 @@ dependencies = [
 
 [[package]]
 name = "ryo3-macro-rules"
-version = "0.0.109"
+version = "0.0.110"
 dependencies = [
  "pyo3",
 ]
 
 [[package]]
 name = "ryo3-memchr"
-version = "0.0.109"
+version = "0.0.110"
 dependencies = [
  "memchr",
  "pyo3",
@@ -2349,21 +2349,21 @@ dependencies = [
 
 [[package]]
 name = "ryo3-pydantic"
-version = "0.0.109"
+version = "0.0.110"
 dependencies = [
  "pyo3",
 ]
 
 [[package]]
 name = "ryo3-quick-maths"
-version = "0.0.109"
+version = "0.0.110"
 dependencies = [
  "pyo3",
 ]
 
 [[package]]
 name = "ryo3-regex"
-version = "0.0.109"
+version = "0.0.110"
 dependencies = [
  "pyo3",
  "regex",
@@ -2372,7 +2372,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-reqwest"
-version = "0.0.109"
+version = "0.0.110"
 dependencies = [
  "bytes",
  "encoding_rs",
@@ -2407,7 +2407,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-same-file"
-version = "0.0.109"
+version = "0.0.110"
 dependencies = [
  "pyo3",
  "ryo3-core",
@@ -2416,7 +2416,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-serde"
-version = "0.0.109"
+version = "0.0.110"
 dependencies = [
  "jiff",
  "pyo3",
@@ -2435,7 +2435,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-shlex"
-version = "0.0.109"
+version = "0.0.110"
 dependencies = [
  "pyo3",
  "shlex",
@@ -2443,7 +2443,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-size"
-version = "0.0.109"
+version = "0.0.110"
 dependencies = [
  "pyo3",
  "pyo3-build-config",
@@ -2453,7 +2453,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-sqlformat"
-version = "0.0.109"
+version = "0.0.110"
 dependencies = [
  "pyo3",
  "sqlformat",
@@ -2461,7 +2461,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-std"
-version = "0.0.109"
+version = "0.0.110"
 dependencies = [
  "jiff",
  "memchr",
@@ -2476,7 +2476,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-tokio"
-version = "0.0.109"
+version = "0.0.110"
 dependencies = [
  "pyo3",
  "ryo3-bytes",
@@ -2489,7 +2489,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-tokio-rt"
-version = "0.0.109"
+version = "0.0.110"
 dependencies = [
  "pyo3",
  "pyo3-build-config",
@@ -2498,7 +2498,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-tokio-websockets"
-version = "0.0.109"
+version = "0.0.110"
 dependencies = [
  "bytes",
  "futures-util",
@@ -2520,7 +2520,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-twox-hash"
-version = "0.0.109"
+version = "0.0.110"
 dependencies = [
  "pyo3",
  "ryo3-bytes",
@@ -2530,7 +2530,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-ulid"
-version = "0.0.109"
+version = "0.0.110"
 dependencies = [
  "pyo3",
  "pyo3-build-config",
@@ -2544,7 +2544,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-unindent"
-version = "0.0.109"
+version = "0.0.110"
 dependencies = [
  "pyo3",
  "unindent",
@@ -2552,7 +2552,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-url"
-version = "0.0.109"
+version = "0.0.110"
 dependencies = [
  "pyo3",
  "pyo3-build-config",
@@ -2566,7 +2566,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-uuid"
-version = "0.0.109"
+version = "0.0.110"
 dependencies = [
  "pyo3",
  "pyo3-build-config",
@@ -2580,7 +2580,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-walkdir"
-version = "0.0.109"
+version = "0.0.110"
 dependencies = [
  "pyo3",
  "ryo3-core",
@@ -2591,7 +2591,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-which"
-version = "0.0.109"
+version = "0.0.110"
 dependencies = [
  "pyo3",
  "ryo3-regex",
@@ -2600,7 +2600,7 @@ dependencies = [
 
 [[package]]
 name = "ryo3-zstd"
-version = "0.0.109"
+version = "0.0.110"
 dependencies = [
  "pyo3",
  "ryo3-bytes",
@@ -2678,9 +2678,9 @@ dependencies = [
 
 [[package]]
 name = "serde-transcode"
-version = "1.1.1"
+version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "590c0e25c2a5bb6e85bf5c1bce768ceb86b316e7a01bdf07d2cb4ec2271990e2"
+checksum = "655b0cffa180a1a71ed523dc0a9aa9a2711f5d172c2f066393e76f386e9bba3c"
 dependencies = [
  "serde",
 ]

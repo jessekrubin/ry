@@ -37,7 +37,7 @@ mod ry_timestamp;
 mod ry_timezone;
 mod ry_timezone_database;
 mod ry_weekday;
-mod ry_zoned;
+mod ry_zoned_datetime;
 #[cfg(feature = "serde")]
 mod serde;
 mod series;

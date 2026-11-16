@@ -2,7 +2,7 @@ use serde::Serialize;
 
 use crate::{
     RyDate, RyDateTime, RyISOWeekDate, RySignedDuration, RySpan, RyTime, RyTimeZone, RyTimestamp,
-    RyZoned,
+    RyZonedDateTime,
 };
 
 impl Serialize for RyTimeZone {
@@ -36,7 +36,7 @@ impl_deserialize!(RySignedDuration, jiff::SignedDuration);
 impl_deserialize!(RySpan, jiff::Span);
 impl_deserialize!(RyTime, jiff::civil::Time);
 impl_deserialize!(RyTimestamp, jiff::Timestamp);
-impl_deserialize!(RyZoned, jiff::Zoned);
+impl_deserialize!(RyZonedDateTime, jiff::ZonedDateTime);
 impl_deserialize!(RyISOWeekDate, jiff::civil::ISOWeekDate);
 
 // ----------------------------------------------------------------------------
@@ -49,7 +49,8 @@ mod tests {
     use serde::{Deserialize, Serialize};
 
     use crate::{
-        RyDate, RyDateTime, RyISOWeekDate, RySignedDuration, RySpan, RyTime, RyTimestamp, RyZoned,
+        RyDate, RyDateTime, RyISOWeekDate, RySignedDuration, RySpan, RyTime, RyTimestamp,
+        RyZonedDateTime,
     };
 
     #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -60,7 +61,7 @@ mod tests {
         span: RySpan,
         time: RyTime,
         timestamp: RyTimestamp,
-        zoned: RyZoned,
+        zoned: RyZonedDateTime,
         iso_week_date: RyISOWeekDate,
     }
 

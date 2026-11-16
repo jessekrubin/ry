@@ -4,7 +4,7 @@ use std::ops::Sub;
 
 use jiff::civil::{DateTime, Weekday};
 use jiff::tz::TimeZone;
-use jiff::{Zoned, ZonedArithmetic, ZonedDifference, ZonedRound};
+use jiff::{ZonedDateTime, ZonedDateTimeArithmetic, ZonedDateTimeDifference, ZonedDateTimeRound};
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyTuple};
 use pyo3::{BoundObject, IntoPyObjectExt};
@@ -13,7 +13,8 @@ use ryo3_core::{
 };
 use ryo3_jiff_core::{
     JiffDate, JiffEra, JiffEraYear, JiffRoundMode, JiffTime, JiffTimeZoneRef, JiffTzDisambiguation,
-    JiffTzOffsetConflict, JiffUnit, JiffWeekday, JiffZoned, JiffZonedRef, bundled_tzdb,
+    JiffTzOffsetConflict, JiffUnit, JiffWeekday, JiffZonedDateTime, JiffZonedDateTimeRef,
+    bundled_tzdb,
 };
 use ryo3_macro_rules::{any_repr, py_type_err};
 
@@ -29,7 +30,7 @@ use crate::ry_span::RySpan;
 use crate::ry_time::RyTime;
 use crate::ry_timestamp::RyTimestamp;
 use crate::ry_timezone::RyTimeZone;
-use crate::series::RyZonedSeries;
+use crate::series::RyZonedDateTimeSeries;
 use crate::spanish::{DurationLike, Spanish};
 use crate::util::SpanKwargs;
 
@@ -37,15 +38,15 @@ use crate::util::SpanKwargs;
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd)]
 #[pyclass(name = "ZonedDateTime", frozen, immutable_type, eq, ord)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
-pub struct RyZoned(pub(crate) Zoned);
+pub struct RyZonedDateTime(pub(crate) ZonedDateTime);
 
-impl RyZoned {
-    fn checked_sub<T: Into<ZonedArithmetic>>(&self, other: T) -> Result<Self, jiff::Error> {
+impl RyZonedDateTime {
+    fn checked_sub<T: Into<ZonedDateTimeArithmetic>>(&self, other: T) -> Result<Self, jiff::Error> {
         self.0.checked_sub(other).map(Self)
     }
 }
 
-impl RyZoned {
+impl RyZonedDateTime {
     fn try_add(&self, other: Spanish<'_, '_>) -> PyResult<Self> {
         self.0
             .checked_add(other)
@@ -62,7 +63,7 @@ impl RyZoned {
 }
 
 #[pymethods]
-impl RyZoned {
+impl RyZonedDateTime {
     #[new]
     #[pyo3(
         signature = (
@@ -94,7 +95,7 @@ impl RyZoned {
         .map_err(map_py_value_err)?;
         DateTime::new(year, month, day, hour, minute, second, nanosecond)
             .map_err(map_py_value_err)?
-            .to_zoned(tz)
+            .to_zoned_datetime(tz)
             .map(Self::from)
             .map_err(map_py_value_err)
     }
@@ -123,7 +124,7 @@ impl RyZoned {
     #[classattr]
     #[expect(non_snake_case, reason = "python classattr")]
     fn UNIX_EPOCH() -> Self {
-        Self::from(Zoned::UNIX_EPOCH)
+        Self::from(ZonedDateTime::UNIX_EPOCH)
     }
 
     fn __getnewargs__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
@@ -147,22 +148,22 @@ impl RyZoned {
     fn now(tz: Option<&str>) -> PyResult<Self> {
         if let Some(tz) = tz {
             let tz = ryo3_jiff_core::get_time_zone(tz).map_err(map_py_value_err)?;
-            Ok(Self::from(Zoned::now().with_time_zone(tz)))
+            Ok(Self::from(ZonedDateTime::now().with_time_zone(tz)))
         } else {
-            Ok(Self::from(Zoned::now()))
+            Ok(Self::from(ZonedDateTime::now()))
         }
     }
 
     #[staticmethod]
     pub(crate) fn utcnow() -> Self {
-        Self::from(Zoned::now().with_time_zone(TimeZone::UTC))
+        Self::from(ZonedDateTime::now().with_time_zone(TimeZone::UTC))
     }
 
     #[staticmethod]
     #[pyo3(signature = (timestamp, time_zone))]
     fn from_parts(timestamp: &RyTimestamp, time_zone: &RyTimeZone) -> Self {
         let ts = timestamp.0;
-        Self::from(Zoned::new(ts, time_zone.to_inner()))
+        Self::from(ZonedDateTime::new(ts, time_zone.to_inner()))
     }
 
     // ========================================================================
@@ -185,9 +186,10 @@ impl RyZoned {
     #[staticmethod]
     #[pyo3(signature = (s, /, fmt))]
     fn strptime(s: &str, fmt: &str) -> PyResult<Self> {
-        Zoned::strptime(fmt, s)
+        ZonedDateTime::strptime(fmt, s)
             .or_else(|_| {
-                jiff::fmt::strtime::parse(fmt, s).and_then(|tm| tm.to_zoned_with(bundled_tzdb()))
+                jiff::fmt::strtime::parse(fmt, s)
+                    .and_then(|tm| tm.to_zoned_datetime_with(bundled_tzdb()))
             })
             .map(Self::from)
             .map_err(map_py_value_err)
@@ -272,12 +274,12 @@ impl RyZoned {
         Ok(dict)
     }
 
-    fn to_py(&self) -> JiffZonedRef<'_> {
+    fn to_py(&self) -> JiffZonedDateTimeRef<'_> {
         self.to_pydatetime()
     }
 
-    fn to_pydatetime(&self) -> JiffZonedRef<'_> {
-        JiffZonedRef::new(&self.0)
+    fn to_pydatetime(&self) -> JiffZonedDateTimeRef<'_> {
+        JiffZonedDateTimeRef::new(&self.0)
     }
 
     fn to_pydate(&self) -> JiffDate {
@@ -293,7 +295,7 @@ impl RyZoned {
     }
 
     #[staticmethod]
-    fn from_pydatetime(datetime: JiffZoned) -> Self {
+    fn from_pydatetime(datetime: JiffZonedDateTime) -> Self {
         Self::from(datetime)
     }
 
@@ -461,7 +463,7 @@ impl RyZoned {
         text_signature = "(self, smallest=\"nanosecond\", *, mode=\"half-expand\", increment=1)"
     )]
     fn round(&self, smallest: JiffUnit, mode: JiffRoundMode, increment: i64) -> PyResult<Self> {
-        let zdt_round = ZonedRound::new()
+        let zdt_round = ZonedDateTimeRound::new()
             .smallest(smallest.into())
             .increment(increment)
             .mode(mode.into());
@@ -595,7 +597,7 @@ impl RyZoned {
         mode: JiffRoundMode,
         increment: i64,
     ) -> PyResult<RySpan> {
-        let mut zdt_diff = ZonedDifference::from(&other.0)
+        let mut zdt_diff = ZonedDateTimeDifference::from(&other.0)
             .increment(increment)
             .mode(mode.into())
             .smallest(smallest.into());
@@ -627,7 +629,7 @@ impl RyZoned {
         mode: JiffRoundMode,
         increment: i64,
     ) -> PyResult<RySpan> {
-        let mut zdt_diff = ZonedDifference::from(&other.0)
+        let mut zdt_diff = ZonedDateTimeDifference::from(&other.0)
             .increment(increment)
             .mode(mode.into())
             .smallest(smallest.into());
@@ -699,15 +701,14 @@ impl RyZoned {
         // start the builder
         let mut builder = self.0.with();
         if let Some(obj) = obj {
-            // if obj is a Zoned, use it as the base
-            if let Ok(zoned) = obj.cast_exact::<RyDate>() {
-                // if obj is a Zoned, use it as the base
-                builder = builder.date(zoned.get().0);
+            if let Ok(d) = obj.cast_exact::<RyDate>() {
+                // if obj is a Date, use it as the base
+                builder = builder.date(d.get().0);
             } else if let Ok(time) = obj.cast_exact::<RyTime>() {
                 // if obj is a Time, use it as the base
                 builder = builder.time(time.get().0);
             } else if let Ok(dt) = obj.cast_exact::<RyDateTime>() {
-                // if obj is a Time, use it as the base
+                // if obj is a DateTime, use its date + time as the base
                 builder = builder.time(dt.get().0.time()).date(dt.get().0.date());
             } else if let Ok(offset) = obj.cast_exact::<RyOffset>() {
                 builder = builder.offset(offset.get().0);
@@ -775,7 +776,7 @@ impl RyZoned {
         builder.build().map(Self::from).map_err(map_py_value_err)
     }
 
-    fn series(&self, period: &RySpan) -> PyResult<RyZonedSeries> {
+    fn series(&self, period: &RySpan) -> PyResult<RyZonedDateTimeSeries> {
         (self, period).try_into()
     }
 
@@ -868,7 +869,7 @@ impl RyZoned {
             Self::from_str(&s).map(|dt| dt.into_pyobject(py))?
         } else if let Ok(ts) = value.cast_exact::<RyTimestamp>() {
             Self::from(ts.get()).into_pyobject(py)
-        } else if let Ok(d) = value.extract::<JiffZoned>() {
+        } else if let Ok(d) = value.extract::<JiffZonedDateTime>() {
             Self::from(d).into_pyobject(py)
         } else {
             let valtype = any_repr!(value);
@@ -931,7 +932,7 @@ impl RyZoned {
     // </STD-METHODS>
 }
 
-impl Display for RyZoned {
+impl Display for RyZonedDateTime {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         if let Some(tz_name) = self.0.time_zone().iana_name() {
             write!(

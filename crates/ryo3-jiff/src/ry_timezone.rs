@@ -13,7 +13,7 @@ use ryo3_macro_rules::{py_type_err, pytodo};
 use crate::ry_datetime::RyDateTime;
 use crate::ry_offset::RyOffset;
 use crate::ry_timestamp::RyTimestamp;
-use crate::ry_zoned::RyZoned;
+use crate::ry_zoned_datetime::RyZonedDateTime;
 
 #[derive(Debug, Clone)]
 #[pyclass(name = "TimeZone", frozen, immutable_type, eq)]
@@ -217,16 +217,46 @@ impl RyTimeZone {
             .map_err(map_py_value_err)
     }
 
-    /// Return `Zoned` from `TimeZone` given a `DateTime`
-    fn to_zoned(&self, datetime: &RyDateTime) -> PyResult<RyZoned> {
+    /// Return `ZonedDateTime` from `TimeZone` given a `DateTime`
+    fn to_zoned_datetime(&self, datetime: &RyDateTime) -> PyResult<RyZonedDateTime> {
         self.0
-            .to_zoned(datetime.0)
-            .map(RyZoned::from)
+            .to_zoned_datetime(datetime.0)
+            .map(RyZonedDateTime::from)
             .map_err(map_py_value_err)
+    }
+
+    // DEPRECATED ~ remove in v0.0.112 (jiff 1.0 renamed `to_zoned`)
+    #[pyo3(warn(
+        message = "`TimeZone.to_zoned` is deprecated; use `TimeZone.to_zoned_datetime` instead [removal: v0.0.112]",
+        category = pyo3::exceptions::PyDeprecationWarning
+    ))]
+    fn to_zoned(&self, datetime: &RyDateTime) -> PyResult<RyZonedDateTime> {
+        self.to_zoned_datetime(datetime)
     }
 
     fn iana_name(&self) -> Option<&str> {
         self.0.iana_name()
+    }
+
+    /// preferred (ECMAScript) IANA name, eg `Asia/Calcutta` -> `Asia/Kolkata`
+    fn primary_iana_name(&self) -> Option<&str> {
+        self.0.primary_iana_name()
+    }
+
+    fn is_primary(&self) -> bool {
+        self.0.is_primary()
+    }
+
+    /// country/lat/lon for the primary tz id as a dict (`None` if unknown)
+    fn location<'py>(&self, py: Python<'py>) -> PyResult<Option<Bound<'py, PyDict>>> {
+        let Some(loc) = self.0.location() else {
+            return Ok(None);
+        };
+        let dict = PyDict::new(py);
+        dict.set_item(crate::interns::country(py), loc.country())?;
+        dict.set_item(crate::interns::latitude(py), loc.latitude())?;
+        dict.set_item(crate::interns::longitude(py), loc.longitude())?;
+        Ok(Some(dict))
     }
 
     fn to_fixed_offset(&self) -> PyResult<RyOffset> {
@@ -259,7 +289,7 @@ impl RyTimeZone {
     }
 
     #[expect(clippy::unused_self)]
-    fn to_ambiguous_zoned(&self) -> PyResult<()> {
+    fn to_ambiguous_zoned_datetime(&self) -> PyResult<()> {
         pytodo!();
     }
 

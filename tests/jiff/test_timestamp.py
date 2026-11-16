@@ -173,9 +173,11 @@ class TestTimestampSinceUntil:
         dlater = ry.Timestamp.parse("2019-01-31 21:00:00Z")
         dur = dlater - dearlier
         dur_since = dlater.since(dearlier)
-        assert isinstance(dur, ry.TimeSpan)
-        assert dur == ry.TimeSpan(seconds=392509800)
-        assert dur == dur_since
+        assert isinstance(dur, ry.SignedDuration)
+        assert dur == ry.SignedDuration(secs=392509800)
+        assert isinstance(dur_since, ry.TimeSpan)
+        assert dur_since == ry.TimeSpan(seconds=392509800)
+        assert dur.as_secs_f64() == dur_since.total_seconds()
 
     def test_timestamp_duration_until(self) -> None:
         earlier = ry.Timestamp.parse("2006-08-24T22:30:00Z")
@@ -345,11 +347,8 @@ def test_timestamp_display_with_offset(ts: ry.Timestamp, off: ry.Offset) -> None
     assert s.isascii()
     try:
         parsed = ry.Timestamp.parse(s)
-        diff = ts - parsed
-        assert (
-            ts == parsed
-            or diff.total_seconds() < ry.TimeSpan(seconds=1).total_seconds()
-        ), (
+        diff = ts - parsed  # `SignedDuration` (as of jiff 1.0 (2026-11-16))
+        assert ts == parsed or abs(diff) < ry.SignedDuration(secs=1), (
             f"Expected parsed timestamp {parsed} to be equal to original {ts} "
             f"or differ by less than 1 seconds, got difference of {diff}"
         )
@@ -401,7 +400,7 @@ class TestTimestampFromSecond:
         ts = ry.Timestamp(1700000000, 123456789)
         back = ry.Timestamp.from_second_f64(ts.as_second() + ts.subsec_nanosecond / 1e9)
         assert back != ts
-        assert abs((back - ts).total_seconds()) < 1e-6
+        assert abs((back - ts).as_secs_f64()) < 1e-6
 
     @pytest.mark.parametrize("value", ["1700000000", None])
     def test_rejects_non_numbers(self, value: t.Any) -> None:
@@ -442,7 +441,7 @@ class TestFromAnyRaises4Numbers:
             ry.Timestamp.from_any(value)  # type: ignore[attr-defined]  # ty:ignore[missing-attribute]
 
     @pytest.mark.parametrize("value", [0, 1700000000, 1700000000.5, True])
-    def test_zoned(self, value: t.Any) -> None:
+    def test_zoned_datetime(self, value: t.Any) -> None:
         with pytest.raises(TypeError):
             ry.ZonedDateTime.from_any(value)  # type: ignore[attr-defined]  # ty:ignore[missing-attribute]
 

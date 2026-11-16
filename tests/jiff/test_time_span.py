@@ -503,13 +503,13 @@ class TestSpanCompare:
     def test_example_comparisons_take_DST_into_account(self) -> None:  # noqa: N802
         """
         ```rust
-        use jiff::{ToSpan, Zoned};
+        use jiff::{ToSpan, ZonedDateTime};
 
         let span1 = 79.hours().minutes(10);
         let span2 = 3.days().hours(7).seconds(630);
         let span3 = 3.days().hours(6).minutes(50);
 
-        let relative: Zoned = "2020-11-01T00-07[America/Los_Angeles]".parse()?;
+        let relative: ZonedDateTime = "2020-11-01T00-07[America/Los_Angeles]".parse()?;
         let mut spans = [span1, span2, span3];
         spans.sort_by(|s1, s2| s1.compare((s2, &relative)).unwrap());
         assert_eq!(

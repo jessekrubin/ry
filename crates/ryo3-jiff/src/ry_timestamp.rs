@@ -2,7 +2,7 @@ use std::hash::{DefaultHasher, Hash, Hasher};
 use std::ops::Sub;
 
 use jiff::tz::TimeZone;
-use jiff::{Timestamp, TimestampArithmetic, TimestampRound, Zoned};
+use jiff::{Timestamp, TimestampArithmetic, TimestampRound, ZonedDateTime};
 use pyo3::BoundObject;
 use pyo3::prelude::*;
 use pyo3::types::{PyFloat, PyInt, PyTuple};
@@ -21,7 +21,7 @@ use crate::spanish::{DurationLike, Spanish};
 use crate::util::SpanKwargs;
 use crate::{
     RyDate, RyDateTime, RyISOWeekDate, RyOffset, RySignedDuration, RySpan, RyTime, RyTimeZone,
-    RyZoned,
+    RyZonedDateTime,
 };
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize), serde(transparent))]
@@ -127,8 +127,18 @@ impl RyTimestamp {
     }
 
     #[expect(clippy::wrong_self_convention)]
-    fn to_zoned(&self, time_zone: &RyTimeZone) -> RyZoned {
-        Zoned::new(self.0, time_zone.to_inner()).into()
+    fn to_zoned_datetime(&self, time_zone: &RyTimeZone) -> RyZonedDateTime {
+        ZonedDateTime::new(self.0, time_zone.to_inner()).into()
+    }
+
+    // DEPRECATED ~ remove in v0.0.112 (jiff 1.0 renamed `to_zoned`)
+    #[expect(clippy::wrong_self_convention)]
+    #[pyo3(warn(
+        message = "`Timestamp.to_zoned` is deprecated; use `Timestamp.to_zoned_datetime` instead [removal: v0.0.112]",
+        category = pyo3::exceptions::PyDeprecationWarning
+    ))]
+    fn to_zoned(&self, time_zone: &RyTimeZone) -> RyZonedDateTime {
+        self.to_zoned_datetime(time_zone)
     }
 
     #[expect(clippy::wrong_self_convention)]
@@ -157,12 +167,12 @@ impl RyTimestamp {
 
     #[expect(clippy::wrong_self_convention)]
     fn to_pydate(&self) -> JiffDate {
-        self.0.to_zoned(TimeZone::UTC).date().into()
+        self.0.to_zoned_datetime(TimeZone::UTC).date().into()
     }
 
     #[expect(clippy::wrong_self_convention)]
     fn to_pytime(&self) -> JiffTime {
-        self.0.to_zoned(TimeZone::UTC).time().into()
+        self.0.to_zoned_datetime(TimeZone::UTC).time().into()
     }
 
     #[pyo3(name = "to_string")]
@@ -344,9 +354,9 @@ impl RyTimestamp {
         self.0.is_zero()
     }
 
-    fn in_tz(&self, tz: &str) -> PyResult<RyZoned> {
+    fn in_tz(&self, tz: &str) -> PyResult<RyZonedDateTime> {
         let tz = ryo3_jiff_core::get_time_zone(tz).map_err(map_py_value_err)?;
-        Ok(RyZoned::from(self.0.to_zoned(tz)))
+        Ok(RyZonedDateTime::from(self.0.to_zoned_datetime(tz)))
     }
 
     #[staticmethod]
@@ -550,7 +560,7 @@ impl RyTimestamp {
         } else if let Some(pybytes) = value.cast_opt::<pyo3::types::PyBytes>() {
             let s = String::from_utf8_lossy(pybytes.as_bytes());
             Self::from_str(&s).map(|dt| dt.into_pyobject(py))?
-        } else if let Some(d) = value.cast_exact_opt::<RyZoned>() {
+        } else if let Some(d) = value.cast_exact_opt::<RyZonedDateTime>() {
             Self::from(d.get()).into_pyobject(py)
         } else if let Some(dt) = value.cast_exact_opt::<RyDateTime>() {
             jiff::tz::Offset::UTC

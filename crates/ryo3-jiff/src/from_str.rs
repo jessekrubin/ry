@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use jiff::Zoned;
+use jiff::ZonedDateTime;
 use jiff::civil::DateTime;
 use jiff::tz::TimeZone;
 use ryo3_core::PyFromStr;
@@ -9,7 +9,7 @@ use ryo3_jiff_core::bundled_tzdb;
 use crate::isoformat::parse_iso_week_date;
 use crate::{
     RyDate, RyDateTime, RyISOWeekDate, RyOffset, RySignedDuration, RySpan, RyTime, RyTimeZone,
-    RyTimestamp, RyZoned,
+    RyTimestamp, RyZonedDateTime,
 };
 
 macro_rules! impl_ry_jiff_from_str {
@@ -33,18 +33,18 @@ impl_ry_jiff_from_str!(RySignedDuration);
 impl_ry_jiff_from_str!(RySpan);
 impl_ry_jiff_from_str!(RyTime);
 impl_ry_jiff_from_str!(RyTimestamp);
-impl FromStr for RyZoned {
+impl FromStr for RyZonedDateTime {
     type Err = jiff::Error;
 
     #[inline]
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         // first try to get the thing from the default db
-        if let Ok(zdt) = s.parse::<Zoned>() {
+        if let Ok(zdt) = s.parse::<ZonedDateTime>() {
             return Ok(Self::from(zdt));
         }
         // oh shit now we try the bundled db
         crate::constants::DATETIME_PARSER
-            .parse_zoned_with(bundled_tzdb(), s)
+            .parse_zoned_datetime_with(bundled_tzdb(), s)
             .map(Self::from)
     }
 }
@@ -90,7 +90,7 @@ impl FromStr for RyDateTime {
         // if ends with 'Z', parse via timezone...
         if s.ends_with('Z') {
             jiff::Timestamp::from_str(s)
-                .map(|ts| ts.to_zoned(TimeZone::UTC).datetime())
+                .map(|ts| ts.to_zoned_datetime(TimeZone::UTC).datetime())
                 .map(Self::from)
         } else {
             DateTime::from_str(s).map(Self::from)

@@ -20,7 +20,7 @@ use crate::ry_signed_duration::RySignedDuration;
 use crate::span_units::{SpanUnit, SpanUnitsMask};
 use crate::spanish::Spanish;
 use crate::util::SpanKwargs;
-use crate::{RyDate, RyDateTime, RyTime, RyTimestamp, RyZoned, constants, timespan};
+use crate::{RyDate, RyDateTime, RyTime, RyTimestamp, RyZonedDateTime, constants, timespan};
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize), serde(transparent))]
 #[derive(Debug, Clone, Copy)]
@@ -229,7 +229,7 @@ impl RySpan {
 
     fn __format__(&self, fmt: &str) -> PyResult<String> {
         if fmt == "#" {
-            Ok(format!("{:#}", self.0))
+            Ok(self.0.to_friendly())
         } else if fmt.is_empty() {
             Ok(self.0.to_string())
         } else {
@@ -240,7 +240,7 @@ impl RySpan {
     #[pyo3(signature = (*, friendly = false), name = "to_string")]
     fn py_to_string(&self, friendly: bool) -> String {
         if friendly {
-            format!("{:#}", self.0)
+            self.0.to_friendly()
         } else {
             self.0.to_string()
         }
@@ -512,7 +512,7 @@ impl RySpan {
                 .map(RySignedDuration)
                 .map_err(map_py_value_err)
         } else {
-            let now = jiff::Zoned::now();
+            let now = jiff::ZonedDateTime::now();
             self.0
                 .to_duration(&now)
                 .map(RySignedDuration)
@@ -1072,7 +1072,7 @@ impl Display for RySpan {
 
 #[derive(Debug, Clone)]
 pub(crate) enum RySpanRelativeTo<'a, 'py> {
-    Zoned(Borrowed<'a, 'py, RyZoned>),
+    Zoned(Borrowed<'a, 'py, RyZonedDateTime>),
     Date(Borrowed<'a, 'py, RyDate>),
     DateTime(Borrowed<'a, 'py, RyDateTime>),
 }
@@ -1081,7 +1081,7 @@ impl<'a, 'py> FromPyObject<'a, 'py> for RySpanRelativeTo<'a, 'py> {
     type Error = PyErr;
 
     fn extract(obj: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
-        if let Some(z) = obj.cast_exact_opt::<RyZoned>() {
+        if let Some(z) = obj.cast_exact_opt::<RyZonedDateTime>() {
             Ok(Self::Zoned(z))
         } else if let Some(d) = obj.cast_exact_opt::<RyDate>() {
             Ok(Self::Date(d))
@@ -1243,7 +1243,7 @@ macro_rules! impl_span_add_for_borrowed {
 impl_span_add_for_borrowed!(RyDate);
 impl_span_add_for_borrowed!(RyDateTime);
 impl_span_add_for_borrowed!(RyTime);
-impl_span_add_for_borrowed!(RyZoned);
+impl_span_add_for_borrowed!(RyZonedDateTime);
 impl_span_add_for_borrowed!(RyTimestamp);
 
 impl<'a, 'py> SpanAdd<'a, 'py> for PyTemporalArg<'a, 'py> {

@@ -37,7 +37,7 @@ def test_strftime_timestamp() -> None:
 def test_strftime_zoned_datetime() -> None:
     """Test strftime method of ZonedDateTime.
 
-    REF: https://docs.rs/jiff/latest/jiff/struct.Zoned.html#method.strftime
+    REF: https://docs.rs/jiff/1/jiff/struct.ZonedDateTime.html#method.strftime
     """
     zdt = ry.date(2024, 7, 15).at(16, 24, 59, 0).in_tz("America/New_York")
     string = zdt.strftime("%a %b %e %I:%M:%S %p %Z %Y")

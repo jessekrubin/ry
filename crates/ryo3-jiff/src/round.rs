@@ -51,7 +51,7 @@ use std::fmt::Display;
 
 use jiff::civil::{DateTimeRound, TimeRound};
 use jiff::tz::OffsetRound;
-use jiff::{SignedDurationRound, TimestampRound, ZonedRound};
+use jiff::{SignedDurationRound, TimestampRound, ZonedDateTimeRound};
 use pyo3::IntoPyObjectExt;
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyTuple};
@@ -59,7 +59,7 @@ use ryo3_core::PyAsciiString;
 use ryo3_jiff_core::{JiffRoundMode, JiffUnit};
 use ryo3_macro_rules::py_value_error;
 
-use crate::{RyDateTime, RyOffset, RySignedDuration, RyTime, RyTimestamp, RyZoned};
+use crate::{RyDateTime, RyOffset, RySignedDuration, RyTime, RyTimestamp, RyZonedDateTime};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub(crate) struct RoundOptions {
@@ -585,7 +585,7 @@ impl Display for RyTimestampRound {
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyZonedDateTimeRound {
     options: RoundOptions,
-    pub(crate) jiff_round: ZonedRound,
+    pub(crate) jiff_round: ZonedDateTimeRound,
 }
 
 impl From<RoundOptions> for RyZonedDateTimeRound {
@@ -673,13 +673,13 @@ impl RyZonedDateTimeRound {
         self.options.increment
     }
 
-    pub(crate) fn round(&self, ob: &RyZoned) -> PyResult<RyZoned> {
+    pub(crate) fn round(&self, ob: &RyZonedDateTime) -> PyResult<RyZonedDateTime> {
         ob.0.round(self.jiff_round)
-            .map(RyZoned::from)
+            .map(RyZonedDateTime::from)
             .map_err(|e| py_value_error!("Error rounding ZonedDateTime: {}", e))
     }
 
-    fn __call__(&self, ob: &RyZoned) -> PyResult<RyZoned> {
+    fn __call__(&self, ob: &RyZonedDateTime) -> PyResult<RyZonedDateTime> {
         self.round(ob)
     }
 }
@@ -839,7 +839,7 @@ impl_from_round_options_for!(OffsetRound);
 impl_from_round_options_for!(SignedDurationRound);
 impl_from_round_options_for!(TimeRound);
 impl_from_round_options_for!(TimestampRound);
-impl_from_round_options_for!(ZonedRound);
+impl_from_round_options_for!(ZonedDateTimeRound);
 
 // ----------------------------------------------------------------------------
 // macro_rules! impl_round_struct_new {
@@ -865,7 +865,7 @@ impl_from_round_options_for!(ZonedRound);
 // impl_round_struct_new!(RySignedDurationRound, SignedDurationRound);
 // impl_round_struct_new!(RyTimeRound, TimeRound);
 // impl_round_struct_new!(RyTimestampRound, TimestampRound);
-// impl_round_struct_new!(RyZonedRound, ZonedRound);
+// impl_round_struct_new!(RyZonedDateTimeRound, ZonedDateTimeRound);
 
 impl PartialEq for RyDateTimeRound {
     fn eq(&self, other: &Self) -> bool {

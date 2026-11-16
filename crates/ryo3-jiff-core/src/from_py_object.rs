@@ -10,9 +10,9 @@ use ryo3_macro_rules::{py_type_err, py_value_err};
 use crate::{
     JiffDate, JiffDateTime, JiffDateTimeOrZoned, JiffEra, JiffFriendlyDesignator, JiffOffset,
     JiffRoundMode, JiffSignedDuration, JiffSpan, JiffTime, JiffTimeZone, JiffTimestamp,
-    JiffTzDisambiguation, JiffTzOffsetConflict, JiffUnit, JiffWeekday, JiffZoned, get_time_zone,
-    pydate_to_date, pydatetime_to_datetime, pydatetime_to_zoned, pydelta_to_signed_duration,
-    pytime_to_time,
+    JiffTzDisambiguation, JiffTzOffsetConflict, JiffUnit, JiffWeekday, JiffZonedDateTime,
+    get_time_zone, pydate_to_date, pydatetime_to_datetime, pydatetime_to_zoned_datetime,
+    pydelta_to_signed_duration, pytime_to_time,
 };
 
 // ============================================================================
@@ -47,7 +47,7 @@ impl<'py> FromPyObject<'_, 'py> for JiffDateTimeOrZoned {
     fn extract(ob: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
         let dt = ob.cast::<PyDateTime>()?;
         if dt.get_tzinfo().is_some() {
-            pydatetime_to_zoned(&dt).map(Self::Aware)
+            pydatetime_to_zoned_datetime(&dt).map(Self::Aware)
         } else {
             pydatetime_to_datetime(&dt).map(Self::Naive)
         }
@@ -60,16 +60,16 @@ impl<'py> FromPyObject<'_, 'py> for JiffDateTimeOrZoned {
 impl<'py> FromPyObject<'_, 'py> for JiffTimestamp {
     type Error = PyErr;
     fn extract(ob: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
-        ob.extract::<JiffZoned>()
+        ob.extract::<JiffZonedDateTime>()
             .map(|e| e.into_inner().timestamp().into())
     }
 }
 
-impl<'py> FromPyObject<'_, 'py> for JiffZoned {
+impl<'py> FromPyObject<'_, 'py> for JiffZonedDateTime {
     type Error = PyErr;
     fn extract(dt: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
         let dt = dt.cast::<PyDateTime>()?;
-        pydatetime_to_zoned(&dt).map(Self::from)
+        pydatetime_to_zoned_datetime(&dt).map(Self::from)
     }
 }
 

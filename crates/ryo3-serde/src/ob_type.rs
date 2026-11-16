@@ -100,5 +100,5 @@ pub(crate) enum PyObType {
     #[cfg(feature = "ryo3-jiff")]
     RyTimestamp,
     #[cfg(feature = "ryo3-jiff")]
-    RyZoned,
+    RyZonedDateTime,
 }

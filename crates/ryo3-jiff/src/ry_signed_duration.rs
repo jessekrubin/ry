@@ -925,7 +925,7 @@ mod maths {
 
     use super::RySignedDuration;
     use crate::py_temporal_like::PyTemporalArg;
-    use crate::{RyDate, RyDateTime, RyTime, RyTimestamp, RyZoned};
+    use crate::{RyDate, RyDateTime, RyTime, RyTimestamp, RyZonedDateTime};
 
     // ========================================================================
     // ARITHMETIC KWARGS - ADD/SUB KWARGS
@@ -1054,7 +1054,7 @@ mod maths {
                 Ok(Self::TemporalType(date_time_type))
             } else {
                 py_type_err!(
-                    "unsupported operand type(s); must be SignedDuration | datetime.timedelta | TemporalType( Date | DateTime | Time | Zoned | Timestamp )"
+                    "unsupported operand type(s); must be SignedDuration | datetime.timedelta | TemporalType( Date | DateTime | Time | ZonedDateTime | Timestamp )"
                 )
             }
         }
@@ -1116,7 +1116,7 @@ mod maths {
 
     pub(super) enum PySignedDurationAddOutput {
         SignedDuration(RySignedDuration),
-        Zoned(RyZoned),
+        Zoned(RyZonedDateTime),
         Date(RyDate),
         DateTime(RyDateTime),
         Time(RyTime),
@@ -1144,7 +1144,7 @@ mod maths {
     impl_signed_duration_add_for_borrowed_temporal!(RyDate);
     impl_signed_duration_add_for_borrowed_temporal!(RyDateTime);
     impl_signed_duration_add_for_borrowed_temporal!(RyTime);
-    impl_signed_duration_add_for_borrowed_temporal!(RyZoned);
+    impl_signed_duration_add_for_borrowed_temporal!(RyZonedDateTime);
     impl_signed_duration_add_for_borrowed_temporal!(RyTimestamp);
 
     impl<'a, 'py> PySignedDurationAdd<'a, 'py> for PyTemporalArg<'a, 'py> {

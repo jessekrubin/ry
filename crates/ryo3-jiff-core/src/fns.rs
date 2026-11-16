@@ -6,7 +6,7 @@ use std::sync::LazyLock;
 
 use jiff::civil::{Date, DateTime, Time};
 use jiff::tz::{AmbiguousOffset, Offset, TimeZone, TimeZoneDatabase};
-use jiff::{SignedDuration, Zoned};
+use jiff::{SignedDuration, ZonedDateTime};
 use pyo3::exceptions::PyTypeError;
 use pyo3::prelude::*;
 use pyo3::types::{
@@ -151,7 +151,7 @@ pub fn datetime_to_pydatetime<'py>(
 ///
 /// # Errors
 ///
-/// - `TypeError` if `dt` has a `tzinfo` (use [`pydatetime_to_zoned`])
+/// - `TypeError` if `dt` has a `tzinfo` (use [`pydatetime_to_zoned_datetime`])
 /// - see [`pydate_to_date`] and [`pytime_to_time`]
 pub fn pydatetime_to_datetime(dt: &Bound<'_, PyDateTime>) -> PyResult<DateTime> {
     if dt.get_tzinfo().is_some() {
@@ -168,7 +168,7 @@ pub fn pydatetime_to_datetime(dt: &Bound<'_, PyDateTime>) -> PyResult<DateTime> 
 // ============================================================================
 /// PEP 495 `fold` for a zoned datetime: `true` only if its civil datetime is
 /// ambiguous (a fold) and the zoned uses the later of the two offsets
-fn fold(zoned: &Zoned) -> bool {
+fn fold(zoned: &ZonedDateTime) -> bool {
     match zoned
         .time_zone()
         .to_ambiguous_timestamp(zoned.datetime())
@@ -179,7 +179,7 @@ fn fold(zoned: &Zoned) -> bool {
     }
 }
 
-/// Convert a `jiff::Zoned` to an aware Python `datetime.datetime`.
+/// Convert a `jiff::ZonedDateTime` to an aware Python `datetime.datetime`.
 ///
 /// The `tzinfo` comes from [`timezone_to_pytzinfo`], and `fold` is set per
 /// PEP 495 for ambiguous datetimes. Sub-microsecond precision is truncated.
@@ -189,7 +189,10 @@ fn fold(zoned: &Zoned) -> bool {
 /// - `ValueError` if the year is outside of the range supported by
 ///   `datetime.datetime` (`1..=9999`)
 /// - see [`timezone_to_pytzinfo`]
-pub fn zoned_to_pydatetime<'py>(py: Python<'py>, z: &Zoned) -> PyResult<Bound<'py, PyDateTime>> {
+pub fn zoned_datetime_to_pydatetime<'py>(
+    py: Python<'py>,
+    z: &ZonedDateTime,
+) -> PyResult<Bound<'py, PyDateTime>> {
     let datetime = z.datetime();
     let tz = timezone_to_pytzinfo(py, z.time_zone())?;
     PyDateTime::new_with_fold(
@@ -206,7 +209,7 @@ pub fn zoned_to_pydatetime<'py>(py: Python<'py>, z: &Zoned) -> PyResult<Bound<'p
     )
 }
 
-/// Convert an aware Python `datetime.datetime` to a `jiff::Zoned`.
+/// Convert an aware Python `datetime.datetime` to a `jiff::ZonedDateTime`.
 ///
 /// UTC is special-cased (no tz lookup). Otherwise ambiguous (fold) and
 /// nonexistent (gap) datetimes are resolved per PEP 495 using `fold`.
@@ -217,7 +220,7 @@ pub fn zoned_to_pydatetime<'py>(py: Python<'py>, z: &Zoned) -> PyResult<Bound<'p
 /// - an error if the `tzinfo` cannot be extracted as a jiff `TimeZone`
 /// - `ValueError` if the resulting zoned datetime is out of jiff's range
 /// - see [`pydate_to_date`] and [`pytime_to_time`]
-pub fn pydatetime_to_zoned(dt: &Bound<'_, PyDateTime>) -> PyResult<Zoned> {
+pub fn pydatetime_to_zoned_datetime(dt: &Bound<'_, PyDateTime>) -> PyResult<ZonedDateTime> {
     let Some(tzinfo) = dt.get_tzinfo() else {
         return py_type_err!("expected a datetime with non-None tzinfo");
     };
@@ -227,12 +230,12 @@ pub fn pydatetime_to_zoned(dt: &Bound<'_, PyDateTime>) -> PyResult<Zoned> {
         let ts = Offset::UTC
             .to_timestamp(datetime)
             .map_err(map_py_value_err)?;
-        return Ok(ts.to_zoned(TimeZone::UTC));
+        return Ok(ts.to_zoned_datetime(TimeZone::UTC));
     }
     let zoned = tzinfo
         .extract::<JiffTimeZone>()?
         .into_inner()
-        .into_ambiguous_zoned(datetime);
+        .into_ambiguous_zoned_datetime(datetime);
     // REF: https://peps.python.org/pep-0495/
     // REF: https://github.com/PyO3/pyo3/pull/6450
     if dt.get_fold() ^ matches!(zoned.offset(), AmbiguousOffset::Gap { .. }) {

@@ -204,8 +204,8 @@ macro_rules! serialize_map_value {
                 $map.serialize_value(&ry_types::RyTimeZoneSerializer::new_unchecked($value))?;
             }
             #[cfg(feature = "ryo3-jiff")]
-            PyObType::RyZoned => {
-                $map.serialize_value(&ry_types::RyZonedSerializer::new_unchecked($value))?;
+            PyObType::RyZonedDateTime => {
+                $map.serialize_value(&ry_types::RyZonedDateTimeSerializer::new_unchecked($value))?;
             }
             // __ULID__
             #[cfg(feature = "ryo3-ulid")]

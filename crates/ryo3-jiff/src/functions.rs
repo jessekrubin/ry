@@ -1,10 +1,10 @@
 use jiff::tz::TimeZone;
-use jiff::{Span, Zoned};
+use jiff::{Span, ZonedDateTime};
 use pyo3::prelude::*;
 use ryo3_core::map_py_value_err;
 use ryo3_macro_rules::py_overflow_error;
 
-use crate::{RyDate, RyDateTime, RyOffset, RySpan, RyTime, RyZoned};
+use crate::{RyDate, RyDateTime, RyOffset, RySpan, RyTime, RyZonedDateTime};
 
 #[pyfunction]
 pub fn offset(hours: i8) -> PyResult<RyOffset> {
@@ -50,22 +50,22 @@ pub fn zoned(
     second: i8,
     nanosecond: i32,
     tz: Option<&str>,
-) -> PyResult<RyZoned> {
-    RyZoned::py_new(year, month, day, hour, minute, second, nanosecond, tz)
+) -> PyResult<RyZonedDateTime> {
+    RyZonedDateTime::py_new(year, month, day, hour, minute, second, nanosecond, tz)
 }
 
 /// Return `ZondeDateTime` for the current time in the system's local timezone.
 #[pyfunction]
 #[must_use]
-pub fn now() -> RyZoned {
-    RyZoned(Zoned::now())
+pub fn now() -> RyZonedDateTime {
+    RyZonedDateTime(ZonedDateTime::now())
 }
 
 /// Return `ZonedDateTime` for the current time in UTC.
 #[pyfunction]
 #[must_use]
-pub fn utcnow() -> RyZoned {
-    RyZoned::from(Zoned::now().with_time_zone(TimeZone::UTC))
+pub fn utcnow() -> RyZonedDateTime {
+    RyZonedDateTime::from(ZonedDateTime::now().with_time_zone(TimeZone::UTC))
 }
 
 #[expect(clippy::too_many_arguments)]

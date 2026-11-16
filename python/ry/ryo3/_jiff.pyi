@@ -1,6 +1,7 @@
 """ryo3-jiff ~ types"""
 
 import datetime as pydt
+import sys
 import typing as t
 from collections.abc import Mapping
 
@@ -18,6 +19,11 @@ from ry.protocols import (
 )
 from ry.ryo3 import Duration
 from ry.ryo3._jiff_tz import TimezoneDbName
+
+if sys.version_info >= (3, 13):
+    from warnings import deprecated
+else:
+    from typing_extensions import deprecated
 
 # ==== TYPE-VARS ====
 _T = t.TypeVar("_T")
@@ -241,6 +247,10 @@ class Date(
     ) -> t.Self: ...
     def series(self, period: TimeSpan) -> _JiffSeries[t.Self]: ...
     def to_datetime(self, time: Time) -> DateTime: ...
+    def to_zoned_datetime(self, tz: TimeZone) -> ZonedDateTime: ...
+    @deprecated(
+        "`Date.to_zoned` is deprecated; use `Date.to_zoned_datetime` instead [removal: v0.0.112]"
+    )
     def to_zoned(self, tz: TimeZone) -> ZonedDateTime: ...
     def tomorrow(self) -> t.Self: ...
     def yesterday(self) -> t.Self: ...
@@ -671,6 +681,10 @@ class DateTime(
     def series(self, period: TimeSpan) -> _JiffSeries[t.Self]: ...
     def start_of_day(self) -> t.Self: ...
     def time(self) -> Time: ...
+    def to_zoned_datetime(self, tz: TimeZone) -> ZonedDateTime: ...
+    @deprecated(
+        "`DateTime.to_zoned` is deprecated; use `DateTime.to_zoned_datetime` instead [removal: v0.0.112]"
+    )
     def to_zoned(self, tz: TimeZone) -> ZonedDateTime: ...
     def tomorrow(self) -> t.Self: ...
     def yesterday(self) -> t.Self: ...
@@ -731,6 +745,11 @@ class TimeZoneTransition(t.TypedDict):
     dst: bool
     abbreviation: str
 
+class TimeZoneLocation(t.TypedDict):
+    country: str  # ISO 3166 (eg "DK")
+    latitude: float
+    longitude: float
+
 @t.final
 class TimeZone(
     # protocols
@@ -790,6 +809,40 @@ class TimeZone(
     # INSTANCE METHODS
     # =========================================================================
     def iana_name(self) -> str | None: ...
+    def primary_iana_name(self) -> str | None:
+        """Return the primary (ECMAScript preferred) IANA name
+
+        Examples
+        --------
+        >>> import ry
+        >>> ry.TimeZone("Asia/Calcutta").primary_iana_name()
+        'Asia/Kolkata'
+
+        """
+    def is_primary(self) -> bool:
+        """Return True if the IANA name is the primary IANA name
+
+        Examples
+        --------
+        >>> import ry
+        >>> ry.TimeZone("Asia/Calcutta").is_primary()
+        False
+        >>> ry.TimeZone("Asia/Kolkata").is_primary()
+        True
+
+        """
+    def location(self) -> TimeZoneLocation | None:
+        """Return the country + coordinates for the primary time zone id
+
+        Examples
+        --------
+        >>> import ry
+        >>> ry.TimeZone("Europe/Copenhagen").location()["country"]
+        'DK'
+        >>> ry.TimeZone.UTC.location() is None
+        True
+
+        """
     def to_datetime(self, timestamp: Timestamp) -> DateTime: ...
     def to_fixed_offset(self) -> Offset:
         """Return a TimeZone with a fixed offset equivalent to this TimeZone.
@@ -805,6 +858,10 @@ class TimeZone(
         """
     def to_offset(self, timestamp: Timestamp) -> Offset: ...
     def to_timestamp(self, datetime: DateTime) -> Timestamp: ...
+    def to_zoned_datetime(self, datetime: DateTime) -> ZonedDateTime: ...
+    @deprecated(
+        "`TimeZone.to_zoned` is deprecated; use `TimeZone.to_zoned_datetime` instead [removal: v0.0.112]"
+    )
     def to_zoned(self, datetime: DateTime) -> ZonedDateTime: ...
     def preceding(
         self,
@@ -822,7 +879,7 @@ class TimeZone(
     # NOT IMPLEMENTED
     # =========================================================================
     def to_ambiguous_timestamp(self) -> t.NoReturn: ...
-    def to_ambiguous_zoned(self) -> t.NoReturn: ...
+    def to_ambiguous_zoned_datetime(self) -> t.NoReturn: ...
 
 @t.final
 class SignedDuration(
@@ -1446,12 +1503,12 @@ class Timestamp(
     # OPERATORS/DUNDERS W/ OVERLOADS
     # =========================================================================
     @t.overload
-    def __sub__(self, other: t.Self, /) -> TimeSpan: ...
+    def __sub__(self, other: t.Self, /) -> SignedDuration: ...
     @t.overload
     def __sub__(
         self, other: TimeSpan | SignedDuration | Duration | pydt.timedelta, /
     ) -> t.Self: ...
-    def __rsub__(self, other: t.Self, /) -> TimeSpan: ...
+    def __rsub__(self, other: t.Self, /) -> SignedDuration: ...
 
     # =========================================================================
     # PYTHON CONVERSIONS
@@ -1485,7 +1542,7 @@ class Timestamp(
         nanoseconds: int = 0,
     ) -> t.Self: ...
     @t.overload
-    def sub(self, other: t.Self, /) -> TimeSpan: ...
+    def sub(self, other: t.Self, /) -> SignedDuration: ...
     @t.overload
     def sub(
         self, other: TimeSpan | SignedDuration | Duration | pydt.timedelta, /
@@ -1641,6 +1698,10 @@ class Timestamp(
     def series(self, period: TimeSpan) -> _JiffSeries[t.Self]: ...
     def signum(self) -> t.Literal[-1, 0, 1]: ...
     def to_string(self) -> str: ...
+    def to_zoned_datetime(self, time_zone: TimeZone) -> ZonedDateTime: ...
+    @deprecated(
+        "`Timestamp.to_zoned` is deprecated; use `Timestamp.to_zoned_datetime` instead [removal: v0.0.112]"
+    )
     def to_zoned(self, time_zone: TimeZone) -> ZonedDateTime: ...
 
     # =========================================================================

@@ -28,7 +28,7 @@
 //!     - largest:   None
 //!     - mode:      Trunc
 //!     - increment: 1
-//! - `ZonedDifference`
+//! - `ZonedDateTimeDifference`
 //!   - smallest-max: ???
 //!   - defaults
 //!     - smallest:  Nanosecond
@@ -62,7 +62,7 @@ use ryo3_macro_rules::py_type_err;
 
 use crate::ry_datetime::RyDateTime;
 use crate::ry_time::RyTime;
-use crate::ry_zoned::RyZoned;
+use crate::ry_zoned_datetime::RyZonedDateTime;
 use crate::{RyDate, RyTimestamp};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -261,7 +261,7 @@ impl std::fmt::Display for RyDateDifference {
 
 #[derive(Debug, Clone)]
 pub(crate) enum DateDifferenceArg<'a, 'py> {
-    Zoned(Borrowed<'a, 'py, RyZoned>),
+    Zoned(Borrowed<'a, 'py, RyZonedDateTime>),
     Date(Borrowed<'a, 'py, RyDate>),
     DateTime(Borrowed<'a, 'py, RyDateTime>),
 }
@@ -270,7 +270,7 @@ impl<'a, 'py> FromPyObject<'a, 'py> for DateDifferenceArg<'a, 'py> {
     type Error = PyErr;
 
     fn extract(obj: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
-        if let Some(z) = obj.cast_exact_opt::<RyZoned>() {
+        if let Some(z) = obj.cast_exact_opt::<RyZonedDateTime>() {
             Ok(Self::Zoned(z))
         } else if let Some(t) = obj.cast_exact_opt::<RyDate>() {
             Ok(Self::Date(t))
@@ -484,7 +484,7 @@ impl std::fmt::Display for RyDateTimeDifference {
 
 #[derive(Debug, Clone)]
 pub(crate) enum DateTimeDifferenceArg<'a, 'py> {
-    Zoned(Borrowed<'a, 'py, RyZoned>),
+    Zoned(Borrowed<'a, 'py, RyZonedDateTime>),
     Date(Borrowed<'a, 'py, RyDate>),
     DateTime(Borrowed<'a, 'py, RyDateTime>),
 }
@@ -493,7 +493,7 @@ impl<'a, 'py> FromPyObject<'a, 'py> for DateTimeDifferenceArg<'a, 'py> {
     type Error = PyErr;
 
     fn extract(obj: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
-        if let Some(z) = obj.cast_exact_opt::<RyZoned>() {
+        if let Some(z) = obj.cast_exact_opt::<RyZonedDateTime>() {
             Ok(Self::Zoned(z))
         } else if let Some(t) = obj.cast_exact_opt::<RyDate>() {
             Ok(Self::Date(t))
@@ -706,12 +706,12 @@ impl std::fmt::Display for RyTimeDifference {
 }
 
 // ============================================================================
-// Zoned/Time/DateTime
+// ZonedDateTime/Time/DateTime
 // ============================================================================
 
 #[derive(Debug, Clone)]
 pub(crate) enum TimeDifferenceArg<'a, 'py> {
-    Zoned(Borrowed<'a, 'py, RyZoned>),
+    Zoned(Borrowed<'a, 'py, RyZonedDateTime>),
     Time(Borrowed<'a, 'py, RyTime>),
     DateTime(Borrowed<'a, 'py, RyDateTime>),
 }
@@ -720,7 +720,7 @@ impl<'a, 'py> FromPyObject<'a, 'py> for TimeDifferenceArg<'a, 'py> {
     type Error = PyErr;
 
     fn extract(obj: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
-        if let Some(z) = obj.cast_exact_opt::<RyZoned>() {
+        if let Some(z) = obj.cast_exact_opt::<RyZonedDateTime>() {
             Ok(Self::Zoned(z))
         } else if let Some(t) = obj.cast_exact_opt::<RyTime>() {
             Ok(Self::Time(t))
@@ -931,12 +931,12 @@ impl std::fmt::Display for RyTimestampDifference {
 }
 
 // ============================================================================
-// Zoned/Time/DateTime
+// ZonedDateTime/Time/DateTime
 // ============================================================================
 
 #[derive(Debug, Clone)]
 pub(crate) enum TimestampDifferenceArg<'a, 'py> {
-    Zoned(Borrowed<'a, 'py, RyZoned>),
+    Zoned(Borrowed<'a, 'py, RyZonedDateTime>),
     Timestamp(Borrowed<'a, 'py, RyTimestamp>),
 }
 
@@ -944,7 +944,7 @@ impl<'a, 'py> FromPyObject<'a, 'py> for TimestampDifferenceArg<'a, 'py> {
     type Error = PyErr;
 
     fn extract(obj: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
-        if let Some(z) = obj.cast_exact_opt::<RyZoned>() {
+        if let Some(z) = obj.cast_exact_opt::<RyZonedDateTime>() {
             Ok(Self::Zoned(z))
         } else if let Some(t) = obj.cast_exact_opt::<RyTimestamp>() {
             Ok(Self::Timestamp(t))
@@ -988,13 +988,13 @@ impl TimestampDifferenceArg<'_, '_> {
 #[derive(Debug, Clone)]
 #[pyclass(name = "ZonedDateTimeDifference", frozen, immutable_type, eq)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
-pub struct RyZonedDifference {
-    zoned: RyZoned,
+pub struct RyZonedDateTimeDifference {
+    zoned: RyZonedDateTime,
     options: DifferenceOptions,
 }
 
 #[pymethods]
-impl RyZonedDifference {
+impl RyZonedDateTimeDifference {
     #[new]
     #[pyo3(
         signature = (
@@ -1010,7 +1010,7 @@ impl RyZonedDifference {
     )]
     #[must_use]
     fn py_new(
-        zoned: &RyZoned,
+        zoned: &RyZonedDateTime,
         smallest: JiffUnit,
         largest: Option<JiffUnit>,
         mode: JiffRoundMode,
@@ -1040,12 +1040,12 @@ impl RyZonedDifference {
     }
 
     #[getter]
-    fn temporal(&self) -> RyZoned {
+    fn temporal(&self) -> RyZonedDateTime {
         self.zoned.clone()
     }
 
     #[getter]
-    fn zoned(&self) -> RyZoned {
+    fn zoned(&self) -> RyZonedDateTime {
         self.zoned.clone()
     }
 
@@ -1121,7 +1121,7 @@ impl RyZonedDifference {
     }
 }
 
-impl std::fmt::Display for RyZonedDifference {
+impl std::fmt::Display for RyZonedDateTimeDifference {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "ZonedDateTimeDifference(")?;
         write!(f, "{}", self.zoned)?;
@@ -1161,7 +1161,7 @@ impl PartialEq for RyTimestampDifference {
     }
 }
 
-impl PartialEq for RyZonedDifference {
+impl PartialEq for RyZonedDateTimeDifference {
     fn eq(&self, other: &Self) -> bool {
         self.zoned == other.zoned && self.options == other.options
     }
