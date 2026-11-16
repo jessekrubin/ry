@@ -2,7 +2,7 @@
 use pyo3::prelude::*;
 use ryo3_macro_rules::pytodo;
 
-use crate::net::{PyIpAddr, PyIpv4Addr, PyIpv6Addr, PySocketAddr, PySocketAddrV4, PySocketAddrV6};
+use crate::net::{RyIpAddr, RyIpv4Addr, RyIpv6Addr, RySocketAddr, RySocketAddrV4, RySocketAddrV6};
 
 pub(crate) trait AsIpAddr {
     fn as_ipaddr(&self) -> std::net::IpAddr;
@@ -199,42 +199,42 @@ impl<T: AsIpAddr + ?Sized> AsIpAddr for &T {
     }
 }
 
-impl AsIpAddr for PyIpv4Addr {
+impl AsIpAddr for RyIpv4Addr {
     #[inline]
     fn as_ipaddr(&self) -> std::net::IpAddr {
         std::net::IpAddr::V4(self.0)
     }
 }
 
-impl AsIpAddr for PySocketAddrV4 {
+impl AsIpAddr for RySocketAddrV4 {
     #[inline]
     fn as_ipaddr(&self) -> std::net::IpAddr {
         std::net::IpAddr::V4(*self.0.ip())
     }
 }
 
-impl AsIpAddr for PyIpv6Addr {
+impl AsIpAddr for RyIpv6Addr {
     #[inline]
     fn as_ipaddr(&self) -> std::net::IpAddr {
         std::net::IpAddr::V6(self.0)
     }
 }
 
-impl AsIpAddr for PySocketAddrV6 {
+impl AsIpAddr for RySocketAddrV6 {
     #[inline]
     fn as_ipaddr(&self) -> std::net::IpAddr {
         std::net::IpAddr::V6(*self.0.ip())
     }
 }
 
-impl AsIpAddr for PyIpAddr {
+impl AsIpAddr for RyIpAddr {
     #[inline]
     fn as_ipaddr(&self) -> std::net::IpAddr {
         self.0
     }
 }
 
-impl AsIpAddr for PySocketAddr {
+impl AsIpAddr for RySocketAddr {
     #[inline]
     fn as_ipaddr(&self) -> std::net::IpAddr {
         self.0.ip()

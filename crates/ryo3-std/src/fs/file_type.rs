@@ -3,13 +3,13 @@ use pyo3::sync::PyOnceLock;
 use ryo3_core::PyFromStr;
 use ryo3_macro_rules::py_value_err;
 
-static PY_FILE_TYPE_CACHE: [PyOnceLock<Py<PyFileType>>; 10] = [const { PyOnceLock::new() }; 10];
+static PY_FILE_TYPE_CACHE: [PyOnceLock<Py<RyFileType>>; 10] = [const { PyOnceLock::new() }; 10];
 
-fn py_file_type_cached(py: Python<'_>, file_type: FileTypeKind) -> PyResult<Py<PyFileType>> {
+fn py_file_type_cached(py: Python<'_>, file_type: FileTypeKind) -> PyResult<Py<RyFileType>> {
     let ix = file_type as usize;
     PY_FILE_TYPE_CACHE[ix]
         .get_or_try_init(py, || {
-            Py::new(py, PyFileType(FileTypeInner::Faux(file_type)))
+            Py::new(py, RyFileType(FileTypeInner::Faux(file_type)))
         })
         .map(|obj| obj.clone_ref(py))
 }
@@ -17,19 +17,19 @@ fn py_file_type_cached(py: Python<'_>, file_type: FileTypeKind) -> PyResult<Py<P
 #[pyclass(name = "FileType", frozen, immutable_type, eq)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Copy, Clone)]
-pub struct PyFileType(FileTypeInner);
+pub struct RyFileType(FileTypeInner);
 
 // eq/hash by kind (`Std` and `Faux` of the same kind are equal)
 // TODO: verify that this is actually sane/correct
-impl PartialEq for PyFileType {
+impl PartialEq for RyFileType {
     fn eq(&self, other: &Self) -> bool {
         self.0.kind() == other.0.kind()
     }
 }
 
-impl Eq for PyFileType {}
+impl Eq for RyFileType {}
 
-impl std::hash::Hash for PyFileType {
+impl std::hash::Hash for RyFileType {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
         self.0.kind().hash(state);
     }
@@ -166,14 +166,14 @@ impl FileTypeKind {
     }
 }
 
-impl PyFileType {
+impl RyFileType {
     #[must_use]
     pub fn new(ft: std::fs::FileType) -> Self {
         Self::from(ft)
     }
 }
 
-impl From<std::fs::FileType> for PyFileType {
+impl From<std::fs::FileType> for RyFileType {
     fn from(ft: std::fs::FileType) -> Self {
         Self(FileTypeInner::Std(ft))
     }
@@ -181,7 +181,7 @@ impl From<std::fs::FileType> for PyFileType {
 
 #[expect(clippy::trivially_copy_pass_by_ref)]
 #[pymethods]
-impl PyFileType {
+impl RyFileType {
     #[new]
     fn py_new(py: Python<'_>, t: &str) -> PyResult<Py<Self>> {
         let ft = FileTypeKind::py_from_str(t)?;
@@ -306,7 +306,7 @@ impl PyFromStr for FileTypeKind {
     }
 }
 
-impl PyFromStr for PyFileType {
+impl PyFromStr for RyFileType {
     #[inline]
     fn py_from_str(s: &str) -> pyo3::PyResult<Self> {
         let ft_kind = FileTypeKind::py_from_str(s)?;

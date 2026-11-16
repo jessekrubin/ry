@@ -6,31 +6,31 @@ use pyo3::prelude::*;
 use ryo3_core::{PyAsciiString, PyFromStr};
 use ryo3_macro_rules::{any_repr, py_type_err, py_type_error, py_value_err};
 
-use crate::net::PyIpv6Addr;
-use crate::net::ipaddr::{IpAddrLike, PyIpAddr, PyIpv4Addr};
+use crate::net::RyIpv6Addr;
+use crate::net::ipaddr::{IpAddrLike, RyIpAddr, RyIpv4Addr};
 use crate::net::ipaddr_props::IpAddrProps;
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize), serde(transparent))]
 #[pyclass(name = "SocketAddrV4", frozen, immutable_type, eq, ord)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, PartialOrd, Ord)]
-pub struct PySocketAddrV4(pub(crate) SocketAddrV4);
+pub struct RySocketAddrV4(pub(crate) SocketAddrV4);
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize), serde(transparent))]
 #[pyclass(name = "SocketAddrV6", frozen, immutable_type, eq, ord)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, PartialOrd, Ord)]
-pub struct PySocketAddrV6(pub(crate) SocketAddrV6);
+pub struct RySocketAddrV6(pub(crate) SocketAddrV6);
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize), serde(transparent))]
 #[pyclass(name = "SocketAddr", frozen, immutable_type, eq, ord)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, PartialOrd, Ord)]
-pub struct PySocketAddr(pub(crate) SocketAddr);
+pub struct RySocketAddr(pub(crate) SocketAddr);
 
 #[pymethods]
 #[expect(clippy::trivially_copy_pass_by_ref)]
-impl PySocketAddrV4 {
+impl RySocketAddrV4 {
     #[new]
     #[expect(clippy::needless_pass_by_value)]
     pub(crate) fn py_new(ip: IpAddrLike, port: u16) -> PyResult<Self> {
@@ -59,13 +59,13 @@ impl PySocketAddrV4 {
     }
 
     #[expect(clippy::wrong_self_convention)]
-    fn to_ipv4(&self) -> PyIpv4Addr {
-        PyIpv4Addr::from(self.0.ip())
+    fn to_ipv4(&self) -> RyIpv4Addr {
+        RyIpv4Addr::from(self.0.ip())
     }
 
     #[expect(clippy::wrong_self_convention)]
-    fn to_ipaddr(&self) -> PyIpAddr {
-        PyIpAddr::from(self.0)
+    fn to_ipaddr(&self) -> RyIpAddr {
+        RyIpAddr::from(self.0)
     }
 
     #[expect(clippy::wrong_self_convention)]
@@ -97,8 +97,8 @@ impl PySocketAddrV4 {
 
     // ip getter
     #[getter]
-    fn ip(&self) -> PyIpv4Addr {
-        PyIpv4Addr::from(self.0.ip())
+    fn ip(&self) -> RyIpv4Addr {
+        RyIpv4Addr::from(self.0.ip())
     }
 
     // ========================================================================
@@ -175,8 +175,8 @@ impl PySocketAddrV4 {
     }
 
     #[expect(clippy::wrong_self_convention)]
-    fn to_socketaddr(&self) -> PySocketAddr {
-        PySocketAddr(SocketAddr::V4(self.0))
+    fn to_socketaddr(&self) -> RySocketAddr {
+        RySocketAddr(SocketAddr::V4(self.0))
     }
 
     #[staticmethod]
@@ -190,7 +190,7 @@ impl PySocketAddrV4 {
         } else if let Ok(pybytes) = value.cast::<pyo3::types::PyBytes>() {
             let s = String::from_utf8_lossy(pybytes.as_bytes());
             Self::from_str(&s).map(|dt| dt.into_pyobject(py))?
-        } else if let Ok(sockaddr) = value.cast::<PySocketAddr>() {
+        } else if let Ok(sockaddr) = value.cast::<RySocketAddr>() {
             match sockaddr.get().0 {
                 SocketAddr::V4(sa) => Self::from(sa).into_pyobject(py),
                 SocketAddr::V6(_) => {
@@ -230,7 +230,7 @@ impl PySocketAddrV4 {
 }
 
 #[pymethods]
-impl PySocketAddrV6 {
+impl RySocketAddrV6 {
     #[new]
     #[pyo3(signature = (ip, port, *, flowinfo = 0, scope_id = 0))]
     #[expect(clippy::needless_pass_by_value)]
@@ -265,18 +265,18 @@ impl PySocketAddrV6 {
     }
 
     #[expect(clippy::wrong_self_convention)]
-    fn to_ipv6(&self) -> PyIpv6Addr {
-        PyIpv6Addr::from(self.0.ip())
+    fn to_ipv6(&self) -> RyIpv6Addr {
+        RyIpv6Addr::from(self.0.ip())
     }
 
     #[expect(clippy::wrong_self_convention)]
-    fn to_ipaddr(&self) -> PyIpAddr {
-        PyIpAddr::from(IpAddr::V6(*self.0.ip()))
+    fn to_ipaddr(&self) -> RyIpAddr {
+        RyIpAddr::from(IpAddr::V6(*self.0.ip()))
     }
 
     #[getter]
-    fn ip(&self) -> PyIpv6Addr {
-        PyIpv6Addr::from(self.0.ip())
+    fn ip(&self) -> RyIpv6Addr {
+        RyIpv6Addr::from(self.0.ip())
     }
 
     #[getter]
@@ -384,8 +384,8 @@ impl PySocketAddrV6 {
     }
 
     #[expect(clippy::wrong_self_convention)]
-    fn to_socketaddr(&self) -> PySocketAddr {
-        PySocketAddr(SocketAddr::V6(self.0))
+    fn to_socketaddr(&self) -> RySocketAddr {
+        RySocketAddr(SocketAddr::V6(self.0))
     }
 
     #[staticmethod]
@@ -399,7 +399,7 @@ impl PySocketAddrV6 {
         } else if let Ok(pybytes) = value.cast::<pyo3::types::PyBytes>() {
             let s = String::from_utf8_lossy(pybytes.as_bytes());
             Self::from_str(&s).map(|dt| dt.into_pyobject(py))?
-        } else if let Ok(socketaddr) = value.cast::<PySocketAddr>() {
+        } else if let Ok(socketaddr) = value.cast::<RySocketAddr>() {
             match socketaddr.get().0 {
                 SocketAddr::V6(sa6) => Self::from(sa6).into_pyobject(py),
                 SocketAddr::V4(_) => {
@@ -439,7 +439,7 @@ impl PySocketAddrV6 {
 }
 
 #[pymethods]
-impl PySocketAddr {
+impl RySocketAddr {
     #[new]
     #[pyo3(signature = (ip, port, flowinfo = None, scope_id = None))]
     pub(crate) fn py_new(
@@ -496,13 +496,13 @@ impl PySocketAddr {
     }
 
     #[expect(clippy::wrong_self_convention)]
-    fn to_ipaddr(&self) -> PyIpAddr {
-        PyIpAddr::from(self.0.ip())
+    fn to_ipaddr(&self) -> RyIpAddr {
+        RyIpAddr::from(self.0.ip())
     }
 
     #[getter]
-    fn ip(&self) -> PyIpAddr {
-        PyIpAddr::from(self.0.ip())
+    fn ip(&self) -> RyIpAddr {
+        RyIpAddr::from(self.0.ip())
     }
 
     #[expect(clippy::wrong_self_convention)]
@@ -623,17 +623,17 @@ impl PySocketAddr {
     }
 
     #[expect(clippy::wrong_self_convention)]
-    fn to_socketaddrv4(&self) -> PyResult<PySocketAddrV4> {
+    fn to_socketaddrv4(&self) -> PyResult<RySocketAddrV4> {
         match self.0 {
-            SocketAddr::V4(sa4) => Ok(PySocketAddrV4(sa4)),
+            SocketAddr::V4(sa4) => Ok(RySocketAddrV4(sa4)),
             SocketAddr::V6(_) => py_value_err!("Cannot convert SocketAddr (v6) to SocketAddrV4"),
         }
     }
 
     #[expect(clippy::wrong_self_convention)]
-    fn to_socketaddrv6(&self) -> PyResult<PySocketAddrV6> {
+    fn to_socketaddrv6(&self) -> PyResult<RySocketAddrV6> {
         match self.0 {
-            SocketAddr::V6(sa6) => Ok(PySocketAddrV6(sa6)),
+            SocketAddr::V6(sa6) => Ok(RySocketAddrV6(sa6)),
             SocketAddr::V4(_) => py_value_err!("Cannot convert SocketAddr (v4) to SocketAddrV6"),
         }
     }
@@ -649,10 +649,10 @@ impl PySocketAddr {
         } else if let Ok(pybytes) = value.cast::<pyo3::types::PyBytes>() {
             let s = String::from_utf8_lossy(pybytes.as_bytes());
             Self::from_str(&s).map(|dt| dt.into_pyobject(py))?
-        } else if let Ok(sockaddrv4) = value.cast::<PySocketAddrV4>() {
+        } else if let Ok(sockaddrv4) = value.cast::<RySocketAddrV4>() {
             let sockaddr = Self::from(SocketAddr::V4(sockaddrv4.get().0));
             sockaddr.into_pyobject(py)
-        } else if let Ok(sockaddrv6) = value.cast::<PySocketAddrV6>() {
+        } else if let Ok(sockaddrv6) = value.cast::<RySocketAddrV6>() {
             let sockaddr = Self::from(SocketAddr::V6(sockaddrv6.get().0));
             sockaddr.into_pyobject(py)
         } else {
@@ -685,16 +685,16 @@ impl PySocketAddr {
     }
 }
 
-impl std::fmt::Display for PySocketAddrV4 {
+impl std::fmt::Display for RySocketAddrV4 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let py_ip = PyIpv4Addr::from(self.0.ip());
+        let py_ip = RyIpv4Addr::from(self.0.ip());
         write!(f, "SocketAddrV4({}, {})", py_ip, self.port())
     }
 }
 
-impl std::fmt::Display for PySocketAddrV6 {
+impl std::fmt::Display for RySocketAddrV6 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let py_ip = PyIpv6Addr::from(self.0.ip());
+        let py_ip = RyIpv6Addr::from(self.0.ip());
         write!(
             f,
             "SocketAddrV6({}, {}, flowinfo={}, scope_id={})",
@@ -706,15 +706,15 @@ impl std::fmt::Display for PySocketAddrV6 {
     }
 }
 
-impl std::fmt::Display for PySocketAddr {
+impl std::fmt::Display for RySocketAddr {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self.0.ip() {
             IpAddr::V4(ipv4) => {
-                let py_ip = PyIpv4Addr::from(ipv4);
+                let py_ip = RyIpv4Addr::from(ipv4);
                 write!(f, "SocketAddr({}, {})", py_ip, self.port())
             }
             IpAddr::V6(ipv6) => {
-                let py_ip = PyIpv6Addr::from(ipv6);
+                let py_ip = RyIpv6Addr::from(ipv6);
                 let flowinfo = match self.0 {
                     SocketAddr::V6(sa6) => sa6.flowinfo(),
                     SocketAddr::V4(_) => unreachable!(),
@@ -736,7 +736,7 @@ impl std::fmt::Display for PySocketAddr {
     }
 }
 
-impl<'py> FromPyObject<'_, 'py> for PySocketAddrV4 {
+impl<'py> FromPyObject<'_, 'py> for RySocketAddrV4 {
     type Error = PyErr;
 
     fn extract(obj: Borrowed<'_, 'py, PyAny>) -> Result<Self, Self::Error> {
@@ -746,7 +746,7 @@ impl<'py> FromPyObject<'_, 'py> for PySocketAddrV4 {
     }
 }
 
-impl<'py> FromPyObject<'_, 'py> for PySocketAddrV6 {
+impl<'py> FromPyObject<'_, 'py> for RySocketAddrV6 {
     type Error = PyErr;
 
     fn extract(obj: Borrowed<'_, 'py, PyAny>) -> Result<Self, Self::Error> {
@@ -756,7 +756,7 @@ impl<'py> FromPyObject<'_, 'py> for PySocketAddrV6 {
     }
 }
 
-impl<'py> FromPyObject<'_, 'py> for PySocketAddr {
+impl<'py> FromPyObject<'_, 'py> for RySocketAddr {
     type Error = PyErr;
 
     fn extract(obj: Borrowed<'_, 'py, PyAny>) -> Result<Self, Self::Error> {

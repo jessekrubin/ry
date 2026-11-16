@@ -2,7 +2,7 @@ use pyo3::prelude::*;
 use pyo3::types::PyDict;
 use ryo3_pydantic::{GetPydanticCoreSchemaCls, interns};
 
-use super::{PySocketAddr, PySocketAddrV4, PySocketAddrV6};
+use super::{RySocketAddr, RySocketAddrV4, RySocketAddrV6};
 
 macro_rules! impl_get_pydantic_core_schema_cls_for_type {
     ($rytype:ty) => {
@@ -32,6 +32,6 @@ macro_rules! impl_get_pydantic_core_schema_cls_for_type {
     };
 }
 
-impl_get_pydantic_core_schema_cls_for_type!(PySocketAddrV4);
-impl_get_pydantic_core_schema_cls_for_type!(PySocketAddrV6);
-impl_get_pydantic_core_schema_cls_for_type!(PySocketAddr);
+impl_get_pydantic_core_schema_cls_for_type!(RySocketAddrV4);
+impl_get_pydantic_core_schema_cls_for_type!(RySocketAddrV6);
+impl_get_pydantic_core_schema_cls_for_type!(RySocketAddr);

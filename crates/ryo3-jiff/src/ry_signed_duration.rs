@@ -18,7 +18,7 @@ use ryo3_macro_rules::{
     any_repr, py_overflow_err, py_overflow_error, py_type_err, py_value_err, py_value_error,
     py_zero_division_err,
 };
-use ryo3_std::time::PyDuration;
+use ryo3_std::time::RyDuration;
 
 use crate::constants::{MINUTES_PER_HOUR, NANOSECONDS_PER_SECOND, SECONDS_PER_MINUTE};
 use crate::round::RySignedDurationRound;
@@ -268,8 +268,8 @@ impl RySignedDuration {
         }
     }
 
-    fn unsigned_abs(&self) -> PyDuration {
-        PyDuration::from(self.0.unsigned_abs())
+    fn unsigned_abs(&self) -> RyDuration {
+        RyDuration::from(self.0.unsigned_abs())
     }
 
     fn __format__(&self, fmt: &str) -> PyResult<String> {
@@ -521,7 +521,7 @@ impl RySignedDuration {
         if let Ok(other_sd) = other.cast_exact::<Self>() {
             let sd = other_sd.get();
             Ok(self.0 == sd.0)
-        } else if let Ok(other_ud) = other.cast_exact::<PyDuration>() {
+        } else if let Ok(other_ud) = other.cast_exact::<RyDuration>() {
             if self.0.is_negative() {
                 Ok(false)
             } else {
@@ -1045,7 +1045,7 @@ mod maths {
         fn extract(obj: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
             if let Ok(sd) = obj.cast_exact::<RySignedDuration>() {
                 Ok(Self::SignedDuration(sd))
-            } else if let Ok(dur) = obj.cast_exact::<ryo3_std::time::PyDuration>() {
+            } else if let Ok(dur) = obj.cast_exact::<ryo3_std::time::RyDuration>() {
                 RySignedDuration::try_from(dur.get()).map(|rysd| Self::Delta(rysd.into()))
             } else if let Ok(d) = obj.cast::<pyo3::types::PyDelta>() {
                 let rs_dur: JiffSignedDuration = d.extract()?;
@@ -1067,7 +1067,7 @@ mod maths {
     impl FromPyOperand<'_, '_> for SignedDurationLike {
         fn from_py_operand(obj: Borrowed<'_, '_, PyAny>) -> Option<Self> {
             use ryo3_core::PyCastExactOpt;
-            if let Some(dur) = obj.cast_exact_opt::<ryo3_std::time::PyDuration>() {
+            if let Some(dur) = obj.cast_exact_opt::<ryo3_std::time::RyDuration>() {
                 RySignedDuration::try_from(dur.get())
                     .ok()
                     .map(|sd| Self(sd.into()))
@@ -1219,7 +1219,7 @@ mod maths {
         fn extract(obj: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
             if let Ok(sd) = obj.cast_exact::<RySignedDuration>() {
                 Ok(Self::SignedDuration(sd))
-            } else if let Ok(dur) = obj.cast_exact::<ryo3_std::time::PyDuration>() {
+            } else if let Ok(dur) = obj.cast_exact::<ryo3_std::time::RyDuration>() {
                 RySignedDuration::try_from(dur.get()).map(|rysd| Self::Delta(rysd.into()))
             } else if let Ok(d) = obj.cast::<pyo3::types::PyDelta>() {
                 let rs_dur: JiffSignedDuration = d.extract()?;

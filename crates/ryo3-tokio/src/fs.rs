@@ -10,7 +10,7 @@ use ryo3_bytes::RyBytes;
 use ryo3_core::PyIoResultExt;
 use ryo3_core::types::PyOpenMode;
 use ryo3_macro_rules::py_not_implemented_err;
-use ryo3_std::fs::PyMetadata;
+use ryo3_std::fs::RyMetadata;
 use ryo3_tokio_rt::{RyCoroutine, blocking_coro, tokio_coro};
 mod async_file;
 mod async_file_read_stream;
@@ -62,7 +62,7 @@ pub fn hard_link_async(
 #[pyfunction]
 pub fn metadata_async(py: Python<'_>, path: PathBuf) -> PyResult<Bound<'_, RyCoroutine>> {
     blocking_coro(py, "metadata_async", move || {
-        Ok(PyMetadata::from(
+        Ok(RyMetadata::from(
             fs::metadata(&path).map_py_io_err_with_path(&path)?,
         ))
     })

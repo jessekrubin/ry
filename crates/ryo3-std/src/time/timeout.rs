@@ -4,7 +4,7 @@ use pyo3::prelude::*;
 use ryo3_core::PyCastExactOpt;
 use ryo3_core::macros::{py_overflow_error, py_type_err, py_value_err};
 
-use super::PyDuration;
+use super::RyDuration;
 
 #[derive(Clone, Copy)]
 pub struct PyTimeout(Duration);
@@ -22,7 +22,7 @@ impl From<PyTimeout> for Duration {
     }
 }
 
-impl From<PyTimeout> for PyDuration {
+impl From<PyTimeout> for RyDuration {
     fn from(t: PyTimeout) -> Self {
         Self::from(t.0)
     }
@@ -31,7 +31,7 @@ impl From<PyTimeout> for PyDuration {
 impl<'py> FromPyObject<'_, 'py> for PyTimeout {
     type Error = PyErr;
     fn extract(obj: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
-        if let Some(pydur) = obj.cast_exact_opt::<PyDuration>() {
+        if let Some(pydur) = obj.cast_exact_opt::<RyDuration>() {
             Ok(Self(pydur.get().into()))
         } else if let Some(pydelta) = obj.cast_exact_opt::<pyo3::types::PyDelta>() {
             pydelta.extract::<Duration>().map(Self)

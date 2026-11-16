@@ -136,33 +136,33 @@ macro_rules! serialize_map_value {
             // ------------------------------------------------------------
             // __STD__
             #[cfg(feature = "ryo3-std")]
-            PyObType::PyDuration => {
-                $map.serialize_value(&ry_types::PyDurationSerializer::new_unchecked($value))?;
+            PyObType::RyDuration => {
+                $map.serialize_value(&ry_types::RyDurationSerializer::new_unchecked($value))?;
             }
 
             #[cfg(feature = "ryo3-std")]
-            PyObType::PyIpAddr => {
-                $map.serialize_value(&ry_types::PyIpAddrSerializer::new_unchecked($value))?;
+            PyObType::RyIpAddr => {
+                $map.serialize_value(&ry_types::RyIpAddrSerializer::new_unchecked($value))?;
             }
             #[cfg(feature = "ryo3-std")]
-            PyObType::PyIpv4Addr => {
-                $map.serialize_value(&ry_types::PyIpv4AddrSerializer::new_unchecked($value))?;
+            PyObType::RyIpv4Addr => {
+                $map.serialize_value(&ry_types::RyIpv4AddrSerializer::new_unchecked($value))?;
             }
             #[cfg(feature = "ryo3-std")]
-            PyObType::PyIpv6Addr => {
-                $map.serialize_value(&ry_types::PyIpv6AddrSerializer::new_unchecked($value))?;
+            PyObType::RyIpv6Addr => {
+                $map.serialize_value(&ry_types::RyIpv6AddrSerializer::new_unchecked($value))?;
             }
             #[cfg(feature = "ryo3-std")]
-            PyObType::PySocketAddr => {
-                $map.serialize_value(&ry_types::PySocketAddrSerializer::new_unchecked($value))?;
+            PyObType::RySocketAddr => {
+                $map.serialize_value(&ry_types::RySocketAddrSerializer::new_unchecked($value))?;
             }
             #[cfg(feature = "ryo3-std")]
-            PyObType::PySocketAddrV4 => {
-                $map.serialize_value(&ry_types::PySocketAddrV4Serializer::new_unchecked($value))?;
+            PyObType::RySocketAddrV4 => {
+                $map.serialize_value(&ry_types::RySocketAddrV4Serializer::new_unchecked($value))?;
             }
             #[cfg(feature = "ryo3-std")]
-            PyObType::PySocketAddrV6 => {
-                $map.serialize_value(&ry_types::PySocketAddrV6Serializer::new_unchecked($value))?;
+            PyObType::RySocketAddrV6 => {
+                $map.serialize_value(&ry_types::RySocketAddrV6Serializer::new_unchecked($value))?;
             }
 
             // __HTTP__

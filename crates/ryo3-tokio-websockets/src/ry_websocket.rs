@@ -10,7 +10,7 @@ use pyo3::prelude::*;
 use ryo3_core::sync::RyMutex;
 use ryo3_http::{PyHeadersLike, RyHeaders, RyHttpStatus};
 use ryo3_macro_rules::py_runtime_err;
-use ryo3_std::time::{PyDuration, PyTimeout};
+use ryo3_std::time::{PyTimeout, RyDuration};
 use ryo3_tokio_rt::{RyCoroutine, get_tokio_runtime, pyloop_coro, tokio_coro};
 use tokio::sync::Mutex;
 use tokio_websockets::{ClientBuilder, Config, Limits, Message};
@@ -141,12 +141,12 @@ impl<'py> IntoPyObject<'py> for WebSocketConfig {
             self.flush_threshold.get(),
         )?;
         if let Some(close_timeout) = self.close_timeout {
-            d.set_item(close_timeout_pystr, PyDuration::from(close_timeout))?;
+            d.set_item(close_timeout_pystr, RyDuration::from(close_timeout))?;
         } else {
             d.set_item(close_timeout_pystr, py.None())?;
         }
         if let Some(recv_timeout) = self.recv_timeout {
-            d.set_item(recv_timeout_pystr, PyDuration::from(recv_timeout))?;
+            d.set_item(recv_timeout_pystr, RyDuration::from(recv_timeout))?;
         } else {
             d.set_item(recv_timeout_pystr, py.None())?;
         }

@@ -6,7 +6,7 @@ use std::sync::Arc;
 
 use pyo3::prelude::*;
 use ryo3_macro_rules::py_stop_async_iteration_err;
-use ryo3_std::fs::PyMetadata;
+use ryo3_std::fs::RyMetadata;
 use ryo3_tokio_rt::{RyCoroutine, tokio_coro};
 use tokio::fs::ReadDir;
 use tokio::sync::Mutex;
@@ -105,7 +105,7 @@ impl RyAsyncDirEntry {
         let inner = Arc::clone(&self.0);
         tokio_coro(py, "AsyncDirEntry.file_type", async move {
             let file_type = inner.file_type().await?;
-            Ok(ryo3_std::fs::PyFileType::from(file_type))
+            Ok(ryo3_std::fs::RyFileType::from(file_type))
         })
     }
 
@@ -113,7 +113,7 @@ impl RyAsyncDirEntry {
         let inner = Arc::clone(&self.0);
         tokio_coro(py, "AsyncDirEntry.metadata", async move {
             let metadata = inner.metadata().await?;
-            Ok(PyMetadata::from(metadata))
+            Ok(RyMetadata::from(metadata))
         })
     }
 }

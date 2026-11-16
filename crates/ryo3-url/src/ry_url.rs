@@ -422,11 +422,11 @@ impl RyUrl {
     fn socket_addrs(
         &self,
         default_port_number: Option<u16>,
-    ) -> PyResult<Vec<ryo3_std::net::PySocketAddr>> {
+    ) -> PyResult<Vec<ryo3_std::net::RySocketAddr>> {
         let sockets = self.0.socket_addrs(|| default_port_number)?;
         let socks = sockets
             .into_iter()
-            .map(ryo3_std::net::PySocketAddr::from)
+            .map(ryo3_std::net::RySocketAddr::from)
             .collect();
         Ok(socks)
     }
@@ -547,12 +547,12 @@ impl ryo3_pydantic::GetPydanticCoreSchemaCls for RyUrl {
 #[cfg(feature = "ryo3-std")]
 fn extract_ip_host_opt(address: &Bound<'_, PyAny>) -> Option<IpAddr> {
     use ryo3_core::PyCastExactOpt;
-    use ryo3_std::net::{PyIpAddr, PyIpv4Addr, PyIpv6Addr};
-    if let Some(pyipv4) = address.cast_exact_opt::<PyIpv4Addr>() {
+    use ryo3_std::net::{RyIpAddr, RyIpv4Addr, RyIpv6Addr};
+    if let Some(pyipv4) = address.cast_exact_opt::<RyIpv4Addr>() {
         Some((*pyipv4.get()).into())
-    } else if let Some(pyipv6) = address.cast_exact_opt::<PyIpv6Addr>() {
+    } else if let Some(pyipv6) = address.cast_exact_opt::<RyIpv6Addr>() {
         Some((*pyipv6.get()).into())
-    } else if let Some(pyipaddr) = address.cast_exact_opt::<PyIpAddr>() {
+    } else if let Some(pyipaddr) = address.cast_exact_opt::<RyIpAddr>() {
         Some(pyipaddr.get().into())
     } else {
         address.extract::<std::net::IpAddr>().ok()
@@ -641,11 +641,11 @@ impl<'py> IntoPyObject<'py> for PyUrlHost<'py> {
 
         #[cfg(feature = "ryo3-std")]
         {
-            use ryo3_std::net::{PyIpv4Addr, PyIpv6Addr};
+            use ryo3_std::net::{RyIpv4Addr, RyIpv6Addr};
             match self.0 {
                 url::Host::Domain(s) => s.into_bound_py_any(py),
-                url::Host::Ipv4(addr) => PyIpv4Addr::from(addr).into_bound_py_any(py),
-                url::Host::Ipv6(addr) => PyIpv6Addr::from(addr).into_bound_py_any(py),
+                url::Host::Ipv4(addr) => RyIpv4Addr::from(addr).into_bound_py_any(py),
+                url::Host::Ipv6(addr) => RyIpv6Addr::from(addr).into_bound_py_any(py),
             }
         }
         #[cfg(not(feature = "ryo3-std"))]

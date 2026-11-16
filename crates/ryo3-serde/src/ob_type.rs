@@ -47,19 +47,19 @@ pub(crate) enum PyObType {
     // STD
     // -----------------------------------------------------------------------
     #[cfg(feature = "ryo3-std")]
-    PyDuration,
+    RyDuration,
     #[cfg(feature = "ryo3-std")]
-    PyIpAddr,
+    RyIpAddr,
     #[cfg(feature = "ryo3-std")]
-    PyIpv4Addr,
+    RyIpv4Addr,
     #[cfg(feature = "ryo3-std")]
-    PyIpv6Addr,
+    RyIpv6Addr,
     #[cfg(feature = "ryo3-std")]
-    PySocketAddr,
+    RySocketAddr,
     #[cfg(feature = "ryo3-std")]
-    PySocketAddrV4,
+    RySocketAddrV4,
     #[cfg(feature = "ryo3-std")]
-    PySocketAddrV6,
+    RySocketAddrV6,
     // -----------------------------------------------------------------------
     // UUID
     // -----------------------------------------------------------------------
