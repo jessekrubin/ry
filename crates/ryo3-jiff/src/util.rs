@@ -103,6 +103,7 @@ impl SpanKwargs {
 }
 
 #[cfg(test)]
+#[expect(clippy::missing_panics_doc)]
 mod tests {
     use super::*;
     const SIZEOF_SPAN_KWARGS: usize = std::mem::size_of::<SpanKwargs>();

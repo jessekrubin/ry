@@ -15,12 +15,13 @@ use crate::http_types::{
 };
 use crate::{PyHeadersLike, PyHttpHeaderMap};
 
-#[pyclass(name = "Headers", frozen, immutable_type, eq, mapping)]
+#[pyclass(name = "Headers", frozen, eq, mapping)]
+#[cfg_attr(any(not(Py_LIMITED_API), Py_3_14), pyo3(immutable_type))]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Clone, Debug)]
-pub struct PyHeaders(pub Arc<RyRwLock<HeaderMap, false>>);
+pub struct RyHeaders(pub Arc<RyRwLock<HeaderMap, false>>);
 
-impl Deref for PyHeaders {
+impl Deref for RyHeaders {
     type Target = Arc<RyRwLock<HeaderMap, false>>;
 
     fn deref(&self) -> &Self::Target {
@@ -28,7 +29,7 @@ impl Deref for PyHeaders {
     }
 }
 
-impl PyHeaders {
+impl RyHeaders {
     #[inline]
     pub(crate) fn read(&self) -> RwLockReadGuard<'_, HeaderMap> {
         self.0.py_read()
@@ -78,7 +79,7 @@ impl PyHeaders {
     }
 }
 
-impl Display for PyHeaders {
+impl Display for RyHeaders {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let inner = self.read();
         if f.alternate() {
@@ -89,39 +90,39 @@ impl Display for PyHeaders {
     }
 }
 
-impl PartialEq for PyHeaders {
+impl PartialEq for RyHeaders {
     fn eq(&self, other: &Self) -> bool {
         *(self.read()) == *(other.read())
     }
 }
 
-impl Eq for PyHeaders {}
+impl Eq for RyHeaders {}
 
-impl From<HeaderMap> for PyHeaders {
+impl From<HeaderMap> for RyHeaders {
     fn from(hm: HeaderMap) -> Self {
         Self(Arc::new(RyRwLock::new(hm)))
     }
 }
 
-impl From<PyHttpHeaderMap> for PyHeaders {
+impl From<PyHttpHeaderMap> for RyHeaders {
     fn from(hm: PyHttpHeaderMap) -> Self {
         Self::from(HeaderMap::from(hm))
     }
 }
 
-impl From<PyHeaders> for HeaderMap {
-    fn from(h: PyHeaders) -> Self {
+impl From<RyHeaders> for HeaderMap {
+    fn from(h: RyHeaders) -> Self {
         h.into_header_map()
     }
 }
 
-impl From<Arc<RyRwLock<HeaderMap, false>>> for PyHeaders {
+impl From<Arc<RyRwLock<HeaderMap, false>>> for RyHeaders {
     fn from(hm: Arc<RyRwLock<HeaderMap, false>>) -> Self {
         Self(hm)
     }
 }
 
-impl PyHeaders {
+impl RyHeaders {
     fn try_or(&self, other: PyHeadersLike) -> PyResult<Self> {
         let mut new_map = self.read().clone();
         match other {
@@ -140,7 +141,7 @@ impl PyHeaders {
 }
 
 #[pymethods]
-impl PyHeaders {
+impl RyHeaders {
     #[new]
     #[pyo3(signature = (headers = None, /, **kwargs))]
     fn py_new(headers: Option<PyHeadersLike>, kwargs: Option<PyHeadersLike>) -> Self {
@@ -363,10 +364,10 @@ impl PyHeaders {
         use ryo3_core::macros::py_value_error;
         let inner = self.read();
         if fmt {
-            serde_json::to_string_pretty(&crate::http_serde::HttpHeaderMapRef(&inner))
+            serde_json::to_string_pretty(&crate::serde::HttpHeaderMapRef(&inner))
                 .map_err(|e| py_value_error!("{e}"))
         } else {
-            serde_json::to_string(&crate::http_serde::HttpHeaderMapRef(&inner))
+            serde_json::to_string(&crate::serde::HttpHeaderMapRef(&inner))
                 .map_err(|e| py_value_error!("{e}"))
         }
     }
@@ -433,7 +434,7 @@ impl PyHeaders {
     }
 }
 
-impl std::hash::Hash for PyHeaders {
+impl std::hash::Hash for RyHeaders {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
         let inner = self.read();
         PyHttpHeaderMapRef(&inner).hash(state);
@@ -459,7 +460,7 @@ impl std::hash::Hash for PyHttpHeaderMapRef<'_> {
 }
 
 #[cfg(feature = "pydantic")]
-impl ryo3_pydantic::GetPydanticCoreSchemaCls for PyHeaders {
+impl ryo3_pydantic::GetPydanticCoreSchemaCls for RyHeaders {
     fn get_pydantic_core_schema<'py>(
         cls: &Bound<'py, pyo3::types::PyType>,
         source: &Bound<'py, PyAny>,

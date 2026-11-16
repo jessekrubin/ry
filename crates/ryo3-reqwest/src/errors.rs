@@ -2,7 +2,7 @@ use pyo3::exceptions::PyException;
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyTuple};
 use ryo3_core::sync::RyMutex;
-use ryo3_http::PyHttpStatus;
+use ryo3_http::RyHttpStatus;
 use ryo3_url::RyUrl;
 
 /// macro for crate use only to return `Response already consumed` error
@@ -109,10 +109,10 @@ impl RyReqwestError {
     }
 
     #[getter]
-    fn status(&self, py: Python<'_>) -> PyResult<Option<Py<PyHttpStatus>>> {
+    fn status(&self, py: Python<'_>) -> PyResult<Option<Py<RyHttpStatus>>> {
         if let Some(e) = &(*self.0.py_lock()) {
             e.status()
-                .map(|status| PyHttpStatus::from_status_code_cached(py, status))
+                .map(|status| RyHttpStatus::from_status_code_cached(py, status))
                 .transpose()
         } else {
             Ok(None)

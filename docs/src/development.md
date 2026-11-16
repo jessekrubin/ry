@@ -38,10 +38,15 @@ ye olde `pip`
 - **USE CLIPPY** `just clippy` or `just ci`
 - **USE RUSTFMT AND RUFF** `just fmt`
 - library style guide:
-  - python objects/structs/classes defined in the library should be named either
-    `Py<CLASSNAME>` or `Ry<CLASSNAME>` and the prefix should be consistent
-    throughout the library (eg `ryo3-jiff` uses `Ry` as the internal prefix to
-    not conflict with the `Py<CLASSNAME>` structs provided by `pyo3`)
+  - struct naming:
+    - `#[pyclass]` structs are `Ry<CLASSNAME>` (eg `RyDate`, `RyHeaders`) so
+      they don't look like the `Py<CLASSNAME>` types provided by `pyo3`
+    - conversion-only new-types (`FromPyObject`/`IntoPyObject`, no pyclass) are
+      `Py<NAME>` (eg `PyHttpMethod`, `PyHeadersLike`, `PyTimeout`)
+    - exception: `ryo3-jiff-core` uses `Jiff<NAME>` for its new-types
+    - files holding a pyclass are `ry_<name>.rs` (eg `ry_headers.rs`)
+    - some older crates still use `Py*` for pyclasses; rename to `Ry*` when
+      touching them
   - For wrapper libraries, attempt to mirror the structure of the original
     library as much as possible
   - wrapper library names should be of the form `ryo3-<LIB_NAME>` where
@@ -131,7 +136,7 @@ def bruff_func() -> str: ...
 
 ## Creating a new library/wrapper-thing
 
-- copy the template library `ryo3-quick-maths` library to your new library name
+- copy the template library `crates/_ryo3-quick-maths` to your new library name
 - refer to the above style guide for naming conventions
 
 ---

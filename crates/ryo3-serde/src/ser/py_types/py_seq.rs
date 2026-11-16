@@ -134,11 +134,11 @@ macro_rules! serialize_seq_element {
             // __HTTP__
             #[cfg(feature = "ryo3-http")]
             PyObType::RyHeaders => {
-                $seq.serialize_element(&ry_types::PyHeadersSerializer::new_unchecked($element))?;
+                $seq.serialize_element(&ry_types::RyHeadersSerializer::new_unchecked($element))?;
             }
             #[cfg(feature = "ryo3-http")]
             PyObType::RyHttpStatus => {
-                $seq.serialize_element(&ry_types::PyHttpStatusSerializer::new_unchecked($element))?;
+                $seq.serialize_element(&ry_types::RyHttpStatusSerializer::new_unchecked($element))?;
             }
             // __JIFF__
             #[cfg(feature = "ryo3-jiff")]

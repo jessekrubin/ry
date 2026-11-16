@@ -161,11 +161,11 @@ where
             // __HTTP__
             #[cfg(feature = "ryo3-http")]
             PyObType::RyHeaders => {
-                ry_types::PyHeadersSerializer::new_unchecked(self.obj).serialize(serializer)
+                ry_types::RyHeadersSerializer::new_unchecked(self.obj).serialize(serializer)
             }
             #[cfg(feature = "ryo3-http")]
             PyObType::RyHttpStatus => {
-                ry_types::PyHttpStatusSerializer::new_unchecked(self.obj).serialize(serializer)
+                ry_types::RyHttpStatusSerializer::new_unchecked(self.obj).serialize(serializer)
             }
             // __JIFF__
             #[cfg(feature = "ryo3-jiff")]

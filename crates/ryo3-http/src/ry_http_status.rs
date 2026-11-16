@@ -1,4 +1,4 @@
-//! `PyHttpStatus` class
+//! `RyHttpStatus` class
 //!
 //! Caches instances to avoid duplicating them when you are say scraping the
 //! web and getting a ton of 200s or 404s or whatever...
@@ -15,27 +15,28 @@ use ryo3_core::{PyAsciiStr, PyAsciiString, PyCastExactOpt, PyRichCmp};
 // is the plural of status "stati" or "statuses"? who knows. literally nothing
 // I can do to find that answer online.
 // typos:on
-/// cache with pyoncelocks of `PyHttpStatus` for statuses/stati(?) 100-599
-static STATUS_CACHE: [PyOnceLock<Py<PyHttpStatus>>; 500] = [const { PyOnceLock::new() }; 500];
+/// cache with pyoncelocks of `RyHttpStatus` for statuses/stati(?) 100-599
+static STATUS_CACHE: [PyOnceLock<Py<RyHttpStatus>>; 500] = [const { PyOnceLock::new() }; 500];
 
-fn py_cached_http_status(py: Python<'_>, status: http::StatusCode) -> PyResult<Py<PyHttpStatus>> {
+fn py_cached_http_status(py: Python<'_>, status: http::StatusCode) -> PyResult<Py<RyHttpStatus>> {
     let code = status.as_u16() as usize;
     if (100..=599).contains(&code) {
         let cell = &STATUS_CACHE[code - 100];
-        cell.get_or_try_init(py, || Py::new(py, PyHttpStatus(status)))
+        cell.get_or_try_init(py, || Py::new(py, RyHttpStatus(status)))
             .map(|obj| obj.clone_ref(py))
     } else {
         // fuckit no cache
-        Py::new(py, PyHttpStatus(status))
+        Py::new(py, RyHttpStatus(status))
     }
 }
 
-#[pyclass(name = "HttpStatus", frozen, immutable_type)]
+#[pyclass(name = "HttpStatus", frozen)]
+#[cfg_attr(any(not(Py_LIMITED_API), Py_3_14), pyo3(immutable_type))]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Clone, Copy)]
-pub struct PyHttpStatus(pub(crate) http::StatusCode);
+pub struct RyHttpStatus(pub(crate) http::StatusCode);
 
-impl PyHttpStatus {
+impl RyHttpStatus {
     pub fn from_status_code_cached(py: Python<'_>, status: http::StatusCode) -> PyResult<Py<Self>> {
         py_cached_http_status(py, status)
     }
@@ -43,7 +44,7 @@ impl PyHttpStatus {
 
 #[pymethods]
 #[expect(clippy::trivially_copy_pass_by_ref)]
-impl PyHttpStatus {
+impl RyHttpStatus {
     #[new]
     #[pyo3(signature = (code))]
     fn py_new(py: Python<'_>, code: u16) -> PyResult<Py<Self>> {
@@ -750,14 +751,14 @@ pub fn status_code_pystring(py: Python<'_>, status_code: u16) -> Option<&Bound<'
     })
 }
 
-impl std::fmt::Display for PyHttpStatus {
+impl std::fmt::Display for RyHttpStatus {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "HttpStatus({})", self.0.as_str())
     }
 }
 
 #[cfg(feature = "pydantic")]
-impl ryo3_pydantic::GetPydanticCoreSchemaCls for PyHttpStatus {
+impl ryo3_pydantic::GetPydanticCoreSchemaCls for RyHttpStatus {
     fn get_pydantic_core_schema<'py>(
         cls: &Bound<'py, pyo3::types::PyType>,
         source: &Bound<'py, PyAny>,

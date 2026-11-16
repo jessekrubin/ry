@@ -5,9 +5,9 @@ use serde::ser::SerializeSeq;
 use serde::{Deserializer, de};
 
 use crate::http_types::{PyHttpHeaderMap, PyHttpHeaderNameRef};
-use crate::{PyHeaders, PyHttpStatus};
+use crate::{RyHeaders, RyHttpStatus};
 
-impl<'de> serde::Deserialize<'de> for PyHttpStatus {
+impl<'de> serde::Deserialize<'de> for RyHttpStatus {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: serde::Deserializer<'de>,
@@ -20,7 +20,7 @@ impl<'de> serde::Deserialize<'de> for PyHttpStatus {
     }
 }
 
-impl serde::Serialize for PyHttpStatus {
+impl serde::Serialize for RyHttpStatus {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer,
@@ -33,7 +33,7 @@ impl serde::Serialize for PyHttpStatus {
 // HEADERS-MAP serde impls
 // ============================================================================
 
-impl serde::Serialize for PyHeaders {
+impl serde::Serialize for RyHeaders {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer,

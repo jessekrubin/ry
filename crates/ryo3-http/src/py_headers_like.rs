@@ -4,10 +4,10 @@ use pyo3::types::PyDict;
 use ryo3_core::macros::py_type_err;
 use ryo3_core::{FromPyOperand, PyCastExactOpt};
 
-use crate::{PyHeaders, PyHttpHeaderMap};
+use crate::{PyHttpHeaderMap, RyHeaders};
 #[derive(Debug, Clone)]
 pub enum PyHeadersLike {
-    Headers(PyHeaders),
+    Headers(RyHeaders),
     Map(PyHttpHeaderMap),
 }
 
@@ -21,7 +21,7 @@ impl PyHeadersLike {
     }
 }
 
-impl From<PyHeadersLike> for PyHeaders {
+impl From<PyHeadersLike> for RyHeaders {
     fn from(h: PyHeadersLike) -> Self {
         match h {
             PyHeadersLike::Headers(h) => h,
@@ -32,7 +32,7 @@ impl From<PyHeadersLike> for PyHeaders {
 
 impl FromPyOperand<'_, '_> for PyHeadersLike {
     fn from_py_operand(obj: Borrowed<'_, '_, PyAny>) -> Option<Self> {
-        if let Some(h) = obj.cast_exact_opt::<PyHeaders>() {
+        if let Some(h) = obj.cast_exact_opt::<RyHeaders>() {
             Some(Self::Headers(h.get().clone()))
         } else if obj.is_exact_instance_of::<PyDict>() {
             obj.extract::<PyHttpHeaderMap>().ok().map(Self::Map)
@@ -46,7 +46,7 @@ impl<'py> FromPyObject<'_, 'py> for PyHeadersLike {
     type Error = PyErr;
 
     fn extract(obj: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
-        if let Ok(h) = obj.cast_exact::<PyHeaders>() {
+        if let Ok(h) = obj.cast_exact::<RyHeaders>() {
             Ok(Self::Headers(h.get().clone()))
         } else if let Ok(d) = obj.extract::<PyHttpHeaderMap>() {
             Ok(Self::Map(d))

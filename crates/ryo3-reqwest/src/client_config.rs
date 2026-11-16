@@ -2,7 +2,7 @@ use pyo3::prelude::*;
 use pyo3::types::PyDict;
 use reqwest::header::HeaderValue;
 use ryo3_core::py_dict::KwargsIter;
-use ryo3_http::{PyHeaders, PyHeadersLike};
+use ryo3_http::{PyHeadersLike, RyHeaders};
 use ryo3_macro_rules::{py_type_err, py_value_error};
 use ryo3_std::time::{PyDuration, PyTimeout};
 
@@ -15,7 +15,7 @@ use crate::types::PyUserAgent;
 #[derive(Debug, Clone, PartialEq)]
 #[expect(clippy::struct_excessive_bools)]
 pub struct ClientConfig {
-    headers: Option<PyHeaders>,
+    headers: Option<RyHeaders>,
     cookies: bool,
     user_agent: Option<ryo3_http::PyHttpHeaderValue>,
     hickory_dns: bool,
@@ -167,7 +167,7 @@ impl<'py> FromPyObject<'_, 'py> for ClientConfig {
             let (key_str, v) = kwarg?;
             match key_str {
                 "headers" => {
-                    cfg.headers = v.extract::<Option<PyHeadersLike>>()?.map(PyHeaders::from);
+                    cfg.headers = v.extract::<Option<PyHeadersLike>>()?.map(RyHeaders::from);
                 }
                 "cookies" => {
                     cfg.cookies = v.extract::<bool>()?;

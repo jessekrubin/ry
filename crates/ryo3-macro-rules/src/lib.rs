@@ -106,7 +106,7 @@ mod tests {
         with_python(|py| {
             let msg = "local message";
             let result: Result<(), PyErr> = py_value_err!(msg);
-            let err = result.unwrap_err();
+            let err = result.expect_err("expected a ValueError");
             assert!(err.is_instance_of::<PyValueError>(py));
             assert_eq!(py_errstr!(py, err), msg);
         });

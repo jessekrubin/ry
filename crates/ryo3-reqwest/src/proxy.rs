@@ -1,7 +1,7 @@
 use pyo3::IntoPyObjectExt;
 use pyo3::prelude::*;
 use ryo3_core::py_dict::KwargsIter;
-use ryo3_http::PyHeaders;
+use ryo3_http::RyHeaders;
 use ryo3_macro_rules::{py_type_err, py_value_err, py_value_error};
 use ryo3_url::UrlLike;
 
@@ -71,7 +71,7 @@ pub(crate) struct ProxyInner {
     pub basic_auth: Option<(String, String)>,
     pub no_proxy: Vec<String>,
     // pub headers: Vec<(String, String)>,
-    pub headers: Option<PyHeaders>,
+    pub headers: Option<RyHeaders>,
 }
 
 impl ProxyInner {
@@ -89,7 +89,7 @@ impl ProxyInner {
 pub(crate) struct ProxyKwargs {
     basic_auth: Option<(String, String)>,
     no_proxy: Option<String>,
-    headers: Option<ryo3_http::PyHeaders>,
+    headers: Option<ryo3_http::RyHeaders>,
 }
 
 impl<'a, 'py> FromPyObject<'a, 'py> for ProxyKwargs {
@@ -107,7 +107,7 @@ impl<'a, 'py> FromPyObject<'a, 'py> for ProxyKwargs {
                 "headers" => {
                     kwargs.headers = value
                         .extract::<Option<ryo3_http::PyHeadersLike>>()?
-                        .map(PyHeaders::from);
+                        .map(RyHeaders::from);
                 }
                 s => {
                     return py_type_err!("unknown Proxy option: {}", s);
@@ -207,7 +207,7 @@ impl RyProxy {
     }
 
     fn headers(&self, headers: ryo3_http::PyHeadersLike) -> Self {
-        let headers = PyHeaders::from(headers);
+        let headers = RyHeaders::from(headers);
         let proxy = self.proxy.clone().headers(headers.py_read().clone());
         let mut inner = self.inner.clone();
         inner.headers = Some(headers);
