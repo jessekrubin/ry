@@ -19,7 +19,7 @@ pub use crate::ry_time::RyTime;
 pub use crate::ry_timestamp::RyTimestamp;
 pub use crate::ry_timezone::RyTimeZone;
 pub use crate::ry_timezone_database::RyTimeZoneDatabase;
-pub use crate::ry_zoned::RyZoned;
+pub use crate::ry_zoned_datetime::RyZoned;
 pub use crate::series::{
     RyDateSeries, RyDateTimeSeries, RyTimeSeries, RyTimestampSeries, RyZonedSeries,
 };

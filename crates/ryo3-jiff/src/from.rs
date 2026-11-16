@@ -4,7 +4,7 @@ use jiff::{SignedDuration, Span, Timestamp, Zoned};
 use ryo3_core::map_py_overflow_err;
 use ryo3_jiff_core::{
     JiffDate, JiffDateTime, JiffOffset, JiffSignedDuration, JiffSpan, JiffTime, JiffTimeZone,
-    JiffTimestamp, JiffZoned,
+    JiffTimestamp, JiffZonedDateTime,
 };
 
 use crate::{
@@ -157,7 +157,7 @@ impl_from_jiff_newt_for_ry!(JiffDate, RyDate);
 impl_from_jiff_newt_for_ry!(JiffTime, RyTime);
 impl_from_jiff_newt_for_ry!(JiffDateTime, RyDateTime);
 impl_from_jiff_newt_for_ry!(JiffTimestamp, RyTimestamp);
-impl_from_jiff_newt_for_ry!(JiffZoned, RyZoned);
+impl_from_jiff_newt_for_ry!(JiffZonedDateTime, RyZoned);
 impl_from_jiff_newt_for_ry!(JiffSpan, RySpan);
 impl_from_jiff_newt_for_ry!(JiffOffset, RyOffset);
 impl_from_jiff_newt_for_ry!(JiffSignedDuration, RySignedDuration);

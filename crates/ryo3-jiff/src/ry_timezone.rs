@@ -13,7 +13,7 @@ use ryo3_macro_rules::{py_type_err, pytodo};
 use crate::ry_datetime::RyDateTime;
 use crate::ry_offset::RyOffset;
 use crate::ry_timestamp::RyTimestamp;
-use crate::ry_zoned::RyZoned;
+use crate::ry_zoned_datetime::RyZoned;
 
 #[derive(Debug, Clone)]
 #[pyclass(name = "TimeZone", frozen, immutable_type, eq)]

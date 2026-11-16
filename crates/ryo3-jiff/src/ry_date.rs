@@ -22,7 +22,7 @@ use crate::ry_signed_duration::RySignedDuration;
 use crate::ry_span::RySpan;
 use crate::ry_time::RyTime;
 use crate::ry_timezone::RyTimeZone;
-use crate::ry_zoned::RyZoned;
+use crate::ry_zoned_datetime::RyZoned;
 use crate::series::RyDateSeries;
 use crate::spanish::{DurationLike, Spanish};
 use crate::util::SpanKwargs;

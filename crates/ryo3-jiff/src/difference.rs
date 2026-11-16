@@ -62,7 +62,7 @@ use ryo3_macro_rules::py_type_err;
 
 use crate::ry_datetime::RyDateTime;
 use crate::ry_time::RyTime;
-use crate::ry_zoned::RyZoned;
+use crate::ry_zoned_datetime::RyZoned;
 use crate::{RyDate, RyTimestamp};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

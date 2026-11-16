@@ -13,7 +13,8 @@ use ryo3_core::{
 };
 use ryo3_jiff_core::{
     JiffDate, JiffEra, JiffEraYear, JiffRoundMode, JiffTime, JiffTimeZoneRef, JiffTzDisambiguation,
-    JiffTzOffsetConflict, JiffUnit, JiffWeekday, JiffZoned, JiffZonedRef, bundled_tzdb,
+    JiffTzOffsetConflict, JiffUnit, JiffWeekday, JiffZonedDateTime, JiffZonedDateTimeRef,
+    bundled_tzdb,
 };
 use ryo3_macro_rules::{any_repr, py_type_err};
 
@@ -272,12 +273,12 @@ impl RyZoned {
         Ok(dict)
     }
 
-    fn to_py(&self) -> JiffZonedRef<'_> {
+    fn to_py(&self) -> JiffZonedDateTimeRef<'_> {
         self.to_pydatetime()
     }
 
-    fn to_pydatetime(&self) -> JiffZonedRef<'_> {
-        JiffZonedRef::new(&self.0)
+    fn to_pydatetime(&self) -> JiffZonedDateTimeRef<'_> {
+        JiffZonedDateTimeRef::new(&self.0)
     }
 
     fn to_pydate(&self) -> JiffDate {
@@ -293,7 +294,7 @@ impl RyZoned {
     }
 
     #[staticmethod]
-    fn from_pydatetime(datetime: JiffZoned) -> Self {
+    fn from_pydatetime(datetime: JiffZonedDateTime) -> Self {
         Self::from(datetime)
     }
 
@@ -868,7 +869,7 @@ impl RyZoned {
             Self::from_str(&s).map(|dt| dt.into_pyobject(py))?
         } else if let Ok(ts) = value.cast_exact::<RyTimestamp>() {
             Self::from(ts.get()).into_pyobject(py)
-        } else if let Ok(d) = value.extract::<JiffZoned>() {
+        } else if let Ok(d) = value.extract::<JiffZonedDateTime>() {
             Self::from(d).into_pyobject(py)
         } else {
             let valtype = any_repr!(value);

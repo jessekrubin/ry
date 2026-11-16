@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use jiff::Zoned;
+use jiff::ZonedDateTime;
 use jiff::civil::DateTime;
 use jiff::tz::TimeZone;
 use ryo3_core::PyFromStr;
@@ -39,12 +39,12 @@ impl FromStr for RyZoned {
     #[inline]
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         // first try to get the thing from the default db
-        if let Ok(zdt) = s.parse::<Zoned>() {
+        if let Ok(zdt) = s.parse::<ZonedDateTime>() {
             return Ok(Self::from(zdt));
         }
         // oh shit now we try the bundled db
         crate::constants::DATETIME_PARSER
-            .parse_zoned_with(bundled_tzdb(), s)
+            .parse_zoned_datetime_with(bundled_tzdb(), s)
             .map(Self::from)
     }
 }
@@ -90,7 +90,7 @@ impl FromStr for RyDateTime {
         // if ends with 'Z', parse via timezone...
         if s.ends_with('Z') {
             jiff::Timestamp::from_str(s)
-                .map(|ts| ts.to_zoned(TimeZone::UTC).datetime())
+                .map(|ts| ts.to_zoned_datetime(TimeZone::UTC).datetime())
                 .map(Self::from)
         } else {
             DateTime::from_str(s).map(Self::from)
