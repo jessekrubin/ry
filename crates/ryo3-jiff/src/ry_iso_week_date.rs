@@ -1,6 +1,6 @@
 use std::hash::{DefaultHasher, Hash, Hasher};
 
-use jiff::Zoned;
+use jiff::ZonedDateTime;
 use jiff::civil::ISOWeekDate;
 use pyo3::BoundObject;
 use pyo3::prelude::*;
@@ -106,13 +106,13 @@ impl RyISOWeekDate {
     /// Returns the date today as an `ISOWeekDate`
     #[staticmethod]
     fn today() -> Self {
-        let date = jiff::civil::Date::from(Zoned::now());
+        let date = jiff::civil::Date::from(ZonedDateTime::now());
         Self::from(ISOWeekDate::from(date))
     }
 
     #[staticmethod]
     fn now() -> Self {
-        let date = jiff::civil::Date::from(Zoned::now());
+        let date = jiff::civil::Date::from(ZonedDateTime::now());
         Self::from(ISOWeekDate::from(date))
     }
 

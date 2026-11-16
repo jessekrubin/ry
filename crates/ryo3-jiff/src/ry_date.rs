@@ -2,7 +2,7 @@ use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::ops::Sub;
 
-use jiff::Zoned;
+use jiff::ZonedDateTime;
 use jiff::civil::{Date, DateArithmetic, Weekday};
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyTuple};
@@ -99,7 +99,7 @@ impl RyDate {
 
     #[staticmethod]
     fn now() -> Self {
-        Self::from(Zoned::now().date())
+        Self::from(ZonedDateTime::now().date())
     }
 
     #[pyo3(signature = (hour, minute, second, nanosecond = 0))]
@@ -145,7 +145,7 @@ impl RyDate {
     #[expect(clippy::wrong_self_convention)]
     fn to_zoned(&self, tz: &RyTimeZone) -> PyResult<RyZoned> {
         self.0
-            .to_zoned(tz.to_inner())
+            .to_zoned_datetime(tz.to_inner())
             .map(RyZoned::from)
             .map_err(map_py_value_err)
     }
@@ -384,7 +384,7 @@ impl RyDate {
     fn in_tz(&self, tz: &str) -> PyResult<RyZoned> {
         let tz = ryo3_jiff_core::get_time_zone(tz).map_err(map_py_value_err)?;
         self.0
-            .to_zoned(tz)
+            .to_zoned_datetime(tz)
             .map(RyZoned::from)
             .map_err(map_py_value_err)
     }

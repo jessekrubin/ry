@@ -2,7 +2,7 @@ use std::fmt::Display;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::ops::Sub;
 
-use jiff::Zoned;
+use jiff::ZonedDateTime;
 use jiff::civil::{Time, TimeArithmetic, TimeRound};
 use pyo3::BoundObject;
 use pyo3::prelude::*;
@@ -96,12 +96,12 @@ impl RyTime {
     // ========================================================================
     #[staticmethod]
     fn now() -> Self {
-        jiff::civil::Time::from(Zoned::now()).into()
+        jiff::civil::Time::from(ZonedDateTime::now()).into()
     }
 
     #[staticmethod]
     fn utcnow() -> Self {
-        jiff::civil::Time::from(Zoned::now().with_time_zone(jiff::tz::TimeZone::UTC)).into()
+        jiff::civil::Time::from(ZonedDateTime::now().with_time_zone(jiff::tz::TimeZone::UTC)).into()
     }
 
     #[staticmethod]

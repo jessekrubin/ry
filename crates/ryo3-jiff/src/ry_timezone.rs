@@ -220,7 +220,7 @@ impl RyTimeZone {
     /// Return `Zoned` from `TimeZone` given a `DateTime`
     fn to_zoned(&self, datetime: &RyDateTime) -> PyResult<RyZoned> {
         self.0
-            .to_zoned(datetime.0)
+            .to_zoned_datetime(datetime.0)
             .map(RyZoned::from)
             .map_err(map_py_value_err)
     }

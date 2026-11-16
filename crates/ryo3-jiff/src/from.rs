@@ -1,6 +1,6 @@
 use jiff::civil::{Date, DateTime, ISOWeekDate, Time};
 use jiff::tz::{Offset, TimeZone};
-use jiff::{SignedDuration, Span, Timestamp, Zoned};
+use jiff::{SignedDuration, Span, Timestamp, ZonedDateTime};
 use ryo3_core::map_py_overflow_err;
 use ryo3_jiff_core::{
     JiffDate, JiffDateTime, JiffOffset, JiffSignedDuration, JiffSpan, JiffTime, JiffTimeZone,
@@ -37,35 +37,35 @@ impl From<&RyDateTime> for RyISOWeekDate {
 impl From<&RyTimestamp> for RyDate {
     #[inline]
     fn from(value: &RyTimestamp) -> Self {
-        value.0.to_zoned(TimeZone::UTC).date().into()
+        value.0.to_zoned_datetime(TimeZone::UTC).date().into()
     }
 }
 
 impl From<&RyTimestamp> for RyDateTime {
     #[inline]
     fn from(value: &RyTimestamp) -> Self {
-        value.0.to_zoned(TimeZone::UTC).datetime().into()
+        value.0.to_zoned_datetime(TimeZone::UTC).datetime().into()
     }
 }
 
 impl From<&RyTimestamp> for RyISOWeekDate {
     #[inline]
     fn from(value: &RyTimestamp) -> Self {
-        value.0.to_zoned(TimeZone::UTC).iso_week_date().into()
+        value.0.to_zoned_datetime(TimeZone::UTC).iso_week_date().into()
     }
 }
 
 impl From<&RyTimestamp> for RyTime {
     #[inline]
     fn from(value: &RyTimestamp) -> Self {
-        value.0.to_zoned(TimeZone::UTC).time().into()
+        value.0.to_zoned_datetime(TimeZone::UTC).time().into()
     }
 }
 
 impl From<&RyTimestamp> for RyZoned {
     #[inline]
     fn from(value: &RyTimestamp) -> Self {
-        value.0.to_zoned(TimeZone::UTC).into()
+        value.0.to_zoned_datetime(TimeZone::UTC).into()
     }
 }
 
@@ -140,7 +140,7 @@ impl_from_jiff_for_ry!(Span, RySpan);
 impl_from_jiff_for_ry!(Time, RyTime);
 impl_from_jiff_for_ry!(Timestamp, RyTimestamp);
 impl_from_jiff_for_ry!(TimeZone, RyTimeZone);
-impl_from_jiff_for_ry!(Zoned, RyZoned);
+impl_from_jiff_for_ry!(ZonedDateTime, RyZoned);
 
 macro_rules! impl_from_jiff_newt_for_ry {
     ($jiff_newt:ty, $ryo3_type:ty) => {

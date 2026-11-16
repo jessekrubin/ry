@@ -151,9 +151,9 @@ impl std::fmt::Display for RyTimestampSeries {
 #[pyclass(name = "ZonedSeries", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyZonedSeries {
-    start: jiff::Zoned,
+    start: jiff::ZonedDateTime,
     period: jiff::Span,
-    pub(crate) series: RyMutex<jiff::ZonedSeries, false>,
+    pub(crate) series: RyMutex<jiff::ZonedDateTimeSeries, false>,
 }
 
 impl TryFrom<(&RyZoned, &RySpan)> for RyZonedSeries {
@@ -247,7 +247,12 @@ macro_rules! impl_py_series_pymethods(
     };
 );
 
-impl_py_series_pymethods!(RyZonedSeries, RyZoned, jiff::ZonedSeries, jiff::Zoned);
+impl_py_series_pymethods!(
+    RyZonedSeries,
+    RyZoned,
+    jiff::ZonedSeries,
+    jiff::ZonedDateTime
+);
 impl_py_series_pymethods!(
     RyTimestampSeries,
     RyTimestamp,

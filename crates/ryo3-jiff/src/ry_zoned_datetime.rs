@@ -4,7 +4,7 @@ use std::ops::Sub;
 
 use jiff::civil::{DateTime, Weekday};
 use jiff::tz::TimeZone;
-use jiff::{Zoned, ZonedArithmetic, ZonedDifference, ZonedRound};
+use jiff::{ZonedDateTime, ZonedDateTimeArithmetic, ZonedDateTimeDifference, ZonedDateTimeRound};
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyTuple};
 use pyo3::{BoundObject, IntoPyObjectExt};
@@ -38,10 +38,10 @@ use crate::util::SpanKwargs;
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd)]
 #[pyclass(name = "ZonedDateTime", frozen, immutable_type, eq, ord)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
-pub struct RyZoned(pub(crate) Zoned);
+pub struct RyZoned(pub(crate) ZonedDateTime);
 
 impl RyZoned {
-    fn checked_sub<T: Into<ZonedArithmetic>>(&self, other: T) -> Result<Self, jiff::Error> {
+    fn checked_sub<T: Into<ZonedDateTimeArithmetic>>(&self, other: T) -> Result<Self, jiff::Error> {
         self.0.checked_sub(other).map(Self)
     }
 }
@@ -95,7 +95,7 @@ impl RyZoned {
         .map_err(map_py_value_err)?;
         DateTime::new(year, month, day, hour, minute, second, nanosecond)
             .map_err(map_py_value_err)?
-            .to_zoned(tz)
+            .to_zoned_datetime(tz)
             .map(Self::from)
             .map_err(map_py_value_err)
     }
@@ -124,7 +124,7 @@ impl RyZoned {
     #[classattr]
     #[expect(non_snake_case, reason = "python classattr")]
     fn UNIX_EPOCH() -> Self {
-        Self::from(Zoned::UNIX_EPOCH)
+        Self::from(ZonedDateTime::UNIX_EPOCH)
     }
 
     fn __getnewargs__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
@@ -148,22 +148,22 @@ impl RyZoned {
     fn now(tz: Option<&str>) -> PyResult<Self> {
         if let Some(tz) = tz {
             let tz = ryo3_jiff_core::get_time_zone(tz).map_err(map_py_value_err)?;
-            Ok(Self::from(Zoned::now().with_time_zone(tz)))
+            Ok(Self::from(ZonedDateTime::now().with_time_zone(tz)))
         } else {
-            Ok(Self::from(Zoned::now()))
+            Ok(Self::from(ZonedDateTime::now()))
         }
     }
 
     #[staticmethod]
     pub(crate) fn utcnow() -> Self {
-        Self::from(Zoned::now().with_time_zone(TimeZone::UTC))
+        Self::from(ZonedDateTime::now().with_time_zone(TimeZone::UTC))
     }
 
     #[staticmethod]
     #[pyo3(signature = (timestamp, time_zone))]
     fn from_parts(timestamp: &RyTimestamp, time_zone: &RyTimeZone) -> Self {
         let ts = timestamp.0;
-        Self::from(Zoned::new(ts, time_zone.to_inner()))
+        Self::from(ZonedDateTime::new(ts, time_zone.to_inner()))
     }
 
     // ========================================================================
@@ -186,9 +186,10 @@ impl RyZoned {
     #[staticmethod]
     #[pyo3(signature = (s, /, fmt))]
     fn strptime(s: &str, fmt: &str) -> PyResult<Self> {
-        Zoned::strptime(fmt, s)
+        ZonedDateTime::strptime(fmt, s)
             .or_else(|_| {
-                jiff::fmt::strtime::parse(fmt, s).and_then(|tm| tm.to_zoned_with(bundled_tzdb()))
+                jiff::fmt::strtime::parse(fmt, s)
+                    .and_then(|tm| tm.to_zoned_datetime_with(bundled_tzdb()))
             })
             .map(Self::from)
             .map_err(map_py_value_err)
@@ -462,7 +463,7 @@ impl RyZoned {
         text_signature = "(self, smallest=\"nanosecond\", *, mode=\"half-expand\", increment=1)"
     )]
     fn round(&self, smallest: JiffUnit, mode: JiffRoundMode, increment: i64) -> PyResult<Self> {
-        let zdt_round = ZonedRound::new()
+        let zdt_round = ZonedDateTimeRound::new()
             .smallest(smallest.into())
             .increment(increment)
             .mode(mode.into());
@@ -596,7 +597,7 @@ impl RyZoned {
         mode: JiffRoundMode,
         increment: i64,
     ) -> PyResult<RySpan> {
-        let mut zdt_diff = ZonedDifference::from(&other.0)
+        let mut zdt_diff = ZonedDateTimeDifference::from(&other.0)
             .increment(increment)
             .mode(mode.into())
             .smallest(smallest.into());
@@ -628,7 +629,7 @@ impl RyZoned {
         mode: JiffRoundMode,
         increment: i64,
     ) -> PyResult<RySpan> {
-        let mut zdt_diff = ZonedDifference::from(&other.0)
+        let mut zdt_diff = ZonedDateTimeDifference::from(&other.0)
             .increment(increment)
             .mode(mode.into())
             .smallest(smallest.into());

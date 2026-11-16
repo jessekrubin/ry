@@ -2,7 +2,7 @@ use std::hash::{DefaultHasher, Hash, Hasher};
 use std::ops::Sub;
 
 use jiff::tz::TimeZone;
-use jiff::{Timestamp, TimestampArithmetic, TimestampRound, Zoned};
+use jiff::{Timestamp, TimestampArithmetic, TimestampRound, ZonedDateTime};
 use pyo3::BoundObject;
 use pyo3::prelude::*;
 use pyo3::types::{PyFloat, PyInt, PyTuple};
@@ -128,7 +128,7 @@ impl RyTimestamp {
 
     #[expect(clippy::wrong_self_convention)]
     fn to_zoned(&self, time_zone: &RyTimeZone) -> RyZoned {
-        Zoned::new(self.0, time_zone.to_inner()).into()
+        ZonedDateTime::new(self.0, time_zone.to_inner()).into()
     }
 
     #[expect(clippy::wrong_self_convention)]
@@ -157,12 +157,12 @@ impl RyTimestamp {
 
     #[expect(clippy::wrong_self_convention)]
     fn to_pydate(&self) -> JiffDate {
-        self.0.to_zoned(TimeZone::UTC).date().into()
+        self.0.to_zoned_datetime(TimeZone::UTC).date().into()
     }
 
     #[expect(clippy::wrong_self_convention)]
     fn to_pytime(&self) -> JiffTime {
-        self.0.to_zoned(TimeZone::UTC).time().into()
+        self.0.to_zoned_datetime(TimeZone::UTC).time().into()
     }
 
     #[pyo3(name = "to_string")]
@@ -346,7 +346,7 @@ impl RyTimestamp {
 
     fn in_tz(&self, tz: &str) -> PyResult<RyZoned> {
         let tz = ryo3_jiff_core::get_time_zone(tz).map_err(map_py_value_err)?;
-        Ok(RyZoned::from(self.0.to_zoned(tz)))
+        Ok(RyZoned::from(self.0.to_zoned_datetime(tz)))
     }
 
     #[staticmethod]

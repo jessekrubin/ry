@@ -1,5 +1,5 @@
 use jiff::tz::TimeZone;
-use jiff::{Span, Zoned};
+use jiff::{Span, ZonedDateTime};
 use pyo3::prelude::*;
 use ryo3_core::map_py_value_err;
 use ryo3_macro_rules::py_overflow_error;
@@ -58,14 +58,14 @@ pub fn zoned(
 #[pyfunction]
 #[must_use]
 pub fn now() -> RyZoned {
-    RyZoned(Zoned::now())
+    RyZoned(ZonedDateTime::now())
 }
 
 /// Return `ZonedDateTime` for the current time in UTC.
 #[pyfunction]
 #[must_use]
 pub fn utcnow() -> RyZoned {
-    RyZoned::from(Zoned::now().with_time_zone(TimeZone::UTC))
+    RyZoned::from(ZonedDateTime::now().with_time_zone(TimeZone::UTC))
 }
 
 #[expect(clippy::too_many_arguments)]

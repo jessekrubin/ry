@@ -512,7 +512,7 @@ impl RySpan {
                 .map(RySignedDuration)
                 .map_err(map_py_value_err)
         } else {
-            let now = jiff::Zoned::now();
+            let now = jiff::ZonedDateTime::now();
             self.0
                 .to_duration(&now)
                 .map(RySignedDuration)

@@ -2,7 +2,7 @@
 
 use jiff::civil::{DateArithmetic, DateTimeArithmetic, TimeArithmetic};
 use jiff::tz::OffsetArithmetic;
-use jiff::{SignedDuration, TimestampArithmetic, ZonedArithmetic};
+use jiff::{SignedDuration, TimestampArithmetic, ZonedDateTimeArithmetic};
 use pyo3::prelude::*;
 use pyo3::types::PyDelta;
 use ryo3_core::{FromPyOperand, PyCastExactOpt};
@@ -151,7 +151,7 @@ impl From<Spanish<'_, '_>> for TimestampArithmetic {
     }
 }
 
-impl From<Spanish<'_, '_>> for ZonedArithmetic {
+impl From<Spanish<'_, '_>> for ZonedDateTimeArithmetic {
     fn from(value: Spanish<'_, '_>) -> Self {
         match value {
             Spanish::DurationLike(duration_like) => duration_like.into(),
@@ -209,7 +209,7 @@ impl From<DurationLike<'_, '_>> for TimestampArithmetic {
     }
 }
 
-impl From<DurationLike<'_, '_>> for ZonedArithmetic {
+impl From<DurationLike<'_, '_>> for ZonedDateTimeArithmetic {
     fn from(value: DurationLike<'_, '_>) -> Self {
         match value {
             DurationLike::Duration(duration) => Self::from(duration.get().inner()),

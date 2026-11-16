@@ -51,7 +51,7 @@ use std::fmt::Display;
 
 use jiff::civil::{DateTimeRound, TimeRound};
 use jiff::tz::OffsetRound;
-use jiff::{SignedDurationRound, TimestampRound, ZonedRound};
+use jiff::{SignedDurationRound, TimestampRound, ZonedDateTimeRound};
 use pyo3::IntoPyObjectExt;
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyTuple};
@@ -585,7 +585,7 @@ impl Display for RyTimestampRound {
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 pub struct RyZonedDateTimeRound {
     options: RoundOptions,
-    pub(crate) jiff_round: ZonedRound,
+    pub(crate) jiff_round: ZonedDateTimeRound,
 }
 
 impl From<RoundOptions> for RyZonedDateTimeRound {
@@ -839,7 +839,7 @@ impl_from_round_options_for!(OffsetRound);
 impl_from_round_options_for!(SignedDurationRound);
 impl_from_round_options_for!(TimeRound);
 impl_from_round_options_for!(TimestampRound);
-impl_from_round_options_for!(ZonedRound);
+impl_from_round_options_for!(ZonedDateTimeRound);
 
 // ----------------------------------------------------------------------------
 // macro_rules! impl_round_struct_new {

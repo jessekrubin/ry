@@ -36,7 +36,7 @@ impl_deserialize!(RySignedDuration, jiff::SignedDuration);
 impl_deserialize!(RySpan, jiff::Span);
 impl_deserialize!(RyTime, jiff::civil::Time);
 impl_deserialize!(RyTimestamp, jiff::Timestamp);
-impl_deserialize!(RyZoned, jiff::Zoned);
+impl_deserialize!(RyZoned, jiff::ZonedDateTime);
 impl_deserialize!(RyISOWeekDate, jiff::civil::ISOWeekDate);
 
 // ----------------------------------------------------------------------------
