@@ -192,9 +192,7 @@ from ry.ryo3._reqwest import BlockingEventStream as BlockingEventStream
 from ry.ryo3._reqwest import BlockingResponse as BlockingResponse
 from ry.ryo3._reqwest import BlockingResponseStream as BlockingResponseStream
 from ry.ryo3._reqwest import Certificate as Certificate
-from ry.ryo3._reqwest import (
-    CertificateRevocationList as CertificateRevocationList,
-)
+from ry.ryo3._reqwest import CertificateRevocationList as CertificateRevocationList
 from ry.ryo3._reqwest import Client as Client
 from ry.ryo3._reqwest import ClientConfig as ClientConfig
 from ry.ryo3._reqwest import EventStream as EventStream
@@ -2347,14 +2345,7 @@ _TTemporal = t.TypeVar(
     "_TTemporal", bound=ZonedDateTime | DateTime | Timestamp | Date | Time
 )
 _TObj = t.TypeVar(
-    "_TObj",
-    Date,
-    DateTime,
-    Time,
-    Timestamp,
-    ZonedDateTime,
-    SignedDuration,
-    Offset,
+    "_TObj", Date, DateTime, Time, Timestamp, ZonedDateTime, SignedDuration, Offset
 )
 _TUnit = t.TypeVar("_TUnit", bound=_Unit)
 _TzName: t.TypeAlias = TimezoneDbName | str
@@ -2791,20 +2782,10 @@ class Time(
         t: Time | DateTime | ZonedDateTime,
         *,
         smallest: t.Literal[
-            "hour",
-            "minute",
-            "second",
-            "millisecond",
-            "microsecond",
-            "nanosecond",
+            "hour", "minute", "second", "millisecond", "microsecond", "nanosecond"
         ] = "nanosecond",
         largest: t.Literal[
-            "hour",
-            "minute",
-            "second",
-            "millisecond",
-            "microsecond",
-            "nanosecond",
+            "hour", "minute", "second", "millisecond", "microsecond", "nanosecond"
         ]
         | None = None,
         mode: _RoundMode = "trunc",
@@ -2815,20 +2796,10 @@ class Time(
         t: Time | DateTime | ZonedDateTime,
         *,
         smallest: t.Literal[
-            "hour",
-            "minute",
-            "second",
-            "millisecond",
-            "microsecond",
-            "nanosecond",
+            "hour", "minute", "second", "millisecond", "microsecond", "nanosecond"
         ] = "nanosecond",
         largest: t.Literal[
-            "hour",
-            "minute",
-            "second",
-            "millisecond",
-            "microsecond",
-            "nanosecond",
+            "hour", "minute", "second", "millisecond", "microsecond", "nanosecond"
         ]
         | None = None,
         mode: _RoundMode = "trunc",
@@ -7182,10 +7153,7 @@ def ls(
 
 
 def mkdir(
-    path: str | PathLike[str],
-    *,
-    exist_ok: bool = False,
-    recursive: bool = False,
+    path: str | PathLike[str], *, exist_ok: bool = False, recursive: bool = False
 ) -> None: ...
 def mkdirp(path: str | PathLike[str]) -> None: ...
 ```
@@ -7671,14 +7639,7 @@ from ry._types import (
     Buffer,
     FsPathLike,
 )
-from ry.protocols import (
-    FromStr,
-    RyIterator,
-    ToPy,
-    ToPyTimeDelta,
-    ToString,
-    _Parse,
-)
+from ry.protocols import FromStr, RyIterator, ToPy, ToPyTimeDelta, ToString, _Parse
 from ry.ryo3._bytes import Bytes
 
 # =============================================================================
@@ -9366,9 +9327,7 @@ import uuid
 from collections.abc import Callable as Callable
 
 from pydantic import GetCoreSchemaHandler as GetCoreSchemaHandler
-from pydantic import (
-    ValidatorFunctionWrapHandler as ValidatorFunctionWrapHandler,
-)
+from pydantic import ValidatorFunctionWrapHandler as ValidatorFunctionWrapHandler
 from pydantic_core import CoreSchema as CoreSchema
 
 from ry.protocols import FromStr
@@ -10040,8 +9999,7 @@ class UUID(FromStr):
     def to_py(self) -> pyuuid.UUID: ...
     def to_string(self) -> str: ...
     def format(
-        self,
-        kind: t.Literal["hyphenated", "simple", "urn", "braced"] = "hyphenated",
+        self, kind: t.Literal["hyphenated", "simple", "urn", "braced"] = "hyphenated"
     ) -> str: ...
     def __format__(self, format_spec: str, /) -> str: ...
     # --- CLASSMETHODS --
@@ -10192,28 +10150,7 @@ from ry import Bytes
 from ry._types import Buffer
 
 _ZstdLevel: t.TypeAlias = t.Literal[
-    1,
-    2,
-    3,
-    4,
-    5,
-    6,
-    7,
-    8,
-    9,
-    10,
-    11,
-    12,
-    13,
-    14,
-    15,
-    16,
-    17,
-    18,
-    19,
-    20,
-    21,
-    22,
+    1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22
 ]
 
 ZSTD_VERSION: str  # "1.5.7" (c. 2026-10-29)
