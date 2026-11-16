@@ -71,7 +71,7 @@ use pyo3::prelude::*;
 //     #[cfg(feature = "ryo3-jiff")]  ry_time => ryo3_jiff::RyTime;
 //     #[cfg(feature = "ryo3-jiff")]  ry_timestamp => ryo3_jiff::RyTimestamp;
 //     #[cfg(feature = "ryo3-jiff")]  ry_timezone => ryo3_jiff::RyTimeZone;
-//     #[cfg(feature = "ryo3-jiff")]  ry_zoned => ryo3_jiff::RyZoned;
+//     #[cfg(feature = "ryo3-jiff")]  ry_zoned => ryo3_jiff::RyZonedDateTime;
 //     // ulid
 //     #[cfg(feature = "ryo3-ulid")]  ry_ulid => ryo3_ulid::RyUlid;
 //     // url
@@ -163,7 +163,7 @@ ry_type_serializer_struct! (
 );
 ry_type_serializer_struct! (
     #[cfg(feature = "ryo3-jiff")]
-    RyZonedSerializer => ryo3_jiff::RyZoned
+    RyZonedDateTimeSerializer => ryo3_jiff::RyZonedDateTime
 );
 // ===========================================================================
 // ULID

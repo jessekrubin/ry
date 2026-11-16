@@ -9,7 +9,7 @@ use ryo3_core::{PyAsciiString, map_py_value_err};
 use ryo3_jiff_core::{JiffDate, JiffWeekday};
 use ryo3_macro_rules::{any_repr, py_type_err};
 
-use crate::{RyDate, RyDateTime, RyTimestamp, RyZoned};
+use crate::{RyDate, RyDateTime, RyTimestamp, RyZonedDateTime};
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, PartialOrd)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize), serde(transparent))]
@@ -228,7 +228,7 @@ impl RyISOWeekDate {
             Self::from(d.get()).into_pyobject(py)
         } else if let Ok(d) = value.cast_exact::<RyDateTime>() {
             Self::from(d.get()).into_pyobject(py)
-        } else if let Ok(d) = value.cast_exact::<RyZoned>() {
+        } else if let Ok(d) = value.cast_exact::<RyZonedDateTime>() {
             Self::from(d.get()).into_pyobject(py)
         } else if let Ok(d) = value.cast_exact::<RyTimestamp>() {
             Self::from(d.get()).into_pyobject(py)

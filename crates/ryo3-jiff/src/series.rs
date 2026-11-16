@@ -2,7 +2,7 @@ use pyo3::prelude::*;
 use ryo3_core::sync::RyMutex;
 use ryo3_macro_rules::py_value_err;
 
-use crate::{RyDate, RyDateTime, RySpan, RyTime, RyTimestamp, RyZoned};
+use crate::{RyDate, RyDateTime, RySpan, RyTime, RyTimestamp, RyZonedDateTime};
 
 #[pyclass(name = "DateSeries", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
@@ -150,16 +150,16 @@ impl std::fmt::Display for RyTimestampSeries {
 
 #[pyclass(name = "ZonedSeries", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
-pub struct RyZonedSeries {
+pub struct RyZonedDateTimeSeries {
     start: jiff::ZonedDateTime,
     period: jiff::Span,
     pub(crate) series: RyMutex<jiff::ZonedDateTimeSeries, false>,
 }
 
-impl TryFrom<(&RyZoned, &RySpan)> for RyZonedSeries {
+impl TryFrom<(&RyZonedDateTime, &RySpan)> for RyZonedDateTimeSeries {
     type Error = PyErr;
 
-    fn try_from(value: (&RyZoned, &RySpan)) -> Result<Self, Self::Error> {
+    fn try_from(value: (&RyZonedDateTime, &RySpan)) -> Result<Self, Self::Error> {
         let (start, period) = value;
         if period.0.is_zero() {
             return py_value_err!("period cannot be zero");
@@ -248,8 +248,8 @@ macro_rules! impl_py_series_pymethods(
 );
 
 impl_py_series_pymethods!(
-    RyZonedSeries,
-    RyZoned,
+    RyZonedDateTimeSeries,
+    RyZonedDateTime,
     jiff::ZonedSeries,
     jiff::ZonedDateTime
 );
@@ -278,12 +278,12 @@ impl_py_series_pymethods!(
     jiff::civil::Date
 );
 
-impl std::fmt::Display for RyZonedSeries {
+impl std::fmt::Display for RyZonedDateTimeSeries {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
             "ZonedSeries(start={}, period={})",
-            RyZoned::from(self.start.clone()),
+            RyZonedDateTime::from(self.start.clone()),
             RySpan::from(self.period)
         )
     }

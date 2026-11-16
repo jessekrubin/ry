@@ -5,7 +5,7 @@ use ryo3_pydantic::{GetPydanticCoreSchemaCls, GetPydanticJsonSchemaCls, interns}
 
 use crate::{
     RyDate, RyDateTime, RyISOWeekDate, RyOffset, RySignedDuration, RySpan, RyTime, RyTimeZone,
-    RyTimestamp, RyZoned,
+    RyTimestamp, RyZonedDateTime,
 };
 
 impl GetPydanticCoreSchemaCls for RyDate {
@@ -106,7 +106,7 @@ impl GetPydanticCoreSchemaCls for RyTimestamp {
     }
 }
 
-impl GetPydanticCoreSchemaCls for RyZoned {
+impl GetPydanticCoreSchemaCls for RyZonedDateTime {
     fn get_pydantic_core_schema<'py>(
         cls: &Bound<'py, PyType>,
         source: &Bound<'py, PyAny>,
@@ -320,7 +320,7 @@ impl GetPydanticJsonSchemaCls for RyTime {
     }
 }
 
-impl GetPydanticJsonSchemaCls for RyZoned {
+impl GetPydanticJsonSchemaCls for RyZonedDateTime {
     fn get_pydantic_json_schema<'py>(
         _cls: &Bound<'py, PyType>,
         core_schema: &Bound<'py, PyAny>,

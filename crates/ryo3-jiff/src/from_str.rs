@@ -9,7 +9,7 @@ use ryo3_jiff_core::bundled_tzdb;
 use crate::isoformat::parse_iso_week_date;
 use crate::{
     RyDate, RyDateTime, RyISOWeekDate, RyOffset, RySignedDuration, RySpan, RyTime, RyTimeZone,
-    RyTimestamp, RyZoned,
+    RyTimestamp, RyZonedDateTime,
 };
 
 macro_rules! impl_ry_jiff_from_str {
@@ -33,7 +33,7 @@ impl_ry_jiff_from_str!(RySignedDuration);
 impl_ry_jiff_from_str!(RySpan);
 impl_ry_jiff_from_str!(RyTime);
 impl_ry_jiff_from_str!(RyTimestamp);
-impl FromStr for RyZoned {
+impl FromStr for RyZonedDateTime {
     type Err = jiff::Error;
 
     #[inline]

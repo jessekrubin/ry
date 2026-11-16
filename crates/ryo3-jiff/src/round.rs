@@ -59,7 +59,7 @@ use ryo3_core::PyAsciiString;
 use ryo3_jiff_core::{JiffRoundMode, JiffUnit};
 use ryo3_macro_rules::py_value_error;
 
-use crate::{RyDateTime, RyOffset, RySignedDuration, RyTime, RyTimestamp, RyZoned};
+use crate::{RyDateTime, RyOffset, RySignedDuration, RyTime, RyTimestamp, RyZonedDateTime};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub(crate) struct RoundOptions {
@@ -673,13 +673,13 @@ impl RyZonedDateTimeRound {
         self.options.increment
     }
 
-    pub(crate) fn round(&self, ob: &RyZoned) -> PyResult<RyZoned> {
+    pub(crate) fn round(&self, ob: &RyZonedDateTime) -> PyResult<RyZonedDateTime> {
         ob.0.round(self.jiff_round)
-            .map(RyZoned::from)
+            .map(RyZonedDateTime::from)
             .map_err(|e| py_value_error!("Error rounding ZonedDateTime: {}", e))
     }
 
-    fn __call__(&self, ob: &RyZoned) -> PyResult<RyZoned> {
+    fn __call__(&self, ob: &RyZonedDateTime) -> PyResult<RyZonedDateTime> {
         self.round(ob)
     }
 }
@@ -865,7 +865,7 @@ impl_from_round_options_for!(ZonedDateTimeRound);
 // impl_round_struct_new!(RySignedDurationRound, SignedDurationRound);
 // impl_round_struct_new!(RyTimeRound, TimeRound);
 // impl_round_struct_new!(RyTimestampRound, TimestampRound);
-// impl_round_struct_new!(RyZonedRound, ZonedRound);
+// impl_round_struct_new!(RyZonedDateTimeRound, ZonedDateTimeRound);
 
 impl PartialEq for RyDateTimeRound {
     fn eq(&self, other: &Self) -> bool {

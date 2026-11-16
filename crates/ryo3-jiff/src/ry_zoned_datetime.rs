@@ -30,7 +30,7 @@ use crate::ry_span::RySpan;
 use crate::ry_time::RyTime;
 use crate::ry_timestamp::RyTimestamp;
 use crate::ry_timezone::RyTimeZone;
-use crate::series::RyZonedSeries;
+use crate::series::RyZonedDateTimeSeries;
 use crate::spanish::{DurationLike, Spanish};
 use crate::util::SpanKwargs;
 
@@ -38,15 +38,15 @@ use crate::util::SpanKwargs;
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd)]
 #[pyclass(name = "ZonedDateTime", frozen, immutable_type, eq, ord)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
-pub struct RyZoned(pub(crate) ZonedDateTime);
+pub struct RyZonedDateTime(pub(crate) ZonedDateTime);
 
-impl RyZoned {
+impl RyZonedDateTime {
     fn checked_sub<T: Into<ZonedDateTimeArithmetic>>(&self, other: T) -> Result<Self, jiff::Error> {
         self.0.checked_sub(other).map(Self)
     }
 }
 
-impl RyZoned {
+impl RyZonedDateTime {
     fn try_add(&self, other: Spanish<'_, '_>) -> PyResult<Self> {
         self.0
             .checked_add(other)
@@ -63,7 +63,7 @@ impl RyZoned {
 }
 
 #[pymethods]
-impl RyZoned {
+impl RyZonedDateTime {
     #[new]
     #[pyo3(
         signature = (
@@ -777,7 +777,7 @@ impl RyZoned {
         builder.build().map(Self::from).map_err(map_py_value_err)
     }
 
-    fn series(&self, period: &RySpan) -> PyResult<RyZonedSeries> {
+    fn series(&self, period: &RySpan) -> PyResult<RyZonedDateTimeSeries> {
         (self, period).try_into()
     }
 
@@ -933,7 +933,7 @@ impl RyZoned {
     // </STD-METHODS>
 }
 
-impl Display for RyZoned {
+impl Display for RyZonedDateTime {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         if let Some(tz_name) = self.0.time_zone().iana_name() {
             write!(

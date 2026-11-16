@@ -7,7 +7,7 @@ use ryo3_macro_rules::py_value_error;
 
 use crate::{
     RyDate, RyDateTime, RyISOWeekDate, RyOffset, RySignedDuration, RySpan, RyTime, RyTimestamp,
-    RyZoned,
+    RyZonedDateTime,
 };
 
 pub(crate) trait PyIsoFormat {
@@ -148,7 +148,7 @@ impl PyIsoFormat for RyTimestamp {
     }
 }
 
-impl PyIsoFormat for RyZoned {
+impl PyIsoFormat for RyZonedDateTime {
     // ISO format mismatch:
     // input datetime: 7639-01-01 00:00:00.395000+00:00 (repr: datetime.datetime(7639, 1, 1, 0, 0, 0, 395000, tzinfo=zoneinfo.ZoneInfo(key='UTC')))
     // py: 7639-01-01T00:00:00.395000+00:00

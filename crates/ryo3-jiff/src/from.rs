@@ -9,7 +9,7 @@ use ryo3_jiff_core::{
 
 use crate::{
     RyDate, RyDateTime, RyISOWeekDate, RyOffset, RySignedDuration, RySpan, RyTime, RyTimeZone,
-    RyTimestamp, RyZoned,
+    RyTimestamp, RyZonedDateTime,
 };
 
 // ~ ~ ~ internal crate conversions ~ ~ ~
@@ -66,44 +66,44 @@ impl From<&RyTimestamp> for RyTime {
     }
 }
 
-impl From<&RyTimestamp> for RyZoned {
+impl From<&RyTimestamp> for RyZonedDateTime {
     #[inline]
     fn from(value: &RyTimestamp) -> Self {
         value.0.to_zoned_datetime(TimeZone::UTC).into()
     }
 }
 
-impl From<&RyZoned> for RyDate {
+impl From<&RyZonedDateTime> for RyDate {
     #[inline]
-    fn from(value: &RyZoned) -> Self {
+    fn from(value: &RyZonedDateTime) -> Self {
         value.0.date().into()
     }
 }
 
-impl From<&RyZoned> for RyTime {
+impl From<&RyZonedDateTime> for RyTime {
     #[inline]
-    fn from(value: &RyZoned) -> Self {
+    fn from(value: &RyZonedDateTime) -> Self {
         value.0.time().into()
     }
 }
 
-impl From<&RyZoned> for RyDateTime {
+impl From<&RyZonedDateTime> for RyDateTime {
     #[inline]
-    fn from(value: &RyZoned) -> Self {
+    fn from(value: &RyZonedDateTime) -> Self {
         value.0.datetime().into()
     }
 }
 
-impl From<&RyZoned> for RyISOWeekDate {
+impl From<&RyZonedDateTime> for RyISOWeekDate {
     #[inline]
-    fn from(value: &RyZoned) -> Self {
+    fn from(value: &RyZonedDateTime) -> Self {
         value.0.date().iso_week_date().into()
     }
 }
 
-impl From<&RyZoned> for RyTimestamp {
+impl From<&RyZonedDateTime> for RyTimestamp {
     #[inline]
-    fn from(value: &RyZoned) -> Self {
+    fn from(value: &RyZonedDateTime) -> Self {
         value.0.timestamp().into()
     }
 }
@@ -144,7 +144,7 @@ impl_from_jiff_for_ry!(Span, RySpan);
 impl_from_jiff_for_ry!(Time, RyTime);
 impl_from_jiff_for_ry!(Timestamp, RyTimestamp);
 impl_from_jiff_for_ry!(TimeZone, RyTimeZone);
-impl_from_jiff_for_ry!(ZonedDateTime, RyZoned);
+impl_from_jiff_for_ry!(ZonedDateTime, RyZonedDateTime);
 
 macro_rules! impl_from_jiff_newt_for_ry {
     ($jiff_newt:ty, $ryo3_type:ty) => {
@@ -161,7 +161,7 @@ impl_from_jiff_newt_for_ry!(JiffDate, RyDate);
 impl_from_jiff_newt_for_ry!(JiffTime, RyTime);
 impl_from_jiff_newt_for_ry!(JiffDateTime, RyDateTime);
 impl_from_jiff_newt_for_ry!(JiffTimestamp, RyTimestamp);
-impl_from_jiff_newt_for_ry!(JiffZonedDateTime, RyZoned);
+impl_from_jiff_newt_for_ry!(JiffZonedDateTime, RyZonedDateTime);
 impl_from_jiff_newt_for_ry!(JiffSpan, RySpan);
 impl_from_jiff_newt_for_ry!(JiffOffset, RyOffset);
 impl_from_jiff_newt_for_ry!(JiffSignedDuration, RySignedDuration);

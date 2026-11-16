@@ -13,7 +13,7 @@ use ryo3_macro_rules::{py_type_err, pytodo};
 use crate::ry_datetime::RyDateTime;
 use crate::ry_offset::RyOffset;
 use crate::ry_timestamp::RyTimestamp;
-use crate::ry_zoned_datetime::RyZoned;
+use crate::ry_zoned_datetime::RyZonedDateTime;
 
 #[derive(Debug, Clone)]
 #[pyclass(name = "TimeZone", frozen, immutable_type, eq)]
@@ -218,10 +218,10 @@ impl RyTimeZone {
     }
 
     /// Return `Zoned` from `TimeZone` given a `DateTime`
-    fn to_zoned(&self, datetime: &RyDateTime) -> PyResult<RyZoned> {
+    fn to_zoned(&self, datetime: &RyDateTime) -> PyResult<RyZonedDateTime> {
         self.0
             .to_zoned_datetime(datetime.0)
-            .map(RyZoned::from)
+            .map(RyZonedDateTime::from)
             .map_err(map_py_value_err)
     }
 

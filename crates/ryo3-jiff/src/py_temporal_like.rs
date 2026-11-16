@@ -4,14 +4,14 @@ use ryo3_core::FromPyOperand;
 use ryo3_macro_rules::{py_overflow_err, py_type_error, py_value_err};
 
 use crate::spanish::Spanish;
-use crate::{RyDate, RyDateTime, RySignedDuration, RySpan, RyTime, RyTimestamp, RyZoned};
+use crate::{RyDate, RyDateTime, RySignedDuration, RySpan, RyTime, RyTimestamp, RyZonedDateTime};
 
 #[derive(Debug, Clone)]
 pub(crate) enum PyTemporalArg<'a, 'py> {
     Date(Borrowed<'a, 'py, RyDate>),
     DateTime(Borrowed<'a, 'py, RyDateTime>),
     Time(Borrowed<'a, 'py, RyTime>),
-    Zoned(Borrowed<'a, 'py, RyZoned>),
+    Zoned(Borrowed<'a, 'py, RyZonedDateTime>),
     Timestamp(Borrowed<'a, 'py, RyTimestamp>),
 }
 
@@ -41,7 +41,7 @@ macro_rules! impl_py_temporal_type_name {
 impl_py_temporal_type_name!(RyDate, "Date");
 impl_py_temporal_type_name!(RyDateTime, "DateTime");
 impl_py_temporal_type_name!(RyTime, "Time");
-impl_py_temporal_type_name!(RyZoned, "ZonedDateTime");
+impl_py_temporal_type_name!(RyZonedDateTime, "ZonedDateTime");
 impl_py_temporal_type_name!(RyTimestamp, "Timestamp");
 
 impl<'a, 'py> FromPyObject<'a, 'py> for PyTemporalArg<'a, 'py> {

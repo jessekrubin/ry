@@ -18,7 +18,9 @@ use crate::py_temporal_like::{TemporalSubInput, TemporalSubOutput};
 use crate::series::RyTimeSeries;
 use crate::spanish::{DurationLike, Spanish};
 use crate::util::SpanKwargs;
-use crate::{RyDate, RyDateTime, RySignedDuration, RySpan, RyTimeRound, RyTimestamp, RyZoned};
+use crate::{
+    RyDate, RyDateTime, RySignedDuration, RySpan, RyTimeRound, RyTimestamp, RyZonedDateTime,
+};
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize), serde(transparent))]
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, PartialOrd, Ord)]
@@ -574,7 +576,7 @@ impl RyTime {
             Self::from_str(&s).map(|dt| dt.into_pyobject(py))?
         } else if let Ok(d) = value.cast_exact::<RyDateTime>() {
             Self::from(d.get()).into_pyobject(py)
-        } else if let Ok(zdt) = value.cast_exact::<RyZoned>() {
+        } else if let Ok(zdt) = value.cast_exact::<RyZonedDateTime>() {
             Self::from(zdt.get()).into_pyobject(py)
         } else if let Ok(ts) = value.cast_exact::<RyTimestamp>() {
             Self::from(ts.get()).into_pyobject(py)

@@ -22,7 +22,7 @@ use crate::ry_signed_duration::RySignedDuration;
 use crate::ry_span::RySpan;
 use crate::ry_time::RyTime;
 use crate::ry_timezone::RyTimeZone;
-use crate::ry_zoned_datetime::RyZoned;
+use crate::ry_zoned_datetime::RyZonedDateTime;
 use crate::series::RyDateSeries;
 use crate::spanish::{DurationLike, Spanish};
 use crate::util::SpanKwargs;
@@ -143,10 +143,10 @@ impl RyDate {
     }
 
     #[expect(clippy::wrong_self_convention)]
-    fn to_zoned(&self, tz: &RyTimeZone) -> PyResult<RyZoned> {
+    fn to_zoned(&self, tz: &RyTimeZone) -> PyResult<RyZonedDateTime> {
         self.0
             .to_zoned_datetime(tz.to_inner())
-            .map(RyZoned::from)
+            .map(RyZonedDateTime::from)
             .map_err(map_py_value_err)
     }
 
@@ -381,11 +381,11 @@ impl RyDate {
         PyTuple::new(py, parts)
     }
 
-    fn in_tz(&self, tz: &str) -> PyResult<RyZoned> {
+    fn in_tz(&self, tz: &str) -> PyResult<RyZonedDateTime> {
         let tz = ryo3_jiff_core::get_time_zone(tz).map_err(map_py_value_err)?;
         self.0
             .to_zoned_datetime(tz)
-            .map(RyZoned::from)
+            .map(RyZonedDateTime::from)
             .map_err(map_py_value_err)
     }
 
@@ -599,7 +599,7 @@ impl RyDate {
         } else if let Ok(pybytes) = value.cast::<pyo3::types::PyBytes>() {
             let s = String::from_utf8_lossy(pybytes.as_bytes());
             Self::from_str(&s).map(|dt| dt.into_pyobject(py))?
-        } else if let Ok(d) = value.cast_exact::<RyZoned>() {
+        } else if let Ok(d) = value.cast_exact::<RyZonedDateTime>() {
             Self::from(d.get()).into_pyobject(py)
         } else if let Ok(ts) = value.cast_exact::<RyTimestamp>() {
             Self::from(ts.get()).into_pyobject(py)

@@ -183,7 +183,7 @@ impl PyTypeCache {
             #[cfg(feature = "ryo3-jiff")]
             ry_timezone: ryo3_jiff::RyTimeZone::type_object_raw(py) as usize,
             #[cfg(feature = "ryo3-jiff")]
-            ry_zoned: ryo3_jiff::RyZoned::type_object_raw(py) as usize,
+            ry_zoned: ryo3_jiff::RyZonedDateTime::type_object_raw(py) as usize,
         }
     }
 
@@ -281,7 +281,7 @@ impl PyTypeCache {
         py_obj_ptr_feat!(self, ptr, "ryo3-std", ry_duration, PyDuration);
 
         py_obj_ptr_feat!(self, ptr, "ryo3-jiff", ry_signed_duration, RySignedDuration);
-        py_obj_ptr_feat!(self, ptr, "ryo3-jiff", ry_zoned, RyZoned);
+        py_obj_ptr_feat!(self, ptr, "ryo3-jiff", ry_zoned, RyZonedDateTime);
         py_obj_ptr_feat!(self, ptr, "ryo3-jiff", ry_timespan, RyTimeSpan);
         py_obj_ptr_feat!(self, ptr, "ryo3-jiff", ry_timestamp, RyTimestamp);
         py_obj_ptr_feat!(self, ptr, "ryo3-jiff", ry_datetime, RyDateTime);
