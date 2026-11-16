@@ -1,7 +1,7 @@
 use std::path::Path;
 use std::process::Command;
 
-use jiff::{Unit, Zoned};
+use jiff::{Unit, ZonedDateTime};
 
 const UNKNOWN: &str = "unknown";
 
@@ -135,7 +135,7 @@ fn main() {
         std::env::var("PROFILE").expect("PROFILE env var not found which is SUPER strange!");
     println!("cargo:rustc-env=PROFILE={profile}");
 
-    let build_ts = Zoned::now()
+    let build_ts = ZonedDateTime::now()
         .round(Unit::Second)
         .expect("oh no, build time error");
     // build timestamp

@@ -13,8 +13,9 @@ use ryo3_core::map_py_value_err;
 use crate::{
     JiffDate, JiffDateTime, JiffEra, JiffEraYear, JiffOffset, JiffRoundMode, JiffSignedDuration,
     JiffSignedDurationRef, JiffSpan, JiffTime, JiffTimeZone, JiffTimeZoneRef, JiffTimestamp,
-    JiffUnit, JiffWeekday, JiffZoned, JiffZonedRef, date_to_pydate, datetime_to_pydatetime,
-    signed_duration_to_pydelta, time_to_pytime, timezone_to_pytzinfo, zoned_to_pydatetime,
+    JiffUnit, JiffWeekday, JiffZonedDateTime, JiffZonedDateTimeRef, date_to_pydate,
+    datetime_to_pydatetime, signed_duration_to_pydelta, time_to_pytime, timezone_to_pytzinfo,
+    zoned_datetime_to_pydatetime,
 };
 
 /// impl `IntoPyObject` for an owned new-type by forwarding to its `&T` impl
@@ -50,8 +51,8 @@ into_pyobject_via_ref!(JiffDate => PyDate);
 into_pyobject_via_ref!(JiffTime => PyTime);
 into_pyobject_via_ref!(JiffDateTime => PyDateTime);
 into_pyobject_via_ref!(JiffTimestamp => PyDateTime);
-into_pyobject_via_ref!(JiffZoned => PyDateTime);
-into_pyobject_via_ref!(JiffZonedRef<'_> => PyDateTime);
+into_pyobject_via_ref!(JiffZonedDateTime => PyDateTime);
+into_pyobject_via_ref!(JiffZonedDateTimeRef<'_> => PyDateTime);
 into_pyobject_via_ref!(JiffSpan => PyDelta);
 into_pyobject_via_ref!(JiffSignedDuration => PyDelta);
 into_pyobject_via_ref!(JiffSignedDurationRef<'_> => PyDelta);
@@ -108,27 +109,27 @@ impl<'py> IntoPyObject<'py> for &JiffTimestamp {
     type Error = PyErr;
 
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
-        JiffZoned::new(self.inner().to_zoned(TimeZone::UTC)).into_pyobject(py)
+        JiffZonedDateTime::new(self.inner().to_zoned_datetime(TimeZone::UTC)).into_pyobject(py)
     }
 }
 
-impl<'py> IntoPyObject<'py> for &JiffZoned {
+impl<'py> IntoPyObject<'py> for &JiffZonedDateTime {
     type Target = PyDateTime;
     type Output = Bound<'py, Self::Target>;
     type Error = PyErr;
 
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
-        zoned_to_pydatetime(py, self.inner())
+        zoned_datetime_to_pydatetime(py, self.inner())
     }
 }
 
-impl<'py> IntoPyObject<'py> for &JiffZonedRef<'_> {
+impl<'py> IntoPyObject<'py> for &JiffZonedDateTimeRef<'_> {
     type Target = PyDateTime;
     type Output = Bound<'py, Self::Target>;
     type Error = PyErr;
 
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
-        zoned_to_pydatetime(py, self.inner())
+        zoned_datetime_to_pydatetime(py, self.inner())
     }
 }
 

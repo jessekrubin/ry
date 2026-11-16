@@ -105,7 +105,7 @@ pub struct JiffDateTime(jiff::civil::DateTime);
 pub struct JiffTimestamp(jiff::Timestamp);
 
 #[derive(Debug, Clone)]
-pub struct JiffZoned(jiff::Zoned);
+pub struct JiffZonedDateTime(jiff::ZonedDateTime);
 
 #[derive(Debug, Clone, Copy)]
 pub struct JiffSpan(jiff::Span);
@@ -126,7 +126,7 @@ pub struct JiffSignedDuration(jiff::SignedDuration);
 pub struct JiffTimeZoneRef<'a>(&'a jiff::tz::TimeZone);
 
 #[derive(Debug, Clone, Copy)]
-pub struct JiffZonedRef<'a>(&'a jiff::Zoned);
+pub struct JiffZonedDateTimeRef<'a>(&'a jiff::ZonedDateTime);
 
 #[derive(Debug, Clone, Copy)]
 pub struct JiffSignedDurationRef<'a>(&'a jiff::SignedDuration);
@@ -167,7 +167,7 @@ pub struct JiffFriendlyDesignator(jiff::fmt::friendly::Designator);
 /// primarily used for extracting naive or aware datetimes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum JiffDateTimeOrZoned {
-    Aware(jiff::Zoned),
+    Aware(jiff::ZonedDateTime),
     Naive(jiff::civil::DateTime),
 }
 
@@ -181,7 +181,7 @@ impl_newtype!(const JiffSpan, jiff::Span);
 impl_newtype!(const JiffTimestamp, jiff::Timestamp);
 impl_newtype!(const JiffUnit, jiff::Unit);
 impl_newtype!(const JiffRoundMode, jiff::RoundMode);
-impl_newtype!(JiffZoned, jiff::Zoned);
+impl_newtype!(JiffZonedDateTime, jiff::ZonedDateTime);
 // jiff::civil::*
 impl_newtype!(const JiffDate, jiff::civil::Date);
 impl_newtype!(const JiffDateTime, jiff::civil::DateTime);
@@ -199,7 +199,7 @@ impl_newtype!(const JiffFriendlyDesignator, jiff::fmt::friendly::Designator);
 impl_newtype!(const JiffEraYear, (i16, jiff::civil::Era));
 
 // REFS
-impl_new_type_ref_functions!(JiffZonedRef, jiff::Zoned);
+impl_new_type_ref_functions!(JiffZonedDateTimeRef, jiff::ZonedDateTime);
 impl_new_type_ref_functions!(JiffTimeZoneRef, jiff::tz::TimeZone);
 impl_new_type_ref_functions!(JiffSignedDurationRef, jiff::SignedDuration);
 
