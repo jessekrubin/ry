@@ -347,11 +347,8 @@ def test_timestamp_display_with_offset(ts: ry.Timestamp, off: ry.Offset) -> None
     assert s.isascii()
     try:
         parsed = ry.Timestamp.parse(s)
-        diff = ts - parsed
-        assert (
-            ts == parsed
-            or diff.total_seconds() < ry.TimeSpan(seconds=1).total_seconds()
-        ), (
+        diff = ts - parsed  # `SignedDuration` (as of jiff 1.0 (2026-11-16))
+        assert ts == parsed or abs(diff) < ry.SignedDuration(secs=1), (
             f"Expected parsed timestamp {parsed} to be equal to original {ts} "
             f"or differ by less than 1 seconds, got difference of {diff}"
         )

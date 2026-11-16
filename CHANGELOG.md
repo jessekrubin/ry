@@ -7,7 +7,7 @@
 
 ---
 
-## v0.0.110 [unreleased]
+## v0.0.110 [2026-11-16]
 
 - `ryo3-jiff` ~ `jiff-v1.x.y` (!)
   - UPGRADE TO JIFF 1!
