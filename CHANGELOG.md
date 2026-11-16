@@ -7,6 +7,13 @@
 
 ---
 
+## v0.0.110 [unreleased]
+
+- `ryo3-jiff`
+  - UPGRADE TO JIFF 1!
+
+---
+
 ## v0.0.109 [2026-11-13]
 
 - **DEPRECATION REMOVALS**
