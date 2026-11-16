@@ -8,7 +8,7 @@ use ryo3_cookie::PyCookie;
 use ryo3_core::sync::RyMutex;
 use ryo3_http::{PyHttpVersion, RyHeaders, RyHttpStatus, status_code_pystring};
 use ryo3_macro_rules::pytodo;
-use ryo3_std::net::PySocketAddr;
+use ryo3_std::net::RySocketAddr;
 use ryo3_tokio_rt::{RyCoroutine, done_coro, failed_coro, get_tokio_runtime, tokio_coro};
 use ryo3_url::RyUrl;
 
@@ -308,8 +308,8 @@ impl RyResponse {
     }
 
     #[getter]
-    fn remote_addr(&self) -> Option<PySocketAddr> {
-        self.head.remote_addr.map(PySocketAddr::from)
+    fn remote_addr(&self) -> Option<RySocketAddr> {
+        self.head.remote_addr.map(RySocketAddr::from)
     }
 
     /// Return true if the status code is a success code (200-299)
@@ -529,8 +529,8 @@ impl RyBlockingResponse {
     }
 
     #[getter]
-    fn remote_addr(&self) -> Option<PySocketAddr> {
-        self.head.remote_addr.map(PySocketAddr::from)
+    fn remote_addr(&self) -> Option<RySocketAddr> {
+        self.head.remote_addr.map(RySocketAddr::from)
     }
 
     /// Return true if the status code is a success code (200-299)

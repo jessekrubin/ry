@@ -9,7 +9,7 @@ use std::time::SystemTime;
 
 pub use buffered_file::{BUF_SIZE, BufferedFile};
 pub use file_read_stream::FileReadStreamOptions;
-pub use file_type::PyFileType;
+pub use file_type::RyFileType;
 use pyo3::exceptions::PyRuntimeError;
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyDict};
@@ -23,16 +23,16 @@ use crate::fs::file_read_stream::RyFileReadStream;
 #[pyclass(name = "Metadata", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Clone)]
-pub struct PyMetadata(std::fs::Metadata);
+pub struct RyMetadata(std::fs::Metadata);
 
-impl From<std::fs::Metadata> for PyMetadata {
+impl From<std::fs::Metadata> for RyMetadata {
     #[inline]
     fn from(m: std::fs::Metadata) -> Self {
         Self::new(m)
     }
 }
 
-impl PyMetadata {
+impl RyMetadata {
     #[inline]
     #[must_use]
     pub fn new(m: std::fs::Metadata) -> Self {
@@ -53,7 +53,7 @@ impl PyMetadata {
 }
 
 #[pymethods]
-impl PyMetadata {
+impl RyMetadata {
     fn __repr__(&self) -> String {
         format!(
             "Metadata<is_dir={}, is_file={}, is_symlink={}, len={}, readonly={}>",
@@ -95,8 +95,8 @@ impl PyMetadata {
 
     #[getter]
     #[must_use]
-    fn file_type(&self) -> PyFileType {
-        PyFileType::from(self.0.file_type())
+    fn file_type(&self) -> RyFileType {
+        RyFileType::from(self.0.file_type())
     }
 
     #[getter]
@@ -142,24 +142,24 @@ impl PyMetadata {
     }
 
     #[getter]
-    fn permissions(&self) -> PyPermissions {
+    fn permissions(&self) -> RyPermissions {
         let permissions = self.0.permissions();
-        PyPermissions::from(permissions)
+        RyPermissions::from(permissions)
     }
 }
 
 #[pyclass(name = "Permissions", frozen, immutable_type, eq)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Clone, PartialEq, Eq, Debug)]
-pub struct PyPermissions(std::fs::Permissions);
+pub struct RyPermissions(std::fs::Permissions);
 
-impl From<std::fs::Permissions> for PyPermissions {
+impl From<std::fs::Permissions> for RyPermissions {
     fn from(p: std::fs::Permissions) -> Self {
         Self(p)
     }
 }
 
-impl PyPermissions {
+impl RyPermissions {
     #[must_use]
     pub fn new(p: std::fs::Permissions) -> Self {
         Self(p)
@@ -177,7 +177,7 @@ impl PyPermissions {
 }
 
 #[pymethods]
-impl PyPermissions {
+impl RyPermissions {
     #[getter]
     #[must_use]
     fn readonly(&self) -> bool {
@@ -195,16 +195,16 @@ impl PyPermissions {
 
 #[pyclass(name = "DirEntry", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
-pub struct PyDirEntry(std::fs::DirEntry);
+pub struct RyDirEntry(std::fs::DirEntry);
 
-impl From<std::fs::DirEntry> for PyDirEntry {
+impl From<std::fs::DirEntry> for RyDirEntry {
     fn from(de: std::fs::DirEntry) -> Self {
         Self(de)
     }
 }
 
 #[pymethods]
-impl PyDirEntry {
+impl RyDirEntry {
     fn __repr__(&self) -> String {
         let path = self.0.path();
         let path_disp = path.display();
@@ -226,14 +226,14 @@ impl PyDirEntry {
         self.0.file_name()
     }
 
-    fn file_type(&self) -> PyResult<PyFileType> {
+    fn file_type(&self) -> PyResult<RyFileType> {
         let file_type = self.0.file_type().map_py_io_err_with_path(self.0.path())?;
-        Ok(PyFileType::from(file_type))
+        Ok(RyFileType::from(file_type))
     }
 
-    fn metadata(&self) -> PyResult<PyMetadata> {
+    fn metadata(&self) -> PyResult<RyMetadata> {
         let metadata = self.0.metadata().map_py_io_err_with_path(self.0.path())?;
-        Ok(PyMetadata::from(metadata))
+        Ok(RyMetadata::from(metadata))
     }
 }
 
@@ -347,9 +347,9 @@ pub fn rename(py: Python<'_>, from: PathBuf, to: PathBuf) -> PyResult<()> {
 }
 
 #[pyfunction]
-pub fn metadata(path: PathLike) -> PyResult<PyMetadata> {
+pub fn metadata(path: PathLike) -> PyResult<RyMetadata> {
     let metadata = std::fs::metadata(&path).map_py_io_err_with_path(path)?;
-    Ok(PyMetadata::from(metadata))
+    Ok(RyMetadata::from(metadata))
 }
 
 #[pyfunction]
@@ -424,7 +424,7 @@ pub fn hard_link(py: Python<'_>, original: PathBuf, link: PathBuf) -> PyResult<(
 }
 
 #[pyfunction]
-pub fn set_permissions(py: Python<'_>, path: PathBuf, perm: &PyPermissions) -> PyResult<()> {
+pub fn set_permissions(py: Python<'_>, path: PathBuf, perm: &RyPermissions) -> PyResult<()> {
     py.detach(|| std::fs::set_permissions(&path, perm.0.clone()))
         .map_py_io_err_with_path(path)
 }
@@ -458,18 +458,18 @@ pub fn soft_link(py: Python<'_>, original: PathBuf, link: PathBuf) -> PyResult<(
 }
 
 #[pyfunction]
-pub fn symlink_metadata(path: PathBuf) -> PyResult<PyMetadata> {
+pub fn symlink_metadata(path: PathBuf) -> PyResult<RyMetadata> {
     std::fs::symlink_metadata(&path)
-        .map(PyMetadata::from)
+        .map(RyMetadata::from)
         .map_py_io_err_with_path(path)
 }
 
 #[pyfunction]
 #[expect(clippy::needless_pass_by_value)]
-pub fn read_dir(path: PathLike) -> PyResult<PyReadDir> {
+pub fn read_dir(path: PathLike) -> PyResult<RyReadDir> {
     let path_ref = path.as_ref();
     let iter = std::fs::read_dir(path_ref).map_py_io_err_with_path(path_ref)?;
-    Ok(PyReadDir {
+    Ok(RyReadDir {
         path: path_ref.to_path_buf(),
         iter: Mutex::new(iter),
     })
@@ -477,13 +477,13 @@ pub fn read_dir(path: PathLike) -> PyResult<PyReadDir> {
 
 #[pyclass(name = "ReadDir", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
-pub struct PyReadDir {
+pub struct RyReadDir {
     path: PathBuf,
     iter: Mutex<std::fs::ReadDir>,
 }
 
 #[pymethods]
-impl PyReadDir {
+impl RyReadDir {
     fn __repr__(&self) -> String {
         format!("{self}")
     }
@@ -492,26 +492,26 @@ impl PyReadDir {
         slf
     }
 
-    fn __next__(&self) -> PyResult<Option<PyDirEntry>> {
+    fn __next__(&self) -> PyResult<Option<RyDirEntry>> {
         if let Ok(mut iter) = self.iter.lock() {
             match iter.next() {
-                Some(Ok(entry)) => Ok(Some(PyDirEntry::from(entry))),
+                Some(Ok(entry)) => Ok(Some(RyDirEntry::from(entry))),
                 _ => Ok(None),
             }
         } else {
-            Err(PyRuntimeError::new_err("PyReadDir lock poisoned"))
+            Err(PyRuntimeError::new_err("ReadDir lock poisoned"))
         }
     }
 
-    fn collect(&self) -> PyResult<Vec<PyDirEntry>> {
+    fn collect(&self) -> PyResult<Vec<RyDirEntry>> {
         let mut paths = vec![];
         let mut iter = self
             .iter
             .lock()
-            .map_err(|_| PyRuntimeError::new_err("PyReadDir lock poisoned"))?;
+            .map_err(|_| PyRuntimeError::new_err("ReadDir lock poisoned"))?;
         for entry in iter.by_ref() {
             match entry {
-                Ok(entry) => paths.push(PyDirEntry::from(entry)),
+                Ok(entry) => paths.push(RyDirEntry::from(entry)),
                 Err(_) => break,
             }
         }
@@ -519,15 +519,15 @@ impl PyReadDir {
     }
 
     #[pyo3(signature = (n = 1))]
-    fn take(&self, n: usize) -> PyResult<Vec<PyDirEntry>> {
+    fn take(&self, n: usize) -> PyResult<Vec<RyDirEntry>> {
         let mut paths = vec![];
         let mut iter = self
             .iter
             .lock()
-            .map_err(|_| PyRuntimeError::new_err("PyReadDir lock poisoned"))?;
+            .map_err(|_| PyRuntimeError::new_err("ReadDir lock poisoned"))?;
         for entry in iter.by_ref().take(n) {
             match entry {
-                Ok(entry) => paths.push(PyDirEntry::from(entry)),
+                Ok(entry) => paths.push(RyDirEntry::from(entry)),
                 Err(_) => break,
             }
         }
@@ -535,7 +535,7 @@ impl PyReadDir {
     }
 }
 
-impl std::fmt::Display for PyReadDir {
+impl std::fmt::Display for RyReadDir {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let path = self.path.to_string_lossy();
         write!(f, "ReadDir(\"{path}\")")
@@ -544,10 +544,10 @@ impl std::fmt::Display for PyReadDir {
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<RyFileReadStream>()?;
-    m.add_class::<PyFileType>()?;
-    m.add_class::<PyDirEntry>()?;
-    m.add_class::<PyReadDir>()?;
-    m.add_class::<PyMetadata>()?;
+    m.add_class::<RyFileType>()?;
+    m.add_class::<RyDirEntry>()?;
+    m.add_class::<RyReadDir>()?;
+    m.add_class::<RyMetadata>()?;
     m.add_function(wrap_pyfunction!(canonicalize, m)?)?;
     m.add_function(wrap_pyfunction!(copy, m)?)?;
     m.add_function(wrap_pyfunction!(create_dir, m)?)?;

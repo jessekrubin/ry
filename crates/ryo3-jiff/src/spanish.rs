@@ -8,7 +8,7 @@ use pyo3::types::PyDelta;
 use ryo3_core::{FromPyOperand, PyCastExactOpt};
 use ryo3_jiff_core::JiffSignedDuration;
 use ryo3_macro_rules::py_type_error;
-use ryo3_std::time::PyDuration;
+use ryo3_std::time::RyDuration;
 
 use crate::{RySignedDuration, RySpan};
 
@@ -19,7 +19,7 @@ use crate::{RySignedDuration, RySpan};
 /// `TimeSpan + ry.Date`/`SignedDuration + ry.Date` are handled by `TimeSpan` and `SignedDuration` respectively, while `timedelta + ry.Date`/`ry.Duration + ry.Date` rely on `Date.__radd__`
 #[derive(Debug, Clone)]
 pub(crate) enum DurationLike<'a, 'py> {
-    Duration(Borrowed<'a, 'py, PyDuration>),
+    Duration(Borrowed<'a, 'py, RyDuration>),
     PyTimeDelta(SignedDuration),
 }
 
@@ -44,7 +44,7 @@ impl<'a, 'py> FromPyObject<'a, 'py> for Spanish<'a, 'py> {
 
 impl<'a, 'py> FromPyOperand<'a, 'py> for DurationLike<'a, 'py> {
     fn from_py_operand(ob: Borrowed<'a, 'py, PyAny>) -> Option<Self> {
-        if let Some(duration) = ob.cast_exact_opt::<PyDuration>() {
+        if let Some(duration) = ob.cast_exact_opt::<RyDuration>() {
             Some(Self::Duration(duration))
         } else {
             let sd = ob

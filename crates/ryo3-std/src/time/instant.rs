@@ -6,19 +6,19 @@ use pyo3::prelude::*;
 use ryo3_core::{PyNotImplementedOr, PyOperandArg};
 use ryo3_macro_rules::py_overflow_error;
 
-use crate::time::PyDuration;
+use crate::time::RyDuration;
 
 #[pyclass(name = "Instant", frozen, immutable_type, eq, ord)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct PyInstant(Instant);
+pub struct RyInstant(Instant);
 
 /// repr anchor
 ///
 /// used for instant repr formatting
 pub(crate) static REPR_ANCHOR: LazyLock<Instant> = LazyLock::new(Instant::now);
 
-impl std::fmt::Display for PyInstant {
+impl std::fmt::Display for RyInstant {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let anchor = *REPR_ANCHOR;
         let (sign, d) = match self.0.checked_duration_since(anchor) {
@@ -29,16 +29,16 @@ impl std::fmt::Display for PyInstant {
     }
 }
 
-impl From<Instant> for PyInstant {
+impl From<Instant> for RyInstant {
     fn from(i: Instant) -> Self {
         Self(i)
     }
 }
 
-type DurationArg<'a, 'py> = PyOperandArg<Borrowed<'a, 'py, PyDuration>>;
+type DurationArg<'a, 'py> = PyOperandArg<Borrowed<'a, 'py, RyDuration>>;
 
-impl PyInstant {
-    fn try_add(&self, dur: &PyDuration) -> PyResult<Self> {
+impl RyInstant {
+    fn try_add(&self, dur: &RyDuration) -> PyResult<Self> {
         self.0
             .checked_add(dur.0)
             .map(Self::from)
@@ -47,7 +47,7 @@ impl PyInstant {
 }
 
 #[pymethods]
-impl PyInstant {
+impl RyInstant {
     #[new]
     #[must_use]
     fn py_new() -> Self {
@@ -88,32 +88,32 @@ impl PyInstant {
     }
 
     #[must_use]
-    fn elapsed(&self) -> PyDuration {
-        PyDuration(self.0.elapsed())
+    fn elapsed(&self) -> RyDuration {
+        RyDuration(self.0.elapsed())
     }
 
-    fn checked_add(&self, other: &PyDuration) -> Option<Self> {
+    fn checked_add(&self, other: &RyDuration) -> Option<Self> {
         self.0.checked_add(other.0).map(Self)
     }
 
-    fn checked_sub(&self, other: &PyDuration) -> Option<Self> {
+    fn checked_sub(&self, other: &RyDuration) -> Option<Self> {
         self.0.checked_sub(other.0).map(Self::from)
     }
 
-    fn checked_duration_since(&self, earlier: &Self) -> Option<PyDuration> {
+    fn checked_duration_since(&self, earlier: &Self) -> Option<RyDuration> {
         self.0
             .checked_duration_since(earlier.0)
-            .map(PyDuration::from)
+            .map(RyDuration::from)
     }
 
     #[must_use]
-    fn saturating_duration_since(&self, earlier: &Self) -> PyDuration {
-        PyDuration(self.0.saturating_duration_since(earlier.0))
+    fn saturating_duration_since(&self, earlier: &Self) -> RyDuration {
+        RyDuration(self.0.saturating_duration_since(earlier.0))
     }
 
     #[must_use]
-    fn duration_since(&self, earlier: &Self) -> PyDuration {
-        PyDuration(self.0.duration_since(earlier.0))
+    fn duration_since(&self, earlier: &Self) -> RyDuration {
+        RyDuration(self.0.duration_since(earlier.0))
     }
 }
 
@@ -125,15 +125,15 @@ mod arithmetic {
     use ryo3_core::FromPyOperand;
     use ryo3_macro_rules::py_overflow_err;
 
-    use crate::time::{PyDuration, PyInstant};
+    use crate::time::{RyDuration, RyInstant};
 
     pub(super) enum PyInstantSubtractInput<'a, 'py> {
-        Instant(Borrowed<'a, 'py, PyInstant>),
-        Duration(Borrowed<'a, 'py, PyDuration>),
+        Instant(Borrowed<'a, 'py, RyInstant>),
+        Duration(Borrowed<'a, 'py, RyDuration>),
     }
 
     impl PyInstantSubtractInput<'_, '_> {
-        pub(super) fn subtract_from(self, instant: &PyInstant) -> PyInstantSubtractOutput {
+        pub(super) fn subtract_from(self, instant: &RyInstant) -> PyInstantSubtractOutput {
             match self {
                 Self::Instant(other_inst) => {
                     instant.0.checked_duration_since(other_inst.get().0).into()
@@ -154,20 +154,20 @@ mod arithmetic {
     }
 
     pub(super) enum PyInstantSubtractOutput {
-        Duration(PyDuration),
-        Instant(PyInstant),
+        Duration(RyDuration),
+        Instant(RyInstant),
         Overflow,
     }
 
     impl From<Duration> for PyInstantSubtractOutput {
         fn from(dur: Duration) -> Self {
-            Self::Duration(PyDuration::from(dur))
+            Self::Duration(RyDuration::from(dur))
         }
     }
 
     impl From<Instant> for PyInstantSubtractOutput {
         fn from(inst: Instant) -> Self {
-            Self::Instant(PyInstant::from(inst))
+            Self::Instant(RyInstant::from(inst))
         }
     }
 

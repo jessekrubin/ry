@@ -631,10 +631,10 @@ impl PyFsPath {
         Self::from(self.path().join(p))
     }
 
-    fn metadata(&self) -> PyResult<ryo3_std::fs::PyMetadata> {
+    fn metadata(&self) -> PyResult<ryo3_std::fs::RyMetadata> {
         self.path()
             .metadata()
-            .map(ryo3_std::fs::PyMetadata::from)
+            .map(ryo3_std::fs::RyMetadata::from)
             .map_py_io_err_with_path(self.path())
     }
 
@@ -662,10 +662,10 @@ impl PyFsPath {
             .map_err(|e| py_value_error!("FsPath.strip_prefix: {e}"))
     }
 
-    fn symlink_metadata(&self) -> PyResult<ryo3_std::fs::PyMetadata> {
+    fn symlink_metadata(&self) -> PyResult<ryo3_std::fs::RyMetadata> {
         self.path()
             .symlink_metadata()
-            .map(ryo3_std::fs::PyMetadata::from)
+            .map(ryo3_std::fs::RyMetadata::from)
             .map_py_io_err_with_path(self.path())
     }
 

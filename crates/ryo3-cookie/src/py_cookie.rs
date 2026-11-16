@@ -3,7 +3,7 @@ use std::borrow::Cow;
 use pyo3::BoundObject;
 use pyo3::prelude::*;
 use ryo3_core::macros::{py_value_err, py_value_error, pytodo};
-use ryo3_std::time::PyDuration;
+use ryo3_std::time::RyDuration;
 
 use crate::PyCookieSameSite;
 use crate::types::PyCookieExpiration;
@@ -58,7 +58,7 @@ impl PyCookie {
         domain: Option<String>,
         expires: Option<i64>,
         http_only: Option<bool>,
-        max_age: Option<&PyDuration>,
+        max_age: Option<&RyDuration>,
         partitioned: Option<bool>,
         path: Option<String>,
         permanent: bool,
@@ -258,7 +258,7 @@ impl PyCookie {
 
     /// Return the `max_age` of the cookie as Duration | None
     #[getter]
-    fn max_age(&self) -> Option<PyDuration> {
+    fn max_age(&self) -> Option<RyDuration> {
         self.0.max_age().map(|d| d.unsigned_abs().into())
     }
 

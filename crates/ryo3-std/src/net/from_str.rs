@@ -1,8 +1,8 @@
 use std::str::FromStr;
 
-use crate::net::{PyIpAddr, PyIpv4Addr, PyIpv6Addr, PySocketAddr, PySocketAddrV4, PySocketAddrV6};
+use crate::net::{RyIpAddr, RyIpv4Addr, RyIpv6Addr, RySocketAddr, RySocketAddrV4, RySocketAddrV6};
 
-impl FromStr for PyIpAddr {
+impl FromStr for RyIpAddr {
     type Err = std::net::AddrParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
@@ -11,7 +11,7 @@ impl FromStr for PyIpAddr {
     }
 }
 
-impl FromStr for PyIpv4Addr {
+impl FromStr for RyIpv4Addr {
     type Err = std::net::AddrParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
@@ -20,7 +20,7 @@ impl FromStr for PyIpv4Addr {
     }
 }
 
-impl FromStr for PyIpv6Addr {
+impl FromStr for RyIpv6Addr {
     type Err = std::net::AddrParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
@@ -29,7 +29,7 @@ impl FromStr for PyIpv6Addr {
     }
 }
 
-impl FromStr for PySocketAddr {
+impl FromStr for RySocketAddr {
     type Err = std::net::AddrParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
@@ -38,7 +38,7 @@ impl FromStr for PySocketAddr {
     }
 }
 
-impl FromStr for PySocketAddrV4 {
+impl FromStr for RySocketAddrV4 {
     type Err = std::net::AddrParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
@@ -47,7 +47,7 @@ impl FromStr for PySocketAddrV4 {
     }
 }
 
-impl FromStr for PySocketAddrV6 {
+impl FromStr for RySocketAddrV6 {
     type Err = std::net::AddrParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {

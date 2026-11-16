@@ -31,9 +31,9 @@ const SECS_PER_WEEK: u64 = SECS_PER_MINUTE * MINS_PER_HOUR * HOURS_PER_DAY * DAY
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord)]
 #[pyclass(name = "Duration", frozen, immutable_type, eq, ord)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
-pub struct PyDuration(pub(crate) Duration);
+pub struct RyDuration(pub(crate) Duration);
 
-impl PyDuration {
+impl RyDuration {
     #[inline]
     #[must_use]
     pub const fn from_secs(secs: u64) -> Self {
@@ -96,7 +96,7 @@ impl PyDuration {
     }
 }
 
-impl PyDuration {
+impl RyDuration {
     fn try_add(&self, rhs: Duration) -> PyResult<Self> {
         self.0
             .checked_add(rhs)
@@ -142,14 +142,14 @@ impl PyDuration {
     }
 }
 
-fn try_sub(lhs: Duration, rhs: Duration) -> PyResult<PyDuration> {
+fn try_sub(lhs: Duration, rhs: Duration) -> PyResult<RyDuration> {
     lhs.checked_sub(rhs)
-        .map(PyDuration::from)
+        .map(RyDuration::from)
         .ok_or_else(|| py_overflow_error!("overflow in Duration subtraction"))
 }
 
 #[pymethods]
-impl PyDuration {
+impl RyDuration {
     #[new]
     #[pyo3(signature = (secs = 0, nanos = 0))]
     fn py_new(secs: u64, nanos: u32) -> PyResult<Self> {
@@ -787,7 +787,7 @@ impl PyDuration {
     }
 }
 
-impl std::fmt::Display for PyDuration {
+impl std::fmt::Display for RyDuration {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
@@ -800,14 +800,14 @@ impl std::fmt::Display for PyDuration {
 
 // TODO: fix this as it is required by the repr of reqwest client config
 //       currently just forwards to display
-impl std::fmt::Debug for PyDuration {
+impl std::fmt::Debug for RyDuration {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{self}")
     }
 }
 
 #[cfg(feature = "jiff")]
-impl std::str::FromStr for PyDuration {
+impl std::str::FromStr for RyDuration {
     type Err = jiff::Error;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         TEMPORAL_SPAN_PARSER
@@ -822,7 +822,7 @@ impl std::str::FromStr for PyDuration {
 }
 
 #[cfg(not(feature = "jiff"))]
-impl std::str::FromStr for PyDuration {
+impl std::str::FromStr for RyDuration {
     type Err = pyo3::PyErr;
 
     fn from_str(_s: &str) -> Result<Self, Self::Err> {
@@ -851,9 +851,9 @@ mod pydantic {
     use pyo3::types::PyType;
     use ryo3_pydantic::{GetPydanticCoreSchemaCls, interns};
 
-    use super::PyDuration;
+    use super::RyDuration;
 
-    impl GetPydanticCoreSchemaCls for PyDuration {
+    impl GetPydanticCoreSchemaCls for RyDuration {
         fn get_pydantic_core_schema<'py>(
             cls: &Bound<'py, PyType>,
             source: &Bound<'py, PyAny>,
@@ -880,26 +880,26 @@ mod pydantic {
     }
 }
 
-impl From<Duration> for PyDuration {
+impl From<Duration> for RyDuration {
     fn from(d: Duration) -> Self {
         Self(d)
     }
 }
 
-impl From<&PyDuration> for Duration {
-    fn from(d: &PyDuration) -> Self {
+impl From<&RyDuration> for Duration {
+    fn from(d: &RyDuration) -> Self {
         d.0
     }
 }
 
-impl From<PyDuration> for Duration {
-    fn from(d: PyDuration) -> Self {
+impl From<RyDuration> for Duration {
+    fn from(d: RyDuration) -> Self {
         d.0
     }
 }
 
-impl From<PyDuration> for Option<Duration> {
-    fn from(d: PyDuration) -> Self {
+impl From<RyDuration> for Option<Duration> {
+    fn from(d: RyDuration) -> Self {
         Some(d.0)
     }
 }
@@ -912,7 +912,7 @@ mod arithmetic {
     use ryo3_core::{FromPyOperand, PyCastExactOpt};
     use ryo3_macro_rules::py_type_err;
 
-    use crate::time::PyDuration;
+    use crate::time::RyDuration;
 
     pub(super) struct DurationLike(Duration);
 
@@ -926,7 +926,7 @@ mod arithmetic {
         fn from_py_operand(obj: Borrowed<'_, '_, PyAny>) -> Option<Self> {
             use ryo3_core::PyOperandExt;
             obj.operand_match()
-                .or(|d: Borrowed<'_, '_, PyDuration>| Self(d.get().0))
+                .or(|d: Borrowed<'_, '_, RyDuration>| Self(d.get().0))
                 .or(Self)
                 .ok()
         }
@@ -935,7 +935,7 @@ mod arithmetic {
     impl<'py> FromPyObject<'_, 'py> for DurationLike {
         type Error = PyErr;
         fn extract(obj: Borrowed<'_, 'py, PyAny>) -> Result<Self, Self::Error> {
-            if let Some(inst) = obj.cast_exact_opt::<PyDuration>() {
+            if let Some(inst) = obj.cast_exact_opt::<RyDuration>() {
                 let dur = inst.get();
                 Ok(Self(dur.0))
             } else if let Ok(inst) = obj.cast_exact::<pyo3::types::PyDelta>() {
@@ -951,13 +951,13 @@ mod arithmetic {
     pub(super) enum DurationTrueDivInput<'a, 'py> {
         Int(u32),
         Float(f64),
-        Duration(Borrowed<'a, 'py, PyDuration>),
+        Duration(Borrowed<'a, 'py, RyDuration>),
         PyDelta(Duration),
     }
 
     pub(super) enum DurationTrueDivOutput {
         Float(f64),
-        Duration(PyDuration),
+        Duration(RyDuration),
     }
 
     impl From<f64> for DurationTrueDivOutput {
@@ -966,8 +966,8 @@ mod arithmetic {
         }
     }
 
-    impl From<PyDuration> for DurationTrueDivOutput {
-        fn from(d: PyDuration) -> Self {
+    impl From<RyDuration> for DurationTrueDivOutput {
+        fn from(d: RyDuration) -> Self {
             Self::Duration(d)
         }
     }

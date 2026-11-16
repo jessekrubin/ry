@@ -194,27 +194,27 @@ ry_type_serializer_struct! (
 // TODO: flag for duration/timespan/signed_duration serialization format
 // ("iso8601" | "friendly" | "obj")
 #[cfg(feature = "ryo3-std")]
-pub(crate) struct PyDurationSerializer<'a, 'py> {
-    ob: Borrowed<'a, 'py, ryo3_std::time::PyDuration>,
+pub(crate) struct RyDurationSerializer<'a, 'py> {
+    ob: Borrowed<'a, 'py, ryo3_std::time::RyDuration>,
 }
 
 #[cfg(feature = "ryo3-std")]
-impl<'a, 'py> PyDurationSerializer<'a, 'py> {
+impl<'a, 'py> RyDurationSerializer<'a, 'py> {
     #[inline]
-    pub(crate) fn new(obj: Borrowed<'a, 'py, ryo3_std::time::PyDuration>) -> Self {
+    pub(crate) fn new(obj: Borrowed<'a, 'py, ryo3_std::time::RyDuration>) -> Self {
         Self { ob: obj }
     }
 
     #[inline]
     pub(crate) fn new_unchecked(obj: Borrowed<'a, 'py, PyAny>) -> Self {
         #[expect(unsafe_code)]
-        let ob = unsafe { obj.cast_unchecked::<ryo3_std::time::PyDuration>() };
+        let ob = unsafe { obj.cast_unchecked::<ryo3_std::time::RyDuration>() };
         Self::new(ob)
     }
 }
 
 #[cfg(feature = "ryo3-std")]
-impl serde::ser::Serialize for PyDurationSerializer<'_, '_> {
+impl serde::ser::Serialize for RyDurationSerializer<'_, '_> {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer,
@@ -228,27 +228,27 @@ impl serde::ser::Serialize for PyDurationSerializer<'_, '_> {
 // socket types
 ry_type_serializer_struct! (
     #[cfg(feature = "ryo3-std")]
-    PySocketAddrSerializer => ryo3_std::net::PySocketAddr
+    RySocketAddrSerializer => ryo3_std::net::RySocketAddr
 );
 ry_type_serializer_struct! (
     #[cfg(feature = "ryo3-std")]
-    PySocketAddrV4Serializer => ryo3_std::net::PySocketAddrV4
+    RySocketAddrV4Serializer => ryo3_std::net::RySocketAddrV4
 );
 ry_type_serializer_struct! (
     #[cfg(feature = "ryo3-std")]
-    PySocketAddrV6Serializer => ryo3_std::net::PySocketAddrV6
+    RySocketAddrV6Serializer => ryo3_std::net::RySocketAddrV6
 );
 
 //  ip
 ry_type_serializer_struct! (
     #[cfg(feature = "ryo3-std")]
-    PyIpAddrSerializer => ryo3_std::net::PyIpAddr
+    RyIpAddrSerializer => ryo3_std::net::RyIpAddr
 );
 ry_type_serializer_struct! (
     #[cfg(feature = "ryo3-std")]
-    PyIpv4AddrSerializer => ryo3_std::net::PyIpv4Addr
+    RyIpv4AddrSerializer => ryo3_std::net::RyIpv4Addr
 );
 ry_type_serializer_struct! (
     #[cfg(feature = "ryo3-std")]
-    PyIpv6AddrSerializer => ryo3_std::net::PyIpv6Addr
+    RyIpv6AddrSerializer => ryo3_std::net::RyIpv6Addr
 );

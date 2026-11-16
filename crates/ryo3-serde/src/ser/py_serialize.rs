@@ -131,32 +131,32 @@ where
             // ------------------------------------------------------------
             // __STD__
             #[cfg(feature = "ryo3-std")]
-            PyObType::PyDuration => {
-                ry_types::PyDurationSerializer::new_unchecked(self.obj).serialize(serializer)
+            PyObType::RyDuration => {
+                ry_types::RyDurationSerializer::new_unchecked(self.obj).serialize(serializer)
             }
             #[cfg(feature = "ryo3-std")]
-            PyObType::PyIpAddr => {
-                ry_types::PyIpAddrSerializer::new_unchecked(self.obj).serialize(serializer)
+            PyObType::RyIpAddr => {
+                ry_types::RyIpAddrSerializer::new_unchecked(self.obj).serialize(serializer)
             }
             #[cfg(feature = "ryo3-std")]
-            PyObType::PyIpv4Addr => {
-                ry_types::PyIpv4AddrSerializer::new_unchecked(self.obj).serialize(serializer)
+            PyObType::RyIpv4Addr => {
+                ry_types::RyIpv4AddrSerializer::new_unchecked(self.obj).serialize(serializer)
             }
             #[cfg(feature = "ryo3-std")]
-            PyObType::PyIpv6Addr => {
-                ry_types::PyIpv6AddrSerializer::new_unchecked(self.obj).serialize(serializer)
+            PyObType::RyIpv6Addr => {
+                ry_types::RyIpv6AddrSerializer::new_unchecked(self.obj).serialize(serializer)
             }
             #[cfg(feature = "ryo3-std")]
-            PyObType::PySocketAddr => {
-                ry_types::PySocketAddrSerializer::new_unchecked(self.obj).serialize(serializer)
+            PyObType::RySocketAddr => {
+                ry_types::RySocketAddrSerializer::new_unchecked(self.obj).serialize(serializer)
             }
             #[cfg(feature = "ryo3-std")]
-            PyObType::PySocketAddrV4 => {
-                ry_types::PySocketAddrV4Serializer::new_unchecked(self.obj).serialize(serializer)
+            PyObType::RySocketAddrV4 => {
+                ry_types::RySocketAddrV4Serializer::new_unchecked(self.obj).serialize(serializer)
             }
             #[cfg(feature = "ryo3-std")]
-            PyObType::PySocketAddrV6 => {
-                ry_types::PySocketAddrV6Serializer::new_unchecked(self.obj).serialize(serializer)
+            PyObType::RySocketAddrV6 => {
+                ry_types::RySocketAddrV6Serializer::new_unchecked(self.obj).serialize(serializer)
             }
             // __HTTP__
             #[cfg(feature = "ryo3-http")]

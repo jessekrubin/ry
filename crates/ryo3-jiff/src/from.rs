@@ -195,10 +195,10 @@ impl From<RySignedDuration> for SignedDuration {
     }
 }
 
-impl TryFrom<&ryo3_std::time::PyDuration> for RySignedDuration {
+impl TryFrom<&ryo3_std::time::RyDuration> for RySignedDuration {
     type Error = pyo3::PyErr;
 
-    fn try_from(value: &ryo3_std::time::PyDuration) -> Result<Self, Self::Error> {
+    fn try_from(value: &ryo3_std::time::RyDuration) -> Result<Self, Self::Error> {
         SignedDuration::try_from(*(value.inner()))
             .map(Self::from)
             .map_err(map_py_overflow_err)

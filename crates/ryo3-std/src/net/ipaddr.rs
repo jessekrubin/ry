@@ -9,29 +9,29 @@ use ryo3_core::{PyAsciiString, PyFromStr};
 use ryo3_macro_rules::{any_repr, py_type_err, py_type_error, py_value_error};
 
 use crate::net::ipaddr_props::IpAddrProps;
-use crate::net::{PySocketAddrV4, PySocketAddrV6};
+use crate::net::{RySocketAddrV4, RySocketAddrV6};
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize), serde(transparent))]
 #[pyclass(name = "Ipv4Addr", frozen, immutable_type, eq, ord)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, PartialOrd, Ord)]
-pub struct PyIpv4Addr(pub(crate) Ipv4Addr);
+pub struct RyIpv4Addr(pub(crate) Ipv4Addr);
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize), serde(transparent))]
 #[pyclass(name = "Ipv6Addr", frozen, immutable_type, eq, ord)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, PartialOrd, Ord)]
-pub struct PyIpv6Addr(pub(crate) Ipv6Addr);
+pub struct RyIpv6Addr(pub(crate) Ipv6Addr);
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize), serde(transparent))]
 #[pyclass(name = "IpAddr", frozen, immutable_type, eq, ord)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, PartialOrd, Ord)]
-pub struct PyIpAddr(pub(crate) IpAddr);
+pub struct RyIpAddr(pub(crate) IpAddr);
 
 #[expect(clippy::trivially_copy_pass_by_ref)]
 #[pymethods]
-impl PyIpv4Addr {
+impl RyIpv4Addr {
     #[new]
     #[pyo3(signature = (*args))]
     fn py_new(args: Ipv4Args) -> Self {
@@ -182,21 +182,21 @@ impl PyIpv4Addr {
     }
 
     #[expect(clippy::wrong_self_convention)]
-    fn to_ipaddr(&self) -> PyIpAddr {
-        PyIpAddr::from(self.0)
+    fn to_ipaddr(&self) -> RyIpAddr {
+        RyIpAddr::from(self.0)
     }
 
     #[expect(clippy::wrong_self_convention)]
-    fn to_socketaddrv4(&self, port: u16) -> PySocketAddrV4 {
-        PySocketAddrV4::from(SocketAddrV4::new(self.0, port))
+    fn to_socketaddrv4(&self, port: u16) -> RySocketAddrV4 {
+        RySocketAddrV4::from(SocketAddrV4::new(self.0, port))
     }
 
     #[pyo3(signature = (port, flowinfo = 0, scope_id = 0))]
     #[expect(clippy::wrong_self_convention)]
-    fn to_socketaddrv6(&self, port: u16, flowinfo: u32, scope_id: u32) -> PySocketAddrV6 {
+    fn to_socketaddrv6(&self, port: u16, flowinfo: u32, scope_id: u32) -> RySocketAddrV6 {
         // IPv4 addresses can be converted to IPv6-mapped addresses
         let ipv6_mapped = self.0.to_ipv6_mapped();
-        PySocketAddrV6::from(SocketAddrV6::new(ipv6_mapped, port, flowinfo, scope_id))
+        RySocketAddrV6::from(SocketAddrV6::new(ipv6_mapped, port, flowinfo, scope_id))
     }
 
     // ========================================================================
@@ -271,7 +271,7 @@ impl PyIpv4Addr {
     }
 }
 
-impl PyIpv4Addr {
+impl RyIpv4Addr {
     #[must_use]
     pub fn inner(&self) -> &Ipv4Addr {
         &self.0
@@ -283,7 +283,7 @@ impl PyIpv4Addr {
     }
 }
 
-impl PyIpv6Addr {
+impl RyIpv6Addr {
     #[must_use]
     pub fn inner(&self) -> &Ipv6Addr {
         &self.0
@@ -295,7 +295,7 @@ impl PyIpv6Addr {
     }
 }
 
-impl PyIpAddr {
+impl RyIpAddr {
     #[must_use]
     pub fn inner(&self) -> &IpAddr {
         &self.0
@@ -308,7 +308,7 @@ impl PyIpAddr {
 }
 
 #[pymethods]
-impl PyIpv6Addr {
+impl RyIpv6Addr {
     #[new]
     #[pyo3(signature = (*args))]
     fn py_new(args: Ipv6Args) -> Self {
@@ -462,14 +462,14 @@ impl PyIpv6Addr {
     }
 
     #[expect(clippy::wrong_self_convention)]
-    fn to_ipaddr(&self) -> PyIpAddr {
-        PyIpAddr::from(self.0)
+    fn to_ipaddr(&self) -> RyIpAddr {
+        RyIpAddr::from(self.0)
     }
 
     #[expect(clippy::wrong_self_convention)]
-    fn to_socketaddrv4(&self, port: u16) -> PyResult<PySocketAddrV4> {
+    fn to_socketaddrv4(&self, port: u16) -> PyResult<RySocketAddrV4> {
         if let Some(addr) = self.0.to_ipv4() {
-            Ok(PySocketAddrV4::from(SocketAddrV4::new(addr, port)))
+            Ok(RySocketAddrV4::from(SocketAddrV4::new(addr, port)))
         } else {
             py_type_err!("Cannot convert IPv6 address to IPv4; address is not IPv4-mapped")
         }
@@ -477,8 +477,8 @@ impl PyIpv6Addr {
 
     #[pyo3(signature = (port, flowinfo = 0, scope_id = 0))]
     #[expect(clippy::wrong_self_convention)]
-    fn to_socketaddrv6(&self, port: u16, flowinfo: u32, scope_id: u32) -> PySocketAddrV6 {
-        PySocketAddrV6::from(SocketAddrV6::new(self.0, port, flowinfo, scope_id))
+    fn to_socketaddrv6(&self, port: u16, flowinfo: u32, scope_id: u32) -> RySocketAddrV6 {
+        RySocketAddrV6::from(SocketAddrV6::new(self.0, port, flowinfo, scope_id))
     }
 
     // ========================================================================
@@ -549,7 +549,7 @@ impl PyIpv6Addr {
 }
 
 #[pymethods]
-impl PyIpAddr {
+impl RyIpAddr {
     #[new]
     fn py_new(ob: &Bound<'_, PyAny>) -> PyResult<Self> {
         if let Ok(ipv4) = ob.extract::<Ipv4Like>() {
@@ -764,12 +764,12 @@ impl PyIpAddr {
     }
 
     #[expect(clippy::wrong_self_convention)]
-    fn to_ipv4(&self) -> PyResult<PyIpv4Addr> {
+    fn to_ipv4(&self) -> PyResult<RyIpv4Addr> {
         match self.0 {
-            IpAddr::V4(addr) => Ok(PyIpv4Addr::from(addr)),
+            IpAddr::V4(addr) => Ok(RyIpv4Addr::from(addr)),
             IpAddr::V6(addr) => {
                 if let Some(addr) = addr.to_ipv4() {
-                    Ok(PyIpv4Addr::from(addr))
+                    Ok(RyIpv4Addr::from(addr))
                 } else {
                     py_type_err!("Cannot convert IPv6 address to IPv4; address is not IPv4-mapped")
                 }
@@ -778,10 +778,10 @@ impl PyIpAddr {
     }
 
     #[expect(clippy::wrong_self_convention)]
-    fn to_ipv6(&self) -> PyIpv6Addr {
+    fn to_ipv6(&self) -> RyIpv6Addr {
         match self.0 {
-            IpAddr::V4(addr) => PyIpv6Addr::from(addr.to_ipv6_mapped()),
-            IpAddr::V6(addr) => PyIpv6Addr::from(addr),
+            IpAddr::V4(addr) => RyIpv6Addr::from(addr.to_ipv6_mapped()),
+            IpAddr::V6(addr) => RyIpv6Addr::from(addr),
         }
     }
 
@@ -840,9 +840,9 @@ impl PyIpAddr {
 // ========================================================================
 #[derive(Debug)]
 pub(crate) enum IpAddrLike {
-    Ryv4(PyIpv4Addr),
-    Ryv6(PyIpv6Addr),
-    Ry(PyIpAddr),
+    Ryv4(RyIpv4Addr),
+    Ryv6(RyIpv6Addr),
+    Ry(RyIpAddr),
     Str(String),
     Py(IpAddr),
 }
@@ -851,11 +851,11 @@ impl<'py> FromPyObject<'_, 'py> for IpAddrLike {
     type Error = PyErr;
 
     fn extract(obj: Borrowed<'_, 'py, PyAny>) -> Result<Self, Self::Error> {
-        if let Ok(addr) = obj.cast_exact::<PyIpv4Addr>() {
+        if let Ok(addr) = obj.cast_exact::<RyIpv4Addr>() {
             Ok(Self::Ryv4(addr.get().0.into()))
-        } else if let Ok(addr) = obj.cast_exact::<PyIpv6Addr>() {
+        } else if let Ok(addr) = obj.cast_exact::<RyIpv6Addr>() {
             Ok(Self::Ryv6(addr.get().0.into()))
-        } else if let Ok(addr) = obj.cast_exact::<PyIpAddr>() {
+        } else if let Ok(addr) = obj.cast_exact::<RyIpAddr>() {
             Ok(Self::Ry(addr.get().0.into()))
         } else if let Ok(addr) = obj.extract::<IpAddr>() {
             Ok(Self::Py(addr))
@@ -932,19 +932,19 @@ impl IpAddrLike {
 // ============================================================================
 // DISPLAY
 // ============================================================================
-impl std::fmt::Display for PyIpv4Addr {
+impl std::fmt::Display for RyIpv4Addr {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "Ipv4Addr('{}')", self.0)
     }
 }
 
-impl std::fmt::Display for PyIpv6Addr {
+impl std::fmt::Display for RyIpv6Addr {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "Ipv6Addr('{}')", self.0)
     }
 }
 
-impl std::fmt::Display for PyIpAddr {
+impl std::fmt::Display for RyIpAddr {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "IpAddr('{}')", self.0)
     }
@@ -981,7 +981,7 @@ impl<'py> FromPyObject<'_, 'py> for Ipv4Like {
 
 struct Ipv4Args(Ipv4Addr);
 
-impl From<Ipv4Args> for PyIpv4Addr {
+impl From<Ipv4Args> for RyIpv4Addr {
     fn from(args: Ipv4Args) -> Self {
         Self(args.0)
     }
@@ -1042,7 +1042,7 @@ impl<'py> FromPyObject<'_, 'py> for Ipv6Like {
 
 struct Ipv6Args(Ipv6Addr);
 
-impl From<Ipv6Args> for PyIpv6Addr {
+impl From<Ipv6Args> for RyIpv6Addr {
     fn from(args: Ipv6Args) -> Self {
         Self(args.0)
     }
@@ -1096,12 +1096,12 @@ mod pydantic {
     use pyo3::types::{PyAny, PyDict, PyType};
     use ryo3_pydantic::{GetPydanticCoreSchemaCls, GetPydanticJsonSchemaCls, interns};
 
-    use super::{PyIpAddr, PyIpv4Addr, PyIpv6Addr};
+    use super::{RyIpAddr, RyIpv4Addr, RyIpv6Addr};
 
     // =======================================================================
     // Ipv4Addr
     // ======================================================================
-    impl GetPydanticCoreSchemaCls for PyIpv4Addr {
+    impl GetPydanticCoreSchemaCls for RyIpv4Addr {
         fn get_pydantic_core_schema<'py>(
             cls: &Bound<'py, PyType>,
             source: &Bound<'py, PyAny>,
@@ -1125,7 +1125,7 @@ mod pydantic {
         }
     }
 
-    impl GetPydanticJsonSchemaCls for PyIpv4Addr {
+    impl GetPydanticJsonSchemaCls for RyIpv4Addr {
         fn get_pydantic_json_schema<'py>(
             _cls: &pyo3::Bound<'py, pyo3::types::PyType>,
             core_schema: &pyo3::Bound<'py, pyo3::PyAny>,
@@ -1141,7 +1141,7 @@ mod pydantic {
     // =======================================================================
     // Ipv6Addr
     // ======================================================================
-    impl GetPydanticCoreSchemaCls for PyIpv6Addr {
+    impl GetPydanticCoreSchemaCls for RyIpv6Addr {
         fn get_pydantic_core_schema<'py>(
             cls: &pyo3::Bound<'py, pyo3::types::PyType>,
             source: &pyo3::Bound<'py, pyo3::PyAny>,
@@ -1165,7 +1165,7 @@ mod pydantic {
         }
     }
 
-    impl GetPydanticJsonSchemaCls for PyIpv6Addr {
+    impl GetPydanticJsonSchemaCls for RyIpv6Addr {
         fn get_pydantic_json_schema<'py>(
             _cls: &pyo3::Bound<'py, pyo3::types::PyType>,
             core_schema: &pyo3::Bound<'py, pyo3::PyAny>,
@@ -1182,7 +1182,7 @@ mod pydantic {
     // =======================================================================
     // IpAddr
     // ======================================================================
-    impl GetPydanticCoreSchemaCls for PyIpAddr {
+    impl GetPydanticCoreSchemaCls for RyIpAddr {
         fn get_pydantic_core_schema<'py>(
             cls: &pyo3::Bound<'py, pyo3::types::PyType>,
             source: &pyo3::Bound<'py, pyo3::PyAny>,
@@ -1206,7 +1206,7 @@ mod pydantic {
         }
     }
 
-    impl GetPydanticJsonSchemaCls for PyIpAddr {
+    impl GetPydanticJsonSchemaCls for RyIpAddr {
         fn get_pydantic_json_schema<'py>(
             _cls: &pyo3::Bound<'py, pyo3::types::PyType>,
             core_schema: &pyo3::Bound<'py, pyo3::PyAny>,

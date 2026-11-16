@@ -80,7 +80,7 @@ impl PyWalkDirEntry {
         self.0.path_is_symlink()
     }
 
-    fn metadata(&self) -> PyResult<ryo3_std::fs::PyMetadata> {
+    fn metadata(&self) -> PyResult<ryo3_std::fs::RyMetadata> {
         // TODO: investigate if there is a nicer way to do this chain
         // which is aimed at providing the pathbuf to the usr facing pyerr
         self.0
@@ -94,7 +94,7 @@ impl PyWalkDirEntry {
     }
 
     #[getter]
-    fn file_type(&self) -> ryo3_std::fs::PyFileType {
+    fn file_type(&self) -> ryo3_std::fs::RyFileType {
         self.0.file_type().into()
     }
 

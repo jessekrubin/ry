@@ -130,19 +130,19 @@ impl PyTypeCache {
             // RY-TYPES
             // ----------------------------------------------------------------
             #[cfg(feature = "ryo3-std")]
-            ry_duration: ryo3_std::time::PyDuration::type_object_raw(py) as usize,
+            ry_duration: ryo3_std::time::RyDuration::type_object_raw(py) as usize,
             #[cfg(feature = "ryo3-std")]
-            ry_ip_addr: ryo3_std::net::PyIpAddr::type_object_raw(py) as usize,
+            ry_ip_addr: ryo3_std::net::RyIpAddr::type_object_raw(py) as usize,
             #[cfg(feature = "ryo3-std")]
-            ry_ipv4_addr: ryo3_std::net::PyIpv4Addr::type_object_raw(py) as usize,
+            ry_ipv4_addr: ryo3_std::net::RyIpv4Addr::type_object_raw(py) as usize,
             #[cfg(feature = "ryo3-std")]
-            ry_ipv6_addr: ryo3_std::net::PyIpv6Addr::type_object_raw(py) as usize,
+            ry_ipv6_addr: ryo3_std::net::RyIpv6Addr::type_object_raw(py) as usize,
             #[cfg(feature = "ryo3-std")]
-            ry_socket_addr: ryo3_std::net::PySocketAddr::type_object_raw(py) as usize,
+            ry_socket_addr: ryo3_std::net::RySocketAddr::type_object_raw(py) as usize,
             #[cfg(feature = "ryo3-std")]
-            ry_socket_addr_v4: ryo3_std::net::PySocketAddrV4::type_object_raw(py) as usize,
+            ry_socket_addr_v4: ryo3_std::net::RySocketAddrV4::type_object_raw(py) as usize,
             #[cfg(feature = "ryo3-std")]
-            ry_socket_addr_v6: ryo3_std::net::PySocketAddrV6::type_object_raw(py) as usize,
+            ry_socket_addr_v6: ryo3_std::net::RySocketAddrV6::type_object_raw(py) as usize,
             // ----------------------------------------------------------------
             // UUID
             // ----------------------------------------------------------------
@@ -278,7 +278,7 @@ impl PyTypeCache {
 
         // --- ryo3-* features ---
         // Ordered by how much (i (jesse)) use them
-        py_obj_ptr_feat!(self, ptr, "ryo3-std", ry_duration, PyDuration);
+        py_obj_ptr_feat!(self, ptr, "ryo3-std", ry_duration, RyDuration);
 
         py_obj_ptr_feat!(self, ptr, "ryo3-jiff", ry_signed_duration, RySignedDuration);
         py_obj_ptr_feat!(self, ptr, "ryo3-jiff", ry_zoned_datetime, RyZonedDateTime);
@@ -290,12 +290,12 @@ impl PyTypeCache {
 
         py_obj_ptr_feat!(self, ptr, "ryo3-url", ry_url, RyUrl);
 
-        py_obj_ptr_feat!(self, ptr, "ryo3-std", ry_ip_addr, PyIpAddr);
-        py_obj_ptr_feat!(self, ptr, "ryo3-std", ry_ipv4_addr, PyIpv4Addr);
-        py_obj_ptr_feat!(self, ptr, "ryo3-std", ry_ipv6_addr, PyIpv6Addr);
-        py_obj_ptr_feat!(self, ptr, "ryo3-std", ry_socket_addr, PySocketAddr);
-        py_obj_ptr_feat!(self, ptr, "ryo3-std", ry_socket_addr_v4, PySocketAddrV4);
-        py_obj_ptr_feat!(self, ptr, "ryo3-std", ry_socket_addr_v6, PySocketAddrV6);
+        py_obj_ptr_feat!(self, ptr, "ryo3-std", ry_ip_addr, RyIpAddr);
+        py_obj_ptr_feat!(self, ptr, "ryo3-std", ry_ipv4_addr, RyIpv4Addr);
+        py_obj_ptr_feat!(self, ptr, "ryo3-std", ry_ipv6_addr, RyIpv6Addr);
+        py_obj_ptr_feat!(self, ptr, "ryo3-std", ry_socket_addr, RySocketAddr);
+        py_obj_ptr_feat!(self, ptr, "ryo3-std", ry_socket_addr_v4, RySocketAddrV4);
+        py_obj_ptr_feat!(self, ptr, "ryo3-std", ry_socket_addr_v6, RySocketAddrV6);
 
         py_obj_ptr_feat!(self, ptr, "ryo3-uuid", ry_uuid, RyUuid);
 

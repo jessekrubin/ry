@@ -4,7 +4,7 @@ use reqwest::header::HeaderValue;
 use ryo3_core::py_dict::KwargsIter;
 use ryo3_http::{PyHeadersLike, RyHeaders};
 use ryo3_macro_rules::{py_type_err, py_value_error};
-use ryo3_std::time::{PyDuration, PyTimeout};
+use ryo3_std::time::{PyTimeout, RyDuration};
 
 use crate::constants::DEFAULT_USER_AGENT;
 use crate::proxy::PyProxies;
@@ -40,13 +40,13 @@ pub struct ClientConfig {
     http2_adaptive_window: bool,
     http2_max_frame_size: Option<u32>,
     http2_max_header_list_size: Option<u32>,
-    http2_keep_alive_interval: Option<PyDuration>,
-    http2_keep_alive_timeout: Option<PyDuration>,
+    http2_keep_alive_interval: Option<RyDuration>,
+    http2_keep_alive_timeout: Option<RyDuration>,
     http2_keep_alive_while_idle: bool,
     // -- timeout(s) --
-    timeout: Option<PyDuration>,
-    read_timeout: Option<PyDuration>,
-    connect_timeout: Option<PyDuration>,
+    timeout: Option<RyDuration>,
+    read_timeout: Option<RyDuration>,
+    connect_timeout: Option<RyDuration>,
     // -- compression --
     gzip: bool,
     brotli: bool,
@@ -54,10 +54,10 @@ pub struct ClientConfig {
     zstd: bool,
     // -- pool --
     pool_max_idle_per_host: usize,
-    pool_idle_timeout: Option<PyDuration>,
+    pool_idle_timeout: Option<RyDuration>,
     // -- tcp --
-    tcp_keepalive: Option<PyDuration>, // default: 15 seconds
-    tcp_keepalive_interval: Option<PyDuration>, // default: 15 seconds
+    tcp_keepalive: Option<RyDuration>, // default: 15 seconds
+    tcp_keepalive_interval: Option<RyDuration>, // default: 15 seconds
     tcp_keepalive_retries: Option<u32>, // default: 3
     tcp_nodelay: bool,                 // default: true
     // -- tls --
@@ -131,10 +131,10 @@ impl Default for ClientConfig {
             connect_timeout: None,
             // pool
             pool_max_idle_per_host: usize::MAX,
-            pool_idle_timeout: Some(PyDuration::from_secs(90)),
+            pool_idle_timeout: Some(RyDuration::from_secs(90)),
             // tcp
-            tcp_keepalive: Some(PyDuration::from_secs(15)),
-            tcp_keepalive_interval: Some(PyDuration::from_secs(15)),
+            tcp_keepalive: Some(RyDuration::from_secs(15)),
+            tcp_keepalive_interval: Some(RyDuration::from_secs(15)),
             tcp_keepalive_retries: Some(3),
             tcp_nodelay: true,
             // tls
@@ -176,13 +176,13 @@ impl<'py> FromPyObject<'_, 'py> for ClientConfig {
                     cfg.user_agent = v.extract::<PyUserAgent>()?.into();
                 }
                 "timeout" => {
-                    cfg.timeout = v.extract::<Option<PyTimeout>>()?.map(PyDuration::from);
+                    cfg.timeout = v.extract::<Option<PyTimeout>>()?.map(RyDuration::from);
                 }
                 "read_timeout" => {
-                    cfg.read_timeout = v.extract::<Option<PyTimeout>>()?.map(PyDuration::from);
+                    cfg.read_timeout = v.extract::<Option<PyTimeout>>()?.map(RyDuration::from);
                 }
                 "connect_timeout" => {
-                    cfg.connect_timeout = v.extract::<Option<PyTimeout>>()?.map(PyDuration::from);
+                    cfg.connect_timeout = v.extract::<Option<PyTimeout>>()?.map(RyDuration::from);
                 }
                 "redirect" => {
                     cfg.redirect = v.extract::<Option<usize>>()?;
@@ -255,29 +255,29 @@ impl<'py> FromPyObject<'_, 'py> for ClientConfig {
                 }
                 "http2_keep_alive_interval" => {
                     cfg.http2_keep_alive_interval =
-                        v.extract::<Option<PyTimeout>>()?.map(PyDuration::from);
+                        v.extract::<Option<PyTimeout>>()?.map(RyDuration::from);
                 }
                 "http2_keep_alive_timeout" => {
                     cfg.http2_keep_alive_timeout =
-                        v.extract::<Option<PyTimeout>>()?.map(PyDuration::from);
+                        v.extract::<Option<PyTimeout>>()?.map(RyDuration::from);
                 }
                 "http2_keep_alive_while_idle" => {
                     cfg.http2_keep_alive_while_idle = v.extract::<bool>()?;
                 }
                 // --- pool ---
                 "pool_idle_timeout" => {
-                    cfg.pool_idle_timeout = v.extract::<Option<PyTimeout>>()?.map(PyDuration::from);
+                    cfg.pool_idle_timeout = v.extract::<Option<PyTimeout>>()?.map(RyDuration::from);
                 }
                 "pool_max_idle_per_host" => {
                     cfg.pool_max_idle_per_host = v.extract::<usize>()?;
                 }
                 // --- tcp ---
                 "tcp_keepalive" => {
-                    cfg.tcp_keepalive = v.extract::<Option<PyTimeout>>()?.map(PyDuration::from);
+                    cfg.tcp_keepalive = v.extract::<Option<PyTimeout>>()?.map(RyDuration::from);
                 }
                 "tcp_keepalive_interval" => {
                     cfg.tcp_keepalive_interval =
-                        v.extract::<Option<PyTimeout>>()?.map(PyDuration::from);
+                        v.extract::<Option<PyTimeout>>()?.map(RyDuration::from);
                 }
                 "tcp_keepalive_retries" => {
                     cfg.tcp_keepalive_retries = v.extract::<Option<u32>>()?;
@@ -598,11 +598,11 @@ struct PySocketAddrLike(std::net::SocketAddr);
 impl<'py> FromPyObject<'_, 'py> for PySocketAddrLike {
     type Error = PyErr;
     fn extract(obj: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
-        if let Ok(addr) = obj.cast_exact::<ryo3_std::net::PySocketAddr>() {
+        if let Ok(addr) = obj.cast_exact::<ryo3_std::net::RySocketAddr>() {
             Ok(Self(addr.get().into()))
-        } else if let Ok(addr_str) = obj.cast_exact::<ryo3_std::net::PySocketAddrV4>() {
+        } else if let Ok(addr_str) = obj.cast_exact::<ryo3_std::net::RySocketAddrV4>() {
             Ok(Self(addr_str.get().into()))
-        } else if let Ok(addr_str) = obj.cast_exact::<ryo3_std::net::PySocketAddrV6>() {
+        } else if let Ok(addr_str) = obj.cast_exact::<ryo3_std::net::RySocketAddrV6>() {
             Ok(Self(addr_str.get().into()))
         } else if let Ok(s) = obj.extract::<pyo3::pybacked::PyBackedStr>() {
             let addr: std::net::SocketAddr = s
@@ -679,10 +679,10 @@ impl<'py> IntoPyObject<'py> for &PyResolveMap {
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
         let dict = PyDict::new(py);
         for (key, addrs) in &self.0 {
-            // map 2 PySocketAddr,
+            // map 2 RySocketAddr,
             let py_sock_addrs = addrs
                 .iter()
-                .map(ryo3_std::net::PySocketAddr::from)
+                .map(ryo3_std::net::RySocketAddr::from)
                 .collect::<Vec<_>>();
             dict.set_item(key, py_sock_addrs)?;
         }
