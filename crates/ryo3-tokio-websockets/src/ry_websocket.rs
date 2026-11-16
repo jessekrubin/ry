@@ -8,7 +8,7 @@ use futures_util::{SinkExt, StreamExt};
 use pyo3::exceptions::{PyRuntimeError, PyStopAsyncIteration};
 use pyo3::prelude::*;
 use ryo3_core::sync::RyMutex;
-use ryo3_http::{PyHeaders, PyHeadersLike, PyHttpStatus};
+use ryo3_http::{PyHeadersLike, RyHeaders, RyHttpStatus};
 use ryo3_macro_rules::py_runtime_err;
 use ryo3_std::time::{PyDuration, PyTimeout};
 use ryo3_tokio_rt::{RyCoroutine, get_tokio_runtime, pyloop_coro, tokio_coro};
@@ -126,7 +126,7 @@ impl<'py> IntoPyObject<'py> for WebSocketConfig {
 
         d.set_item(pyo3::intern!(py, "uri"), self.uri.to_string())?;
         if let Some(headers) = self.headers {
-            let py_headers = PyHeaders::from(headers);
+            let py_headers = RyHeaders::from(headers);
             d.set_item(headers_pystr, py_headers)?;
         } else {
             d.set_item(headers_pystr, py.None())?;
@@ -579,22 +579,22 @@ impl RyWebSocket {
     }
 
     #[getter]
-    fn status(&self, py: Python<'_>) -> PyResult<Option<Py<PyHttpStatus>>> {
+    fn status(&self, py: Python<'_>) -> PyResult<Option<Py<RyHttpStatus>>> {
         self.0
             .state
             .py_lock()
             .handshake()
-            .map(|handshake| PyHttpStatus::from_status_code_cached(py, handshake.status))
+            .map(|handshake| RyHttpStatus::from_status_code_cached(py, handshake.status))
             .transpose()
     }
 
     #[getter]
-    fn headers(&self) -> Option<PyHeaders> {
+    fn headers(&self) -> Option<RyHeaders> {
         self.0
             .state
             .py_lock()
             .handshake()
-            .map(|handshake| PyHeaders::from(handshake.response_headers.clone()))
+            .map(|handshake| RyHeaders::from(handshake.response_headers.clone()))
     }
 
     #[getter]

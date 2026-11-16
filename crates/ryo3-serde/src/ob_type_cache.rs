@@ -162,9 +162,9 @@ impl PyTypeCache {
             // HTTP
             // ----------------------------------------------------------------
             #[cfg(feature = "ryo3-http")]
-            ry_http_status: ryo3_http::PyHttpStatus::type_object_raw(py) as usize,
+            ry_http_status: ryo3_http::RyHttpStatus::type_object_raw(py) as usize,
             #[cfg(feature = "ryo3-http")]
-            ry_headers: ryo3_http::PyHeaders::type_object_raw(py) as usize,
+            ry_headers: ryo3_http::RyHeaders::type_object_raw(py) as usize,
             // ----------------------------------------------------------------
             // JIFF
             // ----------------------------------------------------------------

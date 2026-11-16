@@ -6,7 +6,7 @@ use pyo3::types::PyString;
 use ryo3_bytes::RyBytes;
 use ryo3_cookie::PyCookie;
 use ryo3_core::sync::RyMutex;
-use ryo3_http::{PyHeaders, PyHttpStatus, PyHttpVersion, status_code_pystring};
+use ryo3_http::{PyHttpVersion, RyHeaders, RyHttpStatus, status_code_pystring};
 use ryo3_macro_rules::pytodo;
 use ryo3_std::net::PySocketAddr;
 use ryo3_tokio_rt::{RyCoroutine, done_coro, failed_coro, get_tokio_runtime, tokio_coro};
@@ -269,8 +269,8 @@ impl RyResponse {
     }
 
     #[getter]
-    fn status_code(&self, py: Python<'_>) -> PyResult<Py<PyHttpStatus>> {
-        PyHttpStatus::from_status_code_cached(py, self.head.status)
+    fn status_code(&self, py: Python<'_>) -> PyResult<Py<RyHttpStatus>> {
+        RyHttpStatus::from_status_code_cached(py, self.head.status)
     }
 
     /// Returns true if the response was redirected
@@ -296,9 +296,9 @@ impl RyResponse {
     }
 
     #[getter]
-    fn headers(&self) -> PyHeaders {
+    fn headers(&self) -> RyHeaders {
         let c = self.head.headers.clone();
-        PyHeaders::from(c)
+        RyHeaders::from(c)
     }
 
     /// Return the content length of the response, if it is known or `None`.
@@ -490,8 +490,8 @@ impl RyBlockingResponse {
     }
 
     #[getter]
-    fn status_code(&self, py: Python<'_>) -> PyResult<Py<PyHttpStatus>> {
-        PyHttpStatus::from_status_code_cached(py, self.head.status)
+    fn status_code(&self, py: Python<'_>) -> PyResult<Py<RyHttpStatus>> {
+        RyHttpStatus::from_status_code_cached(py, self.head.status)
     }
 
     /// Returns true if the response was redirected
@@ -517,9 +517,9 @@ impl RyBlockingResponse {
     }
 
     #[getter]
-    fn headers(&self) -> PyHeaders {
+    fn headers(&self) -> RyHeaders {
         let c = self.head.headers.clone();
-        PyHeaders::from(c)
+        RyHeaders::from(c)
     }
 
     /// Return the content length of the response, if it is known or `None`.

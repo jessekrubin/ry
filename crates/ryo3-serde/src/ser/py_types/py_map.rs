@@ -168,11 +168,11 @@ macro_rules! serialize_map_value {
             // __HTTP__
             #[cfg(feature = "ryo3-http")]
             PyObType::RyHeaders => {
-                $map.serialize_value(&ry_types::PyHeadersSerializer::new_unchecked($value))?;
+                $map.serialize_value(&ry_types::RyHeadersSerializer::new_unchecked($value))?;
             }
             #[cfg(feature = "ryo3-http")]
             PyObType::RyHttpStatus => {
-                $map.serialize_value(&ry_types::PyHttpStatusSerializer::new_unchecked($value))?;
+                $map.serialize_value(&ry_types::RyHttpStatusSerializer::new_unchecked($value))?;
             }
             // __JIFF__
             #[cfg(feature = "ryo3-jiff")]

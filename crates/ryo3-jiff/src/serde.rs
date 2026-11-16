@@ -44,6 +44,7 @@ impl_deserialize!(RyISOWeekDate, jiff::civil::ISOWeekDate);
 // ----------------------------------------------------------------------------
 
 #[cfg(test)]
+#[expect(clippy::missing_panics_doc)]
 mod tests {
     use jiff::Span;
     use serde::{Deserialize, Serialize};
@@ -67,12 +68,12 @@ mod tests {
 
     #[test]
     fn test_deserialize_and_serialize() {
-        let ry_time = RyTime::py_new(4, 3, 2, 1).unwrap();
-        let ry_date = RyDate::py_new(2025, 5, 21).unwrap();
-        let ry_datetime = ry_date.at(4, 3, 2, 1).unwrap();
-        let ry_zoned = ry_datetime.in_tz("America/New_York").unwrap();
-        let ry_signed_duration = RySignedDuration::py_new(123, 123).unwrap();
-        let ry_timestamp = RyTimestamp::py_new(1234, 5678).unwrap();
+        let ry_time = RyTime::py_new(4, 3, 2, 1).expect("test value");
+        let ry_date = RyDate::py_new(2025, 5, 21).expect("test value");
+        let ry_datetime = ry_date.at(4, 3, 2, 1).expect("test value");
+        let ry_zoned = ry_datetime.in_tz("America/New_York").expect("test value");
+        let ry_signed_duration = RySignedDuration::py_new(123, 123).expect("test value");
+        let ry_timestamp = RyTimestamp::py_new(1234, 5678).expect("test value");
         let span = Span::new().days(1).hours(2).minutes(4);
         let ry_span = RySpan::from(span);
 
@@ -87,10 +88,10 @@ mod tests {
             iso_week_date: ry_date.iso_week_date(),
         };
 
-        let serialized = serde_json::to_string_pretty(&s).unwrap();
+        let serialized = serde_json::to_string_pretty(&s).expect("serialize");
 
         println!("Serialized: {serialized}");
-        let deserialized: Stuff = serde_json::from_str(&serialized).unwrap();
+        let deserialized: Stuff = serde_json::from_str(&serialized).expect("deserialize");
         assert_eq!(s, deserialized);
     }
 }

@@ -61,8 +61,8 @@ use pyo3::prelude::*;
 
 // ry_type_serializers! {
 //     // http
-//     #[cfg(feature = "ryo3-http")]  ry_headers => ryo3_http::PyHeaders;
-//     #[cfg(feature = "ryo3-http")]  ry_http_status => ryo3_http::PyHttpStatus;
+//     #[cfg(feature = "ryo3-http")]  ry_headers => ryo3_http::RyHeaders;
+//     #[cfg(feature = "ryo3-http")]  ry_http_status => ryo3_http::RyHttpStatus;
 //     // jiff
 //     #[cfg(feature = "ryo3-jiff")]  ry_date => ryo3_jiff::RyDate;
 //     #[cfg(feature = "ryo3-jiff")]  ry_datetime => ryo3_jiff::RyDateTime;
@@ -123,11 +123,11 @@ macro_rules! ry_type_serializer_struct {
 // ===========================================================================
 ry_type_serializer_struct! (
     #[cfg(feature = "ryo3-http")]
-    PyHeadersSerializer => ryo3_http::PyHeaders
+    RyHeadersSerializer => ryo3_http::RyHeaders
 );
 ry_type_serializer_struct! (
     #[cfg(feature = "ryo3-http")]
-    PyHttpStatusSerializer => ryo3_http::PyHttpStatus
+    RyHttpStatusSerializer => ryo3_http::RyHttpStatus
 );
 
 // ===========================================================================
