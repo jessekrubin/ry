@@ -229,7 +229,7 @@ impl RySpan {
 
     fn __format__(&self, fmt: &str) -> PyResult<String> {
         if fmt == "#" {
-            Ok(format!("{:#}", self.0))
+            Ok(self.0.to_friendly())
         } else if fmt.is_empty() {
             Ok(self.0.to_string())
         } else {
@@ -240,7 +240,7 @@ impl RySpan {
     #[pyo3(signature = (*, friendly = false), name = "to_string")]
     fn py_to_string(&self, friendly: bool) -> String {
         if friendly {
-            format!("{:#}", self.0)
+            self.0.to_friendly()
         } else {
             self.0.to_string()
         }
