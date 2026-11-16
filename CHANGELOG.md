@@ -9,8 +9,13 @@
 
 ## v0.0.110 [unreleased]
 
-- `ryo3-jiff`
+- `ryo3-jiff` ~ `jiff-v1.x.y` (!)
   - UPGRADE TO JIFF 1!
+  - **BREAKING:** `ry.Timestamp.__sub__`, `ry.Timestamp.__rsub__` and
+    `ry.Timestamp.sub(Timestamp)` now return `ry.SignedDuration` instead of
+    `ry.TimeSpan` as `jiff` now does.
+  - **BREAKING:** `ry.Offset.saturating_add` and `ry.Offset.saturating_sub` now
+    raise `ValueError` for spans with units bigger than hours.
 
 ---
 
