@@ -1,8 +1,8 @@
-"""Jiff examples (v2)
+"""Jiff examples (v0.2)
 
-Translated jiff-examples from jiff-v2's docs
+Translated jiff-examples from jiff-v0.2's docs
 
-REF: https://docs.rs/jiff/latest/jiff/#examples
+REF: https://docs.rs/jiff/0.2/jiff/#examples
 DATE: 2025-05-23
 """
 
