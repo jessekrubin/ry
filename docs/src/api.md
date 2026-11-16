@@ -3093,6 +3093,12 @@ class TimeZoneTransition(t.TypedDict):
     abbreviation: str
 
 
+class TimeZoneLocation(t.TypedDict):
+    country: str  # ISO 3166 (eg "DK")
+    latitude: float
+    longitude: float
+
+
 @t.final
 class TimeZone(
     # protocols
@@ -3152,6 +3158,43 @@ class TimeZone(
     # INSTANCE METHODS
     # =========================================================================
     def iana_name(self) -> str | None: ...
+    def primary_iana_name(self) -> str | None:
+        """Return the primary (ECMAScript preferred) IANA name
+
+        Examples
+        --------
+        >>> import ry
+        >>> ry.TimeZone("Asia/Calcutta").primary_iana_name()
+        'Asia/Kolkata'
+
+        """
+
+    def is_primary(self) -> bool:
+        """Return True if the IANA name is the primary IANA name
+
+        Examples
+        --------
+        >>> import ry
+        >>> ry.TimeZone("Asia/Calcutta").is_primary()
+        False
+        >>> ry.TimeZone("Asia/Kolkata").is_primary()
+        True
+
+        """
+
+    def location(self) -> TimeZoneLocation | None:
+        """Return the country + coordinates for the primary time zone id
+
+        Examples
+        --------
+        >>> import ry
+        >>> ry.TimeZone("Europe/Copenhagen").location()["country"]
+        'DK'
+        >>> ry.TimeZone.UTC.location() is None
+        True
+
+        """
+
     def to_datetime(self, timestamp: Timestamp) -> DateTime: ...
     def to_fixed_offset(self) -> Offset:
         """Return a TimeZone with a fixed offset equivalent to this TimeZone.

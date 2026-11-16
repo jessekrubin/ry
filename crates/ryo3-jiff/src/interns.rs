@@ -68,3 +68,8 @@ unpaid_intern!(smallest);
 unpaid_intern!(largest);
 unpaid_intern!(mode);
 unpaid_intern!(increment);
+
+// tz location
+unpaid_intern!(country);
+unpaid_intern!(latitude);
+unpaid_intern!(longitude);

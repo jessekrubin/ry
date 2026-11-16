@@ -238,6 +238,27 @@ impl RyTimeZone {
         self.0.iana_name()
     }
 
+    /// preferred (ECMAScript) IANA name, eg `Asia/Calcutta` -> `Asia/Kolkata`
+    fn primary_iana_name(&self) -> Option<&str> {
+        self.0.primary_iana_name()
+    }
+
+    fn is_primary(&self) -> bool {
+        self.0.is_primary()
+    }
+
+    /// country/lat/lon for the primary tz id as a dict (`None` if unknown)
+    fn location<'py>(&self, py: Python<'py>) -> PyResult<Option<Bound<'py, PyDict>>> {
+        let Some(loc) = self.0.location() else {
+            return Ok(None);
+        };
+        let dict = PyDict::new(py);
+        dict.set_item(crate::interns::country(py), loc.country())?;
+        dict.set_item(crate::interns::latitude(py), loc.latitude())?;
+        dict.set_item(crate::interns::longitude(py), loc.longitude())?;
+        Ok(Some(dict))
+    }
+
     fn to_fixed_offset(&self) -> PyResult<RyOffset> {
         self.0
             .to_fixed_offset()
