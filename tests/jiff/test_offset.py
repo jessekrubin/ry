@@ -215,6 +215,13 @@ class TestOffset:
         duration = ry.Duration(secs=7200)
         assert offset.saturating_sub(duration) == ry.Offset.MIN
 
+    def test_saturating_add_sub_calendar_units_raise(self) -> None:
+        offset = ry.Offset.from_hours(1)
+        with pytest.raises(ValueError, match="non-zero 'day' units"):
+            offset.saturating_add(ry.TimeSpan(days=1))
+        with pytest.raises(ValueError, match="non-zero 'week' units"):
+            offset.saturating_sub(ry.TimeSpan(weeks=1))
+
 
 class TestOffsetHypothesis:
     _MAX_OFFSET_SECONDS = ry.Offset.MAX.seconds

@@ -176,7 +176,7 @@ def test_timestamp_sub() -> None:
     span_via_sub = t1.sub(t2)
     assert span == span_via_sub
     assert str(span) == "-PT1S"
-    assert isinstance(span, ry.TimeSpan)
+    assert isinstance(span, ry.SignedDuration)
 
     inplace_ts = ry.Timestamp(
         second=1609459200,
@@ -202,7 +202,7 @@ def test_timestamp_add() -> None:
     span = t2 - t1
 
     assert str(span) == "PT1S"
-    assert isinstance(span, ry.TimeSpan)
+    assert isinstance(span, ry.SignedDuration)
 
     inplace_span = ry.Timestamp(
         second=1609459200,

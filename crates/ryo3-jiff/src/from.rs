@@ -51,7 +51,11 @@ impl From<&RyTimestamp> for RyDateTime {
 impl From<&RyTimestamp> for RyISOWeekDate {
     #[inline]
     fn from(value: &RyTimestamp) -> Self {
-        value.0.to_zoned_datetime(TimeZone::UTC).iso_week_date().into()
+        value
+            .0
+            .to_zoned_datetime(TimeZone::UTC)
+            .iso_week_date()
+            .into()
     }
 }
 

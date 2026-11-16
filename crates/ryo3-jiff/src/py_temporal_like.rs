@@ -4,7 +4,7 @@ use ryo3_core::FromPyOperand;
 use ryo3_macro_rules::{py_overflow_err, py_type_error, py_value_err};
 
 use crate::spanish::Spanish;
-use crate::{RyDate, RyDateTime, RySpan, RyTime, RyTimestamp, RyZoned};
+use crate::{RyDate, RyDateTime, RySignedDuration, RySpan, RyTime, RyTimestamp, RyZoned};
 
 #[derive(Debug, Clone)]
 pub(crate) enum PyTemporalArg<'a, 'py> {
@@ -87,11 +87,20 @@ pub(crate) enum TemporalSubOutput<T> {
     Overflow(jiff::Error),
     Temporal(T),
     Span(RySpan),
+    /// Result of subtracting two temporal types, yielding a signed duration
+    /// `jiff::Timestamp - jiff::Timestamp` -> `jiff::SignedDuration`
+    SignedDuration(RySignedDuration),
 }
 
 impl<T> From<jiff::Span> for TemporalSubOutput<T> {
     fn from(span: jiff::Span) -> Self {
         Self::Span(RySpan(span))
+    }
+}
+
+impl<T> From<jiff::SignedDuration> for TemporalSubOutput<T> {
+    fn from(dur: jiff::SignedDuration) -> Self {
+        Self::SignedDuration(RySignedDuration(dur))
     }
 }
 
@@ -127,6 +136,7 @@ where
         match self {
             Self::Temporal(ts) => ts.into_bound_py_any(py),
             Self::Span(span) => span.into_pyobject(py).map(Bound::into_any),
+            Self::SignedDuration(dur) => dur.into_bound_py_any(py),
             Self::Overflow(err) => py_overflow_err!("{err}"),
             Self::ValueError(err) => py_value_err!("{err}"),
         }
