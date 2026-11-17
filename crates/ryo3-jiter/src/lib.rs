@@ -5,12 +5,12 @@
 //! allows for parsing json from bytes or str (which jiter-python does not as
 //! of [2024-05-29])
 use std::path::PathBuf;
-mod py_json_decode_error;
+mod ry_json_decode_error;
 pub use ::jiter::{FloatMode, PartialMode, PythonParse, StringCacheMode};
-pub use py_json_decode_error::RyJSONDecodeError;
 use pyo3::IntoPyObjectExt;
 use pyo3::prelude::*;
 use pyo3::types::PyList;
+pub use ry_json_decode_error::RyJSONDecodeError;
 mod parse_options;
 pub use parse_options::JiterParseOptions;
 
