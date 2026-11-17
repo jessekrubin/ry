@@ -44,8 +44,8 @@ impl<'py> IntoPyObject<'py> for GlobPathsVec {
             GlobDType::FsPath => self
                 .paths
                 .into_iter()
-                .map(ryo3_fspath::PyFsPath::from)
-                .collect::<Vec<ryo3_fspath::PyFsPath>>()
+                .map(ryo3_fspath::RyFsPath::from)
+                .collect::<Vec<ryo3_fspath::RyFsPath>>()
                 .into_pyobject(py),
             GlobDType::PathBuf => self.paths.into_pyobject(py),
             GlobDType::OsString => self
@@ -67,7 +67,7 @@ impl<'py> IntoPyObject<'py> for GlobItem {
 
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
         match self.0 {
-            GlobDType::FsPath => ryo3_fspath::PyFsPath::from(self.1).into_bound_py_any(py),
+            GlobDType::FsPath => ryo3_fspath::RyFsPath::from(self.1).into_bound_py_any(py),
             GlobDType::PathBuf => self.1.into_bound_py_any(py),
             GlobDType::OsString => OsString::from(self.1).into_bound_py_any(py),
         }

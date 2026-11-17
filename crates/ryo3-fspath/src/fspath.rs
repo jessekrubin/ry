@@ -22,9 +22,9 @@ const MAIN_SEPARATOR: char = std::path::MAIN_SEPARATOR;
 #[pyclass(name = "FsPath", frozen, immutable_type, eq, ord)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
-pub struct PyFsPath(PathBuf);
+pub struct RyFsPath(PathBuf);
 
-impl PyFsPath {
+impl RyFsPath {
     pub fn new<P: AsRef<Path>>(p: P) -> Self {
         Self(to_native_pathbuf(p))
     }
@@ -71,7 +71,7 @@ fn to_native_pathbuf<P: AsRef<Path>>(p: P) -> PathBuf {
 }
 
 #[pymethods]
-impl PyFsPath {
+impl RyFsPath {
     #[new]
     #[pyo3(signature = (*args))]
     fn py_new(args: &Bound<'_, PyTuple>) -> PyResult<Self> {
@@ -796,7 +796,7 @@ impl PyFsPath {
     }
 }
 
-impl<T> From<T> for PyFsPath
+impl<T> From<T> for RyFsPath
 where
     T: AsRef<Path>,
 {
@@ -815,20 +815,20 @@ impl PyFsPathReadDir {
         slf
     }
 
-    fn __next__(&self, py: Python<'_>) -> Option<PyFsPath> {
+    fn __next__(&self, py: Python<'_>) -> Option<RyFsPath> {
         let value = py.detach(|| self.0.py_lock().next());
         match value {
-            Some(Ok(entry)) => Some(PyFsPath::from(entry.path())),
+            Some(Ok(entry)) => Some(RyFsPath::from(entry.path())),
             _ => None,
         }
     }
 
-    fn collect(&self, py: Python<'_>) -> Vec<PyFsPath> {
+    fn collect(&self, py: Python<'_>) -> Vec<RyFsPath> {
         py.detach(|| {
             let mut paths = vec![];
             for entry in self.0.py_lock().by_ref() {
                 match entry {
-                    Ok(entry) => paths.push(PyFsPath::from(entry.path())),
+                    Ok(entry) => paths.push(RyFsPath::from(entry.path())),
                     Err(_e) => break, // TODO: handle error
                 }
             }
@@ -837,14 +837,14 @@ impl PyFsPathReadDir {
     }
 
     #[pyo3(signature = (n = 1))]
-    fn take(&self, py: Python<'_>, n: usize) -> Vec<PyFsPath> {
+    fn take(&self, py: Python<'_>, n: usize) -> Vec<RyFsPath> {
         py.detach(|| {
             self.0
                 .py_lock()
                 .by_ref()
                 .take(n)
                 .filter_map(|entry| match entry {
-                    Ok(entry) => Some(PyFsPath::from(entry.path())),
+                    Ok(entry) => Some(RyFsPath::from(entry.path())),
                     Err(_) => None,
                 })
                 .collect()
@@ -900,7 +900,7 @@ impl PyFsPathAncestors {
         slf
     }
 
-    fn __next__(&self) -> Option<PyFsPath> {
+    fn __next__(&self) -> Option<RyFsPath> {
         let mut current = self.current.py_lock();
 
         let cur = current.take()?;
@@ -909,7 +909,7 @@ impl PyFsPathAncestors {
             Some(p) if p.as_os_str().is_empty() => None,
             Some(p) => Some(p.to_path_buf()),
         };
-        let out = PyFsPath::new(&cur);
+        let out = RyFsPath::new(&cur);
 
         Some(out)
     }
@@ -918,7 +918,7 @@ impl PyFsPathAncestors {
         self.path.ancestors().count()
     }
 
-    fn collect(&self) -> Vec<PyFsPath> {
+    fn collect(&self) -> Vec<RyFsPath> {
         let mut current = self.current.py_lock();
 
         let mut paths = vec![];
@@ -928,13 +928,13 @@ impl PyFsPathAncestors {
                 Some(p) if p.as_os_str().is_empty() => None,
                 Some(p) => Some(p.to_path_buf()),
             };
-            paths.push(PyFsPath::new(&cur));
+            paths.push(RyFsPath::new(&cur));
         }
         paths
     }
 
     #[pyo3(signature = (n = 1))]
-    fn take(&self, n: usize) -> Vec<PyFsPath> {
+    fn take(&self, n: usize) -> Vec<RyFsPath> {
         let mut current = self.current.py_lock();
         let mut paths = vec![];
         for _ in 0..n {
@@ -944,7 +944,7 @@ impl PyFsPathAncestors {
                 Some(p) if p.as_os_str().is_empty() => None,
                 Some(p) => Some(p.to_path_buf()),
             };
-            paths.push(PyFsPath::new(&cur));
+            paths.push(RyFsPath::new(&cur));
         }
         paths
     }
@@ -1027,7 +1027,7 @@ where
 }
 
 enum FsPathLike<'a, 'py> {
-    FsPath(Borrowed<'a, 'py, PyFsPath>),
+    FsPath(Borrowed<'a, 'py, RyFsPath>),
     Path(PathLike),
 }
 
@@ -1041,7 +1041,7 @@ impl<'a, 'py> FromPyOperand<'a, 'py> for FsPathLike<'a, 'py> {
 impl<'a, 'py> FromPyObject<'a, 'py> for FsPathLike<'a, 'py> {
     type Error = PyErr;
     fn extract(obj: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
-        if let Some(val) = obj.cast_exact_opt::<PyFsPath>() {
+        if let Some(val) = obj.cast_exact_opt::<RyFsPath>() {
             Ok(FsPathLike::FsPath(val))
         } else {
             obj.extract::<PathLike>().map(FsPathLike::Path)

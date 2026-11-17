@@ -4,9 +4,9 @@ mod fspath;
 mod pathlib;
 #[cfg(feature = "pydantic")]
 mod pydantic;
-pub use fspath::PyFsPath;
+pub use fspath::RyFsPath;
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    m.add_class::<PyFsPath>()?;
+    m.add_class::<RyFsPath>()?;
     Ok(())
 }
