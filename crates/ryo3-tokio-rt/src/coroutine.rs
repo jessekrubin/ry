@@ -15,7 +15,7 @@
 //! python. everything else is on the loop thread. the one exception is
 //! `poke_fallback`.
 //!
-//! # How it wakes?
+//! # how do it wake?
 //!
 //! 1. [`tokio_coro`] -> `Unstarted`, nothing spawned yet
 //! 2. Task calls `send(None)`. `poll_once` gets the loop's hub and polls once
@@ -61,17 +61,19 @@
 //! # prior art
 //!
 //! the self-pipe trick, same as asyncio's `_write_to_self` and grpc.aio's
-//! poller, but w/o the GIL and w/ one byte per burst. PR #897.
+//! poller, but w/o the GIL and with one byte per burst.
 //!
-//! REFS:
+//! REFS (w/ permalinks):
 //! - djb self-pipe trick <https://cr.yp.to/docs/selfpipe.html>
 //! - asyncio self-pipe <https://github.com/python/cpython/blob/v3.13.0/Lib/asyncio/selector_events.py#L118-L147>
 //! - asyncio `call_soon_threadsafe` <https://github.com/python/cpython/blob/v3.13.0/Lib/asyncio/base_events.py#L872-L882>
-//! - grpc.aio poller <https://github.com/grpc/grpc/blob/v1.83.2/src/python/grpcio/grpc/_cython/_cygrpc/aio/completion_queue.pyx.pxi#L91-L116> + fallback <https://github.com/grpc/grpc/blob/v1.83.2/src/python/grpcio/grpc/_cython/_cygrpc/aio/completion_queue.pyx.pxi#L18-L57>
+//! - grpc.aio poller <https://github.com/grpc/grpc/blob/v1.83.2/src/python/grpcio/grpc/_cython/_cygrpc/aio/completion_queue.pyx.pxi#L91-L116>
+//! - grpc.aio `add_reader` + fallback <https://github.com/grpc/grpc/blob/v1.83.2/src/python/grpcio/grpc/_cython/_cygrpc/aio/completion_queue.pyx.pxi#L18-L57>
 //! - uvloop `call_soon_threadsafe` <https://github.com/MagicStack/uvloop/blob/v0.23.0/uvloop/loop.pyx#L1277-L1286>
 //! - libuv `uv_async_send` <https://docs.libuv.org/en/v1.x/async.html>
 //! - trio `WakeupSocketpair` <https://github.com/python-trio/trio/blob/v0.35.0/src/trio/_core/_wakeup_socketpair.py#L12-L50>
-//! - pyo3 waker (GIL per wake) <https://github.com/PyO3/pyo3/blob/v0.30.1/src/coroutine/waker.rs#L43-L51>, `experimental-async` <https://github.com/PyO3/pyo3/pull/3540>
+//! - pyo3 waker (GIL per wake) <https://github.com/PyO3/pyo3/blob/v0.30.1/src/coroutine/waker.rs#L43-L51>
+//! - pyo3 `experimental-async` <https://github.com/PyO3/pyo3/pull/3540>
 //! - pyo3-async-runtimes <https://github.com/PyO3/pyo3-async-runtimes/blob/v0.30.0/src/generic.rs#L608-L680>
 //! - ry PR <https://github.com/jessekrubin/ry/pull/897>
 
@@ -107,7 +109,6 @@ fn lock<T>(mutex: &Mutex<T>) -> MutexGuard<'_, T> {
     mutex.lock().unwrap_or_else(PoisonError::into_inner)
 }
 
-/// Get the currently running asyncio event loop via `asyncio.get_running_loop()`
 fn asyncio_get_running_loop(py: Python<'_>) -> PyResult<Bound<'_, PyAny>> {
     static GET_RUNNING_LOOP: PyOnceLock<Py<PyAny>> = PyOnceLock::new();
     GET_RUNNING_LOOP
@@ -153,10 +154,10 @@ enum LoopEvent {
 ///
 /// closed loops:
 ///
-/// - closed loops arent noticed right away.
+/// - closed loops aren't noticed right away
 /// - wakes pile into `ready` till the hub gets cleaned up, which happens when
-///   a new loop is created on this thread.
-/// - `asyncio.run` cancels everything before closing so its usually ~nothing
+///   a new loop is created on this thread
+/// - `asyncio.run` cancels everything before closing so it's usually ~nothing
 struct LoopHub {
     /// Event loop ref ~ also keeps the loop addr from getting reused
     event_loop: Py<PyAny>,
@@ -171,10 +172,10 @@ struct LoopHub {
     wake_pair: Option<(UnixStream, UnixStream)>,
     /// `Wake`s from tokio + `Call`s from `LoopHandle::call_soon`
     ///
-    /// This is how ws/request bodies get stuff onto the loop sans-GIL)
+    /// This is how ws/request bodies get stuff onto the loop sans-GIL
     ready: Mutex<Vec<LoopEvent>>,
     /// `true` => a flush is imminent (byte in the pipe or fallback queued) and
-    /// hasnt taken the batch yet, so new events dont need to poke again
+    /// hasn't taken the batch yet, so new events don't need to poke again
     flush_scheduled: AtomicBool,
     /// Loop 100% known dead (pruned or `call_soon_threadsafe` failed) ~ new
     /// events get dropped
@@ -210,14 +211,17 @@ impl LoopHub {
         }
         {
             let mut ready = lock(&self.ready);
-            // re-check under the lock so a race on `close()` dont strand event
+            // re-check under the lock so a race w/ `close()` can't strand
+            // an event (this is what happened to Tom Hanks in Castaway IIRC)
             if self.closed.load(Ordering::Acquire) {
                 return;
             }
             ready.push(event);
         }
-        // the `ready` mutex orders this: a push after `run_ready` took the batch
-        // sees its `store(false)` and pokes. AcqRel/SeqCst is overkill (but yolo)
+        // the `ready` mutex does the ordering: `run_ready` stores false THEN
+        // (with the lock helt)  takes. This means a push that misses locks after
+        // that and the swap sees a false and does a poke/prod. The atomic
+        // usage are possibly overkill but seem like the saffer option (imo).
         if !self.flush_scheduled.swap(true, Ordering::AcqRel) {
             self.poke();
         }
@@ -227,10 +231,11 @@ impl LoopHub {
     fn poke(&self) {
         #[cfg(unix)]
         if let Some((_, tx)) = &self.wake_pair {
-            // WouldBlock => a byte is already there so finna flush soon anyway.
-            // other errs shouldnt happen (rx lives as long as the hub). if one did,
-            // `flush_scheduled` stays true and the hub goes quiet. look here if wakes
-            // ever just stop
+            // WouldBlock => a byte is already there so a flush is coming anyway.
+            // other errs shouldn't happen (rx lives as long as the hub). If
+            // there was an err, `flush_scheduled` stays true/twu and the hub
+            // is quiet.
+            // TODO: if wake ups stop, this is prolly the place to look?
             let _ = (&*tx).write(&[1]);
             return;
         }
@@ -261,8 +266,9 @@ impl LoopHub {
 
     /// runs the whole batch
     ///
-    /// `KeyboardInterrupt`/`SystemExit` oot gets handed back (after the rest
-    /// of the batch) so it stops das loop how a plain asyncio handle would
+    /// a `KeyboardInterrupt`/`SystemExit` from a cb gets returned (after the
+    /// rest of the batch runs) so it stops the loop like a plain asyncio
+    /// handle would
     fn run_ready(&self, py: Python<'_>) -> PyResult<()> {
         #[cfg(unix)]
         if let Some((rx, _)) = &self.wake_pair {
@@ -278,9 +284,8 @@ impl LoopHub {
             }
         }
 
-        // chill before taking the batch ~ a racing flush either lands in this
-        // batch or pokes again (no lost wakes)
-
+        // clear `flush_scheduled` *before* taking the batch ~ a racing push
+        // either lands in this batch or sees false and pokes again (no lost wakes)
         self.flush_scheduled.store(false, Ordering::SeqCst);
         let batch = std::mem::take(&mut *lock(&self.ready));
         // only the first KeyboardInterrupt/SystemExit sticks, the rest get tossed
@@ -528,7 +533,8 @@ impl CoroutineWaker {
     }
 
     fn traverse(&self, visit: &PyVisit<'_>) -> Result<(), PyTraverseError> {
-        // busy ~ in use rn skip for now
+        // locked => mid-poll/mid-wake on the loop thread. skip it instead of
+        // deadlocking; tis alive and reachable anyway SO nothing is freed early
         let Ok(state) = self.state.try_lock() else {
             return Ok(());
         };
@@ -636,14 +642,15 @@ impl RyCoroutineFuture {
         Ok(before - state.callbacks.len())
     }
 
-    // `call_soon` here (not inline like `wake_task`),
-    // This is the same as `asyncio.Future.cancel` in that it runs inside of
-    // `Task.cancel` from whoever is cancelling,
+    // `call_soon` here, not inline like `wake_task` (same as `asyncio.Future`)
     //
-    // NOTE: This means that the cancellation is processed in the context of
-    // the caller who invoked `Task.cancel()`, rather than inline within the
-    // coroutine itself. I forget what problem this caused exactly but it was
-    // wrong scoping I think.
+    // This runs INSIDE `Task.cancel()`, usually called from ANOTHER task's
+    // step. Running `__wakeup` inline would step the cancelled task while the
+    // canceller is still the current task, AND asyncio's `_enter_task` raises
+    // "Cannot enter into task <...> while another task <...> is being
+    // executed". The cancelled task NEVER gets stepped into after that and
+    // hangs forever. `wake_task` can go inline b/c `run_ready` is a plain jane
+    // loop cb with no current task.
     #[pyo3(signature = (msg = None))]
     fn cancel(slf: &Bound<'_, Self>, msg: Option<Py<PyAny>>) -> PyResult<bool> {
         let this = slf.get();
@@ -791,7 +798,7 @@ impl RyCoroutine {
         Ok(())
     }
 
-    /// `send`/`__next__` ~ THE ACTUAL REAL DEAL COROUTINE
+    /// `send`/`__next__` ~ the actual real deal coroutine
     ///
     /// - holds the state lock for the whole poll, so re-entry gets "coroutine
     ///   already executing" like a real coroutine
@@ -816,9 +823,11 @@ impl RyCoroutine {
             }
             CoroutineState::Unstarted(mut future) => {
                 let loop_handle = LoopHandle::current(py)?;
-                // Ready operations need no Python future or wakeup allocation.
-                // On Pending, poll again below with the real waker so a wake
-                // racing this initial poll cannot be lost.
+                // ready on the first poll?
+                // >>> no py-future/waker needed at all.
+                // pending?
+                // >>> poll again below with the real waker; anything that wakes
+                // up the noop waker during this poll would be lost to the ether
                 if let Poll::Ready(result) = future
                     .as_mut()
                     .poll_py(py, &mut Context::from_waker(Waker::noop()))
@@ -885,7 +894,9 @@ impl Drop for RyCoroutine {
     }
 }
 
-/// `throw(exc)` or deprecated `throw(type, value, tb)` ~ looks like dep in 312
+/// `throw(exc)` or `throw(type, value, tb)`
+///
+/// NOTE: the 3-arg form is deprecated since 3.12 [ref](https://github.com/python/cpython/blob/0fb18b02c8ad56299d6a2910be0bab8ad601ef24/Objects/genobject.c#L578-L585)
 fn thrown_error(typ: &Bound<'_, PyAny>, value: Option<&Bound<'_, PyAny>>) -> PyErr {
     match value.filter(|value| !value.is_none()) {
         Some(value) if value.is_instance_of::<PyBaseException>() => {
@@ -922,7 +933,7 @@ impl RyCoroutine {
     #[cfg(any(PyPy, GraalPy))]
     fn __repr__(slf: &Bound<'_, Self>) -> PyResult<String> {
         // address from `id()` like python's own reprs ~ on pypy the object
-        // pointer we get aint what `id()` says
+        // pointer we get aint what `id()` says (oy vey)
         static ID: PyOnceLock<Py<PyAny>> = PyOnceLock::new();
         let id: usize = ID
             .import(slf.py(), "builtins", "id")?
@@ -931,12 +942,11 @@ impl RyCoroutine {
         Ok(format!("<ry.Coroutine {} at {id:#x}>", slf.get().qualname))
     }
 
+    /// returns self so it can be awaited like a py coroutine
     fn __await__(slf: Py<Self>) -> Py<Self> {
         slf
     }
 
-    /// `__await__()` returns self so it can be a awaited like a py coroutine
-    ///
     /// `yield from aw.__await__()` (generator-y adapters) needs `iter()` afaict
     fn __iter__(slf: Py<Self>) -> Py<Self> {
         slf
@@ -950,7 +960,7 @@ impl RyCoroutine {
         self.poll_once(py)
     }
 
-    // the future dies here w/o async cleanup. `Drop` cant `block_on` either, it
+    // the future dies here w/o async cleanup. `Drop` can't `block_on` either, it
     // can run on a tokio worker. see <https://github.com/jessekrubin/ry/pull/899>
     #[pyo3(signature = (typ, value = None, _traceback = None, /))]
     fn throw(
@@ -1001,8 +1011,7 @@ where
     RyCoroutine::new(py, qualname, CoroutineState::Unstarted(Box::pin(lazy)))
 }
 
-/// Runs sync `f` on tokio's blocking thread pool. Nothing starts until the
-/// coroutine is first awaited.
+/// run sync `f` on tokio's blocking pool ~ nothing starts till first await
 pub fn blocking_coro<'py, F, T>(
     py: Python<'py>,
     qualname: &'static str,
@@ -1056,13 +1065,13 @@ pub fn failed_coro<'py>(
     RyCoroutine::new(py, qualname, CoroutineState::Immediate(Err(err)))
 }
 
-/// poll `future` right on the loop thread ~ ONLY for futures that dont need
+/// poll `future` right on the loop thread ~ ONLY for futures that don't need
 /// the tokio rt context (tokio channels/notify/mutex ok; io/timers/spawn no)
 ///
 /// spawning through the runtime handle (`get_ry_tokio_runtime().py_spawn*`)
 /// and awaiting the `JoinHandle` works here; bare `tokio::spawn` panics
 ///
-/// tokio can panic here (no reactor here) -> `PanicException`
+/// tokio can panic here (no reactor on the loop thread) -> `PanicException`
 pub fn pyloop_coro<'py, F, T>(
     py: Python<'py>,
     qualname: &'static str,
