@@ -11,7 +11,7 @@ use pyo3::types::PyType;
 use ryo3_core::macros::{py_value_err, py_value_error};
 use ryo3_core::sync::RyMutex;
 
-use crate::pattern::PyGlobPattern;
+use crate::pattern::RyGlobPattern;
 
 #[derive(Clone, Copy)]
 enum GlobDType {
@@ -76,13 +76,13 @@ impl<'py> IntoPyObject<'py> for GlobItem {
 
 #[pyclass(name = "GlobPaths", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
-pub struct PyGlobPaths {
+pub struct RyGlobPaths {
     inner: RyMutex<::glob::Paths, false>,
     strict: bool,
     dtype: GlobDType,
 }
 
-impl PyGlobPaths {
+impl RyGlobPaths {
     /// Pull exactly one item -- fix `clippy::significant-drop-in-scrutinee`
     #[inline]
     fn next_path(&self) -> Option<Result<PathBuf, glob::GlobError>> {
@@ -151,7 +151,7 @@ impl PyGlobPaths {
 }
 
 #[pymethods]
-impl PyGlobPaths {
+impl RyGlobPaths {
     fn __iter__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {
         slf
     }
@@ -230,7 +230,7 @@ pub fn py_glob(
     require_literal_leading_dot: bool,
     strict: bool,
     dtype: Option<Bound<'_, PyType>>,
-) -> PyResult<PyGlobPaths> {
+) -> PyResult<RyGlobPaths> {
     let dtype = extract_dtype(dtype)?;
     ::glob::glob_with(
         pattern,
@@ -240,7 +240,7 @@ pub fn py_glob(
             require_literal_leading_dot,
         },
     )
-    .map(|paths| PyGlobPaths {
+    .map(|paths| RyGlobPaths {
         inner: RyMutex::new(paths),
         strict,
         dtype,
@@ -285,7 +285,7 @@ fn extract_dtype(dtype: Option<Bound<'_, PyType>>) -> PyResult<GlobDType> {
 }
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    m.add_class::<PyGlobPattern>()?;
+    m.add_class::<RyGlobPattern>()?;
     m.add_function(wrap_pyfunction!(py_glob, m)?)?;
     Ok(())
 }
