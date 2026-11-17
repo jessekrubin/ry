@@ -61,9 +61,9 @@ impl Hasher for Fnv1aHasher {
 
 #[pyclass(name = "fnv1a", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
-pub struct PyFnv1a(RyMutex<Fnv1aHasher>);
+pub struct RyFnv1a(RyMutex<Fnv1aHasher>);
 
-impl PyFnv1a {
+impl RyFnv1a {
     fn lock(&self) -> PyResult<std::sync::MutexGuard<'_, Fnv1aHasher>> {
         self.0.py_lock()
     }
@@ -73,13 +73,13 @@ impl PyFnv1a {
     }
 }
 
-impl From<Fnv1aHasher> for PyFnv1a {
+impl From<Fnv1aHasher> for RyFnv1a {
     fn from(hasher: Fnv1aHasher) -> Self {
         Self(RyMutex::new(hasher))
     }
 }
 
-impl From<u64> for PyFnv1a {
+impl From<u64> for RyFnv1a {
     fn from(seed: u64) -> Self {
         Self(RyMutex::new(Fnv1aHasher::with_seed(seed)))
     }
@@ -94,7 +94,7 @@ fn fnv1a_oneshot(bytes: &[u8], seed: u64) -> u64 {
 }
 
 #[pymethods]
-impl PyFnv1a {
+impl RyFnv1a {
     #[new]
     #[pyo3(
         signature = (data = None, *, seed = Fnv1aSeed::default()),
@@ -210,7 +210,7 @@ impl PyFnv1a {
     }
 }
 
-impl std::fmt::Display for PyFnv1a {
+impl std::fmt::Display for RyFnv1a {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let seed = self.finish().expect("no-way-jose");
         write!(f, "fnv1a<{seed:016x}>")

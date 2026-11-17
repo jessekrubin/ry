@@ -12,7 +12,7 @@ const HASHLIB_GIL_MINSIZE: usize = 2048;
 
 #[pyclass(name = "xxh3_128", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
-pub struct PyXxHash3_128 {
+pub struct RyXxHash3_128 {
     seed: u64,
     hasher: RyMutex<XxHash3_128>,
 }
@@ -28,7 +28,7 @@ fn oneshot_impl(data: &[u8], seed: u64, secret: Option<PyXxHash3Secret>) -> u128
 }
 
 #[pymethods]
-impl PyXxHash3_128 {
+impl RyXxHash3_128 {
     #[new]
     #[pyo3(signature = (data = None, *, seed = 0, secret = None))]
     fn py_new(data: Option<ReadableBuffer>, seed: u64, secret: Option<PyXxHash3Secret>) -> Self {
@@ -184,7 +184,7 @@ pub fn xxh3_128_digest(
     seed: u64,
     secret: Option<PyXxHash3Secret>,
 ) -> PyDigest<u128> {
-    PyXxHash3_128::oneshot(py, data, seed, secret)
+    RyXxHash3_128::oneshot(py, data, seed, secret)
 }
 
 #[pyfunction]
@@ -195,7 +195,7 @@ pub fn xxh3_128_intdigest(
     seed: u64,
     secret: Option<PyXxHash3Secret>,
 ) -> u128 {
-    PyXxHash3_128::oneshot_int(py, data, seed, secret)
+    RyXxHash3_128::oneshot_int(py, data, seed, secret)
 }
 
 #[pyfunction]
@@ -206,7 +206,7 @@ pub fn xxh3_128_hexdigest(
     seed: u64,
     secret: Option<PyXxHash3Secret>,
 ) -> PyHexDigest<u128> {
-    PyXxHash3_128::oneshot_hex(py, data, seed, secret)
+    RyXxHash3_128::oneshot_hex(py, data, seed, secret)
 }
 
 #[pyfunction]
@@ -243,7 +243,7 @@ pub fn xxh128_hexdigest(
 }
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    m.add_class::<PyXxHash3_128>()?;
+    m.add_class::<RyXxHash3_128>()?;
 
     m.add_function(wrap_pyfunction!(xxh3_128_digest, m)?)?;
     m.add_function(wrap_pyfunction!(xxh3_128_hexdigest, m)?)?;

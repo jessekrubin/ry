@@ -9,11 +9,11 @@ use ryo3_core::macros::{py_type_err, py_value_error};
 #[pyclass(name = "GlobPattern", frozen, immutable_type, eq)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Clone)]
-pub struct PyGlobPattern {
+pub struct RyGlobPattern {
     pattern: glob::Pattern,
     options: MatchOptions,
 }
-impl PyGlobPattern {
+impl RyGlobPattern {
     fn build_options_with_overrides(
         &self,
         case_sensitive: Option<bool>,
@@ -30,7 +30,7 @@ impl PyGlobPattern {
     }
 }
 
-impl From<glob::Pattern> for PyGlobPattern {
+impl From<glob::Pattern> for RyGlobPattern {
     fn from(value: glob::Pattern) -> Self {
         Self {
             pattern: value,
@@ -43,14 +43,14 @@ impl From<glob::Pattern> for PyGlobPattern {
     }
 }
 
-impl PartialEq for PyGlobPattern {
+impl PartialEq for RyGlobPattern {
     fn eq(&self, other: &Self) -> bool {
         self.pattern == other.pattern && self.options == other.options
     }
 }
 
 #[pymethods]
-impl PyGlobPattern {
+impl RyGlobPattern {
     #[new]
     #[pyo3(
         signature = (
@@ -215,7 +215,7 @@ impl PyGlobPattern {
     }
 }
 
-impl std::fmt::Display for PyGlobPattern {
+impl std::fmt::Display for RyGlobPattern {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "GlobPattern(\"{}\"", self.pattern)?;
         if !self.options.case_sensitive {

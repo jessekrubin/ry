@@ -5,7 +5,7 @@ use pyo3::exceptions::PyOSError;
 use pyo3::prelude::*;
 use ryo3_core::PyIoResultExt;
 use ryo3_core::types::PathLike;
-use ryo3_fspath::PyFsPath;
+use ryo3_fspath::RyFsPath;
 
 /// Change the current working directory to the specified path
 #[pyfunction]
@@ -54,7 +54,7 @@ pub fn ls(
     if objects {
         let fspaths = v
             .into_iter()
-            .flat_map(|s| PyFsPath::new(s).into_bound_py_any(py))
+            .flat_map(|s| RyFsPath::new(s).into_bound_py_any(py))
             .collect();
         Ok(fspaths)
     } else {

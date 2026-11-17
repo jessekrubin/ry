@@ -4,7 +4,7 @@ use bytes::{Bytes, BytesMut};
 use pyo3::prelude::*;
 use pyo3::types::PyString;
 use ryo3_bytes::RyBytes;
-use ryo3_cookie::PyCookie;
+use ryo3_cookie::RyCookie;
 use ryo3_core::sync::RyMutex;
 use ryo3_http::{PyHttpVersion, RyHeaders, RyHttpStatus, status_code_pystring};
 use ryo3_macro_rules::pytodo;
@@ -446,13 +446,13 @@ impl RyResponse {
 
     /// Return the cookies set in the response headers
     #[getter]
-    fn set_cookies(&self) -> Option<Vec<PyCookie>> {
+    fn set_cookies(&self) -> Option<Vec<RyCookie>> {
         self.head.py_set_cookies()
     }
 
     /// Alias for `set_cookies` property
     #[getter]
-    fn cookies(&self) -> Option<Vec<PyCookie>> {
+    fn cookies(&self) -> Option<Vec<RyCookie>> {
         self.set_cookies()
     }
 }
@@ -638,13 +638,13 @@ impl RyBlockingResponse {
 
     /// Return the cookies set in the response headers
     #[getter]
-    fn set_cookies(&self) -> Option<Vec<PyCookie>> {
+    fn set_cookies(&self) -> Option<Vec<RyCookie>> {
         self.head.py_set_cookies()
     }
 
     /// Alias for `set_cookies` property
     #[getter]
-    fn cookies(&self) -> Option<Vec<PyCookie>> {
+    fn cookies(&self) -> Option<Vec<RyCookie>> {
         self.set_cookies()
     }
 }

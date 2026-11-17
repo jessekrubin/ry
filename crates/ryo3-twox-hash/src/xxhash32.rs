@@ -12,13 +12,13 @@ const HASHLIB_GIL_MINSIZE: usize = 2048;
 
 #[pyclass(name = "xxh32", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
-pub struct PyXxHash32 {
+pub struct RyXxHash32 {
     seed: u32,
     hasher: RyMutex<XxHash32, true>,
 }
 
 #[pymethods]
-impl PyXxHash32 {
+impl RyXxHash32 {
     #[new]
     #[pyo3(signature = (data = None, *, seed = 0))]
     fn py_new(data: Option<ReadableBuffer>, seed: u32) -> Self {
@@ -159,25 +159,25 @@ impl PyXxHash32 {
 #[pyo3(signature = (data, *, seed = 0))]
 #[must_use]
 pub fn xxh32_digest(py: Python<'_>, data: ReadableBuffer, seed: u32) -> PyDigest<u32> {
-    PyXxHash32::oneshot(py, data, seed)
+    RyXxHash32::oneshot(py, data, seed)
 }
 
 #[pyfunction]
 #[pyo3(signature = (data, *, seed = 0))]
 #[must_use]
 pub fn xxh32_intdigest(py: Python<'_>, data: ReadableBuffer, seed: u32) -> u32 {
-    PyXxHash32::oneshot_int(py, data, seed)
+    RyXxHash32::oneshot_int(py, data, seed)
 }
 
 #[pyfunction]
 #[pyo3(signature = (data, *, seed = 0))]
 #[must_use]
 pub fn xxh32_hexdigest(py: Python<'_>, data: ReadableBuffer, seed: u32) -> PyHexDigest<u32> {
-    PyXxHash32::oneshot_hex(py, data, seed)
+    RyXxHash32::oneshot_hex(py, data, seed)
 }
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    m.add_class::<PyXxHash32>()?;
+    m.add_class::<RyXxHash32>()?;
     m.add_function(wrap_pyfunction!(xxh32_digest, m)?)?;
     m.add_function(wrap_pyfunction!(xxh32_hexdigest, m)?)?;
     m.add_function(wrap_pyfunction!(xxh32_intdigest, m)?)?;

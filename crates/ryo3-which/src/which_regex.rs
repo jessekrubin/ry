@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 use pyo3::prelude::*;
 use pyo3::types::PyString;
-use ryo3_regex::{PyRegex, Regex};
+use ryo3_regex::{Regex, RyRegex};
 
 pub struct PyArgWhichRegex(Regex);
 
@@ -11,9 +11,9 @@ impl FromPyObject<'_, '_> for PyArgWhichRegex {
 
     fn extract(obj: Borrowed<'_, '_, PyAny>) -> PyResult<Self> {
         if let Ok(regex) = obj.cast::<PyString>() {
-            let r = PyRegex::try_from(regex.to_str()?)?;
+            let r = RyRegex::try_from(regex.to_str()?)?;
             Ok(Self(r.re))
-        } else if let Ok(regex) = obj.cast_exact::<PyRegex>() {
+        } else if let Ok(regex) = obj.cast_exact::<RyRegex>() {
             Ok(Self(regex.get().re.clone()))
         } else {
             const EMSG: &str = "which-re: regex must be a string or a compiled regex";

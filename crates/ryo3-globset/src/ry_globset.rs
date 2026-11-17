@@ -8,19 +8,19 @@ use ryo3_core::types::PathLike;
 use crate::globster::Globster;
 use crate::options::{DEFAULT_BACKSLASH_ESCAPE, GlobOptions};
 use crate::py_args::VarArgs;
-use crate::py_globster::GlobSource;
-use crate::{PyGlob, PyGlobster};
+use crate::ry_globster::GlobSource;
+use crate::{RyGlob, RyGlobster};
 
 #[pyclass(name = "GlobSet", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Clone, Debug)]
-pub struct PyGlobSet {
+pub struct RyGlobSet {
     pub(crate) globset: globset::GlobSet,
-    pub(crate) globs: Vec<PyGlob>,
+    pub(crate) globs: Vec<RyGlob>,
 }
 
 #[pymethods]
-impl PyGlobSet {
+impl RyGlobSet {
     #[new]
     #[pyo3(
         signature = (
@@ -42,20 +42,20 @@ impl PyGlobSet {
             .backslash_escape(backslash_escape);
 
         let mut globset_builder = GlobSetBuilder::new();
-        let mut globs: Vec<PyGlob> = Vec::new();
+        let mut globs: Vec<RyGlob> = Vec::new();
 
         for arg in args.into_inner().iter_borrowed() {
-            if let Some(glob) = arg.cast_exact_opt::<PyGlob>() {
+            if let Some(glob) = arg.cast_exact_opt::<RyGlob>() {
                 let glob = glob.get().clone();
                 globset_builder.add(glob.glob.clone());
                 globs.push(glob);
             } else if let Ok(pattern) = arg.extract::<String>() {
-                let glob = PyGlob::from_pattern(pattern, options)?;
+                let glob = RyGlob::from_pattern(pattern, options)?;
                 globset_builder.add(glob.glob.clone());
                 globs.push(glob);
             } else if let Ok(arg_patterns) = arg.extract::<Vec<String>>() {
                 for pattern in arg_patterns {
-                    let glob = PyGlob::from_pattern(pattern, options)?;
+                    let glob = RyGlob::from_pattern(pattern, options)?;
                     globset_builder.add(glob.glob.clone());
                     globs.push(glob);
                 }
@@ -111,16 +111,16 @@ impl PyGlobSet {
         PyTuple::new(py, self.globs.iter().map(|g| &g.pattern))
     }
 
-    pub(crate) fn globster(&self) -> PyGlobster {
+    pub(crate) fn globster(&self) -> RyGlobster {
         let patterns: Vec<String> = self.globs.iter().map(|g| g.pattern.clone()).collect();
-        PyGlobster(
+        RyGlobster(
             Globster::from_globset(patterns, self.globset.clone()),
             self.globs.iter().cloned().map(GlobSource::Glob).collect(),
         )
     }
 }
 
-impl std::fmt::Display for PyGlobSet {
+impl std::fmt::Display for RyGlobSet {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let default = GlobOptions::new();
         write!(f, "GlobSet(")?;

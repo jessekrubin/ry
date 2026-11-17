@@ -10,20 +10,20 @@ use ryo3_core::types::PathLike;
 use crate::globster::{Globster, GlobsterMatcher, Rule};
 use crate::options::{DEFAULT_BACKSLASH_ESCAPE, GlobOptions};
 use crate::py_args::VarArgs;
-use crate::{PyGlob, PyGlobSet, options};
+use crate::{RyGlob, RyGlobSet, options};
 
 #[derive(Clone, Debug)]
 pub(crate) enum GlobSource {
-    Glob(PyGlob),
+    Glob(RyGlob),
     Pattern(String),
 }
 
 #[pyclass(name = "Globster", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Clone, Debug)]
-pub struct PyGlobster(pub Globster, pub(crate) Vec<GlobSource>);
+pub struct RyGlobster(pub Globster, pub(crate) Vec<GlobSource>);
 
-impl FromStr for PyGlobster {
+impl FromStr for RyGlobster {
     type Err = PyErr;
 
     fn from_str(pattern: &str) -> PyResult<Self> {
@@ -31,7 +31,7 @@ impl FromStr for PyGlobster {
     }
 }
 
-impl TryFrom<Vec<String>> for PyGlobster {
+impl TryFrom<Vec<String>> for RyGlobster {
     type Error = PyErr;
 
     fn try_from(patterns: Vec<String>) -> PyResult<Self> {
@@ -39,7 +39,7 @@ impl TryFrom<Vec<String>> for PyGlobster {
     }
 }
 
-impl PyGlobster {
+impl RyGlobster {
     pub fn is_match<P: AsRef<Path>>(&self, path: P) -> bool {
         self.0.is_match_path(path.as_ref())
     }
@@ -60,8 +60,8 @@ pub(crate) fn py_globster_fn(
     case_insensitive: bool,
     literal_separator: bool,
     backslash_escape: bool,
-) -> PyResult<PyGlobster> {
-    PyGlobster::from_varargs(
+) -> PyResult<RyGlobster> {
+    RyGlobster::from_varargs(
         args,
         options::GlobOptions::new()
             .case_insensitive(case_insensitive)
@@ -71,7 +71,7 @@ pub(crate) fn py_globster_fn(
 }
 
 #[pymethods]
-impl PyGlobster {
+impl RyGlobster {
     #[new]
     #[pyo3(
         signature = (
@@ -144,13 +144,13 @@ impl PyGlobster {
     }
 }
 
-impl PyGlobster {
+impl RyGlobster {
     pub(crate) fn from_varargs(args: VarArgs<'_, '_>, options: GlobOptions) -> PyResult<Self> {
         let mut builder = GlobsterBuilder::new();
         for arg in args.into_inner().iter_borrowed() {
-            if let Some(glob) = arg.cast_exact_opt::<PyGlob>() {
+            if let Some(glob) = arg.cast_exact_opt::<RyGlob>() {
                 builder.push_pyglob(glob.get().clone())?;
-            } else if let Some(globset) = arg.cast_exact_opt::<PyGlobSet>() {
+            } else if let Some(globset) = arg.cast_exact_opt::<RyGlobSet>() {
                 builder.push_globset(globset.get())?;
             } else if let Some(globster) = arg.cast_exact_opt::<Self>() {
                 builder.push_globster(globster.get())?;
@@ -178,7 +178,7 @@ impl PyGlobster {
     }
 }
 
-impl std::fmt::Display for PyGlobster {
+impl std::fmt::Display for RyGlobster {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let default = GlobOptions::new();
         write!(f, "Globster(")?;
@@ -245,7 +245,7 @@ impl GlobsterBuilder {
         Ok(())
     }
 
-    fn push_pyglob(&mut self, pyglob: PyGlob) -> PyResult<()> {
+    fn push_pyglob(&mut self, pyglob: RyGlob) -> PyResult<()> {
         if self.current_negative != Some(false) {
             self.flush_group()?;
             self.current_negative = Some(false);
@@ -256,7 +256,7 @@ impl GlobsterBuilder {
         Ok(())
     }
 
-    fn push_globset(&mut self, globset: &PyGlobSet) -> PyResult<()> {
+    fn push_globset(&mut self, globset: &RyGlobSet) -> PyResult<()> {
         self.flush_group()?;
         self.patterns
             .extend(globset.globs.iter().map(|g| g.pattern.clone()));
@@ -266,7 +266,7 @@ impl GlobsterBuilder {
         Ok(())
     }
 
-    fn push_globster(&mut self, globster: &PyGlobster) -> PyResult<()> {
+    fn push_globster(&mut self, globster: &RyGlobster) -> PyResult<()> {
         self.flush_group()?;
         self.patterns.extend(globster.0.patterns.iter().cloned());
         self.sources.extend(globster.1.iter().cloned());
@@ -288,14 +288,14 @@ impl GlobsterBuilder {
         Ok(())
     }
 
-    fn finish(mut self) -> PyResult<PyGlobster> {
+    fn finish(mut self) -> PyResult<RyGlobster> {
         self.flush_group()?;
         let matcher = match self.rules.len() {
             0 => GlobsterMatcher::Empty,
             1 if !self.rules[0].negative => GlobsterMatcher::Set(self.rules.remove(0).globset),
             _ => GlobsterMatcher::Rules(self.rules),
         };
-        Ok(PyGlobster(
+        Ok(RyGlobster(
             Globster {
                 matcher,
                 patterns: self.patterns,

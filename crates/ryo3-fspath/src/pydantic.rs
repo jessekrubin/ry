@@ -2,9 +2,9 @@ use pyo3::prelude::*;
 use pyo3::types::PyDict;
 use ryo3_pydantic::{GetPydanticCoreSchemaCls, GetPydanticJsonSchemaCls, interns};
 
-use crate::PyFsPath;
+use crate::RyFsPath;
 
-impl GetPydanticCoreSchemaCls for PyFsPath {
+impl GetPydanticCoreSchemaCls for RyFsPath {
     fn get_pydantic_core_schema<'py>(
         cls: &Bound<'py, pyo3::types::PyType>,
         source: &Bound<'py, PyAny>,
@@ -28,7 +28,7 @@ impl GetPydanticCoreSchemaCls for PyFsPath {
     }
 }
 
-impl GetPydanticJsonSchemaCls for PyFsPath {
+impl GetPydanticJsonSchemaCls for RyFsPath {
     fn get_pydantic_json_schema<'py>(
         _cls: &Bound<'py, pyo3::types::PyType>,
         core_schema: &Bound<'py, PyAny>,
