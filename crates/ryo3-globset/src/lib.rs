@@ -1,23 +1,23 @@
 #![doc = include_str!("../README.md")]
 mod globster;
 mod py_args;
-mod py_glob;
-mod py_globset;
-mod py_globster;
+mod ry_glob;
+mod ry_globset;
+mod ry_globster;
 use std::str::FromStr;
 
 mod options;
 
 use pyo3::prelude::*;
 
-pub use crate::py_glob::PyGlob;
-pub use crate::py_globset::PyGlobSet;
-pub use crate::py_globster::PyGlobster;
+pub use crate::ry_glob::RyGlob;
+pub use crate::ry_globset::RyGlobSet;
+pub use crate::ry_globster::RyGlobster;
 
 pub enum GlobsterLike<'a, 'py> {
-    Glob(Borrowed<'a, 'py, PyGlob>),
-    GlobSet(Borrowed<'a, 'py, PyGlobSet>),
-    Globster(Borrowed<'a, 'py, PyGlobster>),
+    Glob(Borrowed<'a, 'py, RyGlob>),
+    GlobSet(Borrowed<'a, 'py, RyGlobSet>),
+    Globster(Borrowed<'a, 'py, RyGlobster>),
     Str(String),
     Strings(Vec<String>),
 }
@@ -26,11 +26,11 @@ impl<'a, 'py> FromPyObject<'a, 'py> for GlobsterLike<'a, 'py> {
     type Error = PyErr;
     fn extract(ob: Borrowed<'a, 'py, PyAny>) -> PyResult<Self> {
         use ryo3_core::PyCastExactOpt;
-        if let Some(glob) = ob.cast_exact_opt::<PyGlob>() {
+        if let Some(glob) = ob.cast_exact_opt::<RyGlob>() {
             Ok(Self::Glob(glob))
-        } else if let Some(globset) = ob.cast_exact_opt::<PyGlobSet>() {
+        } else if let Some(globset) = ob.cast_exact_opt::<RyGlobSet>() {
             Ok(Self::GlobSet(globset))
-        } else if let Some(globster) = ob.cast_exact_opt::<PyGlobster>() {
+        } else if let Some(globster) = ob.cast_exact_opt::<RyGlobster>() {
             Ok(Self::Globster(globster))
         } else if let Ok(s) = ob.extract::<String>() {
             Ok(Self::Str(s))
@@ -44,7 +44,7 @@ impl<'a, 'py> FromPyObject<'a, 'py> for GlobsterLike<'a, 'py> {
     }
 }
 
-impl<'a, 'py> TryFrom<&GlobsterLike<'a, 'py>> for PyGlobster {
+impl<'a, 'py> TryFrom<&GlobsterLike<'a, 'py>> for RyGlobster {
     type Error = PyErr;
 
     fn try_from(globster_like: &GlobsterLike<'a, 'py>) -> PyResult<Self> {
@@ -59,9 +59,9 @@ impl<'a, 'py> TryFrom<&GlobsterLike<'a, 'py>> for PyGlobster {
 }
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    m.add_function(wrap_pyfunction!(crate::py_globster::py_globster_fn, m)?)?;
-    m.add_class::<PyGlob>()?;
-    m.add_class::<PyGlobSet>()?;
-    m.add_class::<PyGlobster>()?;
+    m.add_function(wrap_pyfunction!(crate::ry_globster::py_globster_fn, m)?)?;
+    m.add_class::<RyGlob>()?;
+    m.add_class::<RyGlobSet>()?;
+    m.add_class::<RyGlobster>()?;
     Ok(())
 }

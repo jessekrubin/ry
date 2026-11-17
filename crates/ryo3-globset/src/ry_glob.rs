@@ -8,27 +8,27 @@ use ryo3_core::types::PathLike;
 
 use crate::globster::Globster;
 use crate::options::{DEFAULT_BACKSLASH_ESCAPE, GlobOptions};
-use crate::py_globster::GlobSource;
-use crate::{PyGlobSet, PyGlobster};
+use crate::ry_globster::GlobSource;
+use crate::{RyGlobSet, RyGlobster};
 
 #[pyclass(name = "Glob", frozen, immutable_type, eq)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Clone, Debug)]
-pub struct PyGlob {
+pub struct RyGlob {
     pub(crate) pattern: String,
     pub(crate) glob: Glob,
     pub(crate) matcher: globset::GlobMatcher,
     pub(crate) options: GlobOptions,
 }
 
-impl PartialEq for PyGlob {
+impl PartialEq for RyGlob {
     fn eq(&self, other: &Self) -> bool {
         self.glob.regex() == other.glob.regex() && self.options == other.options
     }
 }
 
 #[pymethods]
-impl PyGlob {
+impl RyGlob {
     #[new]
     #[pyo3(
         signature = (
@@ -94,26 +94,26 @@ impl PyGlob {
         self.glob.regex().to_string()
     }
 
-    pub(crate) fn globset(&self) -> PyResult<PyGlobSet> {
+    pub(crate) fn globset(&self) -> PyResult<RyGlobSet> {
         let gs = GlobSetBuilder::new()
             .add(self.glob.clone())
             .build()
             .map_err(|e| py_value_error!("Error building globset: {e}"))?;
-        Ok(PyGlobSet {
+        Ok(RyGlobSet {
             globset: gs,
             globs: vec![self.clone()],
         })
     }
 
-    pub(crate) fn globster(&self) -> PyGlobster {
-        PyGlobster(
+    pub(crate) fn globster(&self) -> RyGlobster {
+        RyGlobster(
             Globster::from_positive_glob(self.pattern.clone(), &self.glob),
             vec![GlobSource::Glob(self.clone())],
         )
     }
 }
 
-impl PyGlob {
+impl RyGlob {
     pub(crate) fn from_pattern(pattern: String, options: GlobOptions) -> PyResult<Self> {
         if pattern.starts_with('!') {
             return py_value_err!(
@@ -139,7 +139,7 @@ impl PyGlob {
     }
 }
 
-impl std::fmt::Display for PyGlob {
+impl std::fmt::Display for RyGlob {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "Glob(\"{}\"", self.pattern)?;
         if self.options.is_case_insensitive() {

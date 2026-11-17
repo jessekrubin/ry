@@ -6,7 +6,7 @@ use std::path::Path;
 use pyo3::prelude::*;
 use ryo3_core::sync::RyMutex;
 use ryo3_core::types::PathLike;
-use ryo3_globset::{GlobsterLike, PyGlobster};
+use ryo3_globset::{GlobsterLike, RyGlobster};
 
 pub use crate::py_walkdir_entry::PyWalkDirEntry;
 
@@ -177,7 +177,7 @@ pub fn walkdir(
     glob: Option<GlobsterLike>, // default None
 ) -> PyResult<PyWalkDirIter> {
     let walk_globster = match glob {
-        Some(g) => Some(PyGlobster::try_from(&g)?),
+        Some(g) => Some(RyGlobster::try_from(&g)?),
         None => None,
     };
     let opts = WalkDirOptions {
