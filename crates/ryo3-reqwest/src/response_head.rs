@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use reqwest::StatusCode;
 use reqwest::header::CONTENT_TYPE;
-use ryo3_cookie::PyCookie;
+use ryo3_cookie::RyCookie;
 use ryo3_core::sync::RyRwLock;
 use ryo3_url::RyUrl;
 
@@ -95,17 +95,17 @@ impl RyResponseHead {
         Some(s)
     }
 
-    pub(crate) fn py_set_cookies(&self) -> Option<Vec<PyCookie>> {
+    pub(crate) fn py_set_cookies(&self) -> Option<Vec<RyCookie>> {
         let headers = self.headers.py_read();
         if headers.is_empty() {
             return None;
         }
-        let py_cookies: Vec<PyCookie> = headers // nom nom nom nom nom
+        let py_cookies: Vec<RyCookie> = headers // nom nom nom nom nom
             .get_all(reqwest::header::SET_COOKIE)
             .iter()
             .filter_map(|hv| hv.to_str().ok())
             .map(ToOwned::to_owned)
-            .filter_map(|s| PyCookie::parse_cookie(s).ok())
+            .filter_map(|s| RyCookie::parse_cookie(s).ok())
             .collect();
         if py_cookies.is_empty() {
             None

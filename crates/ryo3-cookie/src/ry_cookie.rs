@@ -10,9 +10,9 @@ use crate::types::PyCookieExpiration;
 
 #[pyclass(name = "Cookie", frozen, immutable_type, eq)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
-pub struct PyCookie(pub(crate) ::cookie::Cookie<'static>);
+pub struct RyCookie(pub(crate) ::cookie::Cookie<'static>);
 
-impl PyCookie {
+impl RyCookie {
     pub fn parse_cookie<'c, S>(s: S) -> Result<Self, cookie::ParseError>
     where
         S: Into<Cow<'c, str>>,
@@ -21,20 +21,20 @@ impl PyCookie {
     }
 }
 
-impl PartialEq for PyCookie {
+impl PartialEq for RyCookie {
     fn eq(&self, other: &Self) -> bool {
         self.0 == other.0
     }
 }
 
-impl From<::cookie::Cookie<'static>> for PyCookie {
+impl From<::cookie::Cookie<'static>> for RyCookie {
     fn from(value: ::cookie::Cookie<'static>) -> Self {
         Self(value)
     }
 }
 
 #[pymethods]
-impl PyCookie {
+impl RyCookie {
     #[new]
     #[pyo3(signature = (
         name,
@@ -308,7 +308,7 @@ impl PyCookie {
     }
 }
 
-impl std::fmt::Display for PyCookie {
+impl std::fmt::Display for RyCookie {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "Cookie(\"{}\", \"{}\"", self.0.name(), self.0.value())?;
         // this is the kw ordering...
@@ -372,7 +372,7 @@ impl std::fmt::Display for PyCookie {
     }
 }
 
-impl std::str::FromStr for PyCookie {
+impl std::str::FromStr for RyCookie {
     type Err = cookie::ParseError;
 
     #[inline]
@@ -383,7 +383,7 @@ impl std::str::FromStr for PyCookie {
 }
 
 #[cfg(feature = "pydantic")]
-impl ryo3_pydantic::GetPydanticCoreSchemaCls for PyCookie {
+impl ryo3_pydantic::GetPydanticCoreSchemaCls for RyCookie {
     fn get_pydantic_core_schema<'py>(
         cls: &Bound<'py, pyo3::types::PyType>,
         source: &Bound<'py, PyAny>,
