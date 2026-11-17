@@ -260,13 +260,13 @@ define_py_algorithm!(
 
 #[pyclass(name = "sha256", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
-pub struct PySha256(PyMutexContext<PySha256Algorithm>);
+pub struct RySha256(PyMutexContext<PySha256Algorithm>);
 
 // ============================================================================
 // SHA256 -- implementation that is NOT macrod for testing and being able to
 //           edit the macro
 // ============================================================================
-impl PySha256 {
+impl RySha256 {
     fn digest_inner(&self) -> PyResult<Digest> {
         let ctx = self.0.py_lock()?;
         Ok(ctx.finish())
@@ -289,7 +289,7 @@ impl PySha256 {
 }
 
 #[pymethods]
-impl PySha256 {
+impl RySha256 {
     // TODO: make signature match hashlib?
     // hashlib signature is:
     // >>> hashlib.sha256?
@@ -525,7 +525,7 @@ macro_rules! define_py_hasher {
 }
 
 define_py_hasher!(
-    py_struct = PySha1,
+    py_struct = RySha1,
     py_name = "sha1",
     algorithm = PySha1Algorithm,
     output_len = SHA1_OUTPUT_LEN,
@@ -534,7 +534,7 @@ define_py_hasher!(
 );
 
 define_py_hasher!(
-    py_struct = PySha224,
+    py_struct = RySha224,
     py_name = "sha224",
     algorithm = PySha224Algorithm,
     output_len = SHA224_OUTPUT_LEN,
@@ -546,7 +546,7 @@ define_py_hasher!(
 // that I used to actually write the macro
 //
 // define_py_hasher!(
-//     py_struct = PySha256,
+//     py_struct = RySha256,
 //     py_name = "sha256",
 //     algorithm = PySha256Algorithm,
 //     output_len = SHA256_OUTPUT_LEN,
@@ -555,7 +555,7 @@ define_py_hasher!(
 // );
 
 define_py_hasher!(
-    py_struct = PySha384,
+    py_struct = RySha384,
     py_name = "sha384",
     algorithm = PySha384Algorithm,
     output_len = SHA384_OUTPUT_LEN,
@@ -564,7 +564,7 @@ define_py_hasher!(
 );
 
 define_py_hasher!(
-    py_struct = PySha512,
+    py_struct = RySha512,
     py_name = "sha512",
     algorithm = PySha512Algorithm,
     output_len = SHA512_OUTPUT_LEN,
@@ -573,7 +573,7 @@ define_py_hasher!(
 );
 
 define_py_hasher!(
-    py_struct = PySha512_256,
+    py_struct = RySha512_256,
     py_name = "sha512_256",
     algorithm = PySha512_256Algorithm,
     output_len = SHA512_256_OUTPUT_LEN,
@@ -582,7 +582,7 @@ define_py_hasher!(
 );
 
 define_py_hasher!(
-    py_struct = PySha3_256,
+    py_struct = RySha3_256,
     py_name = "sha3_256",
     algorithm = PySha3_256Algorithm,
     output_len = SHA3_256_OUTPUT_LEN,
@@ -591,7 +591,7 @@ define_py_hasher!(
 );
 
 define_py_hasher!(
-    py_struct = PySha3_384,
+    py_struct = RySha3_384,
     py_name = "sha3_384",
     algorithm = PySha3_384Algorithm,
     output_len = SHA3_384_OUTPUT_LEN,
@@ -600,7 +600,7 @@ define_py_hasher!(
 );
 
 define_py_hasher!(
-    py_struct = PySha3_512,
+    py_struct = RySha3_512,
     py_name = "sha3_512",
     algorithm = PySha3_512Algorithm,
     output_len = SHA3_512_OUTPUT_LEN,
@@ -661,14 +661,14 @@ impl<'py, const SIZE: usize> pyo3::IntoPyObject<'py> for PyAwsLcRsHexDigest<SIZE
 // REGISTER CLASSES
 // ============================================================================
 pub(crate) fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    m.add_class::<PySha1>()?;
-    m.add_class::<PySha224>()?;
-    m.add_class::<PySha256>()?;
-    m.add_class::<PySha384>()?;
-    m.add_class::<PySha3_256>()?;
-    m.add_class::<PySha3_384>()?;
-    m.add_class::<PySha3_512>()?;
-    m.add_class::<PySha512>()?;
-    m.add_class::<PySha512_256>()?;
+    m.add_class::<RySha1>()?;
+    m.add_class::<RySha224>()?;
+    m.add_class::<RySha256>()?;
+    m.add_class::<RySha384>()?;
+    m.add_class::<RySha3_256>()?;
+    m.add_class::<RySha3_384>()?;
+    m.add_class::<RySha3_512>()?;
+    m.add_class::<RySha512>()?;
+    m.add_class::<RySha512_256>()?;
     Ok(())
 }

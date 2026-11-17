@@ -315,12 +315,12 @@ impl PyLz4FrameCompressorConfig {
 /// - `copy` creates a new compressor with the same config
 #[pyclass(name = "Lz4FrameCompressor", immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
-pub struct PyLz4FrameCompressor {
+pub struct RyLz4FrameCompressor {
     config: PyLz4FrameCompressorConfig,
     encoder: Option<FrameEncoder<Vec<u8>>>,
 }
 
-impl PyLz4FrameCompressor {
+impl RyLz4FrameCompressor {
     fn encoder_mut(&mut self) -> PyResult<&mut FrameEncoder<Vec<u8>>> {
         self.encoder
             .as_mut()
@@ -334,7 +334,7 @@ impl PyLz4FrameCompressor {
 }
 
 #[pymethods]
-impl PyLz4FrameCompressor {
+impl RyLz4FrameCompressor {
     #[new]
     #[pyo3(signature = (*, dictionary = None, dict_id = None, frame_info = None))]
     fn py_new(
@@ -415,7 +415,7 @@ impl PyLz4FrameCompressor {
     }
 }
 
-impl std::fmt::Display for PyLz4FrameCompressor {
+impl std::fmt::Display for RyLz4FrameCompressor {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "<Lz4FrameCompressor>")
     }
@@ -424,6 +424,6 @@ impl std::fmt::Display for PyLz4FrameCompressor {
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(lz4_compress, m)?)?;
     m.add_function(wrap_pyfunction!(lz4_decompress, m)?)?;
-    m.add_class::<PyLz4FrameCompressor>()?;
+    m.add_class::<RyLz4FrameCompressor>()?;
     Ok(())
 }

@@ -1,49 +1,40 @@
+use crate::py_regex_options::PyRegexOptions;
+use pyo3::{IntoPyObjectExt, prelude::*, pybacked::PyBackedStr};
+use regex::{Regex, RegexBuilder, RegexSet, RegexSetBuilder};
 use std::borrow::{Borrow, Cow};
 
-use pyo3::IntoPyObjectExt;
-use pyo3::prelude::*;
-use regex::{Regex, RegexBuilder};
-
-use crate::py_regex_options::PyRegexOptions;
-
-#[pyclass(name = "Regex", frozen, immutable_type, eq)]
+#[pyclass(name = "RegexSet", frozen, immutable_type, eq)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Clone, Debug)]
-pub struct PyRegex {
-    pub re: Regex,
+pub struct RyRegexSet {
+    pub re: RegexSet,
     pub options: Option<PyRegexOptions>,
 }
 
-impl PartialEq for PyRegex {
+impl PartialEq for RyRegexSet {
     fn eq(&self, other: &Self) -> bool {
-        self.re.as_str() == other.re.as_str() && self.options == other.options
+        self.re.patterns() == other.re.patterns() && self.options == other.options
     }
 }
 
-impl TryFrom<&str> for PyRegex {
+impl From<RegexSet> for RyRegexSet {
+    fn from(re: RegexSet) -> Self {
+        Self {
+            re,
+            options: None,
+        }
+    }
+}
+
+impl TryFrom<RegexSetBuilder> for RyRegexSet {
     type Error = PyErr;
 
-    fn try_from(s: &str) -> Result<Self, Self::Error> {
-        Regex::new(s)
-            .map(|re| Self { re, options: None })
-            .map_err(|e| {
-                PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Invalid regex: {e}"))
-            })
-    }
-}
-
-impl From<Regex> for PyRegex {
-    fn from(re: Regex) -> Self {
-        Self { re, options: None }
-    }
-}
-
-impl TryFrom<RegexBuilder> for PyRegex {
-    type Error = PyErr;
-
-    fn try_from(rb: RegexBuilder) -> Result<Self, Self::Error> {
+    fn try_from(rb: RegexSetBuilder) -> Result<Self, Self::Error> {
         rb.build()
-            .map(|re| Self { re, options: None })
+            .map(|re| Self {
+                re,
+                options: None,
+            })
             .map_err(|e| {
                 PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Invalid regex: {e}"))
             })
@@ -51,7 +42,7 @@ impl TryFrom<RegexBuilder> for PyRegex {
 }
 
 #[pymethods]
-impl PyRegex {
+impl RyRegexSet {
     #[new]
     #[pyo3(signature = (
         pattern,
@@ -70,7 +61,7 @@ impl PyRegex {
     #[expect(clippy::too_many_arguments, reason = "python kwargs")]
     #[expect(clippy::fn_params_excessive_bools)]
     fn py_new(
-        pattern: &str,
+        pattern: Vec<PyBackedStr>,
         // kwargs
         case_insensitive: bool,
         crlf: bool,
@@ -97,7 +88,7 @@ impl PyRegex {
             unicode,
         };
 
-        let re = options.build_pattern(pattern)?;
+        let re = options.build_patterns(pattern)?;
         Ok(Self {
             re,
             options: Some(options),
@@ -114,7 +105,13 @@ impl PyRegex {
             pyo3::types::PyDict::new(py).into_bound_py_any(py)?
         };
 
-        let args = pyo3::types::PyTuple::new(py, [self.re.as_str().into_bound_py_any(py)?])?;
+        let args = pyo3::types::PyTuple::new(
+            py,
+            [
+                // self.re.as_str().into_bound_py_any(py)?
+                self.re.patterns(),
+            ],
+        )?;
         pyo3::types::PyTuple::new(py, &[args.into_bound_py_any(py)?, kwargs])
     }
 
@@ -127,8 +124,8 @@ impl PyRegex {
     /// It is recommended to use this method if all you need to do is test
     /// whether a match exists, since the underlying matching engine may be
     /// able to do less work.
-    fn is_match(&self, haystack: &str) -> bool {
-        self.re.is_match(haystack)
+    fn is_match(&self, text: &str) -> bool {
+        self.re.is_match(text)
     }
 
     /// Returns true if and only if there is a match for the regex anywhere in the haystack given.
@@ -136,57 +133,25 @@ impl PyRegex {
     /// It is recommended to use this method if all you need to do is test
     /// whether a match exists, since the underlying matching engine may be
     /// able to do less work.
-    fn test(&self, haystack: &str) -> bool {
-        self.re.is_match(haystack)
-    }
-
-    fn find(&self, haystack: &str) -> Option<(usize, usize)> {
-        self.re.find(haystack).map(|m| (m.start(), m.end()))
-    }
-
-    fn find_all(&self, haystack: &str) -> Vec<(usize, usize)> {
-        self.re
-            .find_iter(haystack)
-            .map(|m| (m.start(), m.end()))
-            .collect()
-    }
-
-    fn findall(&self, haystack: &str) -> Vec<(usize, usize)> {
-        self.find_all(haystack)
-    }
-
-    fn replace<'py>(&self, haystack: &'py str, replacement: &str) -> Cow<'py, str> {
-        self.re.replace(haystack, replacement)
-    }
-
-    fn replace_all<'py>(&self, haystack: &'py str, replacement: &str) -> Cow<'py, str> {
-        self.re.replace_all(haystack, replacement)
-    }
-
-    fn split<'py>(&self, haystack: &'py str) -> Vec<&'py str> {
-        self.re.split(haystack).collect()
-    }
-
-    fn splitn<'py>(&self, haystack: &'py str, n: usize) -> Vec<&'py str> {
-        self.re.splitn(haystack, n).collect()
+    fn test(&self, text: &str) -> bool {
+        self.re.is_match(text)
     }
 }
 
-impl Borrow<Regex> for PyRegex {
-    fn borrow(&self) -> &Regex {
+impl Borrow<RegexSet> for RyRegexSet {
+    fn borrow(&self) -> &RegexSet {
         &self.re
     }
 }
 
-impl std::fmt::Display for PyRegex {
+impl std::fmt::Display for RyRegexSet {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         if let Some(opts) = &self.options {
-            write!(f, "Regex(r'{}'", self.re.as_str())?;
+            write!(f, "RegexSet({:?}", self.re.patterns())?;
             opts.write_regex_kwargs(f)?;
             write!(f, ")")
-            // }
         } else {
-            write!(f, "Regex(r'{}')", self.re.as_str())
+            write!(f, "RegexSet({:?}", self.re.patterns())
         }
     }
 }

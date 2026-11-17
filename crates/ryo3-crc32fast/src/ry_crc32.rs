@@ -24,9 +24,9 @@ type Crc32Hasher = crc32fast::Hasher;
 
 #[pyclass(name = "crc32", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
-pub struct PyCrc32Fast(RyMutex<Crc32Hasher>);
+pub struct RyCrc32Fast(RyMutex<Crc32Hasher>);
 
-impl PyCrc32Fast {
+impl RyCrc32Fast {
     fn lock(&self) -> PyResult<std::sync::MutexGuard<'_, Crc32Hasher>> {
         self.0.py_lock()
     }
@@ -49,13 +49,13 @@ impl PyCrc32Fast {
     }
 }
 
-impl From<Crc32Hasher> for PyCrc32Fast {
+impl From<Crc32Hasher> for RyCrc32Fast {
     fn from(hasher: Crc32Hasher) -> Self {
         Self(RyMutex::new(hasher))
     }
 }
 
-impl From<u32> for PyCrc32Fast {
+impl From<u32> for RyCrc32Fast {
     fn from(seed: u32) -> Self {
         Self(RyMutex::new(Crc32Hasher::new_with_initial(seed)))
     }
@@ -69,7 +69,7 @@ fn crc32fast_oneshot(bytes: &[u8], seed: u32) -> u32 {
 }
 
 #[pymethods]
-impl PyCrc32Fast {
+impl RyCrc32Fast {
     #[new]
     #[pyo3(
         signature = (data = None, *, seed = Crc32Seed::default()),
@@ -190,7 +190,7 @@ impl PyCrc32Fast {
     }
 }
 
-impl std::fmt::Display for PyCrc32Fast {
+impl std::fmt::Display for RyCrc32Fast {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let seed = self.finish().expect("no-way-jose");
         write!(f, "crc32<{seed:08x}>")

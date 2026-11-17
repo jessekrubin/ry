@@ -24,12 +24,12 @@ pub(crate) mod xxhash3_secret;
 )]
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
     #[cfg(feature = "xxhash32")]
-    m.add_class::<xxhash32::PyXxHash32>()?;
+    m.add_class::<xxhash32::RyXxHash32>()?;
     #[cfg(feature = "xxhash64")]
-    m.add_class::<xxhash64::PyXxHash64>()?;
+    m.add_class::<xxhash64::RyXxHash64>()?;
     #[cfg(feature = "xxhash3_64")]
-    m.add_class::<xxhash3_64::PyXxHash3_64>()?;
+    m.add_class::<xxhash3_64::RyXxHash3_64>()?;
     #[cfg(feature = "xxhash3_128")]
-    m.add_class::<xxhash3_128::PyXxHash3_128>()?;
+    m.add_class::<xxhash3_128::RyXxHash3_128>()?;
     Ok(())
 }

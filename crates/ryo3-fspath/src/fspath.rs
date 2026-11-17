@@ -228,8 +228,8 @@ impl RyFsPath {
     }
 
     #[getter]
-    fn parents(&self) -> PyFsPathAncestors {
-        PyFsPathAncestors::parents(self.path())
+    fn parents(&self) -> RyFsPathAncestors {
+        RyFsPathAncestors::parents(self.path())
     }
 
     #[getter]
@@ -489,7 +489,7 @@ impl RyFsPath {
         Ok(Self::from(new_path))
     }
 
-    fn iterdir(&self, py: Python<'_>) -> PyResult<PyFsPathReadDir> {
+    fn iterdir(&self, py: Python<'_>) -> PyResult<RyFsPathReadDir> {
         self.read_dir(py)
     }
 
@@ -552,8 +552,8 @@ impl RyFsPath {
     //  - Path.to_path_buf
     //  - Path.as_mut_os_str
     //  - Path.as_os_str
-    fn ancestors(&self) -> PyFsPathAncestors {
-        PyFsPathAncestors::new(self.path())
+    fn ancestors(&self) -> RyFsPathAncestors {
+        RyFsPathAncestors::new(self.path())
     }
 
     fn canonicalize(&self, py: Python<'_>) -> PyResult<Self> {
@@ -638,9 +638,9 @@ impl RyFsPath {
             .map_py_io_err_with_path(self.path())
     }
 
-    fn read_dir(&self, py: Python<'_>) -> PyResult<PyFsPathReadDir> {
+    fn read_dir(&self, py: Python<'_>) -> PyResult<RyFsPathReadDir> {
         py.detach(|| std::fs::read_dir(self.path()))
-            .map(PyFsPathReadDir::from)
+            .map(RyFsPathReadDir::from)
             .map_py_io_err_with_path(self.path())
     }
 
@@ -807,10 +807,10 @@ where
 
 #[pyclass(name = "FsPathReadDir", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
-struct PyFsPathReadDir(RyMutex<std::fs::ReadDir, false>);
+struct RyFsPathReadDir(RyMutex<std::fs::ReadDir, false>);
 
 #[pymethods]
-impl PyFsPathReadDir {
+impl RyFsPathReadDir {
     fn __iter__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {
         slf
     }
@@ -852,7 +852,7 @@ impl PyFsPathReadDir {
     }
 }
 
-impl From<std::fs::ReadDir> for PyFsPathReadDir {
+impl From<std::fs::ReadDir> for RyFsPathReadDir {
     fn from(iter: std::fs::ReadDir) -> Self {
         Self(iter.into())
     }
@@ -860,12 +860,12 @@ impl From<std::fs::ReadDir> for PyFsPathReadDir {
 
 #[pyclass(name = "FsPathAncestors", frozen, immutable_type)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
-struct PyFsPathAncestors {
+struct RyFsPathAncestors {
     path: PathBuf,
     current: RyMutex<Option<PathBuf>, false>,
 }
 
-impl PyFsPathAncestors {
+impl RyFsPathAncestors {
     fn new<P: AsRef<Path>>(p: P) -> Self {
         let buf = to_native_pathbuf(p);
         Self {
@@ -891,7 +891,7 @@ impl PyFsPathAncestors {
 }
 
 #[pymethods]
-impl PyFsPathAncestors {
+impl RyFsPathAncestors {
     fn __repr__(&self) -> String {
         format!("{self}")
     }
@@ -950,7 +950,7 @@ impl PyFsPathAncestors {
     }
 }
 
-impl fmt::Display for PyFsPathAncestors {
+impl fmt::Display for RyFsPathAncestors {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "FsPathAncestors<{}>", self.path.posix_display())
     }

@@ -9,23 +9,23 @@ use ryo3_core::macros::py_type_err;
 #[pyclass(name = "WalkDirEntry", frozen, immutable_type, eq, ord)]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
 #[derive(Clone, Debug)]
-pub struct PyWalkDirEntry(walkdir::DirEntry);
+pub struct RyWalkDirEntry(walkdir::DirEntry);
 
 // compares by path
-impl PartialEq for PyWalkDirEntry {
+impl PartialEq for RyWalkDirEntry {
     fn eq(&self, other: &Self) -> bool {
         self.0.path() == other.0.path()
     }
 }
 
-impl PartialOrd for PyWalkDirEntry {
+impl PartialOrd for RyWalkDirEntry {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
         self.0.path().partial_cmp(other.0.path())
     }
 }
 
 #[pymethods]
-impl PyWalkDirEntry {
+impl RyWalkDirEntry {
     #[new]
     fn py_new() -> PyResult<Self> {
         py_type_err!("WalkDirEntry cannot be instantiated directly")
@@ -119,13 +119,13 @@ impl PyWalkDirEntry {
     }
 }
 
-impl From<walkdir::DirEntry> for PyWalkDirEntry {
+impl From<walkdir::DirEntry> for RyWalkDirEntry {
     fn from(de: walkdir::DirEntry) -> Self {
         Self(de)
     }
 }
 
-impl std::fmt::Display for PyWalkDirEntry {
+impl std::fmt::Display for RyWalkDirEntry {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "WalkDirEntry<'{}'>", self.0.path().display())
     }
