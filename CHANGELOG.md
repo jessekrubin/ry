@@ -9,6 +9,18 @@
 
 ## v0.0.111 [unreleased]
 
+- `ryo3-jiff` ~ `jiff-v1.0.1`
+  - **FIX:** `Timestamp.strftime("%Z")` formats as `UTC`
+- `ryo3-reqwest`
+  - `Response.raise_for_status()`/`BlockingResponse.raise_for_status()` ~ raises
+    `ry.ReqwestError` on 4xx/5xx, returns the `Self` (response) otherwise for
+    chaining
+  - `Response.peer_certificate`/`Response.tls_version` (requires client with
+    `tls_info=True`)
+- **INTERNAL:** (painstakingly) renamed/reorg-ed `#[pyclass]` structs `Py*` ->
+  `Ry*` across all crates
+- **INTERNAL:** `ryo3-http` cleanup
+
 ---
 
 ## v0.0.110 [2026-11-16]

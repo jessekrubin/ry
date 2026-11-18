@@ -8,6 +8,13 @@ use ryo3_core::sync::RyRwLock;
 use ryo3_url::RyUrl;
 
 use crate::charset::PyEncoding;
+use crate::tls::RyCertificate;
+use crate::tls_version::PyTlsVersion;
+
+/// undefined content length sentinel value
+///
+/// `u64::MAX` would be a ridiculous body size
+const UNDEFINED_CONTENT_LENGTH: u64 = u64::MAX;
 
 #[derive(Debug, Clone)]
 pub(crate) struct RyResponseHead {
@@ -19,14 +26,47 @@ pub(crate) struct RyResponseHead {
     pub(crate) url: Box<reqwest::Url>,
     /// das content length -- if it exists (tho it might not and/or be
     /// different if the response is compressed)
-    pub(crate) content_length: Option<u64>,
+    ///
+    /// NOTE: stored as `u64` ~ `u64::MAX` == undefined content length
+    pub(crate) content_length: u64,
     /// version of http spec
     pub(crate) version: reqwest::Version,
     /// Remote address
     pub(crate) remote_addr: Option<SocketAddr>,
+    /// tls info ~ only there if client was built w/ `tls_info=True` + https
+    pub(crate) tls_info: Option<Box<RyTlsInfo>>,
+}
+
+#[derive(Debug, Clone)]
+pub(crate) struct RyTlsInfo {
+    /// DER encoded leaf cert of the peer
+    pub(crate) peer_certificate: Option<bytes::Bytes>,
+    pub(crate) version: Option<PyTlsVersion>,
+}
+
+impl From<&reqwest::tls::TlsInfo> for RyTlsInfo {
+    fn from(info: &reqwest::tls::TlsInfo) -> Self {
+        Self {
+            peer_certificate: info.peer_certificate().map(bytes::Bytes::copy_from_slice),
+            version: info.version().and_then(PyTlsVersion::from_reqwest),
+        }
+    }
 }
 
 impl RyResponseHead {
+    #[inline]
+    pub(crate) fn py_content_length(&self) -> Option<u64> {
+        (self.content_length != UNDEFINED_CONTENT_LENGTH).then_some(self.content_length)
+    }
+
+    pub(crate) fn py_peer_certificate(&self) -> pyo3::PyResult<Option<RyCertificate>> {
+        self.tls_info
+            .as_ref()
+            .and_then(|i| i.peer_certificate.as_deref())
+            .map(RyCertificate::from_der)
+            .transpose()
+    }
+
     pub(crate) fn ry_url(&self) -> RyUrl {
         RyUrl::new((*self.url).clone())
     }
@@ -51,14 +91,16 @@ impl RyResponseHead {
         content_length: Option<u64>,
         version: reqwest::Version,
         remote_addr: Option<SocketAddr>,
+        tls_info: Option<RyTlsInfo>,
     ) -> Self {
         Self {
             status,
             headers: Arc::new(RyRwLock::new(headers)),
             url: Box::new(url),
-            content_length,
+            content_length: content_length.unwrap_or(UNDEFINED_CONTENT_LENGTH),
             version,
             remote_addr,
+            tls_info: tls_info.map(Box::new),
         }
     }
 

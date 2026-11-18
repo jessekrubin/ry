@@ -21,6 +21,19 @@ impl From<&PyTlsVersion> for reqwest::tls::Version {
     }
 }
 
+impl PyTlsVersion {
+    pub(crate) fn from_reqwest(v: reqwest::tls::Version) -> Option<Self> {
+        use reqwest::tls::Version;
+        match v {
+            Version::TLS_1_0 => Some(Self::Tlsv1_0),
+            Version::TLS_1_1 => Some(Self::Tlsv1_1),
+            Version::TLS_1_2 => Some(Self::Tlsv1_2),
+            Version::TLS_1_3 => Some(Self::Tlsv1_3),
+            _ => None,
+        }
+    }
+}
+
 impl<'py> IntoPyObject<'py> for PyTlsVersion {
     type Target = PyString;
     type Output = Borrowed<'py, 'py, Self::Target>;
