@@ -9,6 +9,12 @@
 
 ## v0.0.111 [unreleased]
 
+- `ryo3-jiff` ~ `jiff-v1.0.1`
+  - **FIX:** `Timestamp.strftime("%Z")` formats as `UTC`
+- **INTERNAL:** (painstakingly) renamed/reorg-ed `#[pyclass]` structs `Py*` ->
+  `Ry*` across all crates
+- **INTERNAL:** `ryo3-http` cleanup
+
 ---
 
 ## v0.0.110 [2026-11-16]

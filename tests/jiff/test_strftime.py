@@ -175,9 +175,7 @@ _FMT_FLAGS = [
 
 # fmt: off
 _PROBLEM_COMBOS = {
-    "Timestamp": [
-      "%Z"
-    ],
+    "Timestamp": [],
     "Time": [
         "%A", "%a", "%B", "%b", "%h", "%C", "%c", "%D", "%d", "%e", "%F", "%G",
         "%g", "%j", "%m", "%Q", "%:Q", "%q", "%s", "%U", "%u", "%V", "%W", "%w",
