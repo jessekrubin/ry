@@ -15,6 +15,8 @@
   - `Response.raise_for_status()`/`BlockingResponse.raise_for_status()` ~ raises
     `ry.ReqwestError` on 4xx/5xx, returns the `Self` (response) otherwise for
     chaining
+  - `Response.peer_certificate`/`Response.tls_version` (requires client with
+    `tls_info=True`)
 - **INTERNAL:** (painstakingly) renamed/reorg-ed `#[pyclass]` structs `Py*` ->
   `Ry*` across all crates
 - **INTERNAL:** `ryo3-http` cleanup

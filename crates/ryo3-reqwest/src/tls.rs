@@ -50,7 +50,7 @@ impl RyCertificate {
         &self.cert
     }
 
-    fn from_der(der: &[u8]) -> PyResult<Self> {
+    pub(crate) fn from_der(der: &[u8]) -> PyResult<Self> {
         ::reqwest::Certificate::from_der(der)
             .map(|cert| Self {
                 kind: CertificateKind::Der,

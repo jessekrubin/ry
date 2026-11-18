@@ -11,6 +11,8 @@ import email.parser
 import email.policy
 import gzip
 import json
+import shutil
+import subprocess
 import threading
 import time
 import typing as t
@@ -30,6 +32,9 @@ from uvicorn.config import Config
 from uvicorn.server import Server
 
 import ry
+
+if t.TYPE_CHECKING:
+    from pathlib import Path
 
 TClient: t.TypeAlias = ry.Client | ry.BlockingClient
 Receive: t.TypeAlias = t.Callable[[], Awaitable[dict[str, t.Any]]]
@@ -465,6 +470,47 @@ def server() -> Iterator[ReqtestServer]:
         lifespan="off",
         loop="asyncio",
         ws="none",
+    )
+    srv = ReqtestServer(config=cfg)
+    with serve_in_thread(srv) as running:
+        bound_port = running.servers[0].sockets[0].getsockname()[1]
+        running.config.port = bound_port  # make .url work
+        yield running
+
+
+@pytest.fixture(scope="session")
+def https_cert(tmp_path_factory: pytest.TempPathFactory) -> tuple[Path, Path]:
+    """throwaway self-signed cert/key w/ localhost"""
+    openssl = shutil.which("openssl")
+    if openssl is None:
+        pytest.skip("openssl not found")
+    d = tmp_path_factory.mktemp("https-cert")
+    cert, key = d / "cert.pem", d / "key.pem"
+    subprocess.run(
+        [
+            openssl, "req", "-x509", "-nodes", "-days", "1",
+            "-newkey", "ec", "-pkeyopt", "ec_paramgen_curve:prime256v1",
+            "-keyout", str(key), "-out", str(cert),
+            "-subj", "/CN=127.0.0.1", "-addext", "subjectAltName=IP:127.0.0.1",
+        ],
+        check=True,
+        capture_output=True,
+    )  # fmt: skip
+    return cert, key
+
+
+@pytest.fixture(scope="session")
+def https_server(https_cert: tuple[Path, Path]) -> Iterator[ReqtestServer]:
+    cert, key = https_cert
+    cfg = Config(
+        app=reqtest_server,
+        host="127.0.0.1",
+        port=0,
+        lifespan="off",
+        loop="asyncio",
+        ws="none",
+        ssl_certfile=str(cert),
+        ssl_keyfile=str(key),
     )
     srv = ReqtestServer(config=cfg)
     with serve_in_thread(srv) as running:

@@ -415,11 +415,9 @@ class Response:
     @property
     def body_used(self) -> bool:
         """True if the body has been consumed"""
-
     @property
     def ok(self) -> bool:
         """True if the status is a success (2xx)"""
-
     @property
     def remote_addr(self) -> SocketAddr | None: ...
     @property
@@ -428,6 +426,12 @@ class Response:
     def status_text(self) -> str: ...
     @property
     def status_code(self) -> HttpStatus: ...
+    @property
+    def peer_certificate(self) -> Certificate | None:
+        """Peer's leaf certificate (needs `tls_info=True` on the client & https)"""
+    @property
+    def tls_version(self) -> t.Literal["1.0", "1.1", "1.2", "1.3"] | None:
+        """Negotiated TLS version (needs `tls_info=True` on the client & https)"""
     def __bool__(self) -> bool:
         """Return `True` if the status is a success (2xx)"""
 
@@ -486,6 +490,12 @@ class BlockingResponse:
     def status_text(self) -> str: ...
     @property
     def status_code(self) -> HttpStatus: ...
+    @property
+    def peer_certificate(self) -> Certificate | None:
+        """Peer's leaf certificate (needs `tls_info=True` on the client & https)"""
+    @property
+    def tls_version(self) -> t.Literal["1.0", "1.1", "1.2", "1.3"] | None:
+        """Negotiated TLS version (needs `tls_info=True` on the client & https)"""
     def __bool__(self) -> bool:
         """Return `True` if the status is a success (2xx)"""
 
