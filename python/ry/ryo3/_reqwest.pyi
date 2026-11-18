@@ -390,6 +390,8 @@ class Response:
         self, min_read_size: int = 0, /
     ) -> ResponseStream: ...  # min_read_size=0 -> None
     def sse(self, *, max_event_size: int = 524288) -> EventStream: ...
+    def raise_for_status(self) -> t.Self:
+        """Raise `ReqwestError` if the status is 4xx/5xx, otherwise return self"""
     @property
     def url(self) -> URL: ...
     @property
@@ -448,6 +450,8 @@ class BlockingResponse:
     def bytes_stream(self, min_read_size: int = 0, /) -> BlockingResponseStream: ...
     def stream(self, min_read_size: int = 0, /) -> BlockingResponseStream: ...
     def sse(self, *, max_event_size: int = 524288) -> BlockingEventStream: ...
+    def raise_for_status(self) -> t.Self:
+        """Raise `ReqwestError` if the status is 4xx/5xx, otherwise return self"""
     @property
     def url(self) -> URL: ...
     @property
@@ -471,11 +475,9 @@ class BlockingResponse:
     @property
     def body_used(self) -> bool:
         """True if the body has been consumed"""
-
     @property
     def ok(self) -> bool:
         """True if the status is a success (2xx)"""
-
     @property
     def remote_addr(self) -> SocketAddr | None: ...
     @property

@@ -11,6 +11,10 @@
 
 - `ryo3-jiff` ~ `jiff-v1.0.1`
   - **FIX:** `Timestamp.strftime("%Z")` formats as `UTC`
+- `ryo3-reqwest`
+  - `Response.raise_for_status()`/`BlockingResponse.raise_for_status()` ~ raises
+    `ry.ReqwestError` on 4xx/5xx, returns the `Self` (response) otherwise for
+    chaining
 - **INTERNAL:** (painstakingly) renamed/reorg-ed `#[pyclass]` structs `Py*` ->
   `Ry*` across all crates
 - **INTERNAL:** `ryo3-http` cleanup

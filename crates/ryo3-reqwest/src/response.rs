@@ -323,6 +323,14 @@ impl RyResponse {
         self.head.status.is_success()
     }
 
+    /// Raise `ReqwestError` if the status is 4xx/5xx, returns self otherwise
+    ///
+    /// Returning self allows for chaining (`res.raise_for_status().json()`)
+    fn raise_for_status(slf: Bound<'_, Self>) -> PyResult<Bound<'_, Self>> {
+        slf.get().head.error_for_status().map_err(map_reqwest_err)?;
+        Ok(slf)
+    }
+
     /// Return true if the body has been consumed
     ///
     /// named after jawascript fetch
@@ -542,6 +550,13 @@ impl RyBlockingResponse {
     /// __bool__ dunder method returns true if `ok` is true
     fn __bool__(&self) -> bool {
         self.head.status.is_success()
+    }
+
+    /// Raise `ReqwestError` if the status is 4xx/5xx; returns self otherwise
+    /// so you can chain it (`res.raise_for_status().json()`)
+    fn raise_for_status(slf: Bound<'_, Self>) -> PyResult<Bound<'_, Self>> {
+        slf.get().head.error_for_status().map_err(map_reqwest_err)?;
+        Ok(slf)
     }
 
     /// Return true if the body has been consumed
