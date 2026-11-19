@@ -109,7 +109,7 @@ _TStandardHttpHeader: t.TypeAlias = t.Literal[
     "x-xss-protection",
 ]
 _HeaderName: t.TypeAlias = _TStandardHttpHeader | str
-_VT = t.TypeVar("_VT", bound=str | t.Sequence[str])
+_HeaderValue: t.TypeAlias = str | t.Sequence[str]
 
 @t.final
 class Headers:
@@ -117,9 +117,9 @@ class Headers:
 
     def __new__(
         cls,
-        headers: Mapping[_HeaderName, _VT] | t.Self | None = None,
+        headers: Mapping[_HeaderName, _HeaderValue] | t.Self | None = None,
         /,
-        **kwargs: _VT,
+        **kwargs: _HeaderValue,
     ) -> t.Self: ...
 
     # =========================================================================
