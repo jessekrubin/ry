@@ -210,7 +210,7 @@ mod dangerzone {
             _ => return None,
         };
         if negative {
-            // 2^63 wraps to i64::MIN which is what we want
+            // NOTE: 2^63 wraps to i64::MIN
             (mag <= 1 << 63).then(|| PyIntValue::I64(mag.cast_signed().wrapping_neg()))
         } else if let Ok(v) = i64::try_from(mag) {
             Some(PyIntValue::I64(v))
@@ -269,7 +269,7 @@ mod dangerzone {
     #[expect(unsafe_code)]
     pub(super) fn read_int(ob: Borrowed<'_, '_, PyInt>) -> Option<PyIntValue> {
         let op = ob.as_ptr();
-        // SAFETY: `ob` is a live int and is attached (it's borrowed)
+        // SAFETY: `ob` is a live int and is attached ('tis borrowed)
         unsafe {
             let mut overflow = 0;
             let v = ffi::PyLong_AsLongLongAndOverflow(op, &raw mut overflow);

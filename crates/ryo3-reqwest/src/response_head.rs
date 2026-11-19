@@ -120,7 +120,7 @@ impl RyResponseHead {
             .map_or(default, PyEncoding::from_encoding)
     }
 
-    /// `content-coding = token` (RFC 9110 §8.4.1) so valid values are ascii
+    /// `content-coding = token` (RFC 9110-8.4.1) so valid values are ascii
     ///
     /// Non-ASCII values are decoded as latin-1 so it round-trips instead of
     /// failing (which matches the impl of python's stdlib and other http
