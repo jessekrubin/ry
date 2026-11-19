@@ -7,7 +7,7 @@
 
 ---
 
-## v0.0.111 [unreleased]
+## v0.0.111 [2026-11-19]
 
 - `ryo3-core`
   - inline integer reading based on orjson but targeting ints up to u64/i64
