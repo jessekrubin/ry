@@ -48,7 +48,6 @@
 - [`ry.ryo3._which`](#ry.ryo3._which)
 - [`ry.ryo3._zstd`](#ry.ryo3._zstd)
 - [`ry._types`](#ry._types)
-- [`ry.dev._lz4rip`](#ry.dev._lz4rip)
 - [`ry.protocols`](#ry.protocols)
 <h2 id="ry.ryo3.__init__"><code>ry.ryo3.__init__</code></h2>
 
@@ -6687,6 +6686,9 @@ class Response:
         self, min_read_size: int = 0, /
     ) -> ResponseStream: ...  # min_read_size=0 -> None
     def sse(self, *, max_event_size: int = 524288) -> EventStream: ...
+    def raise_for_status(self) -> t.Self:
+        """Raise `ReqwestError` if the status is 4xx/5xx, otherwise return self"""
+
     @property
     def url(self) -> URL: ...
     @property
@@ -6723,6 +6725,14 @@ class Response:
     def status_text(self) -> str: ...
     @property
     def status_code(self) -> HttpStatus: ...
+    @property
+    def peer_certificate(self) -> Certificate | None:
+        """Peer's leaf certificate (needs `tls_info=True` on the client & https)"""
+
+    @property
+    def tls_version(self) -> t.Literal["1.0", "1.1", "1.2", "1.3"] | None:
+        """Negotiated TLS version (needs `tls_info=True` on the client & https)"""
+
     def __bool__(self) -> bool:
         """Return `True` if the status is a success (2xx)"""
 
@@ -6746,6 +6756,9 @@ class BlockingResponse:
     def bytes_stream(self, min_read_size: int = 0, /) -> BlockingResponseStream: ...
     def stream(self, min_read_size: int = 0, /) -> BlockingResponseStream: ...
     def sse(self, *, max_event_size: int = 524288) -> BlockingEventStream: ...
+    def raise_for_status(self) -> t.Self:
+        """Raise `ReqwestError` if the status is 4xx/5xx, otherwise return self"""
+
     @property
     def url(self) -> URL: ...
     @property
@@ -6782,6 +6795,14 @@ class BlockingResponse:
     def status_text(self) -> str: ...
     @property
     def status_code(self) -> HttpStatus: ...
+    @property
+    def peer_certificate(self) -> Certificate | None:
+        """Peer's leaf certificate (needs `tls_info=True` on the client & https)"""
+
+    @property
+    def tls_version(self) -> t.Literal["1.0", "1.1", "1.2", "1.3"] | None:
+        """Negotiated TLS version (needs `tls_info=True` on the client & https)"""
+
     def __bool__(self) -> bool:
         """Return `True` if the status is a success (2xx)"""
 
@@ -10221,12 +10242,6 @@ OpenMode: TypeAlias = Literal[
     "x", "x+", "xb", "xb+", "xt", "xt+",
 ]
 # fmt: on
-```
-
-<h2 id="ry.dev._lz4rip"><code>ry.dev._lz4rip</code></h2>
-
-```python
-
 ```
 
 <h2 id="ry.protocols"><code>ry.protocols</code></h2>
