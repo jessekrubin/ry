@@ -201,7 +201,7 @@ impl SseDecoder {
     /// untrusted servers to prevent memory exhaustion from unbounded input.
     ///
     /// The limit applies independently to each of the three values an event
-    /// accumulates — its data, its name and its ID — so peak memory is a small
+    /// accumulates ~ its data, its name and its ID ~ so peak memory is a small
     /// multiple of `max_payload_size` rather than exactly that. See
     /// [`next()`](Self::next) for what each of them accumulates.
     #[inline]
@@ -298,8 +298,8 @@ impl SseDecoder {
         self.staged_last_event_id = self.last_event_id.clone();
     }
 
-    /// An event boundary that yields nothing — the blank line after a comment, a
-    /// keepalive, a discarded event — is by far the most common one on an idle
+    /// An event boundary that yields nothing ~ the blank line after a comment, a
+    /// keepalive, a discarded event ~ is by far the most common one on an idle
     /// stream, so that case is kept small enough to inline into [`next()`](Self::next)
     /// and the message-building tail is pushed out of line into
     /// [`dispatch_message()`](Self::dispatch_message).
@@ -357,7 +357,7 @@ impl SseDecoder {
         // into a fresh allocation: on a large event that copy costs more than the
         // rest of the decoder put together. `data_buf` is replaced with an empty
         // buffer of the same capacity so the next event still accumulates without
-        // reallocating, which leaves peak memory where it was — the copying version
+        // reallocating, which leaves peak memory where it was ~ the copying version
         // also held the payload twice for the duration of the copy.
         let data = mem::take(&mut self.data_buf);
         self.data_buf = Vec::with_capacity(data.capacity());
@@ -466,9 +466,9 @@ impl SseDecoder {
                             consume_until_newline(&mut self.mode, None, self.max_payload_size, buf)
                                 .expect("there should be no payload to grow too large");
 
-                            // A comment is usually the last line of its event — a
+                            // A comment is usually the last line of its event ~ a
                             // keepalive is nothing but a comment and the blank line
-                            // after it — so consume that blank line here too when it
+                            // after it ~ so consume that blank line here too when it
                             // is the empty dispatch, which is the only outcome a
                             // keepalive can have. Anything that would actually yield
                             // an event, or resume in another mode, is left to the

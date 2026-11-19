@@ -16,7 +16,7 @@ pub mod types;
 pub use errors::{FeatureNotEnabledError, PanicError, UnreachableError};
 pub use map_pyerr::{map_py_overflow_err, map_py_runtime_err, map_py_value_err};
 pub use py_cast::{PyCastExactOpt, PyCastOpt};
-pub use py_int::{pyindex_check, pynumber_check};
+pub use py_int::{PyIntRead, PyIntValue, pyindex_check, pynumber_check};
 pub use py_io_err::PyIoResultExt;
 pub use py_not_implemented::{PyNotImplementedOr, PyRichCmp};
 pub use py_operand::{FromPyOperand, PyOperandArg, PyOperandExt, PyOperandMatch};

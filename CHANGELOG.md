@@ -7,8 +7,12 @@
 
 ---
 
-## v0.0.111 [unreleased]
+## v0.0.111 [2026-11-19]
 
+- `ryo3-core`
+  - inline integer reading based on orjson but targeting ints up to u64/i64
+    where orjson goes for the u32/i32 range and falls back to ffi beyond that
+    (AFAICT from readin the oj src)
 - `ryo3-jiff` ~ `jiff-v1.0.1`
   - **FIX:** `Timestamp.strftime("%Z")` formats as `UTC`
 - `ryo3-reqwest`
