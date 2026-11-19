@@ -4,6 +4,7 @@ import datetime as pydt
 import ipaddress
 import pathlib
 import typing as t
+from os import PathLike
 from types import TracebackType
 
 from ry._types import (
@@ -472,9 +473,10 @@ class FileReadStream(RyIterator[Bytes]):
 # ============================================================================
 # STD::FS ~ functions
 # =============================================================================
-_TPath = t.TypeVar("_TPath", bound=FsPathLike)
-
-def canonicalize(path: _TPath) -> _TPath: ...
+@t.overload
+def canonicalize(path: str) -> str: ...
+@t.overload
+def canonicalize(path: PathLike[str]) -> pathlib.Path: ...
 def copy(from_path: FsPathLike, to_path: FsPathLike) -> int: ...
 def create_dir(path: FsPathLike) -> None: ...
 def create_dir_all(path: FsPathLike) -> None: ...
