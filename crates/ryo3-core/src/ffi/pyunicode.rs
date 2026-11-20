@@ -53,9 +53,7 @@ pub(crate) unsafe fn fast_pystr_read<'a>(op: *mut PyObject) -> Option<&'a str> {
             #[inline(always)]
             #[expect(unsafe_code)]
             unsafe fn str_from_slice_fn<'s>(ptr: *const u8, size: usize) -> &'s str {
-                unsafe {
-                    core::str::from_utf8_unchecked(core::slice::from_raw_parts(ptr, size))
-                }
+                unsafe { core::str::from_utf8_unchecked(core::slice::from_raw_parts(ptr, size)) }
             }
 
             const STATE_KIND_SHIFT: usize = cfg_select! {
@@ -76,8 +74,7 @@ pub(crate) unsafe fn fast_pystr_read<'a>(op: *mut PyObject) -> Option<&'a str> {
                     && (*op.cast::<PyCompactUnicodeObject>()).utf8_length > 0
                 {
                     let ptr = ((*op.cast::<PyCompactUnicodeObject>()).utf8).cast::<u8>();
-                    let len =
-                        isize_to_usize((*op.cast::<PyCompactUnicodeObject>()).utf8_length);
+                    let len = isize_to_usize((*op.cast::<PyCompactUnicodeObject>()).utf8_length);
                     let s = str_from_slice_fn(ptr, len);
                     Some(s)
                 } else {

@@ -196,7 +196,9 @@ pub unsafe fn pystring_ascii_new<'py>(py: Python<'py>, s: &str) -> Bound<'py, Py
 #[must_use]
 pub unsafe fn pystr_read_fast_opt<'a>(ob: Borrowed<'a, '_, PyString>) -> Option<&'a str> {
     cfg_select! {
-        any(PyPy, GraalPy, Py_LIMITED_API) => unsafe { crate::ffi::pyunicode::pyunicode_to_str_via_ffi(ob.as_ptr()) },
+        any(PyPy, GraalPy, Py_LIMITED_API) => unsafe {
+            crate::ffi::pyunicode::pyunicode_to_str_via_ffi(ob.as_ptr())
+        },
         _ => unsafe { crate::ffi::pyunicode::fast_pystr_read(ob.as_ptr()) },
     }
 }
