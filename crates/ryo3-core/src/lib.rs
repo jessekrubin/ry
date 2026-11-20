@@ -1,7 +1,7 @@
 mod err;
 pub mod exceptions;
 mod ffi;
-mod py_cast;
+mod cast;
 pub mod py_dict;
 mod py_int;
 pub mod py_list;
@@ -15,7 +15,7 @@ pub mod sync;
 pub mod types;
 pub use err::{PyIoResultExt, map_py_overflow_err, map_py_runtime_err, map_py_value_err};
 pub use exceptions::{FeatureNotEnabledError, PanicError, UnreachableError};
-pub use py_cast::{PyCastExactOpt, PyCastOpt};
+pub use cast::{PyCastExactOpt, PyCastOpt};
 pub use py_int::{PyIntRead, PyIntValue, pyindex_check, pynumber_check};
 pub use py_not_implemented::{PyNotImplementedOr, PyRichCmp};
 pub use py_operand::{FromPyOperand, PyOperandArg, PyOperandExt, PyOperandMatch};

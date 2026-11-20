@@ -1,10 +1,10 @@
 mod byte;
+mod open_mode;
 mod pathlike;
 mod py_digest;
 mod utf8_bytes;
 pub use byte::Byte;
+pub use open_mode::{PyOpenMode, PyOpenOptions};
 pub use pathlike::PathLike;
 pub use py_digest::{PyDigest, PyHexDigest};
 pub use utf8_bytes::PyUtf8Bytes;
-mod open_mode;
-pub use open_mode::{PyOpenMode, PyOpenOptions};
