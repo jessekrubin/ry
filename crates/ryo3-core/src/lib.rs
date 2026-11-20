@@ -1,5 +1,6 @@
 mod err;
 pub mod exceptions;
+mod ffi;
 mod py_cast;
 pub mod py_dict;
 mod py_int;
