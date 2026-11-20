@@ -20,8 +20,7 @@ use lz4rip::frame::{FrameDecoder, FrameEncoder, FrameInfo};
 use pyo3::prelude::*;
 use ryo3_bytes::{ReadableBuffer, RyBytes};
 use ryo3_core::macros::{py_type_err, py_type_error, py_value_err, py_value_error};
-use ryo3_core::py_dict::BorrowedDictIter;
-use ryo3_core::{PyAsciiString, PyCastExactOpt, pystr_read_fast};
+use ryo3_core::{BorrowedDictIter, PyAsciiString, PyCastExactOpt, pystr_read_fast};
 
 use crate::Ryo3Lz4ripResult;
 use crate::constants::{LZ4F_FLG_CONTENT_SIZE, LZ4F_MAGIC};

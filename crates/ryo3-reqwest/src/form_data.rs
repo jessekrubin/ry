@@ -29,9 +29,8 @@ use pyo3::types::{
 use reqwest::header::HeaderMap;
 use reqwest::multipart::Form;
 use ryo3_bytes::{ReadableBuffer, RyBytes};
-use ryo3_core::PyIoResultExt;
-use ryo3_core::py_dict::KwargsIter;
 use ryo3_core::sync::RyRwLock;
+use ryo3_core::{KwargsIter, PyIoResultExt};
 use ryo3_http::{PyHeadersLike, RyHeaders};
 use ryo3_macro_rules::{py_key_err, py_type_err, py_type_error, py_value_err, py_value_error};
 
