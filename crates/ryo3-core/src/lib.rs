@@ -4,7 +4,7 @@ pub mod exceptions;
 mod ffi;
 pub mod py_dict;
 mod py_int;
-pub mod py_list;
+pub mod list;
 mod py_not_implemented;
 mod py_operand;
 mod py_parse;
