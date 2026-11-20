@@ -11,7 +11,7 @@ pub mod dev;
 pub mod sh;
 
 pub fn pymod_add(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    ryo3_core::errors::pymod_add(m)?;
+    ryo3_core::exceptions::pymod_add(m)?;
     ryo3_std::pymod_add(m)?;
     ryo3_fspath::pymod_add(m)?;
     ryo3_quick_maths::pymod_add(m)?;

@@ -1,13 +1,47 @@
-//! `std::io::Error` -> python `OSError` w/ errno + filename(s)
+//! rust errors -> existing python exceptions
 //!
-//! builds `OSError(errno, strerror, filename, winerror, filename2)` like
-//! the cpython `os` module. Python picks the subclass (eg `FileNotFoundError`,
-//! `PermissionError`, et al).
-//!
-//! Io errors without an os code (a custom made up `io::Error`) fall back to
-//! pyo3's `From<io::Error>`, which uses `io::ErrorKind` to pick the exception
-//! cls.
-use std::{io, path};
+//! (ry's own exception types live in `exceptions.rs`)
+use std::{fmt, io, path};
+
+use pyo3::PyErr;
+
+// ============================================================================
+// `.map_err()`
+// ============================================================================
+
+pub fn map_py_value_err<E>(e: E) -> PyErr
+where
+    E: fmt::Display,
+{
+    ::pyo3::exceptions::PyValueError::new_err(e.to_string())
+}
+
+pub fn map_py_overflow_err<E>(e: E) -> PyErr
+where
+    E: fmt::Display,
+{
+    ::pyo3::exceptions::PyOverflowError::new_err(e.to_string())
+}
+
+pub fn map_py_runtime_err<E>(e: E) -> PyErr
+where
+    E: fmt::Display,
+{
+    ::pyo3::exceptions::PyRuntimeError::new_err(e.to_string())
+}
+
+// ============================================================================
+// IO ERRORS
+// ============================================================================
+// `std::io::Error` -> python `OSError` w/ errno + filename(s)
+// ----------------------------------------------------------------------------
+// builds `OSError(errno, strerror, filename, winerror, filename2)` like the
+// cpython `os` module. Python picks the subclass (eg `FileNotFoundError`,
+// `PermissionError`, et al).
+//
+// Io errors without an os code (a custom made up `io::Error`) fall back to
+// pyo3's `From<io::Error>`, which uses `io::ErrorKind` to pick the exception
+// cls.
 
 /// `io::Result` -> `PyResult` w/ the path(s) attached
 ///
