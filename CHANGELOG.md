@@ -11,6 +11,12 @@
 
 - `ryo3-core`
   - reorg
+- `ryo3-jiff`
+  - **BREAKING** deprecation removals:
+    - `Date.to_zoned` => `Date.to_zoned_datetime`
+    - `DateTime.to_zoned` => `DateTime.to_zoned_datetime`
+    - `TimeZone.to_zoned` => `TimeZone.to_zoned_datetime`
+    - `Timestamp.to_zoned` => `Timestamp.to_zoned_datetime`
 
 ---
 

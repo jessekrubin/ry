@@ -225,15 +225,6 @@ impl RyTimeZone {
             .map_err(map_py_value_err)
     }
 
-    // DEPRECATED ~ remove in v0.0.112 (jiff 1.0 renamed `to_zoned`)
-    #[pyo3(warn(
-        message = "`TimeZone.to_zoned` is deprecated; use `TimeZone.to_zoned_datetime` instead [removal: v0.0.112]",
-        category = pyo3::exceptions::PyDeprecationWarning
-    ))]
-    fn to_zoned(&self, datetime: &RyDateTime) -> PyResult<RyZonedDateTime> {
-        self.to_zoned_datetime(datetime)
-    }
-
     fn iana_name(&self) -> Option<&str> {
         self.0.iana_name()
     }
