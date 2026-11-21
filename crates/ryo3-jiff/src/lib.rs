@@ -13,7 +13,6 @@
 extern crate core;
 
 mod api;
-mod civil;
 mod constants;
 mod dev;
 mod difference;
@@ -43,7 +42,6 @@ mod serde;
 mod series;
 mod span_units;
 mod spanish;
-mod tz;
 mod util;
 
 pub use api::*;
