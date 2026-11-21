@@ -11,6 +11,10 @@
 
 - `ryo3-core`
   - reorg
+- `ryo3-http`
+  - deprecated (removal: v0.0.113):
+    - `Headers.stringify()` => `ry.stringify(headers)`
+    - `Headers.from_json(data)` => `Headers(ry.parse_json(data))`
 - `ryo3-jiff`
   - **BREAKING** deprecation removals:
     - `Date.to_zoned` => `Date.to_zoned_datetime`
