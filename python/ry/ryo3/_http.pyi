@@ -1,7 +1,13 @@
 """ryo3-http ~ types"""
 
+import sys
 import typing as t
 from collections.abc import Mapping
+
+if sys.version_info >= (3, 13):
+    from warnings import deprecated
+else:
+    from typing_extensions import deprecated
 
 # fmt: off
 HttpMethodLike: t.TypeAlias = t.Literal[
@@ -145,6 +151,9 @@ class Headers:
     # =========================================================================
     def to_py(self) -> dict[str, str | t.Sequence[str]]: ...
     def to_dict(self) -> dict[str, str | t.Sequence[str]]: ...
+    @deprecated(
+        "`Headers.stringify` is deprecated; use `ry.stringify(headers)` instead [removal: v0.0.113]"
+    )
     def stringify(self, *, fmt: bool = False) -> str: ...
     def append(self, key: _HeaderName, value: str) -> None: ...
     def clear(self) -> None: ...
@@ -165,6 +174,9 @@ class Headers:
     @property
     def is_flat(self) -> bool: ...
     @staticmethod
+    @deprecated(
+        "`Headers.from_json` is deprecated; use `Headers(ry.parse_json(data))` instead [removal: v0.0.113]"
+    )
     def from_json(data: str) -> Headers: ...
 
 @t.final

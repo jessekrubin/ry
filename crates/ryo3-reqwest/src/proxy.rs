@@ -1,6 +1,6 @@
 use pyo3::IntoPyObjectExt;
 use pyo3::prelude::*;
-use ryo3_core::py_dict::KwargsIter;
+use ryo3_core::KwargsIter;
 use ryo3_http::RyHeaders;
 use ryo3_macro_rules::{py_type_err, py_value_err, py_value_error};
 use ryo3_url::UrlLike;

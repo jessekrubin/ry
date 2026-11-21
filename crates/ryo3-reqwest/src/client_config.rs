@@ -1,7 +1,7 @@
 use pyo3::prelude::*;
 use pyo3::types::PyDict;
 use reqwest::header::HeaderValue;
-use ryo3_core::py_dict::KwargsIter;
+use ryo3_core::KwargsIter;
 use ryo3_http::{PyHeadersLike, RyHeaders};
 use ryo3_macro_rules::{py_type_err, py_value_error};
 use ryo3_std::time::{PyTimeout, RyDuration};

@@ -36,51 +36,28 @@ class TestDeprecationWarningEg:
 
 
 # =============================================================================
-# jiff 1.0 renames ~ `to_zoned` -> `to_zoned_datetime` (remove in v0.0.112)
+# `Headers.stringify`/`Headers.from_json` (remove in v0.0.113)
 # =============================================================================
-class TestJiffToZonedDeprecation:
-    tz = ry.TimeZone("America/New_York")
+class TestHeadersJsonDeprecation:
+    h = ry.Headers({"accept": "*/*", "set-cookie": ["b=2", "a=1"]})
 
-    def test_date_to_zoned(self) -> None:
-        d = ry.date(2023, 3, 14)
+    def test_stringify(self) -> None:
         with pytest.warns(
             DeprecationWarning,
             match=_deprecation_message(
-                "Date.to_zoned", "Date.to_zoned_datetime", "v0.0.112"
+                "Headers.stringify", "ry.stringify(headers)", "v0.0.113"
             ),
         ):
-            zdt = d.to_zoned(self.tz)  # type: ignore[deprecated]  # ty: ignore[deprecated]  # pyrefly: ignore[deprecated]
-        assert zdt == d.to_zoned_datetime(self.tz)
+            s = self.h.stringify()  # type: ignore[deprecated]  # ty: ignore[deprecated]  # pyrefly: ignore[deprecated]
+        assert s == ry.stringify(self.h).decode()
 
-    def test_datetime_to_zoned(self) -> None:
-        dt = ry.datetime(2023, 3, 14, 12, 30)
+    def test_from_json(self) -> None:
+        data = ry.stringify(self.h).decode()
         with pytest.warns(
             DeprecationWarning,
             match=_deprecation_message(
-                "DateTime.to_zoned", "DateTime.to_zoned_datetime", "v0.0.112"
+                "Headers.from_json", "Headers(ry.parse_json(data))", "v0.0.113"
             ),
         ):
-            zdt = dt.to_zoned(self.tz)  # type: ignore[deprecated]  # ty: ignore[deprecated]  # pyrefly: ignore[deprecated]
-        assert zdt == dt.to_zoned_datetime(self.tz)
-
-    def test_timezone_to_zoned(self) -> None:
-        dt = ry.datetime(2023, 3, 14, 12, 30)
-        with pytest.warns(
-            DeprecationWarning,
-            match=_deprecation_message(
-                "TimeZone.to_zoned", "TimeZone.to_zoned_datetime", "v0.0.112"
-            ),
-        ):
-            zdt = self.tz.to_zoned(dt)  # type: ignore[deprecated]  # ty: ignore[deprecated]  # pyrefly: ignore[deprecated]
-        assert zdt == self.tz.to_zoned_datetime(dt)
-
-    def test_timestamp_to_zoned(self) -> None:
-        ts = ry.Timestamp(1_700_000_000)
-        with pytest.warns(
-            DeprecationWarning,
-            match=_deprecation_message(
-                "Timestamp.to_zoned", "Timestamp.to_zoned_datetime", "v0.0.112"
-            ),
-        ):
-            zdt = ts.to_zoned(self.tz)  # type: ignore[deprecated]  # ty: ignore[deprecated]  # pyrefly: ignore[deprecated]
-        assert zdt == ts.to_zoned_datetime(self.tz)
+            h = ry.Headers.from_json(data)  # type: ignore[deprecated]  # ty: ignore[deprecated]  # pyrefly: ignore[deprecated]
+        assert h == ry.Headers(ry.parse_json(data)) == self.h  # type: ignore[arg-type]  # ty: ignore[invalid-argument-type]

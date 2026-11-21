@@ -7,6 +7,23 @@
 
 ---
 
+## v0.0.112 [unreleased]
+
+- `ryo3-core`
+  - reorg
+- `ryo3-http`
+  - deprecated (removal: v0.0.113):
+    - `Headers.stringify()` => `ry.stringify(headers)`
+    - `Headers.from_json(data)` => `Headers(ry.parse_json(data))`
+- `ryo3-jiff`
+  - **BREAKING** deprecation removals:
+    - `Date.to_zoned` => `Date.to_zoned_datetime`
+    - `DateTime.to_zoned` => `DateTime.to_zoned_datetime`
+    - `TimeZone.to_zoned` => `TimeZone.to_zoned_datetime`
+    - `Timestamp.to_zoned` => `Timestamp.to_zoned_datetime`
+
+---
+
 ## v0.0.111 [2026-11-19]
 
 - `ryo3-core`

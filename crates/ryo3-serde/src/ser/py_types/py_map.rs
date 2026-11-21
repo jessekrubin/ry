@@ -294,8 +294,7 @@ where
         let mut prev_val_ob_type = PyObType::Unknown;
 
         #[cfg(not(Py_GIL_DISABLED))]
-        for (map_key, map_val) in ryo3_core::py_dict::BorrowedDictIter::new_with_len(self.obj, len)
-        {
+        for (map_key, map_val) in ryo3_core::BorrowedDictIter::new_with_len(self.obj, len) {
             let type_ptr = map_val.get_type_ptr() as usize;
             let ob_type = if type_ptr == prev_val_ob_type_ptr {
                 prev_val_ob_type

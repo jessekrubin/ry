@@ -2029,8 +2029,14 @@ def train_case(string: str) -> str: ...
 ```python
 """ryo3-http ~ types"""
 
+import sys
 import typing as t
 from collections.abc import Mapping
+
+if sys.version_info >= (3, 13):
+    from warnings import deprecated
+else:
+    from typing_extensions import deprecated
 
 # fmt: off
 HttpMethodLike: t.TypeAlias = t.Literal[
@@ -2175,6 +2181,9 @@ class Headers:
     # =========================================================================
     def to_py(self) -> dict[str, str | t.Sequence[str]]: ...
     def to_dict(self) -> dict[str, str | t.Sequence[str]]: ...
+    @deprecated(
+        "`Headers.stringify` is deprecated; use `ry.stringify(headers)` instead [removal: v0.0.113]"
+    )
     def stringify(self, *, fmt: bool = False) -> str: ...
     def append(self, key: _HeaderName, value: str) -> None: ...
     def clear(self) -> None: ...
@@ -2195,6 +2204,9 @@ class Headers:
     @property
     def is_flat(self) -> bool: ...
     @staticmethod
+    @deprecated(
+        "`Headers.from_json` is deprecated; use `Headers(ry.parse_json(data))` instead [removal: v0.0.113]"
+    )
     def from_json(data: str) -> Headers: ...
 
 
@@ -2314,7 +2326,6 @@ class HttpStatus:
 """ryo3-jiff ~ types"""
 
 import datetime as pydt
-import sys
 import typing as t
 from collections.abc import Mapping
 
@@ -2332,11 +2343,6 @@ from ry.protocols import (
 )
 from ry.ryo3 import Duration
 from ry.ryo3._jiff_tz import TimezoneDbName
-
-if sys.version_info >= (3, 13):
-    from warnings import deprecated
-else:
-    from typing_extensions import deprecated
 
 # ==== TYPE-VARS ====
 _T = t.TypeVar("_T")
@@ -2562,10 +2568,6 @@ class Date(
     def series(self, period: TimeSpan) -> _JiffSeries[t.Self]: ...
     def to_datetime(self, time: Time) -> DateTime: ...
     def to_zoned_datetime(self, tz: TimeZone) -> ZonedDateTime: ...
-    @deprecated(
-        "`Date.to_zoned` is deprecated; use `Date.to_zoned_datetime` instead [removal: v0.0.112]"
-    )
-    def to_zoned(self, tz: TimeZone) -> ZonedDateTime: ...
     def tomorrow(self) -> t.Self: ...
     def yesterday(self) -> t.Self: ...
 
@@ -2998,10 +3000,6 @@ class DateTime(
     def start_of_day(self) -> t.Self: ...
     def time(self) -> Time: ...
     def to_zoned_datetime(self, tz: TimeZone) -> ZonedDateTime: ...
-    @deprecated(
-        "`DateTime.to_zoned` is deprecated; use `DateTime.to_zoned_datetime` instead [removal: v0.0.112]"
-    )
-    def to_zoned(self, tz: TimeZone) -> ZonedDateTime: ...
     def tomorrow(self) -> t.Self: ...
     def yesterday(self) -> t.Self: ...
 
@@ -3182,10 +3180,6 @@ class TimeZone(
     def to_offset(self, timestamp: Timestamp) -> Offset: ...
     def to_timestamp(self, datetime: DateTime) -> Timestamp: ...
     def to_zoned_datetime(self, datetime: DateTime) -> ZonedDateTime: ...
-    @deprecated(
-        "`TimeZone.to_zoned` is deprecated; use `TimeZone.to_zoned_datetime` instead [removal: v0.0.112]"
-    )
-    def to_zoned(self, datetime: DateTime) -> ZonedDateTime: ...
     def preceding(
         self,
         timestamp: Timestamp,
@@ -4034,10 +4028,6 @@ class Timestamp(
     def signum(self) -> t.Literal[-1, 0, 1]: ...
     def to_string(self) -> str: ...
     def to_zoned_datetime(self, time_zone: TimeZone) -> ZonedDateTime: ...
-    @deprecated(
-        "`Timestamp.to_zoned` is deprecated; use `Timestamp.to_zoned_datetime` instead [removal: v0.0.112]"
-    )
-    def to_zoned(self, time_zone: TimeZone) -> ZonedDateTime: ...
 
     # =========================================================================
     # SINCE/UNTIL

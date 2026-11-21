@@ -358,8 +358,12 @@ impl RyHeaders {
         self.to_py(py)
     }
 
+    // DEPRECATED ~ remove in v0.0.113 (`ry.stringify(headers)` does the same)
     #[cfg(feature = "json")]
-    #[pyo3(signature = (*, fmt = false))]
+    #[pyo3(signature = (*, fmt = false), warn(
+        message = "`Headers.stringify` is deprecated; use `ry.stringify(headers)` instead [removal: v0.0.113]",
+        category = pyo3::exceptions::PyDeprecationWarning
+    ))]
     fn stringify(&self, fmt: bool) -> PyResult<String> {
         use ryo3_core::macros::py_value_error;
         let inner = self.read();
@@ -386,8 +390,13 @@ impl RyHeaders {
         ))
     }
 
+    // DEPRECATED ~ remove in v0.0.113 (`Headers(ry.parse_json(data))` does the same)
     #[cfg(feature = "json")]
     #[staticmethod]
+    #[pyo3(warn(
+        message = "`Headers.from_json` is deprecated; use `Headers(ry.parse_json(data))` instead [removal: v0.0.113]",
+        category = pyo3::exceptions::PyDeprecationWarning
+    ))]
     fn from_json(data: &str) -> PyResult<Self> {
         use ryo3_core::macros::py_value_error;
 

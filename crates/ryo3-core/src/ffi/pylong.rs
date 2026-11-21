@@ -1,100 +1,16 @@
-//! int/number helpers
-use pyo3::prelude::*;
-use pyo3::types::PyInt;
+//! python int reading ~ `PyIntRead` backend
+//!
+//! - `ryo3_pylong_layout` (64-bit non-abi3 cpython, set by `build.rs`): read
+//!   the `PyLongObject` digits directly
+//! - everything else: ye olde ffi/pyo3
 
-/// `PyNumber_Check`: has `__index__`/`__int__`/`__float__` (or is complex)
-///
-/// Fast check if `ob.extract::<u64>` et al would fail
-#[inline]
-#[must_use]
-pub fn pynumber_check(ob: Borrowed<'_, '_, PyAny>) -> bool {
-    ob.is_exact_instance_of::<PyInt>() || {
-        #[expect(unsafe_code, reason = "valid object + attached")]
-        unsafe {
-            pyo3::ffi::PyNumber_Check(ob.as_ptr()) != 0
-        }
-    }
-}
-
-/// `PyIndex_Check`: is an int or has `__index__`
-///
-/// NOTE: this is stricter than [`pynumber_check`]
-#[inline]
-#[must_use]
-pub fn pyindex_check(ob: Borrowed<'_, '_, PyAny>) -> bool {
-    ob.is_exact_instance_of::<PyInt>() || {
-        #[expect(unsafe_code, reason = "valid object + attached")]
-        unsafe {
-            pyo3::ffi::PyIndex_Check(ob.as_ptr()) != 0
-        }
-    }
-}
-
-/// value of a python int that fits in 64 bits
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum PyIntValue {
-    I64(i64),
-    /// only for values > `i64::MAX`
-    U64(u64),
-}
-
-/// Python int reading w/o `OverflowError`s ~ just `None` if it doesn't fit.
-///
-/// On cpython (`ryo3_pylong_layout`) the int's digits are read directly (like
-/// orjson, ormsgpack and python-libipld) sans allocation(!).
-///
-/// NOT on cpython, int reading goes through ye olde ffi/pyo3 where only
-/// out-of-range ints raise (+ get cleared).
-///
-/// `read_i128`/`read_u128` are separate (not on [`PyIntValue`]) to keep the
-/// 64bit path petite.
-pub trait PyIntRead {
-    /// read as `i64` or `u64` or `None` if the int is too big for both
-    fn read_int(&self) -> Option<PyIntValue>;
-
-    /// read as `i128` or `None` if it doesn't fit
-    fn read_i128(&self) -> Option<i128>;
-
-    /// read as `u128` or `None` if it doesn't fit (or is negative)
-    fn read_u128(&self) -> Option<u128>;
-}
-
-impl PyIntRead for Borrowed<'_, '_, PyInt> {
-    #[inline]
-    fn read_int(&self) -> Option<PyIntValue> {
-        dangerzone::read_int(*self)
-    }
-
-    #[inline]
-    fn read_i128(&self) -> Option<i128> {
-        dangerzone::read_i128(*self)
-    }
-
-    #[inline]
-    fn read_u128(&self) -> Option<u128> {
-        dangerzone::read_u128(*self)
-    }
-}
-
-impl PyIntRead for Bound<'_, PyInt> {
-    #[inline]
-    fn read_int(&self) -> Option<PyIntValue> {
-        self.as_borrowed().read_int()
-    }
-
-    #[inline]
-    fn read_i128(&self) -> Option<i128> {
-        self.as_borrowed().read_i128()
-    }
-
-    #[inline]
-    fn read_u128(&self) -> Option<u128> {
-        self.as_borrowed().read_u128()
-    }
-}
+#[cfg(not(ryo3_pylong_layout))]
+pub(crate) use capi::{read_i128, read_int, read_u128};
+#[cfg(ryo3_pylong_layout)]
+pub(crate) use cpython_internal::{read_i128, read_int, read_u128};
 
 #[cfg(ryo3_pylong_layout)]
-mod dangerzone {
+mod cpython_internal {
     //! reads up to 3 digits (all of i64/u64) or 5 digits (all of i128/u128)
     //!
     //! names are copied from cpython's `longintrepr.h` (+ `pycore_long.h` for
@@ -125,7 +41,7 @@ mod dangerzone {
     use pyo3::prelude::*;
     use pyo3::types::PyInt;
 
-    use super::PyIntValue;
+    use crate::PyIntValue;
 
     type digit = u32;
     const PyLong_SHIFT: usize = 30;
@@ -197,7 +113,7 @@ mod dangerzone {
 
     // inlined 4 serde
     #[inline(always)]
-    pub(super) fn read_int(ob: Borrowed<'_, '_, PyInt>) -> Option<PyIntValue> {
+    pub(crate) fn read_int(ob: Borrowed<'_, '_, PyInt>) -> Option<PyIntValue> {
         let CPythonLongParts { negative, digits } = CPythonLongParts::new(ob);
         let mag = match *digits {
             [] => 0,
@@ -240,7 +156,7 @@ mod dangerzone {
     }
 
     #[inline]
-    pub(super) fn read_i128(ob: Borrowed<'_, '_, PyInt>) -> Option<i128> {
+    pub(crate) fn read_i128(ob: Borrowed<'_, '_, PyInt>) -> Option<i128> {
         let (mag, negative) = read_mag128(ob)?;
         if negative {
             // 2^127 wraps to i128::MIN
@@ -251,23 +167,23 @@ mod dangerzone {
     }
 
     #[inline]
-    pub(super) fn read_u128(ob: Borrowed<'_, '_, PyInt>) -> Option<u128> {
+    pub(crate) fn read_u128(ob: Borrowed<'_, '_, PyInt>) -> Option<u128> {
         let (mag, negative) = read_mag128(ob)?;
         (!negative).then_some(mag)
     }
 }
 
 #[cfg(not(ryo3_pylong_layout))]
-mod dangerzone {
+mod capi {
     use pyo3::ffi;
     use pyo3::prelude::*;
     use pyo3::types::PyInt;
 
-    use super::PyIntValue;
+    use crate::PyIntValue;
 
     #[inline]
     #[expect(unsafe_code)]
-    pub(super) fn read_int(ob: Borrowed<'_, '_, PyInt>) -> Option<PyIntValue> {
+    pub(crate) fn read_int(ob: Borrowed<'_, '_, PyInt>) -> Option<PyIntValue> {
         let op = ob.as_ptr();
         // SAFETY: `ob` is a live int and is attached ('tis borrowed)
         unsafe {
@@ -291,12 +207,12 @@ mod dangerzone {
     }
 
     #[inline]
-    pub(super) fn read_i128(ob: Borrowed<'_, '_, PyInt>) -> Option<i128> {
+    pub(crate) fn read_i128(ob: Borrowed<'_, '_, PyInt>) -> Option<i128> {
         ob.extract().ok()
     }
 
     #[inline]
-    pub(super) fn read_u128(ob: Borrowed<'_, '_, PyInt>) -> Option<u128> {
+    pub(crate) fn read_u128(ob: Borrowed<'_, '_, PyInt>) -> Option<u128> {
         ob.extract().ok()
     }
 }

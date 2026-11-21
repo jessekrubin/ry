@@ -266,7 +266,7 @@ where
         let mut seq = serializer.serialize_seq(Some(len))?;
 
         #[cfg(not(Py_GIL_DISABLED))]
-        for element in ryo3_core::py_list::BorrowedListIter::new_with_len(self.obj, len) {
+        for element in ryo3_core::BorrowedListIter::new_with_len(self.obj, len) {
             let type_ptr = element.get_type_ptr() as usize;
             let ob_type = if type_ptr == prev_ob_type_ptr {
                 prev_ob_type

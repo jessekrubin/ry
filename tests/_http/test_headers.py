@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 
-from ry import Headers, __version__
+from ry import Headers, __version__, parse_json, stringify
 
 HEADERS_DICT = {
     "User-Agent": "ry-reqwest/" + __version__,
@@ -15,34 +15,30 @@ HEADERS_OBJ = Headers(HEADERS_DICT)
 
 
 class TestHeadersJson:
+    """`ry.stringify`/`ry.parse_json` (replace `Headers.stringify`/`from_json`)"""
+
     def test_headers_json(self) -> None:
-        json_str = HEADERS_OBJ.stringify()
-        assert isinstance(json_str, str)
+        json_str = stringify(HEADERS_OBJ).decode()
         assert json_str == json.dumps(
             HEADERS_OBJ.to_dict(), sort_keys=True, separators=(",", ":")
         )
 
     def test_headers_json_fmt(self) -> None:
-        json_str = HEADERS_OBJ.stringify(fmt=True)
-        assert isinstance(json_str, str)
+        json_str = stringify(HEADERS_OBJ, fmt=True).decode()
         assert json_str == json.dumps(HEADERS_OBJ.to_dict(), indent=2, sort_keys=True)
 
     def test_round_trip(self) -> None:
-        # test round trip
-        json_str = HEADERS_OBJ.stringify()
-        assert isinstance(json_str, str)
-        assert json_str == json.dumps(
-            HEADERS_OBJ.to_dict(), sort_keys=True, separators=(",", ":")
-        )
-        h = Headers(json.loads(json_str))
+        json_bytes = stringify(HEADERS_OBJ)
+        d = parse_json(json_bytes)
+        h = Headers(d)  # type: ignore[arg-type]  # ty: ignore[invalid-argument-type]
         assert h == HEADERS_OBJ
         assert len(h) == len(HEADERS_OBJ)
         assert h.keys_len() == HEADERS_OBJ.keys_len()
-        assert h.stringify() == HEADERS_OBJ.stringify()
+        assert stringify(h) == json_bytes
 
-        from_json = Headers(json.loads(json_str))
-        assert from_json == HEADERS_OBJ
-        assert len(from_json) == len(HEADERS_OBJ)
+    def test_multi_value_round_trip(self) -> None:
+        h = Headers({"set-cookie": ["b=2", "a=1"], "x": "1"})
+        assert Headers(parse_json(stringify(h))) == h  # type: ignore[arg-type]  # ty: ignore[invalid-argument-type]
 
 
 class TestHeadersObj:
