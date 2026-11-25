@@ -168,23 +168,28 @@ fn hex_into(out: &mut [u8], bytes: &[u8]) {
 #[inline]
 fn pystring_hex<'py>(py: Python<'py>, bytes: &[u8]) -> Bound<'py, PyString> {
     let len = bytes.len() * 2;
-    #[cfg(not(any(PyPy, GraalPy, Py_LIMITED_API)))]
-    #[expect(unsafe_code)]
-    unsafe {
-        // `PyUnicode_New` nul-terminates; convert before touching data so
-        // NULL (oom) panics like `PyString::new` (same as `pystring_ascii_new`)
-        let ptr = pyo3::ffi::PyUnicode_New(len.cast_signed(), 127);
-        let s: Bound<'py, PyString> = Bound::from_owned_ptr(py, ptr).cast_into_unchecked();
-        let data =
-            std::slice::from_raw_parts_mut(pyo3::ffi::PyUnicode_DATA(s.as_ptr()).cast(), len);
-        hex_into(data, bytes);
-        s
-    }
-    #[cfg(any(PyPy, GraalPy, Py_LIMITED_API))]
-    {
-        let mut buf = vec![0u8; len];
-        hex_into(&mut buf, bytes);
-        PyString::new(py, std::str::from_utf8(&buf).expect("hex is ascii"))
+    cfg_select! {
+        any(PyPy, GraalPy, Py_LIMITED_API) => {{
+            let mut buf = vec![0u8; len];
+            hex_into(&mut buf, bytes);
+            PyString::new(py, std::str::from_utf8(&buf).expect("hex is ascii"))
+        }}
+        _ => {{
+            #[expect(unsafe_code)]
+            unsafe {
+                // `PyUnicode_New` nul-terminates ~ convert pre touching data
+                // b/c NULL (oom) should panic like `PyString::new` (akin to
+                // `pystring_ascii_new` in this here crate (`ryo3-core`))
+                let ptr = pyo3::ffi::PyUnicode_New(len.cast_signed(), 127);
+                let s: Bound<'py, PyString> = Bound::from_owned_ptr(py, ptr).cast_into_unchecked();
+                let data = std::slice::from_raw_parts_mut(
+                    pyo3::ffi::PyUnicode_DATA(s.as_ptr()).cast(),
+                    len,
+                );
+                hex_into(data, bytes);
+                s
+            }
+        }}
     }
 }
 

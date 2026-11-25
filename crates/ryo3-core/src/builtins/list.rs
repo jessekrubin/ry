@@ -49,10 +49,10 @@ impl<'a, 'py> Iterator for BorrowedListIter<'a, 'py> {
             // - `index` is less than the list length captured at construction
             // - the caller guarantees that the list aint modified during iteration
             unsafe {
-                #[cfg(not(Py_LIMITED_API))]
-                let ptr = ffi::PyList_GET_ITEM(self.list.as_ptr(), index.cast_signed());
-                #[cfg(Py_LIMITED_API)]
-                let ptr = ffi::PyList_GetItem(self.list.as_ptr(), index.cast_signed());
+                let ptr = cfg_select! {
+                    Py_LIMITED_API => ffi::PyList_GetItem(self.list.as_ptr(), index.cast_signed()),
+                    _ => ffi::PyList_GET_ITEM(self.list.as_ptr(), index.cast_signed()),
+                };
                 Some(Borrowed::from_ptr(self.list.py(), ptr))
             }
         }
