@@ -399,7 +399,7 @@ class TestFallback:
 class TestLoopLifecycle:
     @staticmethod
     def _loop_released(
-        loop_ref: weakref.ReferenceType[asyncio.AbstractEventLoop],
+        loop_ref: collections.abc.Callable[[], asyncio.AbstractEventLoop | None],
     ) -> bool:
         # worker cleanup can release its last Python ref after close()
         for _ in range(50):
