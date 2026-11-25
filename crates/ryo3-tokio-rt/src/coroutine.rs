@@ -81,6 +81,7 @@ use std::cell::RefCell;
 use std::future::Future;
 #[cfg(unix)]
 use std::io::{Read, Write};
+use std::mem::DropGuard;
 #[cfg(unix)]
 use std::os::fd::AsRawFd;
 #[cfg(unix)]
@@ -155,10 +156,12 @@ enum LoopEvent {
 /// who keeps it alive:
 ///
 /// - `add_reader` + weakref loops: the loop itself, via its reader handle ->
-///   `RyCoroutineFlush` -> `Arc<LoopHub>`. closing the loop drops that owner;
-///   any worker already using the hub can finish before it is freed.
-///   The loop ref itself is weak. Queued calls can hold Python objs that own
-///   the event-loop, so relying on Python's GC to drop the loop won't work.
+///   `RyCoroutineFlush` -> `Arc<LoopHub>`. Closing the loop drops that owner,
+///   which closes the hub (on the loop thread). A worker can still hold the
+///   last `Arc` but the queue is empty at that point; pyo3's ref pool gets the
+///   rest. The loop ref itself is weak. Queued calls can hold Python objs that
+///   own the event-loop, so relying on Python's GC to drop the loop won't
+///   work. Reader outlives the loop? the loop pruning closes it.
 /// - Fallback loops (no `add_reader`) + loops w/o weakrefs: `LOOP_HUBS`, till
 ///   the loop is gone/closed and the next new loop on this thread prunes it.
 ///   Fallback hubs own their flush, so the flush MUST point via weak ptr.
@@ -378,6 +381,15 @@ impl LoopHub {
                 .unwrap_or(true)
         })
     }
+
+    /// close it if its loop is gone ~ `false` means prune time
+    fn keep(&self, py: Python<'_>) -> bool {
+        let gone = self.loop_gone(py);
+        if gone {
+            self.close();
+        }
+        !gone
+    }
 }
 
 #[cfg(unix)]
@@ -414,6 +426,17 @@ struct RyCoroutineFlush(OnceLock<FlushHub>);
 enum FlushHub {
     Owner(Arc<LoopHub>),
     Weak(Weak<LoopHub>),
+}
+
+impl Drop for FlushHub {
+    fn drop(&mut self) {
+        // loop dropped its reader. Queue is emptied at this point (loop
+        // thread) and not on whatever worker drops/dropped the last remaining
+        // `Arc`
+        if let Self::Owner(hub) = self {
+            hub.close();
+        }
+    }
 }
 
 #[pymethods]
@@ -453,17 +476,25 @@ impl HubSlot {
     /// `false` => prune it
     fn keep(&self, py: Python<'_>) -> bool {
         match &self.hub {
-            // reader handle dropped (loop closed/collected) => hub is gone
-            HubKeep::ByLoop(hub) => hub.strong_count() > 0 && self.event_loop.get(py).is_some(),
-            HubKeep::ByUs(hub) => {
-                let gone = hub.loop_gone(py);
-                if gone {
-                    hub.close();
-                }
-                !gone
-            }
+            // reader dropped => flush already closed it
+            // reader alive but loop dead => close it right here
+            HubKeep::ByLoop(hub) => hub.upgrade().is_some_and(|hub| hub.keep(py)),
+            HubKeep::ByUs(hub) => hub.keep(py),
         }
     }
+}
+
+/// the live hub for `event_loop`, if this thread has one
+///
+/// the loop is running so its hub is alive ~ `hub()` cant be the last ref
+fn find_hub(event_loop: &Bound<'_, PyAny>) -> Option<Arc<LoopHub>> {
+    let py = event_loop.py();
+    LOOP_HUBS.with(|hubs| {
+        hubs.borrow()
+            .iter()
+            .find(|slot| slot.event_loop.get(py).is_some_and(|l| l.is(event_loop)))
+            .and_then(HubSlot::hub)
+    })
 }
 
 // Vec not one slot b/c one thread can run a bunch of loops over time
@@ -488,43 +519,40 @@ impl LoopHandle {
 
     /// return hub corresponding to a py event-loop
     fn loop2hub(event_loop: &Bound<'_, PyAny>) -> PyResult<Arc<LoopHub>> {
-        let py = event_loop.py();
-        // the loop is running so its hub is alive ~ `hub()` cant be the last ref
-        if let Some(hub) = LOOP_HUBS.with(|hubs| {
-            hubs.borrow()
-                .iter()
-                .find(|slot| slot.event_loop.get(py).is_some_and(|l| l.is(event_loop)))
-                .and_then(HubSlot::hub)
-        }) {
-            return Ok(hub);
+        match find_hub(event_loop) {
+            Some(hub) => Ok(hub),
+            None => Self::register_loop(event_loop),
         }
-        Self::register_loop(event_loop)
     }
 
     #[cold]
     fn register_loop(event_loop: &Bound<'_, PyAny>) -> PyResult<Arc<LoopHub>> {
         let py = event_loop.py();
         // RefCell stays unborrowed while python runs (`is_closed`/`new`/drops
-        // can end up back in here)
-        let mut hubs = LOOP_HUBS.with(RefCell::take);
-        hubs.retain(|slot| slot.keep(py));
-        let hub = LoopHub::new(event_loop);
-        if let Ok(hub) = &hub {
-            hubs.push(HubSlot {
-                event_loop: hub.event_loop.clone_ref(py),
-                hub: if hub.owned_by_loop() {
-                    HubKeep::ByLoop(Arc::downgrade(hub))
-                } else {
-                    HubKeep::ByUs(Arc::clone(hub))
-                },
+        // can end up back in here). The fancy new `DropGuard` puts em back
+        // even on err. Wakers only hold a `Weak` (ref)
+        let mut hubs = DropGuard::new(LOOP_HUBS.with(RefCell::take), |mut hubs| {
+            LOOP_HUBS.with(|slot| {
+                hubs.append(&mut slot.borrow_mut());
+                *slot.borrow_mut() = hubs;
             });
-        }
-        // put em back even on err ~ wakers only hold a `Weak` to their hub
-        LOOP_HUBS.with(|slot| {
-            hubs.append(&mut slot.borrow_mut());
-            *slot.borrow_mut() = hubs;
         });
-        hub
+        hubs.retain(|slot| slot.keep(py));
+        // pruning runs attached to py, which may have already registered the
+        // loop
+        if let Some(hub) = find_hub(event_loop) {
+            return Ok(hub);
+        }
+        let hub = LoopHub::new(event_loop)?;
+        hubs.push(HubSlot {
+            event_loop: hub.event_loop.clone_ref(py),
+            hub: if hub.owned_by_loop() {
+                HubKeep::ByLoop(Arc::downgrade(&hub))
+            } else {
+                HubKeep::ByUs(Arc::clone(&hub))
+            },
+        });
+        Ok(hub)
     }
 
     /// the python event loop ~ `None` if it (or its hub) is gone
