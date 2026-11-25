@@ -9,8 +9,11 @@
 
 ## v0.0.112 [unreleased]
 
+- `ryo3-twox-hash`
+  - fix reprs
 - `ryo3-core`
   - reorg
+  - cleanup hex-digest formatting
 - `ryo3-http`
   - deprecated (removal: v0.0.113):
     - `Headers.stringify()` => `ry.stringify(headers)`

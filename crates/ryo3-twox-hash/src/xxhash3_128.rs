@@ -56,7 +56,7 @@ impl RyXxHash3_128 {
     fn __repr__(&self) -> PyResult<PyAsciiString> {
         self.hasher
             .py_lock()
-            .map(|hasher| format!("xxh3_128<{:x}>", hasher.finish_128()).into())
+            .map(|hasher| format!("xxh3_128<{:032x}>", hasher.finish_128()).into())
     }
 
     #[classattr]

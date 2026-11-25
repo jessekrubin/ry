@@ -58,7 +58,7 @@ impl RyXxHash3_64 {
     fn __repr__(&self) -> PyResult<PyAsciiString> {
         self.hasher
             .py_lock()
-            .map(|hasher| format!("xxh3_64<{:x}>", hasher.finish()).into())
+            .map(|hasher| format!("xxh3_64<{:016x}>", hasher.finish()).into())
     }
 
     #[classattr]

@@ -75,6 +75,17 @@ def test_repr(xxhasher: _XxHasher) -> None:
     assert repr_str == expected
 
 
+@pytest.mark.parametrize("xxhasher", _XXHASHERS)
+def test_repr_zero_padded(xxhasher: _XxHasher) -> None:
+    leading_zero = 0
+    for i in range(256):
+        hasher = xxhasher.hasher(i.to_bytes(2, "big"))
+        hex_digest = hasher.hexdigest()
+        assert repr(hasher) == f"{xxhasher.name}<{hex_digest}>"
+        leading_zero += hex_digest.startswith("0")
+    assert leading_zero > 0
+
+
 class TestXxHash3Secret:
     _OK_SECRET = b"dingo" * 100  # 128 bytes, which is >= 136
     _HASH_DATA = b"dingo" * 100
