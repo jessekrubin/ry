@@ -53,7 +53,7 @@ class TestShape:
 
 class TestLazy:
     def test_ready_future_needs_running_loop(self, tmp_path: Path) -> None:
-        coro = ry.AsyncFile(tmp_path / "some-fucking-data.bin", "wb").close()
+        coro = ry.AsyncFile(tmp_path / "data.bin", "wb").close()
         with pytest.raises(RuntimeError, match="no running event loop"):
             coro.send(None)
 
