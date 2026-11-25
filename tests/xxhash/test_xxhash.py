@@ -85,6 +85,7 @@ def test_repr_zero_padded(xxhasher: _XxHasher) -> None:
         leading_zero += hex_digest.startswith("0")
     assert leading_zero > 0
 
+
 class TestXxHash3Secret:
     _OK_SECRET = b"dingo" * 100  # 128 bytes, which is >= 136
     _HASH_DATA = b"dingo" * 100
