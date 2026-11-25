@@ -116,8 +116,8 @@ impl RyCrc32Fast {
         PyTuple::new(py, [args.into_bound_py_any(py)?, kw.into_bound_py_any(py)?])
     }
 
-    fn __repr__(&self) -> PyAsciiString {
-        format!("{self}").into()
+    fn __repr__(&self) -> PyResult<PyAsciiString> {
+        self.finish().map(|h| format!("crc32<{h:08x}>").into())
     }
 
     fn intdigest(&self) -> PyResult<u32> {
@@ -187,13 +187,6 @@ impl RyCrc32Fast {
     #[staticmethod]
     fn oneshot_hex(data: ReadableBuffer, seed: Crc32Seed) -> PyHexDigest<u32> {
         crc32fast_oneshot(data.as_ref(), seed.into()).into()
-    }
-}
-
-impl std::fmt::Display for RyCrc32Fast {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let seed = self.finish().expect("no-way-jose");
-        write!(f, "crc32<{seed:08x}>")
     }
 }
 

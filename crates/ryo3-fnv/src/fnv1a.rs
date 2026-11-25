@@ -143,8 +143,8 @@ impl RyFnv1a {
         PyTuple::new(py, [args.into_bound_py_any(py)?, kw.into_bound_py_any(py)?])
     }
 
-    fn __repr__(&self) -> PyAsciiString {
-        format!("{self}").into()
+    fn __repr__(&self) -> PyResult<PyAsciiString> {
+        self.finish().map(|h| format!("fnv1a<{h:016x}>").into())
     }
 
     fn intdigest(&self) -> PyResult<u64> {
@@ -207,13 +207,6 @@ impl RyFnv1a {
     #[staticmethod]
     fn oneshot_hex(data: ReadableBuffer, seed: Fnv1aSeed) -> PyHexDigest<u64> {
         fnv1a_oneshot(data.as_ref(), seed.into()).into()
-    }
-}
-
-impl std::fmt::Display for RyFnv1a {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let seed = self.finish().expect("no-way-jose");
-        write!(f, "fnv1a<{seed:016x}>")
     }
 }
 

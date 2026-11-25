@@ -42,7 +42,7 @@ impl RyXxHash32 {
     fn __repr__(&self) -> PyResult<PyAsciiString> {
         self.hasher
             .py_lock()
-            .map(|hasher| format!("xxh32<{:x}>", hasher.finish()).into())
+            .map(|hasher| format!("xxh32<{:08x}>", hasher.finish()).into())
     }
 
     #[classattr]
