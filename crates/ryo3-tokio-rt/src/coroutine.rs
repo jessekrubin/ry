@@ -18,9 +18,9 @@
 //! # How do it wake?
 //!
 //! 1. [`tokio_coro`] -> `Unstarted`, nothing spawned yet
-//! 2. Task calls `send(None)`. `poll_once` gets the loop's hub and polls once
+//! 2. Task calls `send(None)`. `poll_once` gets the running loop and polls once
 //!    w/ a noop waker, which is what spawns. already `Ready`? done. otherwise
-//!    make the waker + py-future and poll again w/ the real one
+//!    get the hub, make the waker + py-future and poll again w/ the real one
 //! 3. `Pending` -> yield the `RyCoroutineFuture`, Task adds `__wakeup` to it
 //! 4. tokio calls the waker on a worker: set `queued`, push onto `ready`, and
 //!    on the first wake of a burst write 1 byte to the socketpair
@@ -482,23 +482,23 @@ pub struct LoopHandle(Weak<LoopHub>);
 impl LoopHandle {
     /// errs if there is no running loop
     pub fn current(py: Python<'_>) -> PyResult<Self> {
-        Self::current_hub(py).map(|(hub, _)| Self(Arc::downgrade(&hub)))
+        let event_loop = asyncio_get_running_loop(py)?;
+        Self::loop2hub(&event_loop).map(|hub| Self(Arc::downgrade(&hub)))
     }
 
-    /// running loop + its hub
-    fn current_hub(py: Python<'_>) -> PyResult<(Arc<LoopHub>, Bound<'_, PyAny>)> {
-        let event_loop = asyncio_get_running_loop(py)?;
+    /// return hub corresponding to a py event-loop
+    fn loop2hub(event_loop: &Bound<'_, PyAny>) -> PyResult<Arc<LoopHub>> {
+        let py = event_loop.py();
         // the loop is running so its hub is alive ~ `hub()` cant be the last ref
         if let Some(hub) = LOOP_HUBS.with(|hubs| {
             hubs.borrow()
                 .iter()
-                .find(|slot| slot.event_loop.get(py).is_some_and(|l| l.is(&event_loop)))
+                .find(|slot| slot.event_loop.get(py).is_some_and(|l| l.is(event_loop)))
                 .and_then(HubSlot::hub)
         }) {
-            return Ok((hub, event_loop));
+            return Ok(hub);
         }
-        let hub = Self::register_loop(&event_loop)?;
-        Ok((hub, event_loop))
+        Self::register_loop(event_loop)
     }
 
     #[cold]
@@ -835,7 +835,13 @@ impl Wake for CoroutineWaker {
     }
 
     fn wake_by_ref(self: &Arc<Self>) {
-        Arc::clone(self).wake();
+        if self.queued.swap(true, Ordering::AcqRel) {
+            return;
+        }
+        // avoid arc clone until it really needs to be queued (micro opt (yay))
+        if let Some(hub) = self.hub.upgrade() {
+            hub.post_event(LoopEvent::Wake(Arc::clone(self)));
+        }
     }
 }
 
@@ -946,7 +952,7 @@ impl RyCoroutine {
                 return Ok(py.None());
             }
             CoroutineState::Unstarted(mut future) => {
-                let (hub, event_loop) = LoopHandle::current_hub(py)?;
+                let event_loop = asyncio_get_running_loop(py)?;
                 // ready on the first poll?
                 // >>> no py-future/waker needed at all.
                 // pending?
@@ -959,6 +965,7 @@ impl RyCoroutine {
                     return Err(result
                         .map_or_else(|error| error, |value| PyStopIteration::new_err((value,))));
                 }
+                let hub = LoopHandle::loop2hub(&event_loop)?;
                 let waker = Arc::new(CoroutineWaker {
                     hub: Arc::downgrade(&hub),
                     queued: AtomicBool::new(false),

@@ -7,8 +7,13 @@
 
 ---
 
-## v0.0.112 [unreleased]
+## v0.0.112 [2026-11-25]
 
+- `ryo3-tokio-rt`
+  - fix releasing coroutine loop hubs
+  - refactored the english-words for the `coroutine.rs` file to be saner
+    english; there is probably a bunch more writing that could be done on
+    this...
 - `ryo3-twox-hash`
   - fix reprs
 - `ryo3-core`
