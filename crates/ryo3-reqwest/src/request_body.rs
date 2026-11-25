@@ -157,6 +157,11 @@ impl RequestBodyPrimer {
                 return;
             }
         };
+        // just looked it up off the running loop ~ always there
+        let Some(running_loop) = event_loop.event_loop(py) else {
+            let _ = tx.try_send(Err(py_runtime_error!("event loop is gone")));
+            return;
+        };
         let pump = RyRequestBodyPump {
             src: Arc::clone(&src),
             tx: Some(tx.clone()),
@@ -169,7 +174,7 @@ impl RequestBodyPrimer {
                 return;
             }
         };
-        match spawn_pump(event_loop.event_loop(py), &pump) {
+        match spawn_pump(&running_loop, &pump) {
             // pump may have finished already (eager) ~ dont keep if done/dead
             Ok(task) => {
                 if pump.borrow().tx.is_some() {
