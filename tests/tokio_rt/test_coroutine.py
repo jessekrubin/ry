@@ -410,6 +410,10 @@ class TestLoopLifecycle:
         return False
 
     @pytest.mark.skipif(sys.platform == "win32", reason="no fd dir on windows")
+    @pytest.mark.skipif(
+        sys.implementation.name == "pypy",
+        reason="pypy cant collect cycles thru ext objs (really confusing but what can you do...)",
+    )
     def test_closed_loop_released(self) -> None:
         """the hub (and socketpair) dies w/ loop, even w in-flight coros"""
         # don't count the shared runtime's first-time descriptors as a loop leak
