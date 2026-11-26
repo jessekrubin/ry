@@ -15,12 +15,12 @@
 //! python. everything else is on the loop thread. the one exception is
 //! `poke_fallback`.
 //!
-//! # How it wakes?
+//! # How do it wake?
 //!
 //! 1. [`tokio_coro`] -> `Unstarted`, nothing spawned yet
-//! 2. Task calls `send(None)`. `poll_once` gets the loop's hub and polls once
+//! 2. Task calls `send(None)`. `poll_once` gets the running loop and polls once
 //!    w/ a noop waker, which is what spawns. already `Ready`? done. otherwise
-//!    make the waker + py-future and poll again w/ the real one
+//!    get the hub, make the waker + py-future and poll again w/ the real one
 //! 3. `Pending` -> yield the `RyCoroutineFuture`, Task adds `__wakeup` to it
 //! 4. tokio calls the waker on a worker: set `queued`, push onto `ready`, and
 //!    on the first wake of a burst write 1 byte to the socketpair
@@ -61,17 +61,19 @@
 //! # prior art
 //!
 //! the self-pipe trick, same as asyncio's `_write_to_self` and grpc.aio's
-//! poller, but w/o the GIL and w/ one byte per burst. PR #897.
+//! poller, but w/o the GIL and with one byte per burst.
 //!
-//! REFS:
+//! REFS (w/ permalinks):
 //! - djb self-pipe trick <https://cr.yp.to/docs/selfpipe.html>
 //! - asyncio self-pipe <https://github.com/python/cpython/blob/v3.13.0/Lib/asyncio/selector_events.py#L118-L147>
 //! - asyncio `call_soon_threadsafe` <https://github.com/python/cpython/blob/v3.13.0/Lib/asyncio/base_events.py#L872-L882>
-//! - grpc.aio poller <https://github.com/grpc/grpc/blob/v1.83.2/src/python/grpcio/grpc/_cython/_cygrpc/aio/completion_queue.pyx.pxi#L91-L116> + fallback <https://github.com/grpc/grpc/blob/v1.83.2/src/python/grpcio/grpc/_cython/_cygrpc/aio/completion_queue.pyx.pxi#L18-L57>
+//! - grpc.aio poller <https://github.com/grpc/grpc/blob/v1.83.2/src/python/grpcio/grpc/_cython/_cygrpc/aio/completion_queue.pyx.pxi#L91-L116>
+//! - grpc.aio `add_reader` + fallback <https://github.com/grpc/grpc/blob/v1.83.2/src/python/grpcio/grpc/_cython/_cygrpc/aio/completion_queue.pyx.pxi#L18-L57>
 //! - uvloop `call_soon_threadsafe` <https://github.com/MagicStack/uvloop/blob/v0.23.0/uvloop/loop.pyx#L1277-L1286>
 //! - libuv `uv_async_send` <https://docs.libuv.org/en/v1.x/async.html>
 //! - trio `WakeupSocketpair` <https://github.com/python-trio/trio/blob/v0.35.0/src/trio/_core/_wakeup_socketpair.py#L12-L50>
-//! - pyo3 waker (GIL per wake) <https://github.com/PyO3/pyo3/blob/v0.30.1/src/coroutine/waker.rs#L43-L51>, `experimental-async` <https://github.com/PyO3/pyo3/pull/3540>
+//! - pyo3 waker (GIL per wake) <https://github.com/PyO3/pyo3/blob/v0.30.1/src/coroutine/waker.rs#L43-L51>
+//! - pyo3 `experimental-async` <https://github.com/PyO3/pyo3/pull/3540>
 //! - pyo3-async-runtimes <https://github.com/PyO3/pyo3-async-runtimes/blob/v0.30.0/src/generic.rs#L608-L680>
 //! - ry PR <https://github.com/jessekrubin/ry/pull/897>
 
@@ -79,6 +81,7 @@ use std::cell::RefCell;
 use std::future::Future;
 #[cfg(unix)]
 use std::io::{Read, Write};
+use std::mem::DropGuard;
 #[cfg(unix)]
 use std::os::fd::AsRawFd;
 #[cfg(unix)]
@@ -94,7 +97,7 @@ use pyo3::exceptions::{
 };
 use pyo3::prelude::*;
 use pyo3::sync::PyOnceLock;
-use pyo3::types::PyDict;
+use pyo3::types::{PyDict, PyWeakrefReference};
 use pyo3::{IntoPyObjectExt, PyTraverseError, PyVisit};
 
 use crate::get_ry_tokio_runtime;
@@ -107,7 +110,6 @@ fn lock<T>(mutex: &Mutex<T>) -> MutexGuard<'_, T> {
     mutex.lock().unwrap_or_else(PoisonError::into_inner)
 }
 
-/// Get the currently running asyncio event loop via `asyncio.get_running_loop()`
 fn asyncio_get_running_loop(py: Python<'_>) -> PyResult<Bound<'_, PyAny>> {
     static GET_RUNNING_LOOP: PyOnceLock<Py<PyAny>> = PyOnceLock::new();
     GET_RUNNING_LOOP
@@ -151,34 +153,77 @@ enum LoopEvent {
 
 /// One per running loop, shared by every coro (wakers hold a `Weak`)
 ///
-/// closed loops:
+/// who keeps it alive:
 ///
-/// - closed loops arent noticed right away.
-/// - wakes pile into `ready` till the hub gets cleaned up, which happens when
-///   a new loop is created on this thread.
-/// - `asyncio.run` cancels everything before closing so its usually ~nothing
+/// - `add_reader` + weakref loops: the loop itself, via its reader handle ->
+///   `RyCoroutineFlush` -> `Arc<LoopHub>`. Closing the loop drops that owner,
+///   which closes the hub (on the loop thread). A worker can still hold the
+///   last `Arc` but the queue is empty at that point; pyo3's ref pool gets the
+///   rest. The loop ref itself is weak. Queued calls can hold Python objs that
+///   own the event-loop, so relying on Python's GC to drop the loop won't
+///   work. Reader outlives the loop? the loop pruning closes it.
+/// - Fallback loops (no `add_reader`) + loops w/o weakrefs: `LOOP_HUBS`, till
+///   the loop is gone/closed and the next new loop on this thread prunes it.
+///   Fallback hubs own their flush, so the flush MUST point via weak ptr.
+///   Without weakrefs, things get fucked up from the POV of python's GC.
 struct LoopHub {
-    /// Event loop ref ~ also keeps the loop addr from getting reused
-    event_loop: Py<PyAny>,
+    /// weak unless the loop cant do weakrefs
+    event_loop: LoopRef,
     /// Empty ctx for running flush
     context: Py<PyAny>,
-    /// Reader/`call_soon_threadsafe` cb ~ `run_ready`
-    flush: Py<RyCoroutineFlush>,
-    /// (rx, tx)
-    ///
-    /// NOTE: `None` => no `add_reader` => `poke_fallback`
-    #[cfg(unix)]
-    wake_pair: Option<(UnixStream, UnixStream)>,
+    /// how tokio pokes the loop
+    wake: LoopWake,
     /// `Wake`s from tokio + `Call`s from `LoopHandle::call_soon`
     ///
-    /// This is how ws/request bodies get stuff onto the loop sans-GIL)
+    /// This is how ws/request bodies get stuff onto the loop sans-GIL
     ready: Mutex<Vec<LoopEvent>>,
     /// `true` => a flush is imminent (byte in the pipe or fallback queued) and
-    /// hasnt taken the batch yet, so new events dont need to poke again
+    /// hasn't taken the batch yet, so new events don't need to poke again
     flush_scheduled: AtomicBool,
     /// Loop 100% known dead (pruned or `call_soon_threadsafe` failed) ~ new
     /// events get dropped
     closed: AtomicBool,
+}
+
+/// how tokio pokes the loop
+enum LoopWake {
+    /// socketpair `(rx, tx)`, rx watched w/ `add_reader`. both ends live here
+    /// so a write never hits a closed reader (no SIGPIPE stuff)
+    #[cfg(unix)]
+    Pipe(UnixStream, UnixStream),
+    /// no `add_reader` => `call_soon_threadsafe(flush)` w/ the GIL
+    Fallback(Py<RyCoroutineFlush>),
+}
+
+/// A hub's ref to its actual loop
+enum LoopRef {
+    Weak(Py<PyWeakrefReference>),
+    /// loop sans weakref support, it is owned/pinned until cleaned up
+    Strong(Py<PyAny>),
+}
+
+impl LoopRef {
+    fn new(event_loop: &Bound<'_, PyAny>) -> Self {
+        match PyWeakrefReference::new(event_loop) {
+            Ok(weak) => Self::Weak(weak.unbind()),
+            Err(_) => Self::Strong(event_loop.clone().unbind()),
+        }
+    }
+
+    /// `None` => the loop got collected
+    fn get<'py>(&self, py: Python<'py>) -> Option<Bound<'py, PyAny>> {
+        match self {
+            Self::Weak(weak) => weak.bind(py).upgrade(),
+            Self::Strong(event_loop) => Some(event_loop.bind(py).clone()),
+        }
+    }
+
+    fn clone_ref(&self, py: Python<'_>) -> Self {
+        match self {
+            Self::Weak(weak) => Self::Weak(weak.clone_ref(py)),
+            Self::Strong(event_loop) => Self::Strong(event_loop.clone_ref(py)),
+        }
+    }
 }
 
 impl LoopHub {
@@ -186,21 +231,34 @@ impl LoopHub {
     fn new(event_loop: &Bound<'_, PyAny>) -> PyResult<Arc<Self>> {
         let py = event_loop.py();
         let context = empty_context(py)?;
-        let flush = Py::new(py, RyCoroutineFlush(OnceLock::new()))?;
-        #[cfg(unix)]
-        let wake_pair = register_reader(event_loop, &context, flush.bind(py));
+        let flush = Bound::new(py, RyCoroutineFlush(OnceLock::new()))?;
+        let wake = cfg_select! {
+            unix => match register_reader(event_loop, &context, &flush) {
+                Some((rx, tx)) => LoopWake::Pipe(rx, tx),
+                None => LoopWake::Fallback(flush.clone().unbind()),
+            },
+            _ => LoopWake::Fallback(flush.clone().unbind()),
+        };
         let hub = Arc::new(Self {
-            event_loop: event_loop.clone().unbind(),
+            event_loop: LoopRef::new(event_loop),
             context: context.unbind(),
-            flush,
-            #[cfg(unix)]
-            wake_pair,
+            wake,
             ready: Mutex::new(Vec::new()),
             flush_scheduled: AtomicBool::new(false),
             closed: AtomicBool::new(false),
         });
-        let _ = hub.flush.get().0.set(Arc::downgrade(&hub));
+        // a reader that fires before this is set is a noop (nothing queued yet)
+        let _ = flush.get().0.set(if hub.owned_by_loop() {
+            FlushHub::Owner(Arc::clone(&hub))
+        } else {
+            FlushHub::Weak(Arc::downgrade(&hub))
+        });
         Ok(hub)
+    }
+
+    /// see [`LoopHub`] ~ reader registered + weak loop ref
+    fn owned_by_loop(&self) -> bool {
+        matches!(self.event_loop, LoopRef::Weak(_)) && !matches!(self.wake, LoopWake::Fallback(_))
     }
 
     #[inline]
@@ -210,14 +268,17 @@ impl LoopHub {
         }
         {
             let mut ready = lock(&self.ready);
-            // re-check under the lock so a race on `close()` dont strand event
+            // re-check under the lock so a race w/ `close()` can't strand
+            // an event (this is what happened to Tom Hanks in Castaway IIRC)
             if self.closed.load(Ordering::Acquire) {
                 return;
             }
             ready.push(event);
         }
-        // the `ready` mutex orders this: a push after `run_ready` took the batch
-        // sees its `store(false)` and pokes. AcqRel/SeqCst is overkill (but yolo)
+        // the `ready` mutex does the ordering: `run_ready` stores false THEN
+        // (with the lock held) takes. This means a push that misses locks after
+        // that and the swap sees a false and does a poke/prod. The atomic
+        // orderings are possibly overkill but seem like the safer option (imo).
         if !self.flush_scheduled.swap(true, Ordering::AcqRel) {
             self.poke();
         }
@@ -225,31 +286,37 @@ impl LoopHub {
 
     #[inline]
     fn poke(&self) {
-        #[cfg(unix)]
-        if let Some((_, tx)) = &self.wake_pair {
-            // WouldBlock => a byte is already there so finna flush soon anyway.
-            // other errs shouldnt happen (rx lives as long as the hub). if one did,
-            // `flush_scheduled` stays true and the hub goes quiet. look here if wakes
-            // ever just stop
-            let _ = (&*tx).write(&[1]);
-            return;
+        match &self.wake {
+            // WouldBlock => a byte is already there so a flush is coming anyway.
+            // other errs shouldn't happen (rx lives as long as the hub). If
+            // there was an err, `flush_scheduled` stays true/twu and the hub
+            // is quiet.
+            // TODO: if wake ups stop, this is prolly the place to look?
+            #[cfg(unix)]
+            LoopWake::Pipe(_, tx) => {
+                let _ = (&*tx).write(&[1]);
+            }
+            LoopWake::Fallback(flush) => self.poke_fallback(flush),
         }
-        self.poke_fallback();
     }
 
     /// the only place a tokio thread takes the GIL. noop during interpreter
-    /// shutdown. if `call_soon_threadsafe` raises the loop is closed, so close
-    /// the hub
+    /// shutdown. if the loop is gone or `call_soon_threadsafe` raises (closed),
+    /// close the hub
     #[cold]
-    fn poke_fallback(&self) {
+    fn poke_fallback(&self, flush: &Py<RyCoroutineFlush>) {
         Python::try_attach(|py| {
+            let Some(event_loop) = self.event_loop.get(py) else {
+                self.close();
+                return;
+            };
             let kwargs = PyDict::new(py);
             let result = kwargs
                 .set_item(pyo3::intern!(py, "context"), self.context.bind(py))
                 .and_then(|()| {
-                    self.event_loop.bind(py).call_method(
+                    event_loop.call_method(
                         pyo3::intern!(py, "call_soon_threadsafe"),
-                        (self.flush.bind(py),),
+                        (flush.bind(py),),
                         Some(&kwargs),
                     )
                 });
@@ -261,11 +328,12 @@ impl LoopHub {
 
     /// runs the whole batch
     ///
-    /// `KeyboardInterrupt`/`SystemExit` oot gets handed back (after the rest
-    /// of the batch) so it stops das loop how a plain asyncio handle would
+    /// a `KeyboardInterrupt`/`SystemExit` from a cb gets returned (after the
+    /// rest of the batch runs) so it stops the loop like a plain asyncio
+    /// handle would
     fn run_ready(&self, py: Python<'_>) -> PyResult<()> {
         #[cfg(unix)]
-        if let Some((rx, _)) = &self.wake_pair {
+        if let LoopWake::Pipe(rx, _) = &self.wake {
             // level-triggered, so a leftover byte fires again
             let mut bytes = [0; 256];
             loop {
@@ -278,9 +346,8 @@ impl LoopHub {
             }
         }
 
-        // chill before taking the batch ~ a racing flush either lands in this
-        // batch or pokes again (no lost wakes)
-
+        // clear `flush_scheduled` *before* taking the batch ~ a racing push
+        // either lands in this batch or sees false and pokes again (no lost wakes)
         self.flush_scheduled.store(false, Ordering::SeqCst);
         let batch = std::mem::take(&mut *lock(&self.ready));
         // only the first KeyboardInterrupt/SystemExit sticks, the rest get tossed
@@ -300,15 +367,28 @@ impl LoopHub {
 
     fn close(&self) {
         self.closed.store(true, Ordering::Release);
-        lock(&self.ready).clear();
+        let ready = std::mem::take(&mut *lock(&self.ready));
+        // drop after unlocking
+        drop(ready);
     }
 
-    fn is_closed(&self, py: Python<'_>) -> bool {
-        self.event_loop
-            .bind(py)
-            .call_method0(pyo3::intern!(py, "is_closed"))
-            .and_then(|value| value.is_truthy())
-            .unwrap_or(true)
+    /// loop collected or closed
+    fn loop_gone(&self, py: Python<'_>) -> bool {
+        self.event_loop.get(py).is_none_or(|event_loop| {
+            event_loop
+                .call_method0(pyo3::intern!(py, "is_closed"))
+                .and_then(|value| value.is_truthy())
+                .unwrap_or(true)
+        })
+    }
+
+    /// close it if its loop is gone ~ `false` means prune time
+    fn keep(&self, py: Python<'_>) -> bool {
+        let gone = self.loop_gone(py);
+        if gone {
+            self.close();
+        }
+        !gone
     }
 }
 
@@ -340,76 +420,145 @@ fn register_reader(
 #[pyclass(name = "CoroutineFlush", frozen)]
 #[cfg_attr(any(not(Py_LIMITED_API), Py_3_14), pyo3(immutable_type))]
 #[cfg_attr(feature = "ry", pyo3(module = "ry.ryo3"))]
-struct RyCoroutineFlush(OnceLock<Weak<LoopHub>>);
+struct RyCoroutineFlush(OnceLock<FlushHub>);
+
+/// `Owner` when the loop owns the hub (see [`LoopHub`])
+enum FlushHub {
+    Owner(Arc<LoopHub>),
+    Weak(Weak<LoopHub>),
+}
+
+impl Drop for FlushHub {
+    fn drop(&mut self) {
+        // loop dropped its reader. Queue is emptied at this point (loop
+        // thread) and not on whatever worker drops/dropped the last remaining
+        // `Arc`
+        if let Self::Owner(hub) = self {
+            hub.close();
+        }
+    }
+}
 
 #[pymethods]
 impl RyCoroutineFlush {
     fn __call__(&self, py: Python<'_>) -> PyResult<()> {
-        match self.0.get().and_then(Weak::upgrade) {
-            Some(hub) => hub.run_ready(py),
+        match self.0.get() {
+            Some(FlushHub::Owner(hub)) => hub.run_ready(py),
+            Some(FlushHub::Weak(hub)) => hub.upgrade().map_or(Ok(()), |hub| hub.run_ready(py)),
             None => Ok(()),
         }
     }
 }
 
+/// a `LOOP_HUBS` entry
+struct HubSlot {
+    /// checked w/o touching the hub, so a lookup never drops the last `Arc`
+    /// (and runs python) while `LOOP_HUBS` is borrowed
+    event_loop: LoopRef,
+    hub: HubKeep,
+}
+
+enum HubKeep {
+    /// the loop owns it
+    ByLoop(Weak<LoopHub>),
+    /// we do (fallback/no-weakref loops)
+    ByUs(Arc<LoopHub>),
+}
+
+impl HubSlot {
+    fn hub(&self) -> Option<Arc<LoopHub>> {
+        match &self.hub {
+            HubKeep::ByLoop(hub) => hub.upgrade(),
+            HubKeep::ByUs(hub) => Some(Arc::clone(hub)),
+        }
+    }
+
+    /// `false` => prune it
+    fn keep(&self, py: Python<'_>) -> bool {
+        match &self.hub {
+            // reader dropped => flush already closed it
+            // reader alive but loop dead => close it right here
+            HubKeep::ByLoop(hub) => hub.upgrade().is_some_and(|hub| hub.keep(py)),
+            HubKeep::ByUs(hub) => hub.keep(py),
+        }
+    }
+}
+
+/// the live hub for `event_loop`, if this thread has one
+///
+/// the loop is running so its hub is alive ~ `hub()` cant be the last ref
+fn find_hub(event_loop: &Bound<'_, PyAny>) -> Option<Arc<LoopHub>> {
+    let py = event_loop.py();
+    LOOP_HUBS.with(|hubs| {
+        hubs.borrow()
+            .iter()
+            .find(|slot| slot.event_loop.get(py).is_some_and(|l| l.is(event_loop)))
+            .and_then(HubSlot::hub)
+    })
+}
+
 // Vec not one slot b/c one thread can run a bunch of loops over time
-// (`asyncio.run` in a loop, pytest loop-per-test). stale hubs get pruned
+// (`asyncio.run` in a loop, pytest loop-per-test). stale entries get pruned
 // lazily when the next new loop shows up
 thread_local! {
-    static LOOP_HUBS: RefCell<Vec<Arc<LoopHub>>> = const { RefCell::new(Vec::new()) };
+    static LOOP_HUBS: RefCell<Vec<HubSlot>> = const { RefCell::new(Vec::new()) };
 }
 
 /// handle to the running event loop on this thread (+ its wake hub)
+///
+/// weak ~ holding one never keeps the loop or its hub alive
 #[derive(Clone)]
-pub struct LoopHandle(Arc<LoopHub>);
+pub struct LoopHandle(Weak<LoopHub>);
 
 impl LoopHandle {
     /// errs if there is no running loop
     pub fn current(py: Python<'_>) -> PyResult<Self> {
         let event_loop = asyncio_get_running_loop(py)?;
-        if let Some(hub) = LOOP_HUBS.with(|hubs| {
-            hubs.borrow()
-                .iter()
-                // ptr compare is fine, the hub's strong ref keeps the address from
-                // being reused
-                .find(|hub| hub.event_loop.as_ptr() == event_loop.as_ptr())
-                .cloned()
-        }) {
-            return Ok(Self(hub));
-        }
+        Self::loop2hub(&event_loop).map(|hub| Self(Arc::downgrade(&hub)))
+    }
 
-        Self::register_loop(&event_loop)
+    /// return hub corresponding to a py event-loop
+    fn loop2hub(event_loop: &Bound<'_, PyAny>) -> PyResult<Arc<LoopHub>> {
+        match find_hub(event_loop) {
+            Some(hub) => Ok(hub),
+            None => Self::register_loop(event_loop),
+        }
     }
 
     #[cold]
-    fn register_loop(event_loop: &Bound<'_, PyAny>) -> PyResult<Self> {
+    fn register_loop(event_loop: &Bound<'_, PyAny>) -> PyResult<Arc<LoopHub>> {
         let py = event_loop.py();
-        // RefCell stays unborrowed while python runs (`is_closed`/`new` can
-        // end up back in here)
-        let mut hubs = LOOP_HUBS.with(RefCell::take);
-        hubs.retain(|hub| {
-            let open = !hub.is_closed(py);
-            if !open {
-                hub.close();
-            }
-            open
+        // RefCell stays unborrowed while python runs (`is_closed`/`new`/drops
+        // can end up back in here). The fancy new `DropGuard` puts em back
+        // even on err. Wakers only hold a `Weak` (ref)
+        let mut hubs = DropGuard::new(LOOP_HUBS.with(RefCell::take), |mut hubs| {
+            LOOP_HUBS.with(|slot| {
+                hubs.append(&mut slot.borrow_mut());
+                *slot.borrow_mut() = hubs;
+            });
         });
-        let hub = LoopHub::new(event_loop);
-        if let Ok(hub) = &hub {
-            hubs.push(Arc::clone(hub));
+        hubs.retain(|slot| slot.keep(py));
+        // pruning runs attached to py, which may have already registered the
+        // loop
+        if let Some(hub) = find_hub(event_loop) {
+            return Ok(hub);
         }
-        // put em back even on err ~ wakers only hold a `Weak` to their hub
-        LOOP_HUBS.with(|slot| {
-            hubs.append(&mut slot.borrow_mut());
-            *slot.borrow_mut() = hubs;
+        let hub = LoopHub::new(event_loop)?;
+        hubs.push(HubSlot {
+            event_loop: hub.event_loop.clone_ref(py),
+            hub: if hub.owned_by_loop() {
+                HubKeep::ByLoop(Arc::downgrade(&hub))
+            } else {
+                HubKeep::ByUs(Arc::clone(&hub))
+            },
         });
-        hub.map(Self)
+        Ok(hub)
     }
 
-    /// the python event loop
+    /// the python event loop ~ `None` if it (or its hub) is gone
     #[must_use]
-    pub fn event_loop<'py>(&self, py: Python<'py>) -> &Bound<'py, PyAny> {
-        self.0.event_loop.bind(py)
+    pub fn event_loop<'py>(&self, py: Python<'py>) -> Option<Bound<'py, PyAny>> {
+        self.0.upgrade()?.event_loop.get(py)
     }
 
     /// run `call` w/ the GIL on the loop thread soon ~ callable from any thread
@@ -419,7 +568,9 @@ impl LoopHandle {
     where
         F: FnOnce(Python<'_>) + Send + 'static,
     {
-        self.0.post_event(LoopEvent::Call(Box::new(call)));
+        if let Some(hub) = self.0.upgrade() {
+            hub.post_event(LoopEvent::Call(Box::new(call)));
+        }
     }
 }
 
@@ -469,10 +620,15 @@ impl CoroutineWaker {
 
     /// done for good ~ drops the `py_future` + cbs so a late wake is a noop
     fn retire(&self) {
-        *lock(&self.state) = WakeState {
-            status: WakeStatus::Woken,
-            ..WakeState::default()
-        };
+        let ye_old_wake_state = std::mem::replace(
+            &mut *lock(&self.state),
+            WakeState {
+                status: WakeStatus::Woken,
+                ..WakeState::default()
+            },
+        );
+        // drop after unlocking, bc callbacks and py-future may dtor
+        drop(ye_old_wake_state);
     }
 
     /// errs only w/ a `KeyboardInterrupt`/`SystemExit` (see [`LoopHub::run_ready`])
@@ -528,9 +684,11 @@ impl CoroutineWaker {
     }
 
     fn traverse(&self, visit: &PyVisit<'_>) -> Result<(), PyTraverseError> {
-        // busy ~ in use rn skip for now
-        let Ok(state) = self.state.try_lock() else {
-            return Ok(());
+        // busy => skip instead of blocking; poisoned => still visit the refs
+        let state = match self.state.try_lock() {
+            Ok(state) => state,
+            Err(TryLockError::Poisoned(error)) => error.into_inner(),
+            Err(TryLockError::WouldBlock) => return Ok(()),
         };
         visit.call(&state.py_future)?;
         visit.call(&state.cancel_message)?;
@@ -636,14 +794,15 @@ impl RyCoroutineFuture {
         Ok(before - state.callbacks.len())
     }
 
-    // `call_soon` here (not inline like `wake_task`),
-    // This is the same as `asyncio.Future.cancel` in that it runs inside of
-    // `Task.cancel` from whoever is cancelling,
+    // `call_soon` here, not inline like `wake_task` (same as `asyncio.Future`)
     //
-    // NOTE: This means that the cancellation is processed in the context of
-    // the caller who invoked `Task.cancel()`, rather than inline within the
-    // coroutine itself. I forget what problem this caused exactly but it was
-    // wrong scoping I think.
+    // This runs INSIDE `Task.cancel()`, usually called from ANOTHER task's
+    // step. Running `__wakeup` inline would step the cancelled task while the
+    // canceller is still the current task, AND asyncio's `_enter_task` raises
+    // "Cannot enter into task <...> while another task <...> is being
+    // executed". The cancelled task NEVER gets stepped into after that and
+    // hangs forever. `wake_task` can go inline b/c `run_ready` is a plain jane
+    // loop cb with no current task.
     #[pyo3(signature = (msg = None))]
     fn cancel(slf: &Bound<'_, Self>, msg: Option<Py<PyAny>>) -> PyResult<bool> {
         let this = slf.get();
@@ -704,7 +863,13 @@ impl Wake for CoroutineWaker {
     }
 
     fn wake_by_ref(self: &Arc<Self>) {
-        Arc::clone(self).wake();
+        if self.queued.swap(true, Ordering::AcqRel) {
+            return;
+        }
+        // avoid arc clone until it really needs to be queued (micro opt (yay))
+        if let Some(hub) = self.hub.upgrade() {
+            hub.post_event(LoopEvent::Wake(Arc::clone(self)));
+        }
     }
 }
 
@@ -791,7 +956,7 @@ impl RyCoroutine {
         Ok(())
     }
 
-    /// `send`/`__next__` ~ THE ACTUAL REAL DEAL COROUTINE
+    /// `send`/`__next__` ~ the actual real deal coroutine
     ///
     /// - holds the state lock for the whole poll, so re-entry gets "coroutine
     ///   already executing" like a real coroutine
@@ -815,10 +980,12 @@ impl RyCoroutine {
                 return Ok(py.None());
             }
             CoroutineState::Unstarted(mut future) => {
-                let loop_handle = LoopHandle::current(py)?;
-                // Ready operations need no Python future or wakeup allocation.
-                // On Pending, poll again below with the real waker so a wake
-                // racing this initial poll cannot be lost.
+                let event_loop = asyncio_get_running_loop(py)?;
+                // ready on the first poll?
+                // >>> no py-future/waker needed at all.
+                // pending?
+                // >>> poll again below with the real waker; anything that wakes
+                // up the noop waker during this poll would be lost to the ether
                 if let Poll::Ready(result) = future
                     .as_mut()
                     .poll_py(py, &mut Context::from_waker(Waker::noop()))
@@ -826,8 +993,9 @@ impl RyCoroutine {
                     return Err(result
                         .map_or_else(|error| error, |value| PyStopIteration::new_err((value,))));
                 }
+                let hub = LoopHandle::loop2hub(&event_loop)?;
                 let waker = Arc::new(CoroutineWaker {
-                    hub: Arc::downgrade(&loop_handle.0),
+                    hub: Arc::downgrade(&hub),
                     queued: AtomicBool::new(false),
                     state: Mutex::new(WakeState::default()),
                 });
@@ -835,7 +1003,7 @@ impl RyCoroutine {
                     py,
                     RyCoroutineFuture {
                         waker: Arc::clone(&waker),
-                        event_loop: loop_handle.0.event_loop.clone_ref(py),
+                        event_loop: event_loop.unbind(),
                         asyncio_blocking: AtomicBool::new(false),
                     },
                 )?;
@@ -885,7 +1053,9 @@ impl Drop for RyCoroutine {
     }
 }
 
-/// `throw(exc)` or deprecated `throw(type, value, tb)` ~ looks like dep in 312
+/// `throw(exc)` or `throw(type, value, tb)`
+///
+/// NOTE: the 3-arg form is deprecated since 3.12 [ref](https://github.com/python/cpython/blob/0fb18b02c8ad56299d6a2910be0bab8ad601ef24/Objects/genobject.c#L578-L585)
 fn thrown_error(typ: &Bound<'_, PyAny>, value: Option<&Bound<'_, PyAny>>) -> PyErr {
     match value.filter(|value| !value.is_none()) {
         Some(value) if value.is_instance_of::<PyBaseException>() => {
@@ -922,7 +1092,7 @@ impl RyCoroutine {
     #[cfg(any(PyPy, GraalPy))]
     fn __repr__(slf: &Bound<'_, Self>) -> PyResult<String> {
         // address from `id()` like python's own reprs ~ on pypy the object
-        // pointer we get aint what `id()` says
+        // pointer we get aint what `id()` says (oy vey)
         static ID: PyOnceLock<Py<PyAny>> = PyOnceLock::new();
         let id: usize = ID
             .import(slf.py(), "builtins", "id")?
@@ -931,12 +1101,11 @@ impl RyCoroutine {
         Ok(format!("<ry.Coroutine {} at {id:#x}>", slf.get().qualname))
     }
 
+    /// returns self so it can be awaited like a py coroutine
     fn __await__(slf: Py<Self>) -> Py<Self> {
         slf
     }
 
-    /// `__await__()` returns self so it can be a awaited like a py coroutine
-    ///
     /// `yield from aw.__await__()` (generator-y adapters) needs `iter()` afaict
     fn __iter__(slf: Py<Self>) -> Py<Self> {
         slf
@@ -950,7 +1119,7 @@ impl RyCoroutine {
         self.poll_once(py)
     }
 
-    // the future dies here w/o async cleanup. `Drop` cant `block_on` either, it
+    // the future dies here w/o async cleanup. `Drop` can't `block_on` either, it
     // can run on a tokio worker. see <https://github.com/jessekrubin/ry/pull/899>
     #[pyo3(signature = (typ, value = None, _traceback = None, /))]
     fn throw(
@@ -968,8 +1137,11 @@ impl RyCoroutine {
     }
 
     fn __traverse__(&self, visit: PyVisit<'_>) -> Result<(), PyTraverseError> {
-        let Ok(state) = self.state.try_lock() else {
-            return Ok(());
+        // busy => skip instead of blocking; poisoned => still visit the refs
+        let state = match self.state.try_lock() {
+            Ok(state) => state,
+            Err(TryLockError::Poisoned(error)) => error.into_inner(),
+            Err(TryLockError::WouldBlock) => return Ok(()),
         };
         match &*state {
             CoroutineState::Immediate(Ok(value)) | CoroutineState::YieldOnce(value) => {
@@ -1001,8 +1173,7 @@ where
     RyCoroutine::new(py, qualname, CoroutineState::Unstarted(Box::pin(lazy)))
 }
 
-/// Runs sync `f` on tokio's blocking thread pool. Nothing starts until the
-/// coroutine is first awaited.
+/// run sync `f` on tokio's blocking pool ~ nothing starts till first await
 pub fn blocking_coro<'py, F, T>(
     py: Python<'py>,
     qualname: &'static str,
@@ -1056,13 +1227,13 @@ pub fn failed_coro<'py>(
     RyCoroutine::new(py, qualname, CoroutineState::Immediate(Err(err)))
 }
 
-/// poll `future` right on the loop thread ~ ONLY for futures that dont need
+/// poll `future` right on the loop thread ~ ONLY for futures that don't need
 /// the tokio rt context (tokio channels/notify/mutex ok; io/timers/spawn no)
 ///
 /// spawning through the runtime handle (`get_ry_tokio_runtime().py_spawn*`)
 /// and awaiting the `JoinHandle` works here; bare `tokio::spawn` panics
 ///
-/// tokio can panic here (no reactor here) -> `PanicException`
+/// tokio can panic here (no reactor on the loop thread) -> `PanicException`
 pub fn pyloop_coro<'py, F, T>(
     py: Python<'py>,
     qualname: &'static str,

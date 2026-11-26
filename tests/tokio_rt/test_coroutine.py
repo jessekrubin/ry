@@ -5,11 +5,13 @@ import collections.abc
 import contextvars
 import gc
 import os
+import queue
 import subprocess
 import sys
 import threading
 import time
 import typing as t
+import weakref
 
 import pytest
 
@@ -50,6 +52,11 @@ class TestShape:
 
 
 class TestLazy:
+    def test_ready_future_needs_running_loop(self, tmp_path: Path) -> None:
+        coro = ry.AsyncFile(tmp_path / "data.bin", "wb").close()
+        with pytest.raises(RuntimeError, match="no running event loop"):
+            coro.send(None)
+
     @pytest.mark.parametrize("how", ["close", "drop"])
     async def test_never_awaited_does_nothing(self, tmp_path: Path, how: str) -> None:
         coros = [ry.write_async(tmp_path / f"{i}.bin", b"x") for i in range(8)]
@@ -179,6 +186,36 @@ class TestAsyncioCompat:
         assert fut.remove_done_callback(obj.cb) == 2
         assert fut.remove_done_callback(obj.cb) == 0
         coro.close()
+
+    @pytest.mark.parametrize("n_callbacks", [1, 4])
+    @pytest.mark.parametrize("cancel", [False, True])
+    async def test_future_callbacks_in_order(
+        self, n_callbacks: int, *, cancel: bool
+    ) -> None:
+        """single and multiple callbacks keep their order on wake and cancel"""
+        coro = ry.asleep(0.01)
+        future = coro.send(None)
+        seen: list[int] = []
+        finished = asyncio.Event()
+        try:
+            for i in range(n_callbacks):
+
+                def on_done(_future: t.Any, index: int = i) -> None:
+                    seen.append(index)
+                    if len(seen) == n_callbacks:
+                        finished.set()
+
+                future.add_done_callback(on_done)
+            if cancel:
+                assert future.cancel()
+            await asyncio.wait_for(finished.wait(), 5)
+            assert seen == list(range(n_callbacks))
+            assert future.cancelled() is cancel
+            if not cancel:
+                with pytest.raises(StopIteration):
+                    coro.send(None)
+        finally:
+            coro.close()
 
     async def test_contextvars(self) -> None:
         cv: contextvars.ContextVar[str] = contextvars.ContextVar("cv")
@@ -336,12 +373,13 @@ asyncio.run(main())
         assert b"Exception ignored" not in res.stderr
 
 
+class _NoReaderLoop(asyncio.SelectorEventLoop):
+    def add_reader(self, *args: t.Any, **kwargs: t.Any) -> t.Any:  # type: ignore[override]
+        raise NotImplementedError
+
+
 class TestFallback:
     def test_no_add_reader(self, tmp_path: Path) -> None:
-        class _NoReaderLoop(asyncio.SelectorEventLoop):
-            def add_reader(self, *args: t.Any, **kwargs: t.Any) -> t.Any:  # type: ignore[override]
-                raise NotImplementedError
-
         p = tmp_path / "f.bin"
         p.write_bytes(b"x" * 1024)
 
@@ -356,3 +394,139 @@ class TestFallback:
 
         with asyncio.Runner(loop_factory=_NoReaderLoop) as runner:
             runner.run(asyncio.wait_for(_main(), 30))
+
+
+class TestLoopLifecycle:
+    @staticmethod
+    def _loop_released(
+        loop_ref: collections.abc.Callable[[], asyncio.AbstractEventLoop | None],
+    ) -> bool:
+        # worker cleanup can release its last Python ref after close()
+        for _ in range(50):
+            gc.collect()
+            if loop_ref() is None:
+                return True
+            time.sleep(0.01)
+        return False
+
+    @pytest.mark.skipif(sys.platform == "win32", reason="no fd dir on windows")
+    @pytest.mark.skipif(
+        sys.implementation.name == "pypy",
+        reason="pypy cant collect cycles thru ext objs (really confusing but what can you do...)",
+    )
+    def test_closed_loop_released(self) -> None:
+        """the hub (and socketpair) dies w/ loop, even w in-flight coros"""
+        # don't count the shared runtime's first-time descriptors as a loop leak
+        asyncio.run(ry.asleep(0.001))
+        fd_dir = "/proc/self/fd" if os.path.isdir("/proc/self/fd") else "/dev/fd"
+        before = len(os.listdir(fd_dir))
+        loop = asyncio.new_event_loop()
+        loop.set_exception_handler(lambda _loop, _context: None)
+        tasks = [loop.create_task(ry.asleep(10)) for _ in range(8)]
+        try:
+            loop.run_until_complete(asyncio.sleep(0.05))
+        finally:
+            loop.close()
+        loop_ref = weakref.ref(loop)
+        del loop, tasks
+        assert self._loop_released(loop_ref)
+        assert len(os.listdir(fd_dir)) <= before
+
+    def test_idle_thread_releases_loop(self) -> None:
+        """a thread that runs one loop then idles does not pin it (the loop)"""
+        loop_refs: queue.SimpleQueue[
+            weakref.ReferenceType[asyncio.AbstractEventLoop]
+        ] = queue.SimpleQueue()
+        stop = threading.Event()
+
+        def _run() -> None:
+            loop = asyncio.new_event_loop()
+            try:
+                loop.run_until_complete(ry.asleep(0.01))
+            finally:
+                loop.close()
+            loop_ref = weakref.ref(loop)
+            del loop
+            loop_refs.put(loop_ref)
+            stop.wait(10)
+
+        thread = threading.Thread(target=_run)
+        thread.start()
+        try:
+            assert self._loop_released(loop_refs.get(timeout=10))
+            assert thread.is_alive()
+        finally:
+            stop.set()
+            thread.join(10)
+        assert not thread.is_alive()
+
+    def test_no_add_reader_loop_released(self) -> None:
+        """fallback hubs stay in the registry but only hold the loop weakly"""
+        loop = _NoReaderLoop()
+        try:
+            loop.run_until_complete(ry.asleep(0.01))
+        finally:
+            loop.close()
+        loop_ref = weakref.ref(loop)
+        del loop
+        assert self._loop_released(loop_ref)
+        # next loop on this thread still works (kills the dead hub)
+        assert asyncio.run(ry.asleep(0.01)) == 0.01
+
+    @pytest.mark.parametrize("after_close", [False, True], ids=["queued", "late"])
+    def test_fallback_shutdown_pending_completion(self, *, after_close: bool) -> None:
+        """queued and late wakes survive close w/o running abandoned callbacks"""
+        waking = threading.Event()
+        resume = threading.Event()
+        dispatched = threading.Event()
+        rejected = False
+        callbacks: list[object] = []
+
+        class _GatedLoop(_NoReaderLoop):
+            def call_soon_threadsafe(  # type: ignore[override]
+                self, *args: t.Any, **kwargs: t.Any
+            ) -> asyncio.Handle:
+                nonlocal rejected
+                waking.set()
+                if not resume.wait(10):
+                    msg = "timed out waiting to dispatch completion"
+                    raise RuntimeError(msg)
+                try:
+                    return super().call_soon_threadsafe(*args, **kwargs)
+                except RuntimeError:
+                    rejected = True
+                    raise
+                finally:
+                    dispatched.set()
+
+        loop = _GatedLoop()
+        coro = ry.asleep(0.1)
+
+        async def _start(awaitable: t.Any) -> t.Any:
+            future = awaitable.send(None)
+            future.add_done_callback(callbacks.append)
+            return future
+
+        try:
+            future = loop.run_until_complete(_start(coro))
+            assert not future.done()
+            assert waking.wait(10)
+            if after_close:
+                loop.close()
+            resume.set()
+            assert dispatched.wait(10)
+            if not after_close:
+                loop.close()
+            assert rejected is after_close
+            assert not future.done()
+            # prunes a fallback hub whose flush was queued before loop.close()
+            assert asyncio.run(ry.asleep(0)) == 0
+            assert callbacks == []
+        finally:
+            resume.set()
+            loop.close()
+            coro.close()
+
+        loop_ref = weakref.ref(loop)
+        del loop, coro, future
+        assert self._loop_released(loop_ref)
